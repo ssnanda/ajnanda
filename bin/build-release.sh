@@ -7,33 +7,63 @@ RELEASES_DIR="$ROOT_DIR/releases"
 STYLE_FILE="$ROOT_DIR/style.css"
 FUNCTIONS_FILE="$ROOT_DIR/functions.php"
 
+GITHUB_REPO="ssnanda/ajnanda"
+TAG_PREFIX="v"
+
+GITHUB_RELEASE="ask"
+GIT_COMMIT="ask"
+GIT_PUSH="ask"
+
 usage() {
   cat <<'USAGE'
 Usage:
   ./bin/build-release.sh
-  ./bin/build-release.sh [options]
 
-Default behavior:
-  Shows a release menu. Press Enter for patch.
+Interactive flow:
+  1. Choose version bump
+  2. Build releases/<slug>-<version>.zip
+  3. Ask whether to commit to git
+  4. Ask whether to push to GitHub
+  5. Ask whether to create/upload GitHub Release asset
 
-Options:
-  --version X.Y.Z       Set theme version before packaging
-  --bump patch          Increment patch version before packaging
-  --bump minor          Increment minor version before packaging
-  --bump major          Increment major version before packaging
-  --no-bump             Package current version without changing it
-  --slug NAME           ZIP folder/package slug, default: ajnanda
-  --root PATH           Theme root path, default: parent of this script's bin folder
-  --help                Show this help
+Options are still supported:
+  --version X.Y.Z
+  --bump patch|minor|major
+  --no-bump
+  --slug NAME
+  --root PATH
+  --repo OWNER/REPO
+  --github-release
+  --no-github-release
+  --git-commit
+  --no-git-commit
+  --push
+  --no-push
+  --help
 
 Creates:
   releases/<slug>-<version>.zip
   releases/<slug>.zip
-
-Version sources updated:
-  style.css header: Version: X.Y.Z
-  functions.php: define('AJNANDA_THEME_VERSION', 'X.Y.Z'); if present
 USAGE
+}
+
+ask_yes_no() {
+  local prompt="$1"
+  local default="${2:-n}"
+  local answer=""
+
+  if [[ "$default" == "y" ]]; then
+    read -r -p "$prompt [Y/n]: " answer
+    answer="${answer:-y}"
+  else
+    read -r -p "$prompt [y/N]: " answer
+    answer="${answer:-n}"
+  fi
+
+  case "$answer" in
+    y|Y|yes|YES|Yes) return 0 ;;
+    *) return 1 ;;
+  esac
 }
 
 get_version() {
@@ -84,7 +114,21 @@ require_files() {
   [[ -f "$STYLE_FILE" ]] || { echo "Error: missing style.css at $STYLE_FILE" >&2; exit 1; }
   [[ -f "$FUNCTIONS_FILE" ]] || { echo "Error: missing functions.php at $FUNCTIONS_FILE" >&2; exit 1; }
   command -v zip >/dev/null 2>&1 || { echo "Error: zip command is required" >&2; exit 1; }
+  command -v unzip >/dev/null 2>&1 || { echo "Error: unzip command is required" >&2; exit 1; }
   command -v rsync >/dev/null 2>&1 || { echo "Error: rsync command is required" >&2; exit 1; }
+}
+
+require_git() {
+  command -v git >/dev/null 2>&1 || { echo "Error: git command is required" >&2; exit 1; }
+  git -C "$ROOT_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
+    echo "Error: $ROOT_DIR is not a git repository" >&2
+    exit 1
+  }
+}
+
+require_gh() {
+  command -v gh >/dev/null 2>&1 || { echo "Error: GitHub CLI is required. Install with: brew install gh" >&2; exit 1; }
+  gh auth status >/dev/null 2>&1 || { echo "Error: GitHub CLI is not logged in. Run: gh auth login" >&2; exit 1; }
 }
 
 choose_version_from_menu() {
@@ -108,32 +152,17 @@ MENU
     choice="${choice:-1}"
 
     case "$choice" in
-      1|patch|p)
-        echo "$(bump_version "$current" patch)"
-        return 0
-        ;;
-      2|minor|m)
-        echo "$(bump_version "$current" minor)"
-        return 0
-        ;;
-      3|major|M)
-        echo "$(bump_version "$current" major)"
-        return 0
-        ;;
+      1|patch|p) echo "$(bump_version "$current" patch)"; return 0 ;;
+      2|minor|m) echo "$(bump_version "$current" minor)"; return 0 ;;
+      3|major|M) echo "$(bump_version "$current" major)"; return 0 ;;
       4|custom|c)
         read -r -p "Enter version X.Y.Z: " custom_version
         validate_version "$custom_version"
         echo "$custom_version"
         return 0
         ;;
-      5|none|no|n|current)
-        echo "$current"
-        return 0
-        ;;
-      *)
-        echo "Please choose 1, 2, 3, 4, or 5." >&2
-        echo "" >&2
-        ;;
+      5|none|no|n|current) echo "$current"; return 0 ;;
+      *) echo "Please choose 1, 2, 3, 4, or 5." >&2; echo "" >&2 ;;
     esac
   done
 }
@@ -172,28 +201,101 @@ build_zip() {
   rm -rf "$tmp_dir"
 }
 
+verify_zip() {
+  local zip_file="$1"
+  [[ -f "$zip_file" ]] || { echo "Error: zip was not created: $zip_file" >&2; exit 1; }
+
+  if ! unzip -l "$zip_file" | awk '{print $4}' | grep -q "^$THEME_SLUG/$"; then
+    echo "Error: zip root folder is not $THEME_SLUG/" >&2
+    unzip -l "$zip_file" | head >&2
+    exit 1
+  fi
+
+  if ! unzip -l "$zip_file" | awk '{print $4}' | grep -q "^$THEME_SLUG/style.css$"; then
+    echo "Error: zip is missing $THEME_SLUG/style.css" >&2
+    unzip -l "$zip_file" | head >&2
+    exit 1
+  fi
+}
+
+git_commit_release_files() {
+  require_git
+  cd "$ROOT_DIR"
+
+  git add style.css functions.php bin/build-release.sh
+
+  if [[ -f ".gitignore" ]]; then
+    git add .gitignore
+  fi
+
+  if git ls-files --error-unmatch "$VERSIONED_ZIP" >/dev/null 2>&1; then
+    git add "$VERSIONED_ZIP"
+  fi
+
+  if git ls-files --error-unmatch "$LATEST_ZIP" >/dev/null 2>&1; then
+    git add "$LATEST_ZIP"
+  fi
+
+  if git diff --cached --quiet; then
+    echo "Git: nothing to commit"
+    return 0
+  fi
+
+  git commit -m "Release AJNanda $VERSION"
+}
+
+git_create_tag() {
+  require_git
+  cd "$ROOT_DIR"
+  local tag="$TAG_PREFIX$VERSION"
+
+  if git rev-parse "$tag" >/dev/null 2>&1; then
+    echo "Git: tag already exists: $tag"
+  else
+    git tag "$tag"
+    echo "Git: created tag $tag"
+  fi
+}
+
+git_push_release() {
+  require_git
+  cd "$ROOT_DIR"
+
+  local current_branch
+  current_branch="$(git rev-parse --abbrev-ref HEAD)"
+
+  git push origin "$current_branch"
+  git push origin "$TAG_PREFIX$VERSION"
+}
+
+publish_github_release() {
+  require_gh
+
+  local tag="$TAG_PREFIX$VERSION"
+  local title="AJNanda $VERSION"
+
+  if gh release view "$tag" --repo "$GITHUB_REPO" >/dev/null 2>&1; then
+    gh release upload "$tag" "$VERSIONED_ZIP" --repo "$GITHUB_REPO" --clobber
+    echo "GitHub: uploaded asset to existing release $tag"
+  else
+    gh release create "$tag" "$VERSIONED_ZIP" \
+      --repo "$GITHUB_REPO" \
+      --title "$title" \
+      --notes "AJNanda WordPress theme release $VERSION"
+    echo "GitHub: created release $tag and uploaded asset"
+  fi
+}
+
 VERSION_OVERRIDE=""
 BUMP_PART=""
 NO_BUMP="false"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --version)
-      VERSION_OVERRIDE="${2:-}"
-      shift 2
-      ;;
-    --bump)
-      BUMP_PART="${2:-}"
-      shift 2
-      ;;
-    --no-bump)
-      NO_BUMP="true"
-      shift
-      ;;
-    --slug)
-      THEME_SLUG="${2:-}"
-      shift 2
-      ;;
+    --version) VERSION_OVERRIDE="${2:-}"; shift 2 ;;
+    --bump) BUMP_PART="${2:-}"; shift 2 ;;
+    --no-bump) NO_BUMP="true"; shift ;;
+    --slug) THEME_SLUG="${2:-}"; shift 2 ;;
     --root)
       ROOT_DIR="$(cd "${2:-}" && pwd)"
       RELEASES_DIR="$ROOT_DIR/releases"
@@ -201,17 +303,20 @@ while [[ $# -gt 0 ]]; do
       FUNCTIONS_FILE="$ROOT_DIR/functions.php"
       shift 2
       ;;
-    --help|-h)
-      usage
-      exit 0
-      ;;
-    *)
-      echo "Error: unknown option $1" >&2
-      usage
-      exit 1
-      ;;
+    --repo) GITHUB_REPO="${2:-}"; shift 2 ;;
+    --github-release) GITHUB_RELEASE="true"; shift ;;
+    --no-github-release) GITHUB_RELEASE="false"; shift ;;
+    --git-commit) GIT_COMMIT="true"; shift ;;
+    --no-git-commit) GIT_COMMIT="false"; shift ;;
+    --push) GIT_PUSH="true"; shift ;;
+    --no-push) GIT_PUSH="false"; shift ;;
+    --help|-h) usage; exit 0 ;;
+    *) echo "Error: unknown option $1" >&2; usage; exit 1 ;;
   esac
 done
+
+[[ -n "$THEME_SLUG" ]] || { echo "Error: theme slug cannot be empty" >&2; exit 1; }
+[[ -n "$GITHUB_REPO" ]] || { echo "Error: GitHub repo cannot be empty" >&2; exit 1; }
 
 require_files
 
@@ -235,11 +340,7 @@ elif [[ -n "$BUMP_PART" ]]; then
 elif [[ "$NO_BUMP" == "true" ]]; then
   NEXT_VERSION="$CURRENT_VERSION"
 else
-  if [[ -t 0 ]]; then
-    NEXT_VERSION="$(choose_version_from_menu "$CURRENT_VERSION")"
-  else
-    NEXT_VERSION="$(bump_version "$CURRENT_VERSION" patch)"
-  fi
+  NEXT_VERSION="$(choose_version_from_menu "$CURRENT_VERSION")"
 fi
 
 validate_version "$NEXT_VERSION"
@@ -259,6 +360,45 @@ rm -f "$VERSIONED_ZIP" "$LATEST_ZIP"
 rm -rf "$RELEASES_DIR/$THEME_SLUG"
 
 build_zip
+verify_zip "$VERSIONED_ZIP"
+
+if [[ "$GIT_COMMIT" == "ask" ]]; then
+  if ask_yes_no "Commit version changes to git?" "y"; then
+    GIT_COMMIT="true"
+  else
+    GIT_COMMIT="false"
+  fi
+fi
+
+if [[ "$GIT_COMMIT" == "true" ]]; then
+  git_commit_release_files
+fi
+
+if [[ "$GIT_PUSH" == "ask" ]]; then
+  if ask_yes_no "Push branch and version tag to GitHub?" "y"; then
+    GIT_PUSH="true"
+  else
+    GIT_PUSH="false"
+  fi
+fi
+
+if [[ "$GIT_PUSH" == "true" ]]; then
+  git_create_tag
+  git_push_release
+fi
+
+if [[ "$GITHUB_RELEASE" == "ask" ]]; then
+  if ask_yes_no "Create/update GitHub Release and upload zip?" "y"; then
+    GITHUB_RELEASE="true"
+  else
+    GITHUB_RELEASE="false"
+  fi
+fi
+
+if [[ "$GITHUB_RELEASE" == "true" ]]; then
+  git_create_tag
+  publish_github_release
+fi
 
 echo "Current version: $CURRENT_VERSION"
 echo "New version: $VERSION"
@@ -267,5 +407,9 @@ echo "Updated: $FUNCTIONS_FILE"
 echo "Built: $VERSIONED_ZIP"
 echo "Built: $LATEST_ZIP"
 echo ""
-echo "Verify with:"
+echo "Verified:"
+echo "  $THEME_SLUG/"
+echo "  $THEME_SLUG/style.css"
+echo ""
+echo "Verify manually with:"
 echo "  unzip -l \"$VERSIONED_ZIP\" | head"
