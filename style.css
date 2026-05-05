@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: http://ncllc.ddev.site/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.0.31
+Version: 1.0.33
 License: GNU General Public License v2 or later
 Text Domain: ncllc-pro
 */
@@ -157,7 +157,7 @@ a:hover { color: var(--primary-dark); }
     min-height: 100vh;
     display: flex;
     align-items: center;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    background: linear-gradient(135deg, var(--ajn-hero-bg-1, var(--primary)) 0%, var(--ajn-hero-bg-2, var(--secondary)) 100%);
     padding: 6rem 1.5rem 4rem;
     position: relative;
     overflow: hidden;
@@ -278,7 +278,7 @@ a:hover { color: var(--primary-dark); }
 .feature-icon {
     width: 70px;
     height: 70px;
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    background: linear-gradient(135deg, var(--ajn-hero-bg-1, var(--primary)), var(--ajn-hero-bg-2, var(--secondary)));
     border-radius: 1rem;
     display: flex;
     align-items: center;
@@ -380,7 +380,7 @@ a:hover { color: var(--primary-dark); }
 /* CTA */
 .cta {
     padding: 5rem 1.5rem;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    background: linear-gradient(135deg, var(--ajn-hero-bg-1, var(--primary)) 0%, var(--ajn-hero-bg-2, var(--secondary)) 100%);
     text-align: center;
     color: white;
 }
@@ -523,7 +523,7 @@ a:hover { color: var(--primary-dark); }
 }
 
 .pricing-card.featured {
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    background: linear-gradient(135deg, var(--ajn-hero-bg-1, var(--primary)), var(--ajn-hero-bg-2, var(--secondary)));
     color: white;
     transform: scale(1.05);
     border-color: transparent;
@@ -556,7 +556,7 @@ a:hover { color: var(--primary-dark); }
     flex-shrink: 0;
     width: 60px;
     height: 60px;
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    background: linear-gradient(135deg, var(--ajn-hero-bg-1, var(--primary)), var(--ajn-hero-bg-2, var(--secondary)));
     color: white;
     border-radius: 50%;
     display: flex;
@@ -654,7 +654,7 @@ a:hover { color: var(--primary-dark); }
     background:
         radial-gradient(circle at 18% 20%, rgba(251, 191, 36, 0.32), transparent 28%),
         radial-gradient(circle at 82% 18%, rgba(96, 165, 250, 0.28), transparent 30%),
-        linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        linear-gradient(135deg, var(--ajn-hero-bg-1, var(--primary)) 0%, var(--ajn-hero-bg-2, var(--secondary)) 100%);
 }
 
 .page-hero::before {
@@ -743,7 +743,7 @@ a:hover { color: var(--primary-dark); }
 }
 
 .page-content-panel .uagb-post__cta a {
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    background: linear-gradient(135deg, var(--ajn-hero-bg-1, var(--primary)), var(--ajn-hero-bg-2, var(--secondary)));
     border-radius: 0.75rem;
     color: white;
     font-weight: 700;
@@ -791,7 +791,7 @@ a:hover { color: var(--primary-dark); }
     background:
         radial-gradient(circle at 16% 18%, rgba(251, 191, 36, 0.32), transparent 28%),
         radial-gradient(circle at 84% 78%, rgba(96, 165, 250, 0.22), transparent 30%),
-        linear-gradient(135deg, var(--primary), var(--secondary));
+        linear-gradient(135deg, var(--ajn-hero-bg-1, var(--primary)), var(--ajn-hero-bg-2, var(--secondary)));
     color: white;
     text-align: center;
 }
@@ -1454,7 +1454,7 @@ a:hover { color: var(--primary-dark); }
     background:
         radial-gradient(circle at 14% 20%, rgba(255,255,255,0.16), transparent 24%),
         radial-gradient(circle at 84% 76%, rgba(255,255,255,0.12), transparent 28%),
-        linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        linear-gradient(135deg, var(--ajn-hero-bg-1, var(--primary)) 0%, var(--ajn-hero-bg-2, var(--secondary)) 100%);
     color: white;
     text-align: center;
 }
@@ -1819,7 +1819,7 @@ a:hover { color: var(--primary-dark); }
 
 .home-cta-section {
     padding: 5rem 1.5rem;
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    background: linear-gradient(135deg, var(--ajn-hero-bg-1, var(--primary)), var(--ajn-hero-bg-2, var(--secondary)));
     color: white;
     text-align: center;
 }
@@ -2134,5 +2134,57 @@ a:hover { color: var(--primary-dark); }
     .ajn-layout-control.ajn-fixed-height,
     .editor-styles-wrapper .ajn-layout-control.ajn-fixed-height {
         height: var(--ajn-height-mobile, var(--ajn-height-tablet, var(--ajn-height-desktop, auto))) !important;
+    }
+}
+
+/* Global hero defaults from Customizer */
+:where(.builder-hero-section),
+.editor-styles-wrapper :where(.builder-hero-section) {
+    min-height: var(--ajn-hero-min-height-desktop, 350px);
+    padding-top: var(--ajn-hero-padding-top-desktop, 7rem);
+    padding-bottom: var(--ajn-hero-padding-bottom-desktop, 4rem);
+    background:
+        radial-gradient(circle at 16% 18%, rgba(251, 191, 36, 0.32), transparent 28%),
+        radial-gradient(circle at 84% 78%, rgba(96, 165, 250, 0.22), transparent 30%),
+        linear-gradient(135deg, var(--ajn-hero-bg-1, var(--primary)), var(--ajn-hero-bg-2, var(--secondary)));
+}
+
+:where(.builder-hero-section) h1,
+.editor-styles-wrapper :where(.builder-hero-section) h1 {
+    color: var(--ajn-hero-heading-color, #ffffff);
+}
+
+:where(.builder-hero-subtitle),
+.editor-styles-wrapper :where(.builder-hero-subtitle) {
+    color: var(--ajn-hero-subtitle-color, rgba(255,255,255,0.94));
+}
+
+:where(.builder-hero-badge),
+.editor-styles-wrapper :where(.builder-hero-badge) {
+    background: var(--ajn-hero-badge-bg, rgba(255,255,255,0.16));
+    color: var(--ajn-hero-badge-text-color, #ffffff);
+}
+
+:where(.builder-hero-section) .wp-block-button:not(.is-style-outline) .wp-block-button__link,
+.editor-styles-wrapper :where(.builder-hero-section) .wp-block-button:not(.is-style-outline) .wp-block-button__link {
+    background: var(--ajn-hero-button-bg, #ffffff);
+    color: var(--ajn-hero-button-text-color, var(--primary));
+}
+
+@media (max-width: 1024px) {
+    :where(.builder-hero-section),
+    .editor-styles-wrapper :where(.builder-hero-section) {
+        min-height: var(--ajn-hero-min-height-tablet, var(--ajn-hero-min-height-desktop, 320px));
+        padding-top: var(--ajn-hero-padding-top-tablet, var(--ajn-hero-padding-top-desktop, 6rem));
+        padding-bottom: var(--ajn-hero-padding-bottom-tablet, var(--ajn-hero-padding-bottom-desktop, 3.5rem));
+    }
+}
+
+@media (max-width: 768px) {
+    :where(.builder-hero-section),
+    .editor-styles-wrapper :where(.builder-hero-section) {
+        min-height: var(--ajn-hero-min-height-mobile, var(--ajn-hero-min-height-tablet, var(--ajn-hero-min-height-desktop, 280px)));
+        padding-top: var(--ajn-hero-padding-top-mobile, var(--ajn-hero-padding-top-tablet, var(--ajn-hero-padding-top-desktop, 5rem)));
+        padding-bottom: var(--ajn-hero-padding-bottom-mobile, var(--ajn-hero-padding-bottom-tablet, var(--ajn-hero-padding-bottom-desktop, 3rem)));
     }
 }

@@ -45,10 +45,10 @@ add_action('after_setup_theme', 'ncllc_pro_setup');
  */
 function ncllc_pro_scripts() {
     // Enqueue main stylesheet
-    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.31');
+    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.33');
     
     // Enqueue custom JavaScript
-    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.31', true);
+    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.33', true);
     
     // Localize script
     wp_localize_script('ncllc-pro-script', 'ncllcData', array(
@@ -62,12 +62,12 @@ add_action('wp_enqueue_scripts', 'ncllc_pro_scripts');
  * Load the same page-section styling inside the block editor.
  */
 function ncllc_pro_block_editor_assets() {
-    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.31');
+    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.33');
     wp_enqueue_script(
         'ncllc-pro-editor-controls',
         get_template_directory_uri() . '/js/editor-controls.js',
         array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-element', 'wp-hooks'),
-        '1.0.31',
+        '1.0.33',
         true
     );
 }
@@ -145,6 +145,49 @@ function ncllc_pro_sanitize_header_padding($value) {
 
     return (string) min(2, max(0.5, $value));
 }
+
+/**
+ * Sanitize positive CSS size values for Customizer controls.
+ */
+function ncllc_pro_sanitize_css_size($value) {
+    $value = trim((string) $value);
+
+    if ('' === $value) {
+        return '';
+    }
+
+    if (preg_match('/^\d+(\.\d+)?$/', $value)) {
+        return $value . 'px';
+    }
+
+    if (preg_match('/^\d+(\.\d+)?(px|rem|em|vh|vw|%)$/', $value)) {
+        return $value;
+    }
+
+    return '';
+}
+
+/**
+ * Sanitize CSS color values for Customizer controls.
+ */
+function ncllc_pro_sanitize_css_color($value) {
+    $value = trim((string) $value);
+
+    if ('' === $value) {
+        return '';
+    }
+
+    if (sanitize_hex_color($value)) {
+        return sanitize_hex_color($value);
+    }
+
+    if (preg_match('/^rgba?\([0-9.,\s]+\)$/', $value)) {
+        return $value;
+    }
+
+    return '';
+}
+
 
 /**
  * Keep the Builder Canvas template visible in the page editor template picker.
@@ -595,6 +638,118 @@ function ncllc_pro_customize_register($wp_customize) {
         ));
     }
 
+
+    // Hero Defaults Section
+    $wp_customize->add_section('ncllc_hero_defaults', array(
+        'title'       => __('Hero Defaults', 'ncllc-pro'),
+        'priority'    => 26,
+        'description' => __('Control default hero colors, height, and padding. Individual page/post block settings can still override these defaults.', 'ncllc-pro'),
+    ));
+
+    $hero_color_controls = array(
+        'hero_bg_1' => array(
+            'label'   => __('Hero Background Color 1', 'ncllc-pro'),
+            'default' => '#2563eb',
+        ),
+        'hero_bg_2' => array(
+            'label'   => __('Hero Background Color 2', 'ncllc-pro'),
+            'default' => '#7c3aed',
+        ),
+        'hero_heading_color' => array(
+            'label'   => __('Hero Heading Color', 'ncllc-pro'),
+            'default' => '#ffffff',
+        ),
+        'hero_subtitle_color' => array(
+            'label'   => __('Hero Subtitle Color', 'ncllc-pro'),
+            'default' => 'rgba(255,255,255,0.94)',
+        ),
+        'hero_badge_bg' => array(
+            'label'   => __('Hero Badge Background', 'ncllc-pro'),
+            'default' => 'rgba(255,255,255,0.16)',
+        ),
+        'hero_badge_text_color' => array(
+            'label'   => __('Hero Badge Text Color', 'ncllc-pro'),
+            'default' => '#ffffff',
+        ),
+        'hero_button_bg' => array(
+            'label'   => __('Hero Primary Button Background', 'ncllc-pro'),
+            'default' => '#ffffff',
+        ),
+        'hero_button_text_color' => array(
+            'label'   => __('Hero Primary Button Text Color', 'ncllc-pro'),
+            'default' => '#2563eb',
+        ),
+    );
+
+    foreach ($hero_color_controls as $setting_id => $control) {
+        $wp_customize->add_setting($setting_id, array(
+            'default'           => $control['default'],
+            'sanitize_callback' => 'ncllc_pro_sanitize_css_color',
+            'transport'         => 'postMessage',
+        ));
+
+        $wp_customize->add_control($setting_id, array(
+            'label'       => $control['label'],
+            'section'     => 'ncllc_hero_defaults',
+            'type'        => 'text',
+            'description' => __('Use hex like #2563eb or rgba like rgba(255,255,255,0.94).', 'ncllc-pro'),
+        ));
+    }
+
+    $hero_size_controls = array(
+        'hero_min_height_desktop' => array(
+            'label'   => __('Hero Minimum Height - Desktop', 'ncllc-pro'),
+            'default' => '350px',
+        ),
+        'hero_min_height_tablet' => array(
+            'label'   => __('Hero Minimum Height - Tablet', 'ncllc-pro'),
+            'default' => '320px',
+        ),
+        'hero_min_height_mobile' => array(
+            'label'   => __('Hero Minimum Height - Mobile', 'ncllc-pro'),
+            'default' => '280px',
+        ),
+        'hero_padding_top_desktop' => array(
+            'label'   => __('Hero Padding Top - Desktop', 'ncllc-pro'),
+            'default' => '7rem',
+        ),
+        'hero_padding_bottom_desktop' => array(
+            'label'   => __('Hero Padding Bottom - Desktop', 'ncllc-pro'),
+            'default' => '4rem',
+        ),
+        'hero_padding_top_tablet' => array(
+            'label'   => __('Hero Padding Top - Tablet', 'ncllc-pro'),
+            'default' => '6rem',
+        ),
+        'hero_padding_bottom_tablet' => array(
+            'label'   => __('Hero Padding Bottom - Tablet', 'ncllc-pro'),
+            'default' => '3.5rem',
+        ),
+        'hero_padding_top_mobile' => array(
+            'label'   => __('Hero Padding Top - Mobile', 'ncllc-pro'),
+            'default' => '5rem',
+        ),
+        'hero_padding_bottom_mobile' => array(
+            'label'   => __('Hero Padding Bottom - Mobile', 'ncllc-pro'),
+            'default' => '3rem',
+        ),
+    );
+
+    foreach ($hero_size_controls as $setting_id => $control) {
+        $wp_customize->add_setting($setting_id, array(
+            'default'           => $control['default'],
+            'sanitize_callback' => 'ncllc_pro_sanitize_css_size',
+            'transport'         => 'postMessage',
+        ));
+
+        $wp_customize->add_control($setting_id, array(
+            'label'       => $control['label'],
+            'section'     => 'ncllc_hero_defaults',
+            'type'        => 'text',
+            'description' => __('Examples: 350px, 7rem, 60vh, 75%. Plain numbers are saved as px.', 'ncllc-pro'),
+        ));
+    }
+
     // Footer Section
     $wp_customize->add_section('ncllc_footer', array(
         'title'       => __('Footer', 'ncllc-pro'),
@@ -685,6 +840,55 @@ function ncllc_pro_customizer_live_preview() {
                 });
             });
         });
+
+        var heroSettings = [
+            'hero_bg_1',
+            'hero_bg_2',
+            'hero_heading_color',
+            'hero_subtitle_color',
+            'hero_badge_bg',
+            'hero_badge_text_color',
+            'hero_button_bg',
+            'hero_button_text_color',
+            'hero_min_height_desktop',
+            'hero_min_height_tablet',
+            'hero_min_height_mobile',
+            'hero_padding_top_desktop',
+            'hero_padding_bottom_desktop',
+            'hero_padding_top_tablet',
+            'hero_padding_bottom_tablet',
+            'hero_padding_top_mobile',
+            'hero_padding_bottom_mobile'
+        ];
+
+        var heroCssVars = {
+            hero_bg_1: '--ajn-hero-bg-1',
+            hero_bg_2: '--ajn-hero-bg-2',
+            hero_heading_color: '--ajn-hero-heading-color',
+            hero_subtitle_color: '--ajn-hero-subtitle-color',
+            hero_badge_bg: '--ajn-hero-badge-bg',
+            hero_badge_text_color: '--ajn-hero-badge-text-color',
+            hero_button_bg: '--ajn-hero-button-bg',
+            hero_button_text_color: '--ajn-hero-button-text-color',
+            hero_min_height_desktop: '--ajn-hero-min-height-desktop',
+            hero_min_height_tablet: '--ajn-hero-min-height-tablet',
+            hero_min_height_mobile: '--ajn-hero-min-height-mobile',
+            hero_padding_top_desktop: '--ajn-hero-padding-top-desktop',
+            hero_padding_bottom_desktop: '--ajn-hero-padding-bottom-desktop',
+            hero_padding_top_tablet: '--ajn-hero-padding-top-tablet',
+            hero_padding_bottom_tablet: '--ajn-hero-padding-bottom-tablet',
+            hero_padding_top_mobile: '--ajn-hero-padding-top-mobile',
+            hero_padding_bottom_mobile: '--ajn-hero-padding-bottom-mobile'
+        };
+
+        heroSettings.forEach(function(setting) {
+            wp.customize(setting, function(value) {
+                value.bind(function(newval) {
+                    document.documentElement.style.setProperty(heroCssVars[setting], newval);
+                });
+            });
+        });
+
     })(jQuery);
     </script>
     <?php
@@ -702,6 +906,25 @@ function ncllc_pro_customizer_css() {
     $header_padding_desktop = get_theme_mod('header_padding_desktop', $old_header_padding);
     $header_padding_tablet = get_theme_mod('header_padding_tablet', $old_header_padding);
     $header_padding_mobile = get_theme_mod('header_padding_mobile', $old_header_padding);
+
+    $hero_bg_1 = get_theme_mod('hero_bg_1', '#2563eb');
+    $hero_bg_2 = get_theme_mod('hero_bg_2', '#7c3aed');
+    $hero_heading_color = get_theme_mod('hero_heading_color', '#ffffff');
+    $hero_subtitle_color = get_theme_mod('hero_subtitle_color', 'rgba(255,255,255,0.94)');
+    $hero_badge_bg = get_theme_mod('hero_badge_bg', 'rgba(255,255,255,0.16)');
+    $hero_badge_text_color = get_theme_mod('hero_badge_text_color', '#ffffff');
+    $hero_button_bg = get_theme_mod('hero_button_bg', '#ffffff');
+    $hero_button_text_color = get_theme_mod('hero_button_text_color', '#2563eb');
+
+    $hero_min_height_desktop = get_theme_mod('hero_min_height_desktop', '350px');
+    $hero_min_height_tablet = get_theme_mod('hero_min_height_tablet', '320px');
+    $hero_min_height_mobile = get_theme_mod('hero_min_height_mobile', '280px');
+    $hero_padding_top_desktop = get_theme_mod('hero_padding_top_desktop', '7rem');
+    $hero_padding_bottom_desktop = get_theme_mod('hero_padding_bottom_desktop', '4rem');
+    $hero_padding_top_tablet = get_theme_mod('hero_padding_top_tablet', '6rem');
+    $hero_padding_bottom_tablet = get_theme_mod('hero_padding_bottom_tablet', '3.5rem');
+    $hero_padding_top_mobile = get_theme_mod('hero_padding_top_mobile', '5rem');
+    $hero_padding_bottom_mobile = get_theme_mod('hero_padding_bottom_mobile', '3rem');
     ?>
     <style type="text/css">
         :root {
@@ -711,6 +934,24 @@ function ncllc_pro_customizer_css() {
             --ncllc-header-padding-desktop: <?php echo esc_attr($header_padding_desktop); ?>rem;
             --ncllc-header-padding-tablet: <?php echo esc_attr($header_padding_tablet); ?>rem;
             --ncllc-header-padding-mobile: <?php echo esc_attr($header_padding_mobile); ?>rem;
+
+            --ajn-hero-bg-1: <?php echo esc_attr($hero_bg_1); ?>;
+            --ajn-hero-bg-2: <?php echo esc_attr($hero_bg_2); ?>;
+            --ajn-hero-heading-color: <?php echo esc_attr($hero_heading_color); ?>;
+            --ajn-hero-subtitle-color: <?php echo esc_attr($hero_subtitle_color); ?>;
+            --ajn-hero-badge-bg: <?php echo esc_attr($hero_badge_bg); ?>;
+            --ajn-hero-badge-text-color: <?php echo esc_attr($hero_badge_text_color); ?>;
+            --ajn-hero-button-bg: <?php echo esc_attr($hero_button_bg); ?>;
+            --ajn-hero-button-text-color: <?php echo esc_attr($hero_button_text_color); ?>;
+            --ajn-hero-min-height-desktop: <?php echo esc_attr($hero_min_height_desktop); ?>;
+            --ajn-hero-min-height-tablet: <?php echo esc_attr($hero_min_height_tablet); ?>;
+            --ajn-hero-min-height-mobile: <?php echo esc_attr($hero_min_height_mobile); ?>;
+            --ajn-hero-padding-top-desktop: <?php echo esc_attr($hero_padding_top_desktop); ?>;
+            --ajn-hero-padding-bottom-desktop: <?php echo esc_attr($hero_padding_bottom_desktop); ?>;
+            --ajn-hero-padding-top-tablet: <?php echo esc_attr($hero_padding_top_tablet); ?>;
+            --ajn-hero-padding-bottom-tablet: <?php echo esc_attr($hero_padding_bottom_tablet); ?>;
+            --ajn-hero-padding-top-mobile: <?php echo esc_attr($hero_padding_top_mobile); ?>;
+            --ajn-hero-padding-bottom-mobile: <?php echo esc_attr($hero_padding_bottom_mobile); ?>;
         }
         .site-branding img,
         .custom-logo-link img {
