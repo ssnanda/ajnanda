@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: http://ncllc.ddev.site/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.0.28
+Version: 1.0.29
 License: GNU General Public License v2 or later
 Text Domain: ncllc-pro
 */
@@ -700,7 +700,7 @@ a:hover { color: var(--primary-dark); }
 }
 
 .page-content-section {
-    padding: 8rem 1.5rem 5rem;
+    padding: 0;
     background:
         linear-gradient(180deg, #f8fbff 0%, #ffffff 45%),
         var(--gray-50);
