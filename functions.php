@@ -45,10 +45,10 @@ add_action('after_setup_theme', 'ncllc_pro_setup');
  */
 function ncllc_pro_scripts() {
     // Enqueue main stylesheet
-    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.19');
+    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.20');
     
     // Enqueue custom JavaScript
-    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.19', true);
+    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.20', true);
     
     // Localize script
     wp_localize_script('ncllc-pro-script', 'ncllcData', array(
@@ -62,12 +62,12 @@ add_action('wp_enqueue_scripts', 'ncllc_pro_scripts');
  * Load the same page-section styling inside the block editor.
  */
 function ncllc_pro_block_editor_assets() {
-    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.19');
+    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.20');
     wp_enqueue_script(
         'ncllc-pro-editor-controls',
         get_template_directory_uri() . '/js/editor-controls.js',
         array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-element', 'wp-hooks'),
-        '1.0.19',
+        '1.0.20',
         true
     );
 }
@@ -832,5 +832,6 @@ function ncllc_pro_register_block_patterns() {
 }
 add_action('init', 'ncllc_pro_register_block_patterns');
 
+require_once get_template_directory() . '/inc/theme-details-updater-button.php';
 require_once get_template_directory() . '/inc/github-theme-updater.php';
 require_once get_template_directory() . '/inc/duplicate-content.php';
