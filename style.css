@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: http://ncllc.ddev.site/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.0.30
+Version: 1.0.31
 License: GNU General Public License v2 or later
 Text Domain: ncllc-pro
 */
@@ -700,7 +700,7 @@ a:hover { color: var(--primary-dark); }
 }
 
 .page-content-section {
-    padding: 0;
+    padding: 8rem 1.5rem 5rem;
     background:
         linear-gradient(180deg, #f8fbff 0%, #ffffff 45%),
         var(--gray-50);
@@ -2038,7 +2038,7 @@ a:hover { color: var(--primary-dark); }
 
 /* Made with Bob */
 
-/* AJNanda block layout responsive height controls - fixed height mode */
+
 .ajn-responsive-height {
     height: var(--ajn-height-desktop, auto) !important;
     min-height: 0 !important;
@@ -2070,6 +2070,69 @@ a:hover { color: var(--primary-dark); }
     }
 
     .editor-styles-wrapper .ajn-responsive-height {
+        height: var(--ajn-height-mobile, var(--ajn-height-tablet, var(--ajn-height-desktop, auto))) !important;
+    }
+}
+
+/* AJNanda block layout controls - responsive min-height, fixed height, and padding */
+.ajn-layout-control {
+    min-height: var(--ajn-min-height-desktop, auto) !important;
+    padding-top: var(--ajn-padding-top-desktop, revert) !important;
+    padding-right: var(--ajn-padding-right-desktop, revert) !important;
+    padding-bottom: var(--ajn-padding-bottom-desktop, revert) !important;
+    padding-left: var(--ajn-padding-left-desktop, revert) !important;
+}
+
+.ajn-layout-control.ajn-fixed-height {
+    height: var(--ajn-height-desktop, auto) !important;
+    min-height: 0 !important;
+}
+
+.ajn-layout-control.ajn-overflow-hidden {
+    overflow: hidden !important;
+}
+
+.editor-styles-wrapper .ajn-layout-control {
+    min-height: var(--ajn-min-height-desktop, auto) !important;
+    padding-top: var(--ajn-padding-top-desktop, revert) !important;
+    padding-right: var(--ajn-padding-right-desktop, revert) !important;
+    padding-bottom: var(--ajn-padding-bottom-desktop, revert) !important;
+    padding-left: var(--ajn-padding-left-desktop, revert) !important;
+}
+
+.editor-styles-wrapper .ajn-layout-control.ajn-fixed-height {
+    height: var(--ajn-height-desktop, auto) !important;
+    min-height: 0 !important;
+}
+
+@media (max-width: 1024px) {
+    .ajn-layout-control,
+    .editor-styles-wrapper .ajn-layout-control {
+        min-height: var(--ajn-min-height-tablet, var(--ajn-min-height-desktop, auto)) !important;
+        padding-top: var(--ajn-padding-top-tablet, var(--ajn-padding-top-desktop, revert)) !important;
+        padding-right: var(--ajn-padding-right-tablet, var(--ajn-padding-right-desktop, revert)) !important;
+        padding-bottom: var(--ajn-padding-bottom-tablet, var(--ajn-padding-bottom-desktop, revert)) !important;
+        padding-left: var(--ajn-padding-left-tablet, var(--ajn-padding-left-desktop, revert)) !important;
+    }
+
+    .ajn-layout-control.ajn-fixed-height,
+    .editor-styles-wrapper .ajn-layout-control.ajn-fixed-height {
+        height: var(--ajn-height-tablet, var(--ajn-height-desktop, auto)) !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .ajn-layout-control,
+    .editor-styles-wrapper .ajn-layout-control {
+        min-height: var(--ajn-min-height-mobile, var(--ajn-min-height-tablet, var(--ajn-min-height-desktop, auto))) !important;
+        padding-top: var(--ajn-padding-top-mobile, var(--ajn-padding-top-tablet, var(--ajn-padding-top-desktop, revert))) !important;
+        padding-right: var(--ajn-padding-right-mobile, var(--ajn-padding-right-tablet, var(--ajn-padding-right-desktop, revert))) !important;
+        padding-bottom: var(--ajn-padding-bottom-mobile, var(--ajn-padding-bottom-tablet, var(--ajn-padding-bottom-desktop, revert))) !important;
+        padding-left: var(--ajn-padding-left-mobile, var(--ajn-padding-left-tablet, var(--ajn-padding-left-desktop, revert))) !important;
+    }
+
+    .ajn-layout-control.ajn-fixed-height,
+    .editor-styles-wrapper .ajn-layout-control.ajn-fixed-height {
         height: var(--ajn-height-mobile, var(--ajn-height-tablet, var(--ajn-height-desktop, auto))) !important;
     }
 }
