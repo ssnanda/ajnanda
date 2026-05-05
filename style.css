@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: http://ncllc.ddev.site/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.0.38
+Version: 1.0.39
 License: GNU General Public License v2 or later
 Text Domain: ncllc-pro
 */
@@ -2137,83 +2137,31 @@ a:hover { color: var(--primary-dark); }
     }
 }
 
-/* Global editable hero defaults and alignment */
-:where(.builder-hero-section),
-.editor-styles-wrapper :where(.builder-hero-section) {
-    min-height: var(--ajn-hero-min-height-desktop, 450px) !important;
-    height: auto !important;
-    overflow: visible !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    text-align: center !important;
-    padding-top: max(var(--ajn-hero-padding-top-desktop, 7rem), 7rem) !important;
-    padding-bottom: var(--ajn-hero-padding-bottom-desktop, 4rem) !important;
-    background:
-        radial-gradient(circle at 16% 18%, rgba(251, 191, 36, 0.32), transparent 28%),
-        radial-gradient(circle at 84% 78%, rgba(96, 165, 250, 0.22), transparent 30%),
-        linear-gradient(135deg, var(--ajn-hero-bg-1, var(--primary)), var(--ajn-hero-bg-2, var(--secondary))) !important;
-}
-
-:where(.builder-hero-section) > .wp-block-group__inner-container,
-.editor-styles-wrapper :where(.builder-hero-section) > .wp-block-group__inner-container {
-    width: 100% !important;
-    max-width: var(--wp--style--global--content-size, 1100px) !important;
-    margin: 0 auto !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    text-align: center !important;
-}
-
-:where(.builder-hero-section) .builder-hero-badge,
-.editor-styles-wrapper :where(.builder-hero-section) .builder-hero-badge {
-    margin: 0 auto 1.25rem !important;
-    align-self: center !important;
-    background: var(--ajn-hero-badge-bg, rgba(255,255,255,0.16)) !important;
-    color: var(--ajn-hero-badge-text-color, #ffffff) !important;
-}
-
-:where(.builder-hero-section) h1,
-.editor-styles-wrapper :where(.builder-hero-section) h1 {
-    color: var(--ajn-hero-heading-color, #ffffff) !important;
-    margin: 0 auto 1.25rem !important;
-    text-align: center !important;
-}
-
-:where(.builder-hero-section) .builder-hero-subtitle,
-.editor-styles-wrapper :where(.builder-hero-section) .builder-hero-subtitle {
-    color: var(--ajn-hero-subtitle-color, rgba(255,255,255,0.94)) !important;
-    margin: 0 auto 2.25rem !important;
-    text-align: center !important;
-}
-
-:where(.builder-hero-section) .wp-block-buttons,
-.editor-styles-wrapper :where(.builder-hero-section) .wp-block-buttons {
-    justify-content: center !important;
-}
-
-:where(.builder-hero-section) .wp-block-button:not(.is-style-outline) .wp-block-button__link,
-.editor-styles-wrapper :where(.builder-hero-section) .wp-block-button:not(.is-style-outline) .wp-block-button__link {
-    background: var(--ajn-hero-button-bg, #ffffff) !important;
-    color: var(--ajn-hero-button-text-color, var(--primary)) !important;
+/* Hero block + page-level layout control conflict fix */
+:where(.builder-hero-section.ajn-layout-control),
+.editor-styles-wrapper :where(.builder-hero-section.ajn-layout-control) {
+    padding-top: max(var(--ajn-padding-top-desktop, var(--ajn-hero-padding-top-desktop, 7rem)), 7rem) !important;
+    padding-bottom: var(--ajn-padding-bottom-desktop, var(--ajn-hero-padding-bottom-desktop, 4rem)) !important;
+    padding-left: var(--ajn-padding-left-desktop, 1.5rem) !important;
+    padding-right: var(--ajn-padding-right-desktop, 1.5rem) !important;
 }
 
 @media (max-width: 1024px) {
-    :where(.builder-hero-section),
-    .editor-styles-wrapper :where(.builder-hero-section) {
-        min-height: var(--ajn-hero-min-height-tablet, var(--ajn-hero-min-height-desktop, 400px)) !important;
-        padding-top: max(var(--ajn-hero-padding-top-tablet, var(--ajn-hero-padding-top-desktop, 6rem)), 6rem) !important;
-        padding-bottom: var(--ajn-hero-padding-bottom-tablet, var(--ajn-hero-padding-bottom-desktop, 3.5rem)) !important;
+    :where(.builder-hero-section.ajn-layout-control),
+    .editor-styles-wrapper :where(.builder-hero-section.ajn-layout-control) {
+        padding-top: max(var(--ajn-padding-top-tablet, var(--ajn-padding-top-desktop, var(--ajn-hero-padding-top-tablet, 6rem))), 6rem) !important;
+        padding-bottom: var(--ajn-padding-bottom-tablet, var(--ajn-padding-bottom-desktop, var(--ajn-hero-padding-bottom-tablet, 3.5rem))) !important;
+        padding-left: var(--ajn-padding-left-tablet, var(--ajn-padding-left-desktop, 1rem)) !important;
+        padding-right: var(--ajn-padding-right-tablet, var(--ajn-padding-right-desktop, 1rem)) !important;
     }
 }
 
 @media (max-width: 768px) {
-    :where(.builder-hero-section),
-    .editor-styles-wrapper :where(.builder-hero-section) {
-        min-height: var(--ajn-hero-min-height-mobile, var(--ajn-hero-min-height-tablet, var(--ajn-hero-min-height-desktop, 340px))) !important;
-        padding-top: max(var(--ajn-hero-padding-top-mobile, var(--ajn-hero-padding-top-tablet, var(--ajn-hero-padding-top-desktop, 5rem))), 5rem) !important;
-        padding-bottom: var(--ajn-hero-padding-bottom-mobile, var(--ajn-hero-padding-bottom-tablet, var(--ajn-hero-padding-bottom-desktop, 3rem))) !important;
+    :where(.builder-hero-section.ajn-layout-control),
+    .editor-styles-wrapper :where(.builder-hero-section.ajn-layout-control) {
+        padding-top: max(var(--ajn-padding-top-mobile, var(--ajn-padding-top-tablet, var(--ajn-padding-top-desktop, var(--ajn-hero-padding-top-mobile, 5rem)))), 5rem) !important;
+        padding-bottom: var(--ajn-padding-bottom-mobile, var(--ajn-padding-bottom-tablet, var(--ajn-padding-bottom-desktop, var(--ajn-hero-padding-bottom-mobile, 3rem)))) !important;
+        padding-left: var(--ajn-padding-left-mobile, var(--ajn-padding-left-tablet, var(--ajn-padding-left-desktop, 1rem))) !important;
+        padding-right: var(--ajn-padding-right-mobile, var(--ajn-padding-right-tablet, var(--ajn-padding-right-desktop, 1rem))) !important;
     }
 }
