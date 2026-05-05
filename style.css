@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: http://ncllc.ddev.site/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.0.34
+Version: 1.0.35
 License: GNU General Public License v2 or later
 Text Domain: ncllc-pro
 */
@@ -2137,54 +2137,59 @@ a:hover { color: var(--primary-dark); }
     }
 }
 
-/* Global editable hero defaults */
+/* Hero safety reset - prevents page hero text from being cut off */
 :where(.builder-hero-section),
 .editor-styles-wrapper :where(.builder-hero-section) {
-    min-height: var(--ajn-hero-min-height-desktop, 350px);
-    padding-top: var(--ajn-hero-padding-top-desktop, 7rem);
-    padding-bottom: var(--ajn-hero-padding-bottom-desktop, 4rem);
-    background:
-        radial-gradient(circle at 16% 18%, rgba(251, 191, 36, 0.32), transparent 28%),
-        radial-gradient(circle at 84% 78%, rgba(96, 165, 250, 0.22), transparent 30%),
-        linear-gradient(135deg, var(--ajn-hero-bg-1, var(--primary)), var(--ajn-hero-bg-2, var(--secondary)));
+    height: auto !important;
+    min-height: var(--ajn-hero-min-height-desktop, 350px) !important;
+    overflow: visible !important;
+    display: flex;
+    align-items: center;
+    padding-top: var(--ajn-hero-padding-top-desktop, 7rem) !important;
+    padding-bottom: var(--ajn-hero-padding-bottom-desktop, 4rem) !important;
+}
+
+:where(.builder-hero-section.ajn-fixed-height),
+.editor-styles-wrapper :where(.builder-hero-section.ajn-fixed-height),
+:where(.builder-hero-section.ajn-responsive-height),
+.editor-styles-wrapper :where(.builder-hero-section.ajn-responsive-height) {
+    height: auto !important;
+    min-height: var(--ajn-hero-min-height-desktop, 350px) !important;
+    overflow: visible !important;
 }
 
 :where(.builder-hero-section) h1,
 .editor-styles-wrapper :where(.builder-hero-section) h1 {
-    color: var(--ajn-hero-heading-color, #ffffff);
-}
-
-:where(.builder-hero-subtitle),
-.editor-styles-wrapper :where(.builder-hero-subtitle) {
-    color: var(--ajn-hero-subtitle-color, rgba(255,255,255,0.94));
-}
-
-:where(.builder-hero-badge),
-.editor-styles-wrapper :where(.builder-hero-badge) {
-    background: var(--ajn-hero-badge-bg, rgba(255,255,255,0.16));
-    color: var(--ajn-hero-badge-text-color, #ffffff);
-}
-
-:where(.builder-hero-section) .wp-block-button:not(.is-style-outline) .wp-block-button__link,
-.editor-styles-wrapper :where(.builder-hero-section) .wp-block-button:not(.is-style-outline) .wp-block-button__link {
-    background: var(--ajn-hero-button-bg, #ffffff);
-    color: var(--ajn-hero-button-text-color, var(--primary));
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.08;
 }
 
 @media (max-width: 1024px) {
     :where(.builder-hero-section),
-    .editor-styles-wrapper :where(.builder-hero-section) {
-        min-height: var(--ajn-hero-min-height-tablet, var(--ajn-hero-min-height-desktop, 320px));
-        padding-top: var(--ajn-hero-padding-top-tablet, var(--ajn-hero-padding-top-desktop, 6rem));
-        padding-bottom: var(--ajn-hero-padding-bottom-tablet, var(--ajn-hero-padding-bottom-desktop, 3.5rem));
+    .editor-styles-wrapper :where(.builder-hero-section),
+    :where(.builder-hero-section.ajn-fixed-height),
+    .editor-styles-wrapper :where(.builder-hero-section.ajn-fixed-height),
+    :where(.builder-hero-section.ajn-responsive-height),
+    .editor-styles-wrapper :where(.builder-hero-section.ajn-responsive-height) {
+        height: auto !important;
+        min-height: var(--ajn-hero-min-height-tablet, var(--ajn-hero-min-height-desktop, 320px)) !important;
+        padding-top: var(--ajn-hero-padding-top-tablet, var(--ajn-hero-padding-top-desktop, 6rem)) !important;
+        padding-bottom: var(--ajn-hero-padding-bottom-tablet, var(--ajn-hero-padding-bottom-desktop, 3.5rem)) !important;
     }
 }
 
 @media (max-width: 768px) {
     :where(.builder-hero-section),
-    .editor-styles-wrapper :where(.builder-hero-section) {
-        min-height: var(--ajn-hero-min-height-mobile, var(--ajn-hero-min-height-tablet, var(--ajn-hero-min-height-desktop, 280px)));
-        padding-top: var(--ajn-hero-padding-top-mobile, var(--ajn-hero-padding-top-tablet, var(--ajn-hero-padding-top-desktop, 5rem)));
-        padding-bottom: var(--ajn-hero-padding-bottom-mobile, var(--ajn-hero-padding-bottom-tablet, var(--ajn-hero-padding-bottom-desktop, 3rem)));
+    .editor-styles-wrapper :where(.builder-hero-section),
+    :where(.builder-hero-section.ajn-fixed-height),
+    .editor-styles-wrapper :where(.builder-hero-section.ajn-fixed-height),
+    :where(.builder-hero-section.ajn-responsive-height),
+    .editor-styles-wrapper :where(.builder-hero-section.ajn-responsive-height) {
+        height: auto !important;
+        min-height: var(--ajn-hero-min-height-mobile, var(--ajn-hero-min-height-tablet, var(--ajn-hero-min-height-desktop, 280px))) !important;
+        padding-top: var(--ajn-hero-padding-top-mobile, var(--ajn-hero-padding-top-tablet, var(--ajn-hero-padding-top-desktop, 5rem))) !important;
+        padding-bottom: var(--ajn-hero-padding-bottom-mobile, var(--ajn-hero-padding-bottom-tablet, var(--ajn-hero-padding-bottom-desktop, 3rem))) !important;
     }
 }
