@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: http://ncllc.ddev.site/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.0.51
+Version: 1.0.52
 License: GNU General Public License v2 or later
 Text Domain: ncllc-pro
 */
@@ -2137,17 +2137,28 @@ a:hover { color: var(--primary-dark); }
     }
 }
 
-/* FINAL HERO SYSTEM - theme-controlled layout for all page/post heroes */
-body .site-main article > .entry-content.page-hero-content:first-child,
-body .site-main article > .entry-content.page-hero-content:first-child > .builder-hero-section,
-body .site-main article > .entry-content.page-hero-content:first-child > .wp-block-group.builder-hero-section,
-body .site-main article > .entry-content.page-hero-content:first-child > .wp-block-stack.builder-hero-section,
-body .site-main article > .entry-content.posts-page-content:first-child > .builder-hero-section,
-body .site-main article > .entry-content.posts-page-content:first-child > .wp-block-group.builder-hero-section,
-body .site-main .posts-page-content-section:first-child .builder-hero-section,
+/* AJNanda clean hero system - style only the actual hero, not the wrapper */
+body .site-main .page-hero-content {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    overflow: visible;
+}
+
+body .site-main .builder-canvas-content.page-hero-content > .builder-hero-section:first-child,
+body .site-main .builder-canvas-content.page-hero-content > .wp-block-group.builder-hero-section:first-child,
+body .site-main .builder-canvas-content.page-hero-content > .wp-block-stack.builder-hero-section:first-child,
+body .site-main .posts-page-content > .builder-hero-section:first-child,
+body .site-main .posts-page-content > .wp-block-group.builder-hero-section:first-child,
 body .site-main .builder-canvas-content > .builder-hero-section:first-child,
 body .site-main .builder-canvas-content > .wp-block-group.builder-hero-section:first-child,
 body .site-main .page-hero.blog-hero {
+    width: 100vw !important;
+    max-width: none !important;
+    margin-left: calc(50% - 50vw) !important;
+    margin-right: calc(50% - 50vw) !important;
     min-height: var(--ajn-hero-min-height-desktop, 450px) !important;
     height: auto !important;
     box-sizing: border-box !important;
@@ -2157,7 +2168,7 @@ body .site-main .page-hero.blog-hero {
     align-items: center !important;
     justify-content: center !important;
     text-align: center !important;
-    padding-top: max(var(--ajn-hero-padding-top-desktop, 7rem), 120px) !important;
+    padding-top: var(--ajn-hero-padding-top-desktop, 7rem) !important;
     padding-right: 1.5rem !important;
     padding-bottom: var(--ajn-hero-padding-bottom-desktop, 4rem) !important;
     padding-left: 1.5rem !important;
@@ -2168,12 +2179,23 @@ body .site-main .page-hero.blog-hero {
     color: #fff !important;
 }
 
-body .site-main article > .entry-content.page-hero-content:first-child > .builder-hero-section > .wp-block-group__inner-container,
-body .site-main article > .entry-content.page-hero-content:first-child > .wp-block-group.builder-hero-section > .wp-block-group__inner-container,
-body .site-main article > .entry-content.posts-page-content:first-child > .builder-hero-section > .wp-block-group__inner-container,
-body .site-main .posts-page-content-section:first-child .builder-hero-section > .wp-block-group__inner-container,
-body .site-main .builder-canvas-content > .builder-hero-section:first-child > .wp-block-group__inner-container,
-body .site-main .builder-canvas-content > .wp-block-group.builder-hero-section:first-child > .wp-block-group__inner-container,
+/* Hero blocks should use theme/customizer spacing, not saved page-level layout-control padding. */
+body .site-main .builder-hero-section.ajn-layout-control {
+    min-height: var(--ajn-hero-min-height-desktop, 450px) !important;
+    padding-top: var(--ajn-hero-padding-top-desktop, 7rem) !important;
+    padding-right: 1.5rem !important;
+    padding-bottom: var(--ajn-hero-padding-bottom-desktop, 4rem) !important;
+    padding-left: 1.5rem !important;
+}
+
+body .site-main .builder-hero-section.ajn-fixed-height,
+body .site-main .builder-hero-section.ajn-responsive-height {
+    height: auto !important;
+    min-height: var(--ajn-hero-min-height-desktop, 450px) !important;
+    overflow: visible !important;
+}
+
+body .site-main .builder-hero-section > .wp-block-group__inner-container,
 body .site-main .page-hero.blog-hero .container {
     width: 100% !important;
     max-width: 1100px !important;
@@ -2184,6 +2206,7 @@ body .site-main .page-hero.blog-hero .container {
     align-items: center !important;
     justify-content: center !important;
     text-align: center !important;
+    background: transparent !important;
 }
 
 body .site-main .builder-hero-section .builder-hero-badge,
@@ -2235,42 +2258,34 @@ body .site-main .builder-hero-section .wp-block-buttons {
     justify-content: center !important;
 }
 
-body .site-main .builder-hero-section.ajn-fixed-height,
-body .site-main .builder-hero-section.ajn-responsive-height {
-    height: auto !important;
-    min-height: var(--ajn-hero-min-height-desktop, 450px) !important;
-}
-
 @media (max-width: 1024px) {
-    body .site-main article > .entry-content.page-hero-content:first-child,
-    body .site-main article > .entry-content.page-hero-content:first-child > .builder-hero-section,
-    body .site-main article > .entry-content.page-hero-content:first-child > .wp-block-group.builder-hero-section,
-    body .site-main article > .entry-content.page-hero-content:first-child > .wp-block-stack.builder-hero-section,
-    body .site-main article > .entry-content.posts-page-content:first-child > .builder-hero-section,
-    body .site-main article > .entry-content.posts-page-content:first-child > .wp-block-group.builder-hero-section,
-    body .site-main .posts-page-content-section:first-child .builder-hero-section,
+    body .site-main .builder-canvas-content.page-hero-content > .builder-hero-section:first-child,
+    body .site-main .builder-canvas-content.page-hero-content > .wp-block-group.builder-hero-section:first-child,
+    body .site-main .builder-canvas-content.page-hero-content > .wp-block-stack.builder-hero-section:first-child,
+    body .site-main .posts-page-content > .builder-hero-section:first-child,
+    body .site-main .posts-page-content > .wp-block-group.builder-hero-section:first-child,
     body .site-main .builder-canvas-content > .builder-hero-section:first-child,
     body .site-main .builder-canvas-content > .wp-block-group.builder-hero-section:first-child,
-    body .site-main .page-hero.blog-hero {
+    body .site-main .page-hero.blog-hero,
+    body .site-main .builder-hero-section.ajn-layout-control {
         min-height: var(--ajn-hero-min-height-tablet, var(--ajn-hero-min-height-desktop, 400px)) !important;
-        padding-top: max(var(--ajn-hero-padding-top-tablet, var(--ajn-hero-padding-top-desktop, 6rem)), 110px) !important;
+        padding-top: var(--ajn-hero-padding-top-tablet, var(--ajn-hero-padding-top-desktop, 6rem)) !important;
         padding-bottom: var(--ajn-hero-padding-bottom-tablet, var(--ajn-hero-padding-bottom-desktop, 3.5rem)) !important;
     }
 }
 
 @media (max-width: 768px) {
-    body .site-main article > .entry-content.page-hero-content:first-child,
-    body .site-main article > .entry-content.page-hero-content:first-child > .builder-hero-section,
-    body .site-main article > .entry-content.page-hero-content:first-child > .wp-block-group.builder-hero-section,
-    body .site-main article > .entry-content.page-hero-content:first-child > .wp-block-stack.builder-hero-section,
-    body .site-main article > .entry-content.posts-page-content:first-child > .builder-hero-section,
-    body .site-main article > .entry-content.posts-page-content:first-child > .wp-block-group.builder-hero-section,
-    body .site-main .posts-page-content-section:first-child .builder-hero-section,
+    body .site-main .builder-canvas-content.page-hero-content > .builder-hero-section:first-child,
+    body .site-main .builder-canvas-content.page-hero-content > .wp-block-group.builder-hero-section:first-child,
+    body .site-main .builder-canvas-content.page-hero-content > .wp-block-stack.builder-hero-section:first-child,
+    body .site-main .posts-page-content > .builder-hero-section:first-child,
+    body .site-main .posts-page-content > .wp-block-group.builder-hero-section:first-child,
     body .site-main .builder-canvas-content > .builder-hero-section:first-child,
     body .site-main .builder-canvas-content > .wp-block-group.builder-hero-section:first-child,
-    body .site-main .page-hero.blog-hero {
+    body .site-main .page-hero.blog-hero,
+    body .site-main .builder-hero-section.ajn-layout-control {
         min-height: var(--ajn-hero-min-height-mobile, var(--ajn-hero-min-height-tablet, var(--ajn-hero-min-height-desktop, 340px))) !important;
-        padding-top: max(var(--ajn-hero-padding-top-mobile, var(--ajn-hero-padding-top-tablet, var(--ajn-hero-padding-top-desktop, 5rem))), 100px) !important;
+        padding-top: var(--ajn-hero-padding-top-mobile, var(--ajn-hero-padding-top-tablet, var(--ajn-hero-padding-top-desktop, 5rem))) !important;
         padding-right: 1rem !important;
         padding-bottom: var(--ajn-hero-padding-bottom-mobile, var(--ajn-hero-padding-bottom-tablet, var(--ajn-hero-padding-bottom-desktop, 3rem))) !important;
         padding-left: 1rem !important;
