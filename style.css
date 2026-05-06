@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: http://ncllc.ddev.site/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.0.56
+Version: 1.0.57
 License: GNU General Public License v2 or later
 Text Domain: ncllc-pro
 */
@@ -2200,8 +2200,8 @@ body .site-main .builder-hero-section.ajn-overflow-hidden {
 }
 
 body .site-main .builder-hero-section.ajn-has-height-override:not(.ajn-has-padding-override) {
-    padding-top: var(--ajn-padding-top-desktop, 1.5rem) !important;
-    padding-bottom: var(--ajn-padding-bottom-desktop, 1.5rem) !important;
+    padding-top: var(--ajn-padding-top-desktop, 0) !important;
+    padding-bottom: var(--ajn-padding-bottom-desktop, 0) !important;
 }
 
 body .site-main .builder-hero-section > .wp-block-group__inner-container,
@@ -2263,6 +2263,29 @@ body .site-main .page-hero.blog-hero p {
     transform: none !important;
 }
 
+body .site-main .builder-hero-section :where(h1, h2, h3, h4, h5, h6, p, .wp-block-heading, .wp-block-buttons) {
+    margin-left: auto !important;
+    margin-right: auto !important;
+    text-align: center !important;
+}
+
+body .site-main .builder-hero-section :where(.has-text-align-left) {
+    margin-left: 0 !important;
+    margin-right: auto !important;
+    text-align: left !important;
+}
+
+body .site-main .builder-hero-section :where(.has-text-align-right) {
+    margin-left: auto !important;
+    margin-right: 0 !important;
+    text-align: right !important;
+}
+
+body .site-main .builder-hero-section > :last-child,
+body .site-main .builder-hero-section > .wp-block-group__inner-container > :last-child {
+    margin-bottom: 0 !important;
+}
+
 body .site-main .builder-hero-section .wp-block-buttons {
     justify-content: center !important;
 }
@@ -2290,8 +2313,8 @@ body .site-main .builder-hero-section .wp-block-buttons {
     }
 
     body .site-main .builder-hero-section.ajn-has-height-override:not(.ajn-has-padding-override) {
-        padding-top: var(--ajn-padding-top-tablet, var(--ajn-padding-top-desktop, 1.25rem)) !important;
-        padding-bottom: var(--ajn-padding-bottom-tablet, var(--ajn-padding-bottom-desktop, 1.25rem)) !important;
+        padding-top: var(--ajn-padding-top-tablet, var(--ajn-padding-top-desktop, 0)) !important;
+        padding-bottom: var(--ajn-padding-bottom-tablet, var(--ajn-padding-bottom-desktop, 0)) !important;
     }
 }
 
@@ -2318,7 +2341,7 @@ body .site-main .builder-hero-section .wp-block-buttons {
     }
 
     body .site-main .builder-hero-section.ajn-has-height-override:not(.ajn-has-padding-override) {
-        padding-top: var(--ajn-padding-top-mobile, var(--ajn-padding-top-tablet, var(--ajn-padding-top-desktop, 1rem))) !important;
-        padding-bottom: var(--ajn-padding-bottom-mobile, var(--ajn-padding-bottom-tablet, var(--ajn-padding-bottom-desktop, 1rem))) !important;
+        padding-top: var(--ajn-padding-top-mobile, var(--ajn-padding-top-tablet, var(--ajn-padding-top-desktop, 0))) !important;
+        padding-bottom: var(--ajn-padding-bottom-mobile, var(--ajn-padding-bottom-tablet, var(--ajn-padding-bottom-desktop, 0))) !important;
     }
 }
