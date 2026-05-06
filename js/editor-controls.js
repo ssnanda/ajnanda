@@ -11,6 +11,7 @@
     var createElement = wp.element.createElement;
     var Fragment = wp.element.Fragment;
     var InspectorControls = wp.blockEditor.InspectorControls;
+    var Button = wp.components.Button;
     var PanelBody = wp.components.PanelBody;
     var TextControl = wp.components.TextControl;
     var Notice = wp.components.Notice;
@@ -45,6 +46,8 @@
         ajnPaddingLeftMobile: { type: 'string', default: '' },
         ajnPaddingRightMobile: { type: 'string', default: '' }
     };
+
+    var HERO_BLOCK_MARKUP = '<!-- wp:group {"align":"full","className":"builder-hero-section hero-height-standard hero-width-standard","layout":{"type":"flex","orientation":"vertical","justifyContent":"center","verticalAlignment":"center","flexWrap":"nowrap"}} --><div class="wp-block-group alignfull builder-hero-section hero-height-standard hero-width-standard"><!-- wp:heading {"textAlign":"center","level":1} --><h1 class="wp-block-heading has-text-align-center">Page Hero</h1><!-- /wp:heading --></div><!-- /wp:group -->';
 
     function normalizeSize(value) {
         value = (value || '').trim();
@@ -207,6 +210,116 @@
             onChange: change
         });
     }
+
+    function getPostType() {
+        if (!wp.data || !wp.data.select) {
+            return '';
+        }
+
+        var editor = wp.data.select('core/editor');
+
+        return editor && editor.getCurrentPostType ? editor.getCurrentPostType() : '';
+    }
+
+    function blockHasHeroClass(block) {
+        var attrs = block.attributes || {};
+        var className = attrs.className || '';
+
+        if (className.split(/\s+/).indexOf('builder-hero-section') !== -1) {
+            return true;
+        }
+
+        return (block.innerBlocks || []).some(blockHasHeroClass);
+    }
+
+    function currentContentHasHero() {
+        if (!wp.data || !wp.data.select) {
+            return false;
+        }
+
+        var blockEditor = wp.data.select('core/block-editor');
+        var blocks = blockEditor && blockEditor.getBlocks ? blockEditor.getBlocks() : [];
+
+        return blocks.some(blockHasHeroClass);
+    }
+
+    function createNotice(type, message) {
+        if (!wp.data || !wp.data.dispatch) {
+            return;
+        }
+
+        var notices = wp.data.dispatch('core/notices');
+
+        if (!notices) {
+            return;
+        }
+
+        if (type === 'warning' && notices.createWarningNotice) {
+            notices.createWarningNotice(message, { type: 'snackbar' });
+            return;
+        }
+
+        if (notices.createSuccessNotice) {
+            notices.createSuccessNotice(message, { type: 'snackbar' });
+        }
+    }
+
+    function insertHeroAtTop() {
+        if (!wp.blocks || !wp.blocks.parse || !wp.data || !wp.data.dispatch) {
+            return;
+        }
+
+        if (currentContentHasHero()) {
+            createNotice('warning', 'This page already has a theme hero.');
+            return;
+        }
+
+        var blocks = wp.blocks.parse(HERO_BLOCK_MARKUP);
+        var blockEditor = wp.data.dispatch('core/block-editor');
+
+        if (!blocks.length || !blockEditor || !blockEditor.insertBlocks) {
+            return;
+        }
+
+        blockEditor.insertBlocks(blocks, 0);
+
+        if (blockEditor.selectBlock && blocks[0].clientId) {
+            blockEditor.selectBlock(blocks[0].clientId);
+        }
+
+        createNotice('success', 'Theme hero added to the top.');
+    }
+
+    function registerHeroInserterPanel() {
+        if (!wp.plugins || !wp.plugins.registerPlugin || !wp.editPost || !wp.editPost.PluginDocumentSettingPanel) {
+            return;
+        }
+
+        wp.plugins.registerPlugin('ajn-hero-inserter', {
+            render: function() {
+                var postType = getPostType();
+
+                if (postType !== 'page' && postType !== 'post') {
+                    return null;
+                }
+
+                return createElement(
+                    wp.editPost.PluginDocumentSettingPanel,
+                    {
+                        name: 'ajn-hero-inserter',
+                        title: 'AJNanda Hero',
+                        className: 'ajn-hero-inserter'
+                    },
+                    createElement(Button, {
+                        variant: 'primary',
+                        onClick: insertHeroAtTop
+                    }, 'Add Theme Hero to Top')
+                );
+            }
+        });
+    }
+
+    registerHeroInserterPanel();
 
     addFilter('blocks.registerBlockType', 'ajn/block-layout-attributes', function(settings) {
         settings.attributes = Object.assign({}, settings.attributes || {}, LAYOUT_ATTRS);

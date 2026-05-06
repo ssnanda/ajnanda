@@ -45,10 +45,10 @@ add_action('after_setup_theme', 'ncllc_pro_setup');
  */
 function ncllc_pro_scripts() {
     // Enqueue main stylesheet
-    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.60');
+    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.61');
     
     // Enqueue custom JavaScript
-    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.60', true);
+    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.61', true);
     
     // Localize script
     wp_localize_script('ncllc-pro-script', 'ncllcData', array(
@@ -62,12 +62,12 @@ add_action('wp_enqueue_scripts', 'ncllc_pro_scripts');
  * Load the same page-section styling inside the block editor.
  */
 function ncllc_pro_block_editor_assets() {
-    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.60');
+    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.61');
     wp_enqueue_script(
         'ncllc-pro-editor-controls',
         get_template_directory_uri() . '/js/editor-controls.js',
-        array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-element', 'wp-hooks'),
-        '1.0.60',
+        array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-data', 'wp-edit-post', 'wp-element', 'wp-hooks', 'wp-notices', 'wp-plugins'),
+        '1.0.61',
         true
     );
 }
@@ -1051,10 +1051,11 @@ function ncllc_pro_register_block_patterns() {
     ));
 
     register_block_pattern('ncllc-pro/editable-hero', array(
-        'title'       => __('Editable Blue Hero', 'ncllc-pro'),
-        'description' => __('A full-width hero section that lives inside page content.', 'ncllc-pro'),
+        'title'       => __('Theme Hero', 'ncllc-pro'),
+        'description' => __('A full-width page or post hero that uses the theme hero defaults until you override it on the block.', 'ncllc-pro'),
         'categories'  => array('ncllc-builder'),
-        'content'     => '<!-- wp:group {"align":"full","className":"builder-hero-section","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull builder-hero-section"><!-- wp:paragraph {"align":"center","className":"builder-hero-badge"} --><p class="has-text-align-center builder-hero-badge">NC LLC Agents Inc</p><!-- /wp:paragraph --><!-- wp:heading {"textAlign":"center","level":1} --><h1 class="wp-block-heading has-text-align-center">Reliable North Carolina Registered Agent Service</h1><!-- /wp:heading --><!-- wp:paragraph {"align":"center","className":"builder-hero-subtitle"} --><p class="has-text-align-center builder-hero-subtitle">Edit this section directly in the page editor, including the headline, supporting text, buttons, colors, and spacing.</p><!-- /wp:paragraph --><!-- wp:buttons {"layout":{"type":"flex","justifyContent":"center"}} --><div class="wp-block-buttons"><!-- wp:button --><div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="/contact/">Get Started</a></div><!-- /wp:button --><!-- wp:button {"className":"is-style-outline"} --><div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="/services/">View Services</a></div><!-- /wp:button --></div><!-- /wp:buttons --></div><!-- /wp:group -->',
+        'keywords'    => array(__('hero', 'ncllc-pro'), __('page header', 'ncllc-pro'), __('post header', 'ncllc-pro')),
+        'content'     => '<!-- wp:group {"align":"full","className":"builder-hero-section hero-height-standard hero-width-standard","layout":{"type":"flex","orientation":"vertical","justifyContent":"center","verticalAlignment":"center","flexWrap":"nowrap"}} --><div class="wp-block-group alignfull builder-hero-section hero-height-standard hero-width-standard"><!-- wp:heading {"textAlign":"center","level":1} --><h1 class="wp-block-heading has-text-align-center">Page Hero</h1><!-- /wp:heading --></div><!-- /wp:group -->',
     ));
 
     register_block_pattern('ncllc-pro/three-feature-cards', array(
