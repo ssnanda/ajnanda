@@ -45,10 +45,10 @@ add_action('after_setup_theme', 'ncllc_pro_setup');
  */
 function ncllc_pro_scripts() {
     // Enqueue main stylesheet
-    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.54');
+    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.55');
     
     // Enqueue custom JavaScript
-    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.54', true);
+    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.55', true);
     
     // Localize script
     wp_localize_script('ncllc-pro-script', 'ncllcData', array(
@@ -62,12 +62,12 @@ add_action('wp_enqueue_scripts', 'ncllc_pro_scripts');
  * Load the same page-section styling inside the block editor.
  */
 function ncllc_pro_block_editor_assets() {
-    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.54');
+    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.55');
     wp_enqueue_script(
         'ncllc-pro-editor-controls',
         get_template_directory_uri() . '/js/editor-controls.js',
         array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-element', 'wp-hooks'),
-        '1.0.54',
+        '1.0.55',
         true
     );
 }
@@ -248,6 +248,97 @@ function ncllc_pro_split_leading_builder_hero($content) {
 
     return $result;
 }
+
+/**
+ * Check whether a saved block layout attribute has a meaningful value.
+ */
+function ncllc_pro_has_block_layout_value($block, $keys) {
+    if (empty($block['attrs']) || !is_array($block['attrs'])) {
+        return false;
+    }
+
+    foreach ($keys as $key) {
+        if (isset($block['attrs'][$key]) && '' !== $block['attrs'][$key] && false !== $block['attrs'][$key]) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Add semantic layout classes to rendered hero blocks from saved block attrs.
+ *
+ * Older pages may already have AJNanda inline layout variables without the newer
+ * state classes, so this keeps front-end behavior consistent without requiring
+ * every page/post to be opened and saved again.
+ */
+function ncllc_pro_add_hero_layout_state_classes($block_content, $block) {
+    if ('' === $block_content || false === strpos($block_content, 'builder-hero-section')) {
+        return $block_content;
+    }
+
+    $height_keys = array(
+        'ajnMinHeightDesktop',
+        'ajnMinHeightTablet',
+        'ajnMinHeightMobile',
+        'ajnHeightDesktop',
+        'ajnHeightTablet',
+        'ajnHeightMobile',
+    );
+
+    $padding_keys = array(
+        'ajnPaddingTopDesktop',
+        'ajnPaddingRightDesktop',
+        'ajnPaddingBottomDesktop',
+        'ajnPaddingLeftDesktop',
+        'ajnPaddingTopTablet',
+        'ajnPaddingRightTablet',
+        'ajnPaddingBottomTablet',
+        'ajnPaddingLeftTablet',
+        'ajnPaddingTopMobile',
+        'ajnPaddingRightMobile',
+        'ajnPaddingBottomMobile',
+        'ajnPaddingLeftMobile',
+    );
+
+    $classes = array();
+
+    if (ncllc_pro_has_block_layout_value($block, $height_keys)) {
+        $classes[] = 'ajn-has-height-override';
+    }
+
+    if (ncllc_pro_has_block_layout_value($block, $padding_keys)) {
+        $classes[] = 'ajn-has-padding-override';
+    }
+
+    if (empty($classes)) {
+        return $block_content;
+    }
+
+    if (class_exists('WP_HTML_Tag_Processor')) {
+        $processor = new WP_HTML_Tag_Processor($block_content);
+
+        if ($processor->next_tag()) {
+            $existing_classes = $processor->get_attribute('class');
+
+            if (false === $existing_classes || false === strpos($existing_classes, 'builder-hero-section')) {
+                return $block_content;
+            }
+
+            foreach ($classes as $class_name) {
+                $processor->add_class($class_name);
+            }
+
+            return $processor->get_updated_html();
+        }
+    }
+
+    $class_string = implode(' ', array_map('sanitize_html_class', $classes));
+
+    return preg_replace('/(<[a-z0-9:-]+[^>]*class="[^"]*builder-hero-section[^"]*)(")/i', '$1 ' . esc_attr($class_string) . '$2', $block_content, 1);
+}
+add_filter('render_block', 'ncllc_pro_add_hero_layout_state_classes', 10, 2);
 
 /**
  * Footer column defaults and saved Customizer values.

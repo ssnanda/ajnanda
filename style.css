@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: http://ncllc.ddev.site/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.0.54
+Version: 1.0.55
 License: GNU General Public License v2 or later
 Text Domain: ncllc-pro
 */
@@ -2199,12 +2199,7 @@ body .site-main .builder-hero-section.ajn-overflow-hidden {
     overflow: hidden !important;
 }
 
-body .site-main .builder-canvas-content > .builder-hero-section.ajn-layout-control[style*="--ajn-min-height-desktop"]:first-child,
-body .site-main .builder-canvas-content > .wp-block-group.builder-hero-section.ajn-layout-control[style*="--ajn-min-height-desktop"]:first-child,
-body .site-main .builder-canvas-content.page-hero-content > .builder-hero-section.ajn-layout-control[style*="--ajn-min-height-desktop"]:first-child,
-body .site-main .builder-canvas-content.page-hero-content > .wp-block-group.builder-hero-section.ajn-layout-control[style*="--ajn-min-height-desktop"]:first-child,
-body .site-main .posts-page-content > .builder-hero-section.ajn-layout-control[style*="--ajn-min-height-desktop"]:first-child,
-body .site-main .posts-page-content > .wp-block-group.builder-hero-section.ajn-layout-control[style*="--ajn-min-height-desktop"]:first-child {
+body .site-main .builder-hero-section.ajn-has-height-override:not(.ajn-has-padding-override) {
     padding-top: var(--ajn-padding-top-desktop, 1.5rem) !important;
     padding-bottom: var(--ajn-padding-bottom-desktop, 1.5rem) !important;
 }
@@ -2294,12 +2289,7 @@ body .site-main .builder-hero-section .wp-block-buttons {
         height: var(--ajn-height-tablet, var(--ajn-height-desktop, var(--ajn-min-height-tablet, var(--ajn-min-height-desktop, var(--ajn-hero-min-height-tablet, var(--ajn-hero-min-height-desktop, 400px)))))) !important;
     }
 
-    body .site-main .builder-canvas-content > .builder-hero-section.ajn-layout-control[style*="--ajn-min-height-desktop"]:first-child,
-    body .site-main .builder-canvas-content > .wp-block-group.builder-hero-section.ajn-layout-control[style*="--ajn-min-height-desktop"]:first-child,
-    body .site-main .builder-canvas-content.page-hero-content > .builder-hero-section.ajn-layout-control[style*="--ajn-min-height-desktop"]:first-child,
-    body .site-main .builder-canvas-content.page-hero-content > .wp-block-group.builder-hero-section.ajn-layout-control[style*="--ajn-min-height-desktop"]:first-child,
-    body .site-main .posts-page-content > .builder-hero-section.ajn-layout-control[style*="--ajn-min-height-desktop"]:first-child,
-    body .site-main .posts-page-content > .wp-block-group.builder-hero-section.ajn-layout-control[style*="--ajn-min-height-desktop"]:first-child {
+    body .site-main .builder-hero-section.ajn-has-height-override:not(.ajn-has-padding-override) {
         padding-top: var(--ajn-padding-top-tablet, var(--ajn-padding-top-desktop, 1.25rem)) !important;
         padding-bottom: var(--ajn-padding-bottom-tablet, var(--ajn-padding-bottom-desktop, 1.25rem)) !important;
     }
@@ -2327,12 +2317,7 @@ body .site-main .builder-hero-section .wp-block-buttons {
         height: var(--ajn-height-mobile, var(--ajn-height-tablet, var(--ajn-height-desktop, var(--ajn-min-height-mobile, var(--ajn-min-height-tablet, var(--ajn-min-height-desktop, var(--ajn-hero-min-height-mobile, var(--ajn-hero-min-height-tablet, var(--ajn-hero-min-height-desktop, 340px))))))))) !important;
     }
 
-    body .site-main .builder-canvas-content > .builder-hero-section.ajn-layout-control[style*="--ajn-min-height-desktop"]:first-child,
-    body .site-main .builder-canvas-content > .wp-block-group.builder-hero-section.ajn-layout-control[style*="--ajn-min-height-desktop"]:first-child,
-    body .site-main .builder-canvas-content.page-hero-content > .builder-hero-section.ajn-layout-control[style*="--ajn-min-height-desktop"]:first-child,
-    body .site-main .builder-canvas-content.page-hero-content > .wp-block-group.builder-hero-section.ajn-layout-control[style*="--ajn-min-height-desktop"]:first-child,
-    body .site-main .posts-page-content > .builder-hero-section.ajn-layout-control[style*="--ajn-min-height-desktop"]:first-child,
-    body .site-main .posts-page-content > .wp-block-group.builder-hero-section.ajn-layout-control[style*="--ajn-min-height-desktop"]:first-child {
+    body .site-main .builder-hero-section.ajn-has-height-override:not(.ajn-has-padding-override) {
         padding-top: var(--ajn-padding-top-mobile, var(--ajn-padding-top-tablet, var(--ajn-padding-top-desktop, 1rem))) !important;
         padding-bottom: var(--ajn-padding-bottom-mobile, var(--ajn-padding-bottom-tablet, var(--ajn-padding-bottom-desktop, 1rem))) !important;
     }
