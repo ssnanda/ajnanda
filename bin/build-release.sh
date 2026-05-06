@@ -177,10 +177,17 @@ build_zip() {
 
   rsync -a \
     --exclude='.git' \
+    --exclude='.gitignore' \
     --exclude='.DS_Store' \
     --exclude='node_modules' \
     --exclude='vendor' \
     --exclude='releases' \
+    --exclude='bin' \
+    --exclude='README.md' \
+    --exclude='INSTALLATION.md' \
+    --exclude='SETUP-GUIDE.md' \
+    --exclude='IMPROVEMENTS-SUMMARY.md' \
+    --exclude='QUICK-SETUP.sh' \
     --exclude='*.zip' \
     --exclude='.vscode' \
     --exclude='.idea' \
