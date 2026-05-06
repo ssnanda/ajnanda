@@ -1,3 +1,6 @@
 releases/
 .DS_Store
 *.zip
+*.swp
+*.swo
+*~
