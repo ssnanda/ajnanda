@@ -1,7 +1,9 @@
 <?php
 /**
  * Template for displaying single posts
- * 
+ *
+ * Supports an editable leading hero block when the first block has class "builder-hero-section".
+ *
  * @package NCLLC_Pro
  */
 
@@ -11,22 +13,29 @@ get_header(); ?>
     <?php
     while (have_posts()) :
         the_post();
+
+        $content = get_the_content();
+        $split_content = ncllc_pro_split_leading_builder_hero($content);
+        $has_leading_hero = '' !== $split_content['hero'];
         ?>
         <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
-            <div class="container">
-                <header class="entry-header" style="padding: 6rem 0 2rem; text-align: center;">
-                    <?php the_title('<h1 class="entry-title">', '</h1>'); ?>
-                    
-                    <div class="entry-meta" style="color: #6b7280; margin-top: 1rem;">
-                        <span class="posted-on">
-                            <?php echo get_the_date(); ?>
-                        </span>
-                        <span class="byline" style="margin-left: 1rem;">
-                            by <?php the_author(); ?>
-                        </span>
+            <?php if ($has_leading_hero) : ?>
+                <div class="entry-content builder-canvas-content page-hero-content">
+                    <?php echo $split_content['hero']; ?>
+                </div>
+            <?php else : ?>
+                <section class="page-hero blog-hero">
+                    <div class="container">
+                        <div class="page-hero-badge"><?php esc_html_e('NC LLC Agents Inc', 'ncllc-pro'); ?></div>
+                        <?php the_title('<h1 class="entry-title">', '</h1>'); ?>
+                        <?php if (has_excerpt()) : ?>
+                            <p><?php echo esc_html(get_the_excerpt()); ?></p>
+                        <?php endif; ?>
                     </div>
-                </header>
+                </section>
+            <?php endif; ?>
 
+            <div class="container">
                 <?php if (has_post_thumbnail()) : ?>
                     <div class="post-thumbnail" style="margin: 2rem 0;">
                         <?php the_post_thumbnail('large', array('style' => 'width: 100%; height: auto; border-radius: 1rem;')); ?>
@@ -35,7 +44,7 @@ get_header(); ?>
 
                 <div class="entry-content" style="padding: 2rem 0 4rem; max-width: 800px; margin: 0 auto; line-height: 1.8;">
                     <?php
-                    the_content();
+                    echo apply_filters('the_content', $has_leading_hero ? $split_content['rest'] : $content);
 
                     wp_link_pages(array(
                         'before' => '<div class="page-links">' . esc_html__('Pages:', 'ncllc-pro'),
@@ -61,13 +70,11 @@ get_header(); ?>
         </article>
 
         <?php
-        // Post navigation
         the_post_navigation(array(
             'prev_text' => '<span class="nav-subtitle">Previous:</span> <span class="nav-title">%title</span>',
             'next_text' => '<span class="nav-subtitle">Next:</span> <span class="nav-title">%title</span>',
         ));
 
-        // Comments
         if (comments_open() || get_comments_number()) :
             comments_template();
         endif;

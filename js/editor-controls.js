@@ -1,3 +1,7 @@
+/**
+ * AJNanda editor controls
+ * Responsive layout controls with live editor preview.
+ */
 (function(wp) {
     if (!wp || !wp.hooks || !wp.compose || !wp.element || !wp.components || !wp.blockEditor) {
         return;
@@ -9,95 +13,214 @@
     var InspectorControls = wp.blockEditor.InspectorControls;
     var PanelBody = wp.components.PanelBody;
     var TextControl = wp.components.TextControl;
-    var SelectControl = wp.components.SelectControl;
+    var Notice = wp.components.Notice;
     var ToggleControl = wp.components.ToggleControl;
     var createHigherOrderComponent = wp.compose.createHigherOrderComponent;
+    var useEffect = wp.element.useEffect;
+    var useState = wp.element.useState;
 
-    var SIZE_ATTRS = {
-        ncllcWidth: {
-            type: 'string',
-            default: ''
-        },
-        ncllcMaxWidth: {
-            type: 'string',
-            default: ''
-        },
-        ncllcMinHeight: {
-            type: 'string',
-            default: ''
-        },
-        ncllcHeight: {
-            type: 'string',
-            default: ''
-        },
-        ncllcOverflow: {
-            type: 'string',
-            default: ''
-        },
-        ncllcObjectFit: {
-            type: 'string',
-            default: ''
-        },
-        ncllcCenterBlock: {
-            type: 'boolean',
-            default: false
-        }
+    var LAYOUT_ATTRS = {
+        ajnMinHeightDesktop: { type: 'string', default: '' },
+        ajnMinHeightTablet: { type: 'string', default: '' },
+        ajnMinHeightMobile: { type: 'string', default: '' },
+
+        ajnUseFixedHeight: { type: 'boolean', default: false },
+        ajnHeightDesktop: { type: 'string', default: '' },
+        ajnHeightTablet: { type: 'string', default: '' },
+        ajnHeightMobile: { type: 'string', default: '' },
+        ajnHeightOverflowHidden: { type: 'boolean', default: false },
+
+        ajnPaddingTopDesktop: { type: 'string', default: '' },
+        ajnPaddingBottomDesktop: { type: 'string', default: '' },
+        ajnPaddingLeftDesktop: { type: 'string', default: '' },
+        ajnPaddingRightDesktop: { type: 'string', default: '' },
+
+        ajnPaddingTopTablet: { type: 'string', default: '' },
+        ajnPaddingBottomTablet: { type: 'string', default: '' },
+        ajnPaddingLeftTablet: { type: 'string', default: '' },
+        ajnPaddingRightTablet: { type: 'string', default: '' },
+
+        ajnPaddingTopMobile: { type: 'string', default: '' },
+        ajnPaddingBottomMobile: { type: 'string', default: '' },
+        ajnPaddingLeftMobile: { type: 'string', default: '' },
+        ajnPaddingRightMobile: { type: 'string', default: '' }
     };
 
-    function hasSizeAttrs(attrs) {
-        return !!(
-            attrs.ncllcWidth ||
-            attrs.ncllcMaxWidth ||
-            attrs.ncllcMinHeight ||
-            attrs.ncllcHeight ||
-            attrs.ncllcOverflow ||
-            attrs.ncllcObjectFit ||
-            attrs.ncllcCenterBlock
-        );
+    function normalizeSize(value) {
+        value = (value || '').trim();
+
+        if (!value) {
+            return '';
+        }
+
+        if (/^\d+$/.test(value)) {
+            return value + 'px';
+        }
+
+        return value;
     }
 
-    function getSizeStyle(attrs) {
+    function setVar(style, name, value) {
+        value = normalizeSize(value);
+        if (value) {
+            style[name] = value;
+        }
+    }
+
+    function getLayoutStyles(attrs) {
         var style = {};
 
-        if (attrs.ncllcWidth) {
-            style.width = attrs.ncllcWidth;
-        }
-        if (attrs.ncllcMaxWidth) {
-            style.maxWidth = attrs.ncllcMaxWidth;
-        }
-        if (attrs.ncllcMinHeight) {
-            style.minHeight = attrs.ncllcMinHeight;
-        }
-        if (attrs.ncllcHeight) {
-            style.height = attrs.ncllcHeight;
-        }
-        if (attrs.ncllcOverflow) {
-            style.overflow = attrs.ncllcOverflow;
-        }
-        if (attrs.ncllcCenterBlock) {
-            style.marginLeft = 'auto';
-            style.marginRight = 'auto';
-        }
+        setVar(style, '--ajn-min-height-desktop', attrs.ajnMinHeightDesktop || attrs.ajnHeightDesktop);
+        setVar(style, '--ajn-min-height-tablet', attrs.ajnMinHeightTablet || attrs.ajnHeightTablet);
+        setVar(style, '--ajn-min-height-mobile', attrs.ajnMinHeightMobile || attrs.ajnHeightMobile);
+
+        setVar(style, '--ajn-height-desktop', attrs.ajnHeightDesktop);
+        setVar(style, '--ajn-height-tablet', attrs.ajnHeightTablet);
+        setVar(style, '--ajn-height-mobile', attrs.ajnHeightMobile);
+
+        setVar(style, '--ajn-padding-top-desktop', attrs.ajnPaddingTopDesktop);
+        setVar(style, '--ajn-padding-right-desktop', attrs.ajnPaddingRightDesktop);
+        setVar(style, '--ajn-padding-bottom-desktop', attrs.ajnPaddingBottomDesktop);
+        setVar(style, '--ajn-padding-left-desktop', attrs.ajnPaddingLeftDesktop);
+
+        setVar(style, '--ajn-padding-top-tablet', attrs.ajnPaddingTopTablet);
+        setVar(style, '--ajn-padding-right-tablet', attrs.ajnPaddingRightTablet);
+        setVar(style, '--ajn-padding-bottom-tablet', attrs.ajnPaddingBottomTablet);
+        setVar(style, '--ajn-padding-left-tablet', attrs.ajnPaddingLeftTablet);
+
+        setVar(style, '--ajn-padding-top-mobile', attrs.ajnPaddingTopMobile);
+        setVar(style, '--ajn-padding-right-mobile', attrs.ajnPaddingRightMobile);
+        setVar(style, '--ajn-padding-bottom-mobile', attrs.ajnPaddingBottomMobile);
+        setVar(style, '--ajn-padding-left-mobile', attrs.ajnPaddingLeftMobile);
 
         return style;
     }
 
-    function mergeStyle(existingStyle, addedStyle) {
-        return Object.assign({}, existingStyle || {}, addedStyle);
+    function hasLayout(attrs) {
+        return Object.keys(LAYOUT_ATTRS).some(function(key) {
+            return attrs[key] !== undefined && attrs[key] !== '' && attrs[key] !== false;
+        });
     }
 
-    addFilter('blocks.registerBlockType', 'ncllc-pro/size-attributes', function(settings) {
-        settings.attributes = Object.assign({}, settings.attributes || {}, SIZE_ATTRS);
+    function mergeClassName(className, classToAdd) {
+        className = className || '';
+
+        if (className.split(/\s+/).indexOf(classToAdd) !== -1) {
+            return className;
+        }
+
+        return (className + ' ' + classToAdd).trim();
+    }
+
+    function getLayoutClass(attrs, className) {
+        className = mergeClassName(className, 'ajn-layout-control');
+
+        if (
+            attrs.ajnMinHeightDesktop ||
+            attrs.ajnMinHeightTablet ||
+            attrs.ajnMinHeightMobile ||
+            attrs.ajnHeightDesktop ||
+            attrs.ajnHeightTablet ||
+            attrs.ajnHeightMobile
+        ) {
+            className = mergeClassName(className, 'ajn-has-height-override');
+        }
+
+        if (
+            attrs.ajnPaddingTopDesktop ||
+            attrs.ajnPaddingRightDesktop ||
+            attrs.ajnPaddingBottomDesktop ||
+            attrs.ajnPaddingLeftDesktop ||
+            attrs.ajnPaddingTopTablet ||
+            attrs.ajnPaddingRightTablet ||
+            attrs.ajnPaddingBottomTablet ||
+            attrs.ajnPaddingLeftTablet ||
+            attrs.ajnPaddingTopMobile ||
+            attrs.ajnPaddingRightMobile ||
+            attrs.ajnPaddingBottomMobile ||
+            attrs.ajnPaddingLeftMobile
+        ) {
+            className = mergeClassName(className, 'ajn-has-padding-override');
+        }
+
+        if (attrs.ajnUseFixedHeight) {
+            className = mergeClassName(className, 'ajn-fixed-height');
+        }
+
+        if (attrs.ajnHeightOverflowHidden) {
+            className = mergeClassName(className, 'ajn-overflow-hidden');
+        }
+
+        return className;
+    }
+
+    function useMeasuredBlockHeight(clientId) {
+        var state = useState('');
+        var measuredHeight = state[0];
+        var setMeasuredHeight = state[1];
+
+        useEffect(function() {
+            if (!clientId || typeof document === 'undefined') {
+                return;
+            }
+
+            var block = document.querySelector('[data-block="' + clientId + '"]');
+            if (!block) {
+                setMeasuredHeight('');
+                return;
+            }
+
+            function updateHeight() {
+                var rect = block.getBoundingClientRect();
+                if (rect && rect.height) {
+                    setMeasuredHeight(Math.round(rect.height) + 'px');
+                }
+            }
+
+            updateHeight();
+
+            if (typeof ResizeObserver !== 'undefined') {
+                var observer = new ResizeObserver(updateHeight);
+                observer.observe(block);
+
+                return function() {
+                    observer.disconnect();
+                };
+            }
+
+            var interval = setInterval(updateHeight, 500);
+
+            return function() {
+                clearInterval(interval);
+            };
+        }, [clientId]);
+
+        return measuredHeight;
+    }
+
+    function field(label, value, placeholder, help, change) {
+        return createElement(TextControl, {
+            label: label,
+            value: value || '',
+            placeholder: placeholder || '',
+            help: help || '',
+            onChange: change
+        });
+    }
+
+    addFilter('blocks.registerBlockType', 'ajn/block-layout-attributes', function(settings) {
+        settings.attributes = Object.assign({}, settings.attributes || {}, LAYOUT_ATTRS);
         return settings;
     });
 
     addFilter(
         'editor.BlockEdit',
-        'ncllc-pro/size-controls',
+        'ajn/block-layout-controls',
         createHigherOrderComponent(function(BlockEdit) {
             return function(props) {
                 var attrs = props.attributes || {};
                 var setAttributes = props.setAttributes;
+                var measuredHeight = useMeasuredBlockHeight(props.clientId);
 
                 return createElement(
                     Fragment,
@@ -109,119 +232,107 @@
                         createElement(
                             PanelBody,
                             {
-                                title: 'NCLLC Size',
-                                initialOpen: hasSizeAttrs(attrs)
+                                title: 'Block Layout',
+                                initialOpen: true
                             },
-                            createElement(TextControl, {
-                                label: 'Width',
-                                help: 'Examples: 50%, 420px, 30rem, 80vw.',
-                                value: attrs.ncllcWidth || '',
-                                onChange: function(value) {
-                                    setAttributes({ ncllcWidth: value });
-                                }
+                            measuredHeight ? createElement(Notice, {
+                                status: 'info',
+                                isDismissible: false
+                            }, 'Current editor height: ' + measuredHeight) : null,
+
+                            field('Minimum height - Desktop', attrs.ajnMinHeightDesktop || attrs.ajnHeightDesktop, measuredHeight || 'auto', 'Use this for page hero sections. Example: 350px, 60vh, 40rem.', function(value) {
+                                setAttributes({ ajnMinHeightDesktop: value });
                             }),
-                            createElement(TextControl, {
-                                label: 'Max width',
-                                help: 'Examples: 720px, 950px, 1120px.',
-                                value: attrs.ncllcMaxWidth || '',
-                                onChange: function(value) {
-                                    setAttributes({ ncllcMaxWidth: value });
-                                }
+                            field('Minimum height - Tablet', attrs.ajnMinHeightTablet || attrs.ajnHeightTablet, attrs.ajnMinHeightDesktop || attrs.ajnHeightDesktop || measuredHeight || 'auto', 'Leave blank to use desktop value.', function(value) {
+                                setAttributes({ ajnMinHeightTablet: value });
                             }),
-                            createElement(TextControl, {
-                                label: 'Minimum height',
-                                help: 'Examples: 320px, 70vh, 24rem.',
-                                value: attrs.ncllcMinHeight || '',
-                                onChange: function(value) {
-                                    setAttributes({ ncllcMinHeight: value });
-                                }
+                            field('Minimum height - Mobile', attrs.ajnMinHeightMobile || attrs.ajnHeightMobile, attrs.ajnMinHeightTablet || attrs.ajnMinHeightDesktop || attrs.ajnHeightDesktop || measuredHeight || 'auto', 'Leave blank to use tablet or desktop value.', function(value) {
+                                setAttributes({ ajnMinHeightMobile: value });
                             }),
-                            createElement(TextControl, {
-                                label: 'Fixed height',
-                                help: 'Use only when the block must be an exact height.',
-                                value: attrs.ncllcHeight || '',
-                                onChange: function(value) {
-                                    setAttributes({ ncllcHeight: value });
-                                }
-                            }),
+
                             createElement(ToggleControl, {
-                                label: 'Center block',
-                                checked: !!attrs.ncllcCenterBlock,
+                                label: 'Use fixed height instead of minimum height',
+                                checked: !!attrs.ajnUseFixedHeight,
                                 onChange: function(value) {
-                                    setAttributes({ ncllcCenterBlock: value });
+                                    setAttributes({ ajnUseFixedHeight: value });
                                 }
                             }),
-                            createElement(SelectControl, {
-                                label: 'Overflow',
-                                value: attrs.ncllcOverflow || '',
-                                options: [
-                                    { label: 'Default', value: '' },
-                                    { label: 'Visible', value: 'visible' },
-                                    { label: 'Hidden', value: 'hidden' },
-                                    { label: 'Auto', value: 'auto' },
-                                    { label: 'Scroll', value: 'scroll' }
-                                ],
+                            attrs.ajnUseFixedHeight ? createElement(Notice, {
+                                status: 'warning',
+                                isDismissible: false
+                            }, 'Fixed height can cut off text. Use minimum height for hero/text sections.') : null,
+                            attrs.ajnUseFixedHeight ? field('Fixed height - Desktop', attrs.ajnHeightDesktop, measuredHeight || 'auto', 'Use mostly for image boxes or empty spacers.', function(value) {
+                                setAttributes({ ajnHeightDesktop: value });
+                            }) : null,
+                            attrs.ajnUseFixedHeight ? field('Fixed height - Tablet', attrs.ajnHeightTablet, attrs.ajnHeightDesktop || measuredHeight || 'auto', '', function(value) {
+                                setAttributes({ ajnHeightTablet: value });
+                            }) : null,
+                            attrs.ajnUseFixedHeight ? field('Fixed height - Mobile', attrs.ajnHeightMobile, attrs.ajnHeightTablet || attrs.ajnHeightDesktop || measuredHeight || 'auto', '', function(value) {
+                                setAttributes({ ajnHeightMobile: value });
+                            }) : null,
+                            attrs.ajnUseFixedHeight ? createElement(ToggleControl, {
+                                label: 'Hide overflow',
+                                checked: !!attrs.ajnHeightOverflowHidden,
                                 onChange: function(value) {
-                                    setAttributes({ ncllcOverflow: value });
+                                    setAttributes({ ajnHeightOverflowHidden: value });
                                 }
-                            }),
-                            createElement(SelectControl, {
-                                label: 'Image fit',
-                                help: 'Applies to Image blocks and blocks containing images.',
-                                value: attrs.ncllcObjectFit || '',
-                                options: [
-                                    { label: 'Default', value: '' },
-                                    { label: 'Cover', value: 'cover' },
-                                    { label: 'Contain', value: 'contain' },
-                                    { label: 'Fill', value: 'fill' }
-                                ],
-                                onChange: function(value) {
-                                    setAttributes({ ncllcObjectFit: value });
-                                }
-                            })
+                            }) : null,
+
+                            createElement(PanelBody, { title: 'Padding - Desktop', initialOpen: false },
+                                field('Top', attrs.ajnPaddingTopDesktop, 'Example: 3rem', '', function(value) { setAttributes({ ajnPaddingTopDesktop: value }); }),
+                                field('Bottom', attrs.ajnPaddingBottomDesktop, 'Example: 3rem', '', function(value) { setAttributes({ ajnPaddingBottomDesktop: value }); }),
+                                field('Left', attrs.ajnPaddingLeftDesktop, 'Example: 1.5rem', '', function(value) { setAttributes({ ajnPaddingLeftDesktop: value }); }),
+                                field('Right', attrs.ajnPaddingRightDesktop, 'Example: 1.5rem', '', function(value) { setAttributes({ ajnPaddingRightDesktop: value }); })
+                            ),
+                            createElement(PanelBody, { title: 'Padding - Tablet', initialOpen: false },
+                                field('Top', attrs.ajnPaddingTopTablet, 'Leave blank to use desktop', '', function(value) { setAttributes({ ajnPaddingTopTablet: value }); }),
+                                field('Bottom', attrs.ajnPaddingBottomTablet, 'Leave blank to use desktop', '', function(value) { setAttributes({ ajnPaddingBottomTablet: value }); }),
+                                field('Left', attrs.ajnPaddingLeftTablet, 'Leave blank to use desktop', '', function(value) { setAttributes({ ajnPaddingLeftTablet: value }); }),
+                                field('Right', attrs.ajnPaddingRightTablet, 'Leave blank to use desktop', '', function(value) { setAttributes({ ajnPaddingRightTablet: value }); })
+                            ),
+                            createElement(PanelBody, { title: 'Padding - Mobile', initialOpen: false },
+                                field('Top', attrs.ajnPaddingTopMobile, 'Leave blank to use tablet/desktop', '', function(value) { setAttributes({ ajnPaddingTopMobile: value }); }),
+                                field('Bottom', attrs.ajnPaddingBottomMobile, 'Leave blank to use tablet/desktop', '', function(value) { setAttributes({ ajnPaddingBottomMobile: value }); }),
+                                field('Left', attrs.ajnPaddingLeftMobile, 'Leave blank to use tablet/desktop', '', function(value) { setAttributes({ ajnPaddingLeftMobile: value }); }),
+                                field('Right', attrs.ajnPaddingRightMobile, 'Leave blank to use tablet/desktop', '', function(value) { setAttributes({ ajnPaddingRightMobile: value }); })
+                            )
                         )
                     )
                 );
             };
-        }, 'withNcllcSizeControls')
+        }, 'withAjnBlockLayoutControls')
     );
 
     addFilter(
         'editor.BlockListBlock',
-        'ncllc-pro/editor-size-preview',
+        'ajn/live-block-layout-preview',
         createHigherOrderComponent(function(BlockListBlock) {
             return function(props) {
                 var attrs = props.attributes || {};
-                var wrapperProps = props.wrapperProps || {};
-                var sizeStyle = getSizeStyle(attrs);
+                var wrapperProps = Object.assign({}, props.wrapperProps || {});
+                var existingStyle = Object.assign({}, wrapperProps.style || {});
 
-                return createElement(
-                    BlockListBlock,
-                    Object.assign({}, props, {
-                        wrapperProps: Object.assign({}, wrapperProps, {
-                            style: mergeStyle(wrapperProps.style, sizeStyle)
-                        })
-                    })
-                );
+                if (hasLayout(attrs)) {
+                    wrapperProps.className = getLayoutClass(attrs, wrapperProps.className);
+                    wrapperProps.style = Object.assign(existingStyle, getLayoutStyles(attrs));
+                }
+
+                return createElement(BlockListBlock, Object.assign({}, props, { wrapperProps: wrapperProps }));
             };
-        }, 'withNcllcEditorSizePreview')
+        }, 'withAjnLiveBlockLayoutPreview')
     );
 
-    addFilter('blocks.getSaveContent.extraProps', 'ncllc-pro/save-size-props', function(extraProps, blockType, attrs) {
-        if (!hasSizeAttrs(attrs || {})) {
+    addFilter('blocks.getSaveContent.extraProps', 'ajn/save-block-layout-props', function(extraProps, blockType, attrs) {
+        attrs = attrs || {};
+
+        if (!hasLayout(attrs)) {
             return extraProps;
         }
 
-        var classNames = extraProps.className ? extraProps.className.split(' ') : [];
-        var style = getSizeStyle(attrs);
-
-        if (attrs.ncllcObjectFit) {
-            classNames.push('ncllc-fit-' + attrs.ncllcObjectFit);
-        }
-
-        extraProps.style = mergeStyle(extraProps.style, style);
-        extraProps.className = classNames.filter(Boolean).join(' ');
+        extraProps.className = getLayoutClass(attrs, extraProps.className);
+        extraProps.style = Object.assign({}, extraProps.style || {}, getLayoutStyles(attrs));
 
         return extraProps;
     });
+
 })(window.wp);

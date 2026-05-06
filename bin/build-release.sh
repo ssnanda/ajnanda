@@ -181,6 +181,7 @@ build_zip() {
     --exclude='node_modules' \
     --exclude='vendor' \
     --exclude='releases' \
+    --exclude='*.zip' \
     --exclude='.vscode' \
     --exclude='.idea' \
     --exclude='__MACOSX' \
@@ -222,19 +223,14 @@ git_commit_release_files() {
   require_git
   cd "$ROOT_DIR"
 
-  git add style.css functions.php bin/build-release.sh
+  git add -u
 
-  if [[ -f ".gitignore" ]]; then
-    git add .gitignore
-  fi
-
-  if git ls-files --error-unmatch "$VERSIONED_ZIP" >/dev/null 2>&1; then
-    git add "$VERSIONED_ZIP"
-  fi
-
-  if git ls-files --error-unmatch "$LATEST_ZIP" >/dev/null 2>&1; then
-    git add "$LATEST_ZIP"
-  fi
+  while IFS= read -r file; do
+    case "$file" in
+      releases/*|*.zip) continue ;;
+      *) git add "$file" ;;
+    esac
+  done < <(git ls-files --others --exclude-standard)
 
   if git diff --cached --quiet; then
     echo "Git: nothing to commit"
