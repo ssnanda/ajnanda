@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: http://ncllc.ddev.site/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.0.59
+Version: 1.0.60
 License: GNU General Public License v2 or later
 Text Domain: ncllc-pro
 */
@@ -2167,6 +2167,8 @@ body .site-main .page-hero.blog-hero {
     align-content: center !important;
     justify-content: center !important;
     justify-items: center !important;
+    place-content: center !important;
+    place-items: center !important;
     text-align: center !important;
     padding-top: var(--ajn-padding-top-desktop, var(--ajn-hero-padding-top-desktop, 7rem)) !important;
     padding-right: var(--ajn-padding-right-desktop, 1.5rem) !important;
@@ -2200,6 +2202,8 @@ body .site-main .builder-hero-section.ajn-overflow-hidden {
 }
 
 body .site-main .builder-hero-section.ajn-has-height-override:not(.ajn-has-padding-override) {
+    height: var(--ajn-min-height-desktop, var(--ajn-hero-min-height-desktop, 450px)) !important;
+    min-height: 0 !important;
     padding-top: var(--ajn-padding-top-desktop, 0) !important;
     padding-bottom: var(--ajn-padding-bottom-desktop, 0) !important;
 }
@@ -2214,6 +2218,8 @@ body .site-main .page-hero.blog-hero .container {
     align-content: center !important;
     justify-content: center !important;
     justify-items: center !important;
+    place-content: center !important;
+    place-items: center !important;
     text-align: center !important;
     background: transparent !important;
 }
@@ -2286,6 +2292,12 @@ body .site-main .builder-hero-section > .wp-block-group__inner-container > :last
     margin-bottom: 0 !important;
 }
 
+body .site-main .builder-hero-section.ajn-has-height-override > :only-child,
+body .site-main .builder-hero-section.ajn-has-height-override > .wp-block-group__inner-container > :only-child {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
 body .site-main .builder-hero-section .wp-block-buttons {
     justify-content: center !important;
 }
@@ -2313,6 +2325,8 @@ body .site-main .builder-hero-section .wp-block-buttons {
     }
 
     body .site-main .builder-hero-section.ajn-has-height-override:not(.ajn-has-padding-override) {
+        height: var(--ajn-min-height-tablet, var(--ajn-min-height-desktop, var(--ajn-hero-min-height-tablet, var(--ajn-hero-min-height-desktop, 400px)))) !important;
+        min-height: 0 !important;
         padding-top: var(--ajn-padding-top-tablet, var(--ajn-padding-top-desktop, 0)) !important;
         padding-bottom: var(--ajn-padding-bottom-tablet, var(--ajn-padding-bottom-desktop, 0)) !important;
     }
@@ -2341,6 +2355,8 @@ body .site-main .builder-hero-section .wp-block-buttons {
     }
 
     body .site-main .builder-hero-section.ajn-has-height-override:not(.ajn-has-padding-override) {
+        height: var(--ajn-min-height-mobile, var(--ajn-min-height-tablet, var(--ajn-min-height-desktop, var(--ajn-hero-min-height-mobile, var(--ajn-hero-min-height-tablet, var(--ajn-hero-min-height-desktop, 340px)))))) !important;
+        min-height: 0 !important;
         padding-top: var(--ajn-padding-top-mobile, var(--ajn-padding-top-tablet, var(--ajn-padding-top-desktop, 0))) !important;
         padding-bottom: var(--ajn-padding-bottom-mobile, var(--ajn-padding-bottom-tablet, var(--ajn-padding-bottom-desktop, 0))) !important;
     }
