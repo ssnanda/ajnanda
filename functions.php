@@ -45,10 +45,10 @@ add_action('after_setup_theme', 'ncllc_pro_setup');
  */
 function ncllc_pro_scripts() {
     // Enqueue main stylesheet
-    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.62');
+    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.63');
     
     // Enqueue custom JavaScript
-    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.62', true);
+    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.63', true);
     
     // Localize script
     wp_localize_script('ncllc-pro-script', 'ncllcData', array(
@@ -62,12 +62,12 @@ add_action('wp_enqueue_scripts', 'ncllc_pro_scripts');
  * Load the same page-section styling inside the block editor.
  */
 function ncllc_pro_block_editor_assets() {
-    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.62');
+    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.63');
     wp_enqueue_script(
         'ncllc-pro-editor-controls',
         get_template_directory_uri() . '/js/editor-controls.js',
         array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-element', 'wp-hooks'),
-        '1.0.62',
+        '1.0.63',
         true
     );
 }
@@ -765,15 +765,15 @@ function ncllc_pro_customize_register($wp_customize) {
     }
 
     $hero_size_controls = array(
-        'hero_min_height_desktop' => array('label' => __('Hero Minimum Height - Desktop', 'ncllc-pro'), 'default' => '450px'),
-        'hero_min_height_tablet' => array('label' => __('Hero Minimum Height - Tablet', 'ncllc-pro'), 'default' => '400px'),
-        'hero_min_height_mobile' => array('label' => __('Hero Minimum Height - Mobile', 'ncllc-pro'), 'default' => '340px'),
-        'hero_padding_top_desktop' => array('label' => __('Hero Padding Top - Desktop', 'ncllc-pro'), 'default' => '7rem'),
-        'hero_padding_bottom_desktop' => array('label' => __('Hero Padding Bottom - Desktop', 'ncllc-pro'), 'default' => '4rem'),
-        'hero_padding_top_tablet' => array('label' => __('Hero Padding Top - Tablet', 'ncllc-pro'), 'default' => '6rem'),
-        'hero_padding_bottom_tablet' => array('label' => __('Hero Padding Bottom - Tablet', 'ncllc-pro'), 'default' => '3.5rem'),
-        'hero_padding_top_mobile' => array('label' => __('Hero Padding Top - Mobile', 'ncllc-pro'), 'default' => '5rem'),
-        'hero_padding_bottom_mobile' => array('label' => __('Hero Padding Bottom - Mobile', 'ncllc-pro'), 'default' => '3rem'),
+        'hero_min_height_desktop' => array('label' => __('Hero Minimum Height - Desktop', 'ncllc-pro'), 'default' => '50px'),
+        'hero_min_height_tablet' => array('label' => __('Hero Minimum Height - Tablet', 'ncllc-pro'), 'default' => '50px'),
+        'hero_min_height_mobile' => array('label' => __('Hero Minimum Height - Mobile', 'ncllc-pro'), 'default' => '50px'),
+        'hero_padding_top_desktop' => array('label' => __('Hero Padding Top - Desktop', 'ncllc-pro'), 'default' => '1rem'),
+        'hero_padding_bottom_desktop' => array('label' => __('Hero Padding Bottom - Desktop', 'ncllc-pro'), 'default' => '1rem'),
+        'hero_padding_top_tablet' => array('label' => __('Hero Padding Top - Tablet', 'ncllc-pro'), 'default' => '1rem'),
+        'hero_padding_bottom_tablet' => array('label' => __('Hero Padding Bottom - Tablet', 'ncllc-pro'), 'default' => '1rem'),
+        'hero_padding_top_mobile' => array('label' => __('Hero Padding Top - Mobile', 'ncllc-pro'), 'default' => '1rem'),
+        'hero_padding_bottom_mobile' => array('label' => __('Hero Padding Bottom - Mobile', 'ncllc-pro'), 'default' => '1rem'),
     );
 
     foreach ($hero_size_controls as $setting_id => $control) {
@@ -787,7 +787,7 @@ function ncllc_pro_customize_register($wp_customize) {
             'label'       => $control['label'],
             'section'     => 'ncllc_hero_defaults',
             'type'        => 'text',
-            'description' => __('Examples: 450px, 7rem, 60vh. Plain numbers save as px.', 'ncllc-pro'),
+            'description' => __('Examples: 50px, 1rem, 60vh. Plain numbers save as px.', 'ncllc-pro'),
         ));
     }
 
@@ -859,6 +859,16 @@ function ncllc_pro_customize_register($wp_customize) {
 }
 add_action('customize_register', 'ncllc_pro_customize_register');
 
+function ncllc_pro_theme_mod_with_legacy_default($setting_id, $default, $legacy_defaults = array()) {
+    $value = get_theme_mod($setting_id, $default);
+
+    if (in_array($value, $legacy_defaults, true)) {
+        return $default;
+    }
+
+    return $value;
+}
+
 /**
  * Live preview JavaScript for customizer
  */
@@ -910,15 +920,15 @@ function ncllc_pro_customizer_css() {
     $hero_button_bg = get_theme_mod('hero_button_bg', '#ffffff');
     $hero_button_text_color = get_theme_mod('hero_button_text_color', '#2563eb');
 
-    $hero_min_height_desktop = get_theme_mod('hero_min_height_desktop', '450px');
-    $hero_min_height_tablet = get_theme_mod('hero_min_height_tablet', '400px');
-    $hero_min_height_mobile = get_theme_mod('hero_min_height_mobile', '340px');
-    $hero_padding_top_desktop = get_theme_mod('hero_padding_top_desktop', '7rem');
-    $hero_padding_bottom_desktop = get_theme_mod('hero_padding_bottom_desktop', '4rem');
-    $hero_padding_top_tablet = get_theme_mod('hero_padding_top_tablet', '6rem');
-    $hero_padding_bottom_tablet = get_theme_mod('hero_padding_bottom_tablet', '3.5rem');
-    $hero_padding_top_mobile = get_theme_mod('hero_padding_top_mobile', '5rem');
-    $hero_padding_bottom_mobile = get_theme_mod('hero_padding_bottom_mobile', '3rem');
+    $hero_min_height_desktop = ncllc_pro_theme_mod_with_legacy_default('hero_min_height_desktop', '50px', array('450px'));
+    $hero_min_height_tablet = ncllc_pro_theme_mod_with_legacy_default('hero_min_height_tablet', '50px', array('400px'));
+    $hero_min_height_mobile = ncllc_pro_theme_mod_with_legacy_default('hero_min_height_mobile', '50px', array('340px'));
+    $hero_padding_top_desktop = ncllc_pro_theme_mod_with_legacy_default('hero_padding_top_desktop', '1rem', array('7rem'));
+    $hero_padding_bottom_desktop = ncllc_pro_theme_mod_with_legacy_default('hero_padding_bottom_desktop', '1rem', array('4rem'));
+    $hero_padding_top_tablet = ncllc_pro_theme_mod_with_legacy_default('hero_padding_top_tablet', '1rem', array('6rem'));
+    $hero_padding_bottom_tablet = ncllc_pro_theme_mod_with_legacy_default('hero_padding_bottom_tablet', '1rem', array('3.5rem'));
+    $hero_padding_top_mobile = ncllc_pro_theme_mod_with_legacy_default('hero_padding_top_mobile', '1rem', array('5rem'));
+    $hero_padding_bottom_mobile = ncllc_pro_theme_mod_with_legacy_default('hero_padding_bottom_mobile', '1rem', array('3rem'));
     ?>
     <style type="text/css">
         :root {
