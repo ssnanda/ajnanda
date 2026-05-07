@@ -2,7 +2,7 @@
 /**
  * AJNanda Theme Details Updater Button
  *
- * Adds an "AJNanda Updater" button inside the WordPress theme details modal.
+ * Adds an "Update AJNanda" button inside the WordPress theme details modal.
  *
  * Put this file at:
  *   inc/theme-details-updater-button.php
@@ -28,7 +28,13 @@ function ajnanda_theme_details_updater_button_admin_footer() {
         return;
     }
 
-    $updater_url = admin_url('themes.php?page=ajnanda-theme-updater');
+    $updater_url = add_query_arg(
+        array(
+            'action'   => 'ajnanda_theme_update_now',
+            '_wpnonce' => wp_create_nonce('ajnanda_theme_update_now'),
+        ),
+        admin_url('admin-post.php')
+    );
     ?>
     <script>
     (function() {
@@ -63,7 +69,7 @@ function ajnanda_theme_details_updater_button_admin_footer() {
             var button = document.createElement('a');
             button.className = 'button button-secondary ajnanda-updater-button';
             button.href = updaterUrl;
-            button.textContent = 'AJNanda Updater';
+            button.textContent = 'Update AJNanda';
 
             actions.appendChild(button);
         }

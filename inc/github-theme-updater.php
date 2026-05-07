@@ -249,16 +249,82 @@ function ajnanda_updater_handle_admin_action() {
 }
 add_action('admin_post_ajnanda_theme_update_tools', 'ajnanda_updater_handle_admin_action');
 
+function ajnanda_updater_redirect_to_theme_update($message = '') {
+    $redirect = admin_url('themes.php?page=ajnanda-theme-updater');
+
+    if ($message) {
+        $redirect = add_query_arg('ajnanda-message', $message, $redirect);
+    }
+
+    wp_safe_redirect($redirect);
+    exit;
+}
+
+function ajnanda_updater_handle_update_now() {
+    if (!current_user_can('update_themes')) {
+        wp_die('You do not have permission to update themes.');
+    }
+
+    check_admin_referer('ajnanda_theme_update_now');
+
+    $payload = ajnanda_updater_force_check_now();
+
+    if (!$payload) {
+        ajnanda_updater_redirect_to_theme_update('no-update');
+    }
+
+    $theme_slug = ajnanda_updater_theme_slug();
+    $update_url = add_query_arg(
+        array(
+            'action'   => 'upgrade-theme',
+            'theme'    => $theme_slug,
+            '_wpnonce' => wp_create_nonce('upgrade-theme_' . $theme_slug),
+        ),
+        admin_url('update.php')
+    );
+
+    wp_safe_redirect($update_url);
+    exit;
+}
+add_action('admin_post_ajnanda_theme_update_now', 'ajnanda_updater_handle_update_now');
+
 function ajnanda_updater_admin_menu() {
     add_theme_page(
-        'AJNanda Theme Updater',
-        'AJNanda Updater',
+        'Update AJNanda',
+        'Update AJNanda',
         'manage_options',
         'ajnanda-theme-updater',
         'ajnanda_updater_admin_page'
     );
+
+    add_action('admin_head', 'ajnanda_updater_replace_menu_link');
 }
 add_action('admin_menu', 'ajnanda_updater_admin_menu');
+
+function ajnanda_updater_update_now_url() {
+    return add_query_arg(
+        array(
+            'action'   => 'ajnanda_theme_update_now',
+            '_wpnonce' => wp_create_nonce('ajnanda_theme_update_now'),
+        ),
+        admin_url('admin-post.php')
+    );
+}
+
+function ajnanda_updater_replace_menu_link() {
+    global $submenu;
+
+    if (empty($submenu['themes.php']) || !is_array($submenu['themes.php'])) {
+        return;
+    }
+
+    foreach ($submenu['themes.php'] as $index => $item) {
+        if (!empty($item[2]) && 'ajnanda-theme-updater' === $item[2]) {
+            $submenu['themes.php'][$index][2] = ajnanda_updater_update_now_url();
+            break;
+        }
+    }
+}
 
 function ajnanda_updater_admin_page() {
     if (!current_user_can('manage_options')) {
@@ -291,12 +357,14 @@ function ajnanda_updater_admin_page() {
     $message = isset($_GET['ajnanda-message']) ? sanitize_key($_GET['ajnanda-message']) : '';
     ?>
     <div class="wrap">
-        <h1>AJNanda Theme Updater</h1>
+        <h1>Update AJNanda</h1>
 
         <?php if ('cache-cleared' === $message) : ?>
             <div class="notice notice-success"><p>AJNanda update cache cleared.</p></div>
         <?php elseif ('force-checked' === $message) : ?>
             <div class="notice notice-success"><p>AJNanda update check completed.</p></div>
+        <?php elseif ('no-update' === $message) : ?>
+            <div class="notice notice-info"><p>AJNanda is already up to date, or no valid update ZIP was found.</p></div>
         <?php endif; ?>
 
         <table class="widefat striped" style="max-width: 980px;">
@@ -329,6 +397,10 @@ function ajnanda_updater_admin_page() {
             <button type="submit" class="button button-primary" name="ajnanda_tool_action" value="force_check">
                 Force Check for AJNanda Update
             </button>
+
+            <a class="button button-primary" href="<?php echo esc_url(ajnanda_updater_update_now_url()); ?>">
+                Update AJNanda Now
+            </a>
 
             <a class="button" href="<?php echo esc_url(admin_url('update-core.php?force-check=1')); ?>">
                 Open WordPress Updates
