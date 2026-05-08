@@ -45,10 +45,10 @@ add_action('after_setup_theme', 'ncllc_pro_setup');
  */
 function ncllc_pro_scripts() {
     // Enqueue main stylesheet
-    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.73');
+    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.74');
     
     // Enqueue custom JavaScript
-    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.73', true);
+    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.74', true);
     
     // Localize script
     wp_localize_script('ncllc-pro-script', 'ncllcData', array(
@@ -69,12 +69,12 @@ function ncllc_pro_block_editor_assets() {
         null
     );
 
-    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.73');
+    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.74');
     wp_enqueue_script(
         'ncllc-pro-editor-controls',
         get_template_directory_uri() . '/js/editor-controls.js',
         array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-element', 'wp-hooks'),
-        '1.0.73',
+        '1.0.74',
         true
     );
 }
@@ -312,6 +312,88 @@ function ncllc_pro_has_block_layout_value($block, $keys) {
 }
 
 /**
+ * Normalize size strings so old saved values like "450" and "450px" compare
+ * the same way when detecting legacy defaults.
+ */
+function ncllc_pro_normalize_css_size_value($value) {
+    $value = strtolower(trim((string) $value));
+
+    if ('' === $value) {
+        return '';
+    }
+
+    if (preg_match('/^\d+(?:\.\d+)?$/', $value)) {
+        return $value . 'px';
+    }
+
+    return preg_replace('/\s+/', '', $value);
+}
+
+/**
+ * Check whether a value is one of the old hard-coded hero defaults.
+ */
+function ncllc_pro_is_legacy_css_size_value($value, $legacy_defaults = array()) {
+    $normalized_value = ncllc_pro_normalize_css_size_value($value);
+
+    foreach ($legacy_defaults as $legacy_default) {
+        if ($normalized_value === ncllc_pro_normalize_css_size_value($legacy_default)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Old editor controls saved the former theme default height into some pages.
+ * Treat those as theme defaults again so new compact Hero Defaults can win.
+ */
+function ncllc_pro_has_legacy_saved_hero_height($block) {
+    if (empty($block['attrs']) || !is_array($block['attrs'])) {
+        return false;
+    }
+
+    $attrs = $block['attrs'];
+    $class_name = isset($attrs['className']) ? (string) $attrs['className'] : '';
+
+    if (false === strpos($class_name, 'builder-hero-section')) {
+        return false;
+    }
+
+    $legacy_height_keys = array(
+        'ajnMinHeightDesktop',
+        'ajnHeightDesktop',
+    );
+
+    $has_legacy_desktop_height = false;
+    foreach ($legacy_height_keys as $key) {
+        if (isset($attrs[$key]) && ncllc_pro_is_legacy_css_size_value($attrs[$key], array('450px'))) {
+            $has_legacy_desktop_height = true;
+            break;
+        }
+    }
+
+    if (!$has_legacy_desktop_height) {
+        return false;
+    }
+
+    $non_legacy_height_keys = array(
+        'ajnMinHeightTablet',
+        'ajnMinHeightMobile',
+        'ajnHeightTablet',
+        'ajnHeightMobile',
+    );
+
+    foreach ($non_legacy_height_keys as $key) {
+        if (isset($attrs[$key]) && '' !== trim((string) $attrs[$key])) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
  * Add semantic layout classes to rendered hero blocks from saved block attrs.
  *
  * Older pages may already have AJNanda inline layout variables without the newer
@@ -348,8 +430,9 @@ function ncllc_pro_add_hero_layout_state_classes($block_content, $block) {
     );
 
     $classes = array();
+    $has_legacy_saved_hero_height = ncllc_pro_has_legacy_saved_hero_height($block);
 
-    if (ncllc_pro_has_block_layout_value($block, $height_keys)) {
+    if (!$has_legacy_saved_hero_height && ncllc_pro_has_block_layout_value($block, $height_keys)) {
         $classes[] = 'ajn-has-height-override';
     }
 
@@ -357,7 +440,7 @@ function ncllc_pro_add_hero_layout_state_classes($block_content, $block) {
         $classes[] = 'ajn-has-padding-override';
     }
 
-    if (empty($classes)) {
+    if (empty($classes) && !$has_legacy_saved_hero_height) {
         return $block_content;
     }
 
@@ -373,6 +456,23 @@ function ncllc_pro_add_hero_layout_state_classes($block_content, $block) {
 
             foreach ($classes as $class_name) {
                 $processor->add_class($class_name);
+            }
+
+            if ($has_legacy_saved_hero_height) {
+                $processor->remove_class('ajn-has-height-override');
+                $processor->remove_class('ajn-responsive-height');
+                $processor->remove_class('ajn-responsive-min-height');
+
+                $style = (string) $processor->get_attribute('style');
+                $style = preg_replace('/(?:^|;)\s*--ajn-min-height-desktop\s*:\s*(?:450px|450)\s*/i', '', $style);
+                $style = preg_replace('/(?:^|;)\s*--ajn-height-desktop\s*:\s*(?:450px|450)\s*/i', '', $style);
+                $style = trim(preg_replace('/;{2,}/', ';', $style), " \t\n\r\0\x0B;");
+
+                if ('' === $style) {
+                    $processor->remove_attribute('style');
+                } else {
+                    $processor->set_attribute('style', $style);
+                }
             }
 
             return $processor->get_updated_html();
@@ -1368,7 +1468,7 @@ add_action('customize_register', 'ncllc_pro_customize_register');
 function ncllc_pro_theme_mod_with_legacy_default($setting_id, $default, $legacy_defaults = array()) {
     $value = get_theme_mod($setting_id, $default);
 
-    if (in_array($value, $legacy_defaults, true)) {
+    if (ncllc_pro_is_legacy_css_size_value($value, $legacy_defaults)) {
         return $default;
     }
 
@@ -1525,11 +1625,11 @@ function ncllc_pro_customizer_css() {
     $hero_min_height_desktop = ncllc_pro_theme_mod_with_legacy_default('hero_min_height_desktop', '50px', array('450px'));
     $hero_min_height_tablet = ncllc_pro_theme_mod_with_legacy_default('hero_min_height_tablet', '50px', array('400px'));
     $hero_min_height_mobile = ncllc_pro_theme_mod_with_legacy_default('hero_min_height_mobile', '50px', array('340px'));
-    $hero_padding_top_desktop = ncllc_pro_theme_mod_with_legacy_default('hero_padding_top_desktop', '1rem', array('7rem'));
+    $hero_padding_top_desktop = ncllc_pro_theme_mod_with_legacy_default('hero_padding_top_desktop', '1rem', array('7rem', '8rem'));
     $hero_padding_bottom_desktop = ncllc_pro_theme_mod_with_legacy_default('hero_padding_bottom_desktop', '1rem', array('4rem'));
-    $hero_padding_top_tablet = ncllc_pro_theme_mod_with_legacy_default('hero_padding_top_tablet', '1rem', array('6rem'));
+    $hero_padding_top_tablet = ncllc_pro_theme_mod_with_legacy_default('hero_padding_top_tablet', '1rem', array('6rem', '7rem'));
     $hero_padding_bottom_tablet = ncllc_pro_theme_mod_with_legacy_default('hero_padding_bottom_tablet', '1rem', array('3.5rem'));
-    $hero_padding_top_mobile = ncllc_pro_theme_mod_with_legacy_default('hero_padding_top_mobile', '1rem', array('5rem'));
+    $hero_padding_top_mobile = ncllc_pro_theme_mod_with_legacy_default('hero_padding_top_mobile', '1rem', array('5rem', '6rem'));
     $hero_padding_bottom_mobile = ncllc_pro_theme_mod_with_legacy_default('hero_padding_bottom_mobile', '1rem', array('3rem'));
     ?>
     <style type="text/css">
