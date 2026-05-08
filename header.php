@@ -48,3 +48,4 @@
         </button>
     </div>
 </header>
+<?php ncllc_pro_render_header_builder_preview(); ?>

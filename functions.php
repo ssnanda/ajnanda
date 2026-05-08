@@ -45,10 +45,10 @@ add_action('after_setup_theme', 'ncllc_pro_setup');
  */
 function ncllc_pro_scripts() {
     // Enqueue main stylesheet
-    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.66');
+    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.67');
     
     // Enqueue custom JavaScript
-    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.66', true);
+    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.67', true);
     
     // Localize script
     wp_localize_script('ncllc-pro-script', 'ncllcData', array(
@@ -62,12 +62,12 @@ add_action('wp_enqueue_scripts', 'ncllc_pro_scripts');
  * Load the same page-section styling inside the block editor.
  */
 function ncllc_pro_block_editor_assets() {
-    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.66');
+    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.67');
     wp_enqueue_script(
         'ncllc-pro-editor-controls',
         get_template_directory_uri() . '/js/editor-controls.js',
         array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-element', 'wp-hooks'),
-        '1.0.66',
+        '1.0.67',
         true
     );
 }
@@ -474,6 +474,65 @@ function ncllc_pro_render_site_footer() {
     </footer>
     <?php
     return ob_get_clean();
+}
+
+/**
+ * Render a lightweight Astra-style builder map in the Customizer preview.
+ */
+function ncllc_pro_render_customizer_builder_chip($label) {
+    ?>
+    <span class="ajn-customizer-builder-chip">
+        <?php echo esc_html($label); ?>
+        <span aria-hidden="true" class="ajn-customizer-builder-remove">&times;</span>
+    </span>
+    <?php
+}
+
+function ncllc_pro_render_customizer_builder_row($cells) {
+    ?>
+    <div class="ajn-customizer-builder-row">
+        <div class="ajn-customizer-builder-row-handle" aria-hidden="true">⚙</div>
+        <?php foreach ($cells as $cell) : ?>
+            <div class="ajn-customizer-builder-cell">
+                <?php if (!empty($cell)) : ?>
+                    <?php ncllc_pro_render_customizer_builder_chip($cell); ?>
+                <?php endif; ?>
+            </div>
+        <?php endforeach; ?>
+    </div>
+    <?php
+}
+
+function ncllc_pro_render_header_builder_preview() {
+    if (!is_customize_preview()) {
+        return;
+    }
+    ?>
+    <div class="ajn-customizer-builder-preview ajn-customizer-header-builder" aria-label="<?php esc_attr_e('Header Builder Preview', 'ncllc-pro'); ?>">
+        <span class="ajn-customizer-builder-tooltip"><?php esc_html_e('Header Builder Preview', 'ncllc-pro'); ?></span>
+        <?php
+        ncllc_pro_render_customizer_builder_row(array(__('Site Title & Logo', 'ncllc-pro'), __('Widget 1', 'ncllc-pro'), __('Primary Menu', 'ncllc-pro')));
+        ncllc_pro_render_customizer_builder_row(array('', '', ''));
+        ncllc_pro_render_customizer_builder_row(array('', '', ''));
+        ?>
+    </div>
+    <?php
+}
+
+function ncllc_pro_render_footer_builder_preview() {
+    if (!is_customize_preview()) {
+        return;
+    }
+    ?>
+    <div class="ajn-customizer-builder-preview ajn-customizer-footer-builder" aria-label="<?php esc_attr_e('Footer Builder Preview', 'ncllc-pro'); ?>">
+        <span class="ajn-customizer-builder-tooltip"><?php esc_html_e('Footer Builder Preview', 'ncllc-pro'); ?></span>
+        <?php
+        ncllc_pro_render_customizer_builder_row(array('', '', ''));
+        ncllc_pro_render_customizer_builder_row(array('', '', ''));
+        ncllc_pro_render_customizer_builder_row(array('', __('Footer Menu', 'ncllc-pro'), ''));
+        ?>
+    </div>
+    <?php
 }
 
 /**
