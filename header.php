@@ -17,35 +17,42 @@
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 
-<header class="site-header header-layout-<?php echo esc_attr(get_theme_mod('header_layout', 'logo-left-menu-right')); ?>" id="masthead">
-    <div class="header-container container">
-        <div class="site-branding">
-            <?php if (has_custom_logo()) : ?>
-                <?php the_custom_logo(); ?>
-            <?php else : ?>
-                <a href="<?php echo esc_url(home_url('/')); ?>" class="site-logo" rel="home">
-                    <?php bloginfo('name'); ?>
-                </a>
-            <?php endif; ?>
+<?php $header_layout = get_theme_mod('header_layout', 'logo-left-menu-right'); ?>
+<header class="site-header header-layout-<?php echo esc_attr($header_layout); ?>" id="masthead">
+    <?php if ('builder' === $header_layout) : ?>
+        <div class="header-builder-container container">
+            <?php ncllc_pro_render_builder_layout('header'); ?>
         </div>
+    <?php else : ?>
+        <div class="header-container container">
+            <div class="site-branding">
+                <?php if (has_custom_logo()) : ?>
+                    <?php the_custom_logo(); ?>
+                <?php else : ?>
+                    <a href="<?php echo esc_url(home_url('/')); ?>" class="site-logo" rel="home">
+                        <?php bloginfo('name'); ?>
+                    </a>
+                <?php endif; ?>
+            </div>
 
-        <nav class="main-navigation" id="site-navigation">
-            <?php
-            wp_nav_menu(array(
-                'theme_location' => 'primary',
-                'menu_id'        => 'primary-menu',
-                'container'      => false,
-                'menu_class'     => 'nav-menu',
-                'fallback_cb'    => false,
-            ));
-            ?>
-        </nav>
+            <nav class="main-navigation" id="site-navigation">
+                <?php
+                wp_nav_menu(array(
+                    'theme_location' => 'primary',
+                    'menu_id'        => 'primary-menu',
+                    'container'      => false,
+                    'menu_class'     => 'nav-menu',
+                    'fallback_cb'    => false,
+                ));
+                ?>
+            </nav>
 
-        <button class="mobile-menu-toggle" id="mobile-menu-toggle" type="button" aria-label="Toggle menu" aria-controls="primary-menu" aria-expanded="false">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
-    </div>
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle" type="button" aria-label="Toggle menu" aria-controls="primary-menu" aria-expanded="false">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    <?php endif; ?>
 </header>
 <?php ncllc_pro_render_header_builder_preview(); ?>

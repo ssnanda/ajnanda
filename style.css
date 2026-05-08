@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: http://ncllc.ddev.site/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.0.68
+Version: 1.0.69
 License: GNU General Public License v2 or later
 Text Domain: ncllc-pro
 */
@@ -144,6 +144,44 @@ a:hover { color: var(--primary-dark); }
 
 .header-layout-stacked-center .nav-menu {
     justify-content: center;
+}
+
+.header-builder-container,
+.footer-builder-container {
+    display: grid;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.ajn-builder-row {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.ajn-builder-cell {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    flex: var(--ajn-builder-width-desktop, 1) 1 0;
+}
+
+.ajn-builder-cell-primary-menu,
+.ajn-builder-cell-footer-menu {
+    justify-content: flex-end;
+}
+
+.ajn-builder-cell-site-logo {
+    justify-content: flex-start;
+}
+
+.ajn-builder-cell-search .search-form,
+.ajn-builder-cell-search form {
+    width: 100%;
+}
+
+.ajn-builder-cell .widget {
+    margin: 0;
 }
 
 .mobile-menu-toggle {
@@ -516,6 +554,14 @@ a:hover { color: var(--primary-dark); }
     color: var(--accent, #f59e0b);
 }
 
+.footer-builder-container .ajn-builder-row {
+    min-height: 64px;
+}
+
+.footer-builder-container .ajn-builder-cell {
+    color: #d1d5db;
+}
+
 .ajn-customizer-builder-preview {
     display: none;
     gap: 14px;
@@ -554,8 +600,7 @@ a:hover { color: var(--primary-dark); }
 }
 
 .ajn-customizer-builder-row {
-    display: grid;
-    grid-template-columns: 42px repeat(3, minmax(0, 1fr));
+    display: flex;
     min-height: 74px;
     border: 1px dashed #d5dde5;
     background: rgba(255,255,255,0.72);
@@ -569,29 +614,50 @@ a:hover { color: var(--primary-dark); }
 }
 
 .ajn-customizer-builder-row-handle {
+    flex: 0 0 42px;
     border-right: 1px dashed #d5dde5;
     color: #9aa4b2;
     font-size: 15px;
+}
+
+.ajn-customizer-builder-cell {
+    flex: var(--ajn-builder-width-desktop, 1) 1 0;
+    min-width: 0;
 }
 
 .ajn-customizer-builder-cell + .ajn-customizer-builder-cell {
     border-left: 1px solid #e1e7ee;
 }
 
-.ajn-customizer-builder-chip {
+.ajn-customizer-builder-chip,
+.ajn-customizer-builder-add {
     display: inline-flex;
     align-items: center;
-    gap: 14px;
-    min-height: 46px;
-    padding: 0 18px;
     border: 1px solid #d0d7de;
     border-radius: 4px;
     background: #fff;
     color: #475569;
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    cursor: pointer;
+    font: inherit;
+}
+
+.ajn-customizer-builder-chip {
+    gap: 14px;
+    min-height: 46px;
+    padding: 0 18px;
     font-size: 15px;
     line-height: 1;
     white-space: nowrap;
+}
+
+.ajn-customizer-builder-add {
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    color: #64748b;
+    font-size: 24px;
+    line-height: 1;
 }
 
 .ajn-customizer-builder-remove {
@@ -2097,6 +2163,20 @@ a:hover { color: var(--primary-dark); }
         width: auto;
         text-align: left;
     }
+    .ajn-builder-cell {
+        flex: var(--ajn-builder-width-mobile, 1) 1 0;
+    }
+    .ajn-builder-row {
+        align-items: stretch;
+        flex-direction: column;
+    }
+    .ajn-builder-cell,
+    .ajn-builder-cell-primary-menu,
+    .ajn-builder-cell-footer-menu,
+    .ajn-builder-cell-site-logo {
+        justify-content: center;
+        width: 100%;
+    }
     .nav-menu {
         display: none;
         width: 100%;
@@ -2132,6 +2212,9 @@ a:hover { color: var(--primary-dark); }
     }
     .footer-menu {
         justify-content: center;
+    }
+    .ajn-customizer-builder-cell {
+        flex: var(--ajn-builder-width-mobile, 1) 1 0;
     }
     .hero { min-height: 80vh; padding: 5rem 1rem 3rem; }
     .hero-cta { flex-direction: column; }
@@ -2239,6 +2322,14 @@ a:hover { color: var(--primary-dark); }
 }
 
 @media (max-width: 1024px) {
+    .ajn-builder-cell {
+        flex: var(--ajn-builder-width-tablet, var(--ajn-builder-width-desktop, 1)) 1 0;
+    }
+
+    .ajn-customizer-builder-cell {
+        flex: var(--ajn-builder-width-tablet, var(--ajn-builder-width-desktop, 1)) 1 0;
+    }
+
     .ajn-responsive-height {
         height: var(--ajn-height-tablet, var(--ajn-height-desktop, auto)) !important;
     }
