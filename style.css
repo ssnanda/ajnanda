@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: http://ncllc.ddev.site/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.0.71
+Version: 1.0.72
 License: GNU General Public License v2 or later
 Text Domain: ncllc-pro
 */
@@ -1082,15 +1082,15 @@ body.admin-bar .site-header {
 }
 
 :where(.builder-hero-section.hero-height-tall) {
-    min-height: 72vh;
-    padding-top: 9rem;
-    padding-bottom: 6rem;
+    min-height: 50px;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
 }
 
 :where(.builder-hero-section.hero-height-full) {
-    min-height: 100vh;
-    padding-top: 9rem;
-    padding-bottom: 6rem;
+    min-height: 50px;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
 }
 
 :where(.builder-hero-section.hero-width-narrow) > .wp-block-group__inner-container {
@@ -1709,6 +1709,66 @@ body.admin-bar .site-header {
 /* Native editable Home page sections */
 .editor-front-page > .wp-block-group {
     margin-top: 0;
+}
+
+.editor-front-page {
+    background: #f3f8fb;
+}
+
+.editor-front-page > :where(:not(.alignfull):not(.alignwide)) {
+    width: min(100% - 3rem, var(--wp--style--global--content-size, 950px));
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.editor-front-page > :where(.alignwide) {
+    width: min(100% - 3rem, var(--wp--style--global--wide-size, 1280px));
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.editor-front-page > :where(.alignfull) {
+    width: 100%;
+    max-width: none;
+}
+
+.editor-front-page > :where(.wp-block-uagb-container.alignfull.uagb-is-root-container) > .uagb-container-inner-blocks-wrap {
+    width: min(100% - 3rem, var(--wp--style--global--wide-size, 1280px));
+    max-width: var(--wp--style--global--wide-size, 1280px);
+}
+
+.editor-front-page .wp-block-uagb-advanced-heading :where(h1, .h1) {
+    font-size: clamp(2.75rem, 5.2vw, 4.75rem);
+    font-weight: 800;
+    line-height: 1.08;
+}
+
+.editor-front-page .wp-block-uagb-advanced-heading :where(h2, .h2) {
+    font-size: clamp(2rem, 4vw, 3.25rem);
+    font-weight: 760;
+    line-height: 1.12;
+}
+
+.editor-front-page :where(.wp-block-uagb-buttons) .uagb-buttons-repeater.wp-block-button__link,
+.page-content-panel :where(.wp-block-uagb-buttons) .uagb-buttons-repeater.wp-block-button__link,
+.builder-canvas-content :where(.wp-block-uagb-buttons) .uagb-buttons-repeater.wp-block-button__link,
+.editor-front-page :where(.wp-block-uagb-marketing-button) .wp-block-button__link,
+.page-content-panel :where(.wp-block-uagb-marketing-button) .wp-block-button__link,
+.builder-canvas-content :where(.wp-block-uagb-marketing-button) .wp-block-button__link {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+
+.editor-front-page :where(.wp-block-uagb-buttons) .uagb-buttons-repeater.wp-block-button__link:hover,
+.page-content-panel :where(.wp-block-uagb-buttons) .uagb-buttons-repeater.wp-block-button__link:hover,
+.builder-canvas-content :where(.wp-block-uagb-buttons) .uagb-buttons-repeater.wp-block-button__link:hover,
+.editor-front-page :where(.wp-block-uagb-marketing-button) .wp-block-button__link:hover,
+.page-content-panel :where(.wp-block-uagb-marketing-button) .wp-block-button__link:hover,
+.builder-canvas-content :where(.wp-block-uagb-marketing-button) .wp-block-button__link:hover {
+    background: var(--primary-dark);
+    color: #fff;
+    border-color: var(--primary-dark);
 }
 
 .home-hero-section {
@@ -2580,8 +2640,7 @@ body .site-main .builder-hero-section.ajn-overflow-hidden {
 }
 
 body .site-main .builder-hero-section.ajn-has-height-override:not(.ajn-has-padding-override) {
-    height: var(--ajn-min-height-desktop, var(--ajn-hero-min-height-desktop, 50px)) !important;
-    min-height: 0 !important;
+    min-height: var(--ajn-min-height-desktop, var(--ajn-hero-min-height-desktop, 50px)) !important;
     padding-top: var(--ajn-padding-top-desktop, 0) !important;
     padding-bottom: var(--ajn-padding-bottom-desktop, 0) !important;
 }
@@ -2703,8 +2762,7 @@ body .site-main .builder-hero-section .wp-block-buttons {
     }
 
     body .site-main .builder-hero-section.ajn-has-height-override:not(.ajn-has-padding-override) {
-        height: var(--ajn-min-height-tablet, var(--ajn-min-height-desktop, var(--ajn-hero-min-height-tablet, var(--ajn-hero-min-height-desktop, 50px)))) !important;
-        min-height: 0 !important;
+        min-height: var(--ajn-min-height-tablet, var(--ajn-min-height-desktop, var(--ajn-hero-min-height-tablet, var(--ajn-hero-min-height-desktop, 50px)))) !important;
         padding-top: var(--ajn-padding-top-tablet, var(--ajn-padding-top-desktop, 0)) !important;
         padding-bottom: var(--ajn-padding-bottom-tablet, var(--ajn-padding-bottom-desktop, 0)) !important;
     }
@@ -2733,8 +2791,7 @@ body .site-main .builder-hero-section .wp-block-buttons {
     }
 
     body .site-main .builder-hero-section.ajn-has-height-override:not(.ajn-has-padding-override) {
-        height: var(--ajn-min-height-mobile, var(--ajn-min-height-tablet, var(--ajn-min-height-desktop, var(--ajn-hero-min-height-mobile, var(--ajn-hero-min-height-tablet, var(--ajn-hero-min-height-desktop, 50px)))))) !important;
-        min-height: 0 !important;
+        min-height: var(--ajn-min-height-mobile, var(--ajn-min-height-tablet, var(--ajn-min-height-desktop, var(--ajn-hero-min-height-mobile, var(--ajn-hero-min-height-tablet, var(--ajn-hero-min-height-desktop, 50px)))))) !important;
         padding-top: var(--ajn-padding-top-mobile, var(--ajn-padding-top-tablet, var(--ajn-padding-top-desktop, 0))) !important;
         padding-bottom: var(--ajn-padding-bottom-mobile, var(--ajn-padding-bottom-tablet, var(--ajn-padding-bottom-desktop, 0))) !important;
     }

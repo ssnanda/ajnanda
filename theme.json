@@ -120,5 +120,29 @@
         }
       ]
     }
+  },
+  "styles": {
+    "elements": {
+      "button": {
+        "border": {
+          "radius": "0.5rem"
+        },
+        "color": {
+          "background": "var(--primary)",
+          "text": "#ffffff"
+        },
+        "spacing": {
+          "padding": {
+            "top": "0.75rem",
+            "right": "1.5rem",
+            "bottom": "0.75rem",
+            "left": "1.5rem"
+          }
+        },
+        "typography": {
+          "fontWeight": "600"
+        }
+      }
+    }
   }
 }

@@ -45,10 +45,10 @@ add_action('after_setup_theme', 'ncllc_pro_setup');
  */
 function ncllc_pro_scripts() {
     // Enqueue main stylesheet
-    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.71');
+    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.72');
     
     // Enqueue custom JavaScript
-    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.71', true);
+    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.72', true);
     
     // Localize script
     wp_localize_script('ncllc-pro-script', 'ncllcData', array(
@@ -62,12 +62,12 @@ add_action('wp_enqueue_scripts', 'ncllc_pro_scripts');
  * Load the same page-section styling inside the block editor.
  */
 function ncllc_pro_block_editor_assets() {
-    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.71');
+    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.72');
     wp_enqueue_script(
         'ncllc-pro-editor-controls',
         get_template_directory_uri() . '/js/editor-controls.js',
         array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-element', 'wp-hooks'),
-        '1.0.71',
+        '1.0.72',
         true
     );
 }
@@ -1057,6 +1057,32 @@ add_filter('wp_check_filetype_and_ext', 'ncllc_pro_sanitize_svg', 10, 4);
  * Customizer settings
  */
 function ncllc_pro_customize_register($wp_customize) {
+    $theme_color_controls = array(
+        'theme_primary_color'      => array('label' => __('Primary Color', 'ncllc-pro'), 'default' => '#2563eb'),
+        'theme_primary_dark_color' => array('label' => __('Primary Hover Color', 'ncllc-pro'), 'default' => '#1e40af'),
+        'theme_secondary_color'    => array('label' => __('Secondary Color', 'ncllc-pro'), 'default' => '#7c3aed'),
+        'theme_accent_color'       => array('label' => __('Accent Color', 'ncllc-pro'), 'default' => '#f59e0b'),
+    );
+
+    foreach ($theme_color_controls as $setting_id => $control) {
+        $wp_customize->add_setting($setting_id, array(
+            'default'           => $control['default'],
+            'sanitize_callback' => 'sanitize_hex_color',
+            'transport'         => 'refresh',
+        ));
+
+        if (class_exists('WP_Customize_Color_Control')) {
+            $wp_customize->add_control(new WP_Customize_Color_Control(
+                $wp_customize,
+                $setting_id,
+                array(
+                    'label'   => $control['label'],
+                    'section' => 'colors',
+                )
+            ));
+        }
+    }
+
     // Header Settings Section
     $wp_customize->add_section('ncllc_header', array(
         'title'    => __('Header', 'ncllc-pro'),
@@ -1464,6 +1490,11 @@ function ncllc_pro_customizer_live_preview() {
  * Output custom CSS for customizer settings
  */
 function ncllc_pro_customizer_css() {
+    $theme_primary_color = get_theme_mod('theme_primary_color', '#2563eb');
+    $theme_primary_dark_color = get_theme_mod('theme_primary_dark_color', '#1e40af');
+    $theme_secondary_color = get_theme_mod('theme_secondary_color', '#7c3aed');
+    $theme_accent_color = get_theme_mod('theme_accent_color', '#f59e0b');
+
     $old_logo_height = get_theme_mod('logo_height', '50');
     $old_header_padding = get_theme_mod('header_padding', '0.75');
 
@@ -1496,6 +1527,15 @@ function ncllc_pro_customizer_css() {
     ?>
     <style type="text/css">
         :root {
+            --primary: <?php echo esc_attr($theme_primary_color); ?>;
+            --primary-dark: <?php echo esc_attr($theme_primary_dark_color); ?>;
+            --secondary: <?php echo esc_attr($theme_secondary_color); ?>;
+            --accent: <?php echo esc_attr($theme_accent_color); ?>;
+            --ast-global-color-0: <?php echo esc_attr($theme_primary_color); ?>;
+            --ast-global-color-1: <?php echo esc_attr($theme_primary_dark_color); ?>;
+            --ast-global-color-2: <?php echo esc_attr($theme_secondary_color); ?>;
+            --ast-global-color-7: <?php echo esc_attr($theme_accent_color); ?>;
+
             --ncllc-logo-height-desktop: <?php echo esc_attr($logo_height_desktop); ?>px;
             --ncllc-logo-height-tablet: <?php echo esc_attr($logo_height_tablet); ?>px;
             --ncllc-logo-height-mobile: <?php echo esc_attr($logo_height_mobile); ?>px;
