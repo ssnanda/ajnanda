@@ -24,7 +24,7 @@ get_header(); ?>
             <?php endif; ?>
 
             <?php if ($has_builder_sections) : ?>
-                <div class="entry-content builder-canvas-content page-builder-content">
+                <div class="entry-content builder-canvas-content page-builder-content<?php echo $has_leading_hero ? ' has-leading-hero-content' : ''; ?>">
                     <?php
                     echo apply_filters('the_content', $split_content['rest']);
 
@@ -35,7 +35,7 @@ get_header(); ?>
                     ?>
                 </div>
             <?php else : ?>
-            <section class="page-content-section">
+            <section class="page-content-section<?php echo $has_leading_hero ? ' has-leading-hero-content' : ''; ?>">
                 <div class="container">
                     <div class="entry-content page-content-panel">
                     <?php

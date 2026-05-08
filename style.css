@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: http://ncllc.ddev.site/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.0.64
+Version: 1.0.65
 License: GNU General Public License v2 or later
 Text Domain: ncllc-pro
 */
@@ -2143,6 +2143,47 @@ body .site-main .page-hero-content {
     padding: 0;
     background: transparent;
     overflow: visible;
+}
+
+body .site-main {
+    --ajn-after-hero-gap: 10px;
+}
+
+body .site-main .has-leading-hero-content {
+    padding-top: var(--ajn-after-hero-gap) !important;
+}
+
+body .site-main .page-hero-content + .page-content-section {
+    padding-top: var(--ajn-after-hero-gap) !important;
+}
+
+body .site-main .page-hero-content + .page-builder-content > .builder-section:first-child,
+body .site-main .builder-canvas-content > .builder-hero-section:first-child + .builder-section {
+    padding-top: var(--ajn-after-hero-gap) !important;
+}
+
+body .site-main .page-hero-content + .page-builder-content > :first-child:not(.builder-section),
+body .site-main .builder-canvas-content > .builder-hero-section:first-child + :not(.builder-section) {
+    margin-top: var(--ajn-after-hero-gap) !important;
+}
+
+body .site-main .page-hero-content + .page-content-section .page-content-panel > :first-child,
+body .site-main .page-hero-content + .page-builder-content > :first-child {
+    margin-top: 0 !important;
+}
+
+body .site-main .page-hero-content + .page-content-section .page-content-panel > .uagb-block-c052f59c:first-child,
+body .site-main .page-hero-content + .page-content-section .page-content-panel > .about-intro-section:first-child {
+    padding-top: var(--ajn-after-hero-gap) !important;
+}
+
+body .site-main .has-leading-hero-content .page-content-panel > .ajforms-frontend-form:first-child,
+body .site-main .has-leading-hero-content .page-content-panel > .ajforms-conversation-form:first-child,
+body .site-main .has-leading-hero-content .page-content-panel > form[class*="ajforms-"]:first-child,
+body .site-main .page-hero-content + .page-content-section .page-content-panel > .ajforms-frontend-form:first-child,
+body .site-main .page-hero-content + .page-content-section .page-content-panel > .ajforms-conversation-form:first-child,
+body .site-main .page-hero-content + .page-content-section .page-content-panel > form[class*="ajforms-"]:first-child {
+    margin-top: 0 !important;
 }
 
 body .site-main .builder-canvas-content.page-hero-content > .builder-hero-section:first-child,
