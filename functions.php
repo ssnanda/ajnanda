@@ -45,10 +45,10 @@ add_action('after_setup_theme', 'ncllc_pro_setup');
  */
 function ncllc_pro_scripts() {
     // Enqueue main stylesheet
-    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.67');
+    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.68');
     
     // Enqueue custom JavaScript
-    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.67', true);
+    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.68', true);
     
     // Localize script
     wp_localize_script('ncllc-pro-script', 'ncllcData', array(
@@ -62,12 +62,12 @@ add_action('wp_enqueue_scripts', 'ncllc_pro_scripts');
  * Load the same page-section styling inside the block editor.
  */
 function ncllc_pro_block_editor_assets() {
-    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.67');
+    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.68');
     wp_enqueue_script(
         'ncllc-pro-editor-controls',
         get_template_directory_uri() . '/js/editor-controls.js',
         array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-element', 'wp-hooks'),
-        '1.0.67',
+        '1.0.68',
         true
     );
 }
@@ -1018,6 +1018,10 @@ function ncllc_pro_customizer_live_preview() {
     <script type="text/javascript">
     (function($) {
         var devices = ['desktop', 'tablet', 'mobile'];
+        var builderPreviews = {
+            header: document.querySelector('.ajn-customizer-header-builder'),
+            footer: document.querySelector('.ajn-customizer-footer-builder')
+        };
 
         devices.forEach(function(device) {
             wp.customize('logo_height_' + device, function(value) {
@@ -1031,6 +1035,45 @@ function ncllc_pro_customizer_live_preview() {
                     document.documentElement.style.setProperty('--ncllc-header-padding-' + device, newval + 'rem');
                 });
             });
+        });
+
+        function hideBuilderPreviews() {
+            Object.keys(builderPreviews).forEach(function(key) {
+                if (builderPreviews[key]) {
+                    builderPreviews[key].classList.remove('is-active');
+                }
+            });
+        }
+
+        function showBuilderPreview(type) {
+            hideBuilderPreviews();
+
+            if (builderPreviews[type]) {
+                builderPreviews[type].classList.add('is-active');
+            }
+        }
+
+        document.addEventListener('click', function(event) {
+            var shortcut = event.target.closest('.customize-partial-edit-shortcut, .customize-partial-edit-shortcut-button');
+
+            if (!shortcut) {
+                return;
+            }
+
+            if (shortcut.closest('.site-header') || shortcut.closest('.custom-logo-link') || shortcut.closest('.site-branding') || shortcut.closest('.main-navigation') || document.querySelector('.site-header:hover')) {
+                showBuilderPreview('header');
+                return;
+            }
+
+            if (shortcut.closest('.site-footer') || document.querySelector('.site-footer:hover')) {
+                showBuilderPreview('footer');
+            }
+        }, true);
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                hideBuilderPreviews();
+            }
         });
     })(jQuery);
     </script>
