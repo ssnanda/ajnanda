@@ -45,10 +45,10 @@ add_action('after_setup_theme', 'ncllc_pro_setup');
  */
 function ncllc_pro_scripts() {
     // Enqueue main stylesheet
-    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.65');
+    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.66');
     
     // Enqueue custom JavaScript
-    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.65', true);
+    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.66', true);
     
     // Localize script
     wp_localize_script('ncllc-pro-script', 'ncllcData', array(
@@ -62,12 +62,12 @@ add_action('wp_enqueue_scripts', 'ncllc_pro_scripts');
  * Load the same page-section styling inside the block editor.
  */
 function ncllc_pro_block_editor_assets() {
-    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.65');
+    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.66');
     wp_enqueue_script(
         'ncllc-pro-editor-controls',
         get_template_directory_uri() . '/js/editor-controls.js',
         array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-element', 'wp-hooks'),
-        '1.0.65',
+        '1.0.66',
         true
     );
 }
@@ -144,6 +144,16 @@ function ncllc_pro_sanitize_header_padding($value) {
     $value = (float) $value;
 
     return (string) min(2, max(0.5, $value));
+}
+
+/**
+ * Sanitize Customizer select values.
+ */
+function ncllc_pro_sanitize_choice($value, $setting) {
+    $control = $setting->manager->get_control($setting->id);
+    $choices = $control && isset($control->choices) ? $control->choices : array();
+
+    return array_key_exists($value, $choices) ? $value : $setting->default;
 }
 
 /**
@@ -343,25 +353,42 @@ add_filter('render_block', 'ncllc_pro_add_hero_layout_state_classes', 10, 2);
 /**
  * Footer column defaults and saved Customizer values.
  */
-function ncllc_pro_get_footer_columns() {
-    $defaults = array(
+function ncllc_pro_get_footer_defaults() {
+    $site_name = get_bloginfo('name');
+    $site_description = get_bloginfo('description');
+
+    return array(
         1 => array(
-            'title' => 'NC LLC Agents Inc',
-            'text'  => "Professional registered agent services for North Carolina businesses. Reliable, affordable, and compliant.",
+            'title' => $site_name ? $site_name : __('Your Site Name', 'ncllc-pro'),
+            'text'  => $site_description ? $site_description : __('Add a short description for this website in the Customizer footer settings.', 'ncllc-pro'),
         ),
         2 => array(
-            'title' => 'Quick Links',
-            'text'  => "Home|/\nAbout|/about/\nKnowledge Base|/knowledge-base/\nContact|/contact/",
+            'title' => __('Quick Links', 'ncllc-pro'),
+            'text'  => "Home|/\nAbout|/about/\nContact|/contact/",
         ),
         3 => array(
-            'title' => 'Services',
-            'text'  => "Registered Agent\nDocument Access\nCompliance Support",
+            'title' => __('Resources', 'ncllc-pro'),
+            'text'  => __('Add useful links, services, or resource names here.', 'ncllc-pro'),
         ),
         4 => array(
-            'title' => 'Location',
-            'text'  => "Charlotte, NC\nServing all of North Carolina\nSame day setup available",
+            'title' => __('Contact', 'ncllc-pro'),
+            'text'  => __('Add location, hours, phone, email, or other contact details here.', 'ncllc-pro'),
         ),
     );
+}
+
+function ncllc_pro_get_footer_bottom_default() {
+    $site_name = get_bloginfo('name');
+
+    return sprintf(
+        /* translators: %s: Site name. */
+        __('%s. All rights reserved.', 'ncllc-pro'),
+        $site_name ? $site_name : __('Your Site Name', 'ncllc-pro')
+    );
+}
+
+function ncllc_pro_get_footer_columns() {
+    $defaults = ncllc_pro_get_footer_defaults();
 
     $columns = array();
     foreach ($defaults as $index => $default) {
@@ -405,24 +432,44 @@ function ncllc_pro_render_footer_lines($text) {
  * Render the editable site footer.
  */
 function ncllc_pro_render_site_footer() {
+    $footer_layout = get_theme_mod('footer_layout', 'columns');
     ob_start();
     ?>
-    <footer class="site-footer">
+    <footer class="site-footer footer-layout-<?php echo esc_attr($footer_layout); ?>">
         <div class="container">
-            <div class="footer-content">
-                <?php foreach (ncllc_pro_get_footer_columns() as $column) : ?>
-                    <div class="footer-section">
-                        <?php if (!empty($column['title'])) : ?>
-                            <h3><?php echo esc_html($column['title']); ?></h3>
-                        <?php endif; ?>
-                        <?php ncllc_pro_render_footer_lines($column['text']); ?>
+            <?php if ('menu-bar' === $footer_layout) : ?>
+                <div class="footer-menu-bar">
+                    <div class="footer-menu-bar-brand">
+                        <?php echo esc_html(get_theme_mod('footer_bottom_text', ncllc_pro_get_footer_bottom_default())); ?>
                     </div>
-                <?php endforeach; ?>
-            </div>
+                    <nav class="footer-menu-navigation" aria-label="<?php esc_attr_e('Footer Menu', 'ncllc-pro'); ?>">
+                        <?php
+                        wp_nav_menu(array(
+                            'theme_location' => 'footer',
+                            'menu_class'     => 'footer-menu',
+                            'container'      => false,
+                            'fallback_cb'    => false,
+                            'depth'          => 1,
+                        ));
+                        ?>
+                    </nav>
+                </div>
+            <?php else : ?>
+                <div class="footer-content">
+                    <?php foreach (ncllc_pro_get_footer_columns() as $column) : ?>
+                        <div class="footer-section">
+                            <?php if (!empty($column['title'])) : ?>
+                                <h3><?php echo esc_html($column['title']); ?></h3>
+                            <?php endif; ?>
+                            <?php ncllc_pro_render_footer_lines($column['text']); ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
 
-            <div class="footer-bottom">
-                <p>&copy; <?php echo esc_html(date('Y')); ?> <?php echo esc_html(get_theme_mod('footer_bottom_text', 'NC LLC Agents Inc. All rights reserved. | Serving North Carolina Businesses')); ?></p>
-            </div>
+                <div class="footer-bottom">
+                    <p>&copy; <?php echo esc_html(date('Y')); ?> <?php echo esc_html(get_theme_mod('footer_bottom_text', ncllc_pro_get_footer_bottom_default())); ?></p>
+                </div>
+            <?php endif; ?>
         </div>
     </footer>
     <?php
@@ -678,6 +725,24 @@ function ncllc_pro_customize_register($wp_customize) {
         'priority' => 25,
     ));
 
+    $wp_customize->add_setting('header_layout', array(
+        'default'           => 'logo-left-menu-right',
+        'sanitize_callback' => 'ncllc_pro_sanitize_choice',
+        'transport'         => 'refresh',
+    ));
+
+    $wp_customize->add_control('header_layout', array(
+        'label'       => __('Header Layout', 'ncllc-pro'),
+        'description' => __('Choose a simple header arrangement. Existing sites keep the current logo-left/menu-right layout.', 'ncllc-pro'),
+        'section'     => 'ncllc_header',
+        'type'        => 'select',
+        'choices'     => array(
+            'logo-left-menu-right' => __('Logo Left, Menu Right', 'ncllc-pro'),
+            'centered-menu'        => __('Centered Menu Bar', 'ncllc-pro'),
+            'stacked-center'       => __('Centered Logo, Menu Below', 'ncllc-pro'),
+        ),
+    ));
+
     $old_logo_height = get_theme_mod('logo_height', '50');
     $old_header_padding = get_theme_mod('header_padding', '0.75');
     $device_labels = array(
@@ -795,7 +860,24 @@ function ncllc_pro_customize_register($wp_customize) {
     $wp_customize->add_section('ncllc_footer', array(
         'title'       => __('Footer', 'ncllc-pro'),
         'priority'    => 26,
-        'description' => __('Edit each footer column here. For linked lines, use Label|URL, for example Home|/.', 'ncllc-pro'),
+        'description' => __('Choose a footer layout. For linked column lines, use Label|URL, for example Home|/.', 'ncllc-pro'),
+    ));
+
+    $wp_customize->add_setting('footer_layout', array(
+        'default'           => 'columns',
+        'sanitize_callback' => 'ncllc_pro_sanitize_choice',
+        'transport'         => 'refresh',
+    ));
+
+    $wp_customize->add_control('footer_layout', array(
+        'label'       => __('Footer Layout', 'ncllc-pro'),
+        'description' => __('Use Menu Bar for an Astra-like single dark row with the footer menu.', 'ncllc-pro'),
+        'section'     => 'ncllc_footer',
+        'type'        => 'select',
+        'choices'     => array(
+            'columns'  => __('Four Columns', 'ncllc-pro'),
+            'menu-bar' => __('Menu Bar', 'ncllc-pro'),
+        ),
     ));
 
     $footer_columns = ncllc_pro_get_footer_columns();
@@ -827,7 +909,7 @@ function ncllc_pro_customize_register($wp_customize) {
     }
 
     $wp_customize->add_setting('footer_bottom_text', array(
-        'default'           => 'NC LLC Agents Inc. All rights reserved. | Serving North Carolina Businesses',
+        'default'           => ncllc_pro_get_footer_bottom_default(),
         'sanitize_callback' => 'sanitize_text_field',
         'transport'         => 'refresh',
     ));
@@ -839,7 +921,7 @@ function ncllc_pro_customize_register($wp_customize) {
     ));
 
     if (isset($wp_customize->selective_refresh)) {
-        $footer_settings = array('footer_bottom_text');
+        $footer_settings = array('footer_layout', 'footer_bottom_text');
         for ($i = 1; $i <= 4; $i++) {
             $footer_settings[] = 'footer_column_' . $i . '_title';
             $footer_settings[] = 'footer_column_' . $i . '_text';

@@ -17,7 +17,7 @@
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 
-<header class="site-header" id="masthead">
+<header class="site-header header-layout-<?php echo esc_attr(get_theme_mod('header_layout', 'logo-left-menu-right')); ?>" id="masthead">
     <div class="header-container container">
         <div class="site-branding">
             <?php if (has_custom_logo()) : ?>

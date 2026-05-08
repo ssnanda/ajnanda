@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: http://ncllc.ddev.site/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.0.65
+Version: 1.0.66
 License: GNU General Public License v2 or later
 Text Domain: ncllc-pro
 */
@@ -114,6 +114,36 @@ a:hover { color: var(--primary-dark); }
 .nav-menu a:hover {
     background: var(--gray-50);
     color: var(--primary);
+}
+
+.header-layout-centered-menu .header-container {
+    justify-content: center;
+}
+
+.header-layout-centered-menu .site-branding {
+    position: absolute;
+    left: 1.5rem;
+}
+
+.header-layout-centered-menu .main-navigation {
+    margin-inline: auto;
+}
+
+.header-layout-stacked-center .header-container {
+    flex-direction: column;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.header-layout-stacked-center .site-branding,
+.header-layout-stacked-center .main-navigation {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+}
+
+.header-layout-stacked-center .nav-menu {
+    justify-content: center;
 }
 
 .mobile-menu-toggle {
@@ -439,6 +469,51 @@ a:hover { color: var(--primary-dark); }
     border-top: 1px solid var(--gray-800);
     padding-top: 2rem;
     text-align: center;
+}
+
+.footer-layout-menu-bar {
+    padding: 0;
+    background: #0f2f35;
+    color: #fff;
+}
+
+.footer-menu-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    min-height: 96px;
+    padding: 1.5rem 0;
+}
+
+.footer-menu-bar-brand {
+    color: rgba(255,255,255,0.76);
+    font-size: 0.95rem;
+}
+
+.footer-menu-navigation {
+    margin-left: auto;
+}
+
+.footer-menu {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1.4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.footer-menu a {
+    color: #fff;
+    text-decoration: none;
+}
+
+.footer-menu a:hover,
+.footer-menu a:focus {
+    color: var(--accent, #f59e0b);
 }
 
 @keyframes fadeInUp {
@@ -1924,6 +1999,20 @@ a:hover { color: var(--primary-dark); }
         right: 1rem;
         z-index: 1001;
     }
+    .header-layout-centered-menu .site-branding {
+        position: static;
+    }
+    .header-layout-centered-menu .header-container,
+    .header-layout-stacked-center .header-container {
+        align-items: center;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+    .header-layout-stacked-center .site-branding,
+    .header-layout-stacked-center .main-navigation {
+        width: auto;
+        text-align: left;
+    }
     .nav-menu {
         display: none;
         width: 100%;
@@ -1946,6 +2035,19 @@ a:hover { color: var(--primary-dark); }
     }
     .mobile-menu-toggle {
         display: flex;
+    }
+    .footer-menu-bar {
+        align-items: center;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 120px;
+        text-align: center;
+    }
+    .footer-menu-navigation {
+        margin-left: 0;
+    }
+    .footer-menu {
+        justify-content: center;
     }
     .hero { min-height: 80vh; padding: 5rem 1rem 3rem; }
     .hero-cta { flex-direction: column; }
