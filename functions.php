@@ -45,10 +45,10 @@ add_action('after_setup_theme', 'ncllc_pro_setup');
  */
 function ncllc_pro_scripts() {
     // Enqueue main stylesheet
-    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.69');
+    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.70');
     
     // Enqueue custom JavaScript
-    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.69', true);
+    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.70', true);
     
     // Localize script
     wp_localize_script('ncllc-pro-script', 'ncllcData', array(
@@ -62,12 +62,12 @@ add_action('wp_enqueue_scripts', 'ncllc_pro_scripts');
  * Load the same page-section styling inside the block editor.
  */
 function ncllc_pro_block_editor_assets() {
-    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.69');
+    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.70');
     wp_enqueue_script(
         'ncllc-pro-editor-controls',
         get_template_directory_uri() . '/js/editor-controls.js',
         array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-element', 'wp-hooks'),
-        '1.0.69',
+        '1.0.70',
         true
     );
 }
@@ -651,9 +651,38 @@ function ncllc_pro_get_builder_width($builder, $row, $cell, $device) {
     return absint(get_theme_mod(ncllc_pro_builder_width_setting_id($builder, $row, $cell, $device), ncllc_pro_builder_width_default($builder, $row, $cell)));
 }
 
-function ncllc_pro_render_customizer_builder_chip($label, $setting_id) {
+function ncllc_pro_builder_focus_control($builder, $element, $fallback_setting_id) {
+    if ('site-logo' === $element) {
+        return 'custom_logo';
+    }
+
+    if ('primary-menu' === $element) {
+        return 'nav_menu_locations[primary]';
+    }
+
+    if ('footer-menu' === $element) {
+        return 'nav_menu_locations[footer]';
+    }
+
+    if ('button' === $element) {
+        return 'ajn_builder_button_text';
+    }
+
+    if ('html-1' === $element) {
+        return 'ajn_builder_html_1';
+    }
+
+    if (0 === strpos($element, 'widget-')) {
+        $index = absint(str_replace('widget-', '', $element));
+        return 'sidebar-widgets-' . $builder . '-builder-' . $index;
+    }
+
+    return $fallback_setting_id;
+}
+
+function ncllc_pro_render_customizer_builder_chip($label, $setting_id, $focus_control_id) {
     ?>
-    <button type="button" class="ajn-customizer-builder-chip" data-ajn-focus-control="<?php echo esc_attr($setting_id); ?>">
+    <button type="button" class="ajn-customizer-builder-chip" data-ajn-focus-control="<?php echo esc_attr($focus_control_id); ?>">
         <?php echo esc_html($label); ?>
         <span aria-hidden="true" class="ajn-customizer-builder-remove" data-ajn-clear-control="<?php echo esc_attr($setting_id); ?>">&times;</span>
     </button>
@@ -673,13 +702,14 @@ function ncllc_pro_render_customizer_builder_row($builder, $row) {
             $width_desktop = ncllc_pro_get_builder_width($builder, $row, $cell, 'desktop');
             $width_tablet = ncllc_pro_get_builder_width($builder, $row, $cell, 'tablet');
             $width_mobile = ncllc_pro_get_builder_width($builder, $row, $cell, 'mobile');
+            $focus_control_id = ncllc_pro_builder_focus_control($builder, $value, $setting_id);
             ?>
             <div
                 class="ajn-customizer-builder-cell"
                 style="--ajn-builder-width-desktop: <?php echo esc_attr($width_desktop); ?>; --ajn-builder-width-tablet: <?php echo esc_attr($width_tablet); ?>; --ajn-builder-width-mobile: <?php echo esc_attr($width_mobile); ?>;"
             >
                 <?php if ('none' !== $value) : ?>
-                    <?php ncllc_pro_render_customizer_builder_chip($label, $setting_id); ?>
+                    <?php ncllc_pro_render_customizer_builder_chip($label, $setting_id, $focus_control_id); ?>
                 <?php else : ?>
                     <button type="button" class="ajn-customizer-builder-add" data-ajn-focus-control="<?php echo esc_attr($setting_id); ?>">+</button>
                 <?php endif; ?>
@@ -721,8 +751,9 @@ function ncllc_pro_render_footer_builder_preview() {
     <?php
 }
 
-function ncllc_pro_register_builder_controls($wp_customize, $builder, $section, $label_prefix) {
+function ncllc_pro_register_builder_controls($wp_customize, $builder, $section, $label_prefix, $width_section = '') {
     $choices = ncllc_pro_builder_element_choices();
+    $width_section = $width_section ? $width_section : $section;
     $device_labels = array(
         'desktop' => __('Desktop', 'ncllc-pro'),
         'tablet'  => __('Tablet', 'ncllc-pro'),
@@ -770,7 +801,7 @@ function ncllc_pro_register_builder_controls($wp_customize, $builder, $section, 
                         $cell
                     ),
                     'description' => __('Relative width from 1 to 6. Larger numbers take more horizontal space.', 'ncllc-pro'),
-                    'section'     => $section,
+                    'section'     => $width_section,
                     'type'        => 'number',
                     'input_attrs' => array(
                         'min'  => 1,
@@ -1032,6 +1063,12 @@ function ncllc_pro_customize_register($wp_customize) {
         'priority' => 25,
     ));
 
+    $wp_customize->add_section('ncllc_header_builder_widths', array(
+        'title'       => __('Header Builder Widths', 'ncllc-pro'),
+        'priority'    => 25,
+        'description' => __('Advanced responsive width controls for Header Builder slots.', 'ncllc-pro'),
+    ));
+
     $wp_customize->add_setting('header_layout', array(
         'default'           => 'logo-left-menu-right',
         'sanitize_callback' => 'ncllc_pro_sanitize_choice',
@@ -1103,7 +1140,7 @@ function ncllc_pro_customize_register($wp_customize) {
         ));
     }
 
-    ncllc_pro_register_builder_controls($wp_customize, 'header', 'ncllc_header', __('Header', 'ncllc-pro'));
+    ncllc_pro_register_builder_controls($wp_customize, 'header', 'ncllc_header', __('Header', 'ncllc-pro'), 'ncllc_header_builder_widths');
 
     // Hero Defaults Section
     $wp_customize->add_section('ncllc_hero_defaults', array(
@@ -1172,6 +1209,12 @@ function ncllc_pro_customize_register($wp_customize) {
         'description' => __('Choose a footer layout. For linked column lines, use Label|URL, for example Home|/.', 'ncllc-pro'),
     ));
 
+    $wp_customize->add_section('ncllc_footer_builder_widths', array(
+        'title'       => __('Footer Builder Widths', 'ncllc-pro'),
+        'priority'    => 27,
+        'description' => __('Advanced responsive width controls for Footer Builder slots.', 'ncllc-pro'),
+    ));
+
     $wp_customize->add_setting('footer_layout', array(
         'default'           => 'columns',
         'sanitize_callback' => 'ncllc_pro_sanitize_choice',
@@ -1226,7 +1269,7 @@ function ncllc_pro_customize_register($wp_customize) {
         'type'    => 'textarea',
     ));
 
-    ncllc_pro_register_builder_controls($wp_customize, 'footer', 'ncllc_footer', __('Footer', 'ncllc-pro'));
+    ncllc_pro_register_builder_controls($wp_customize, 'footer', 'ncllc_footer', __('Footer', 'ncllc-pro'), 'ncllc_footer_builder_widths');
 
     $footer_columns = ncllc_pro_get_footer_columns();
     foreach ($footer_columns as $index => $column) {
@@ -1348,9 +1391,21 @@ function ncllc_pro_customizer_live_preview() {
             }
 
             var control = window.parent.wp.customize.control(controlId);
+            var section = window.parent.wp.customize.section ? window.parent.wp.customize.section(controlId) : null;
+            var panel = window.parent.wp.customize.panel ? window.parent.wp.customize.panel(controlId) : null;
 
             if (control && control.focus) {
                 control.focus();
+                return;
+            }
+
+            if (section && section.focus) {
+                section.focus();
+                return;
+            }
+
+            if (panel && panel.focus) {
+                panel.focus();
             }
         }
 

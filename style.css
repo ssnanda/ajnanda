@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: http://ncllc.ddev.site/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.0.69
+Version: 1.0.70
 License: GNU General Public License v2 or later
 Text Domain: ncllc-pro
 */
@@ -59,13 +59,17 @@ a:hover { color: var(--primary-dark); }
 
 /* Header */
 .site-header {
-    position: fixed;
+    position: sticky;
     top: 0;
     width: 100%;
     z-index: 1000;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+body.admin-bar .site-header {
+    top: 32px;
 }
 
 .header-container {
@@ -102,9 +106,17 @@ a:hover { color: var(--primary-dark); }
     display: flex;
     gap: 2rem;
     list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-menu li {
+    position: relative;
+    list-style: none;
 }
 
 .nav-menu a {
+    display: block;
     font-weight: 500;
     color: var(--gray-800);
     padding: 0.5rem 1rem;
@@ -114,6 +126,37 @@ a:hover { color: var(--primary-dark); }
 .nav-menu a:hover {
     background: var(--gray-50);
     color: var(--primary);
+}
+
+.nav-menu .sub-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 1002;
+    display: none;
+    min-width: 220px;
+    margin: 0;
+    padding: 0.5rem;
+    list-style: none;
+    background: #fff;
+    border: 1px solid var(--gray-200);
+    border-radius: 0.75rem;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.16);
+}
+
+.nav-menu li:hover > .sub-menu,
+.nav-menu li:focus-within > .sub-menu {
+    display: block;
+}
+
+.nav-menu .sub-menu a {
+    width: 100%;
+    white-space: nowrap;
+}
+
+.nav-menu .sub-menu .sub-menu {
+    top: 0;
+    left: 100%;
 }
 
 .header-layout-centered-menu .header-container {
