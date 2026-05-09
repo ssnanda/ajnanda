@@ -45,10 +45,10 @@ add_action('after_setup_theme', 'ncllc_pro_setup');
  */
 function ncllc_pro_scripts() {
     // Enqueue main stylesheet
-    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.76');
+    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.77');
     
     // Enqueue custom JavaScript
-    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.76', true);
+    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.77', true);
     
     // Localize script
     wp_localize_script('ncllc-pro-script', 'ncllcData', array(
@@ -69,12 +69,12 @@ function ncllc_pro_block_editor_assets() {
         null
     );
 
-    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.76');
+    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.77');
     wp_enqueue_script(
         'ncllc-pro-editor-controls',
         get_template_directory_uri() . '/js/editor-controls.js',
         array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-element', 'wp-hooks'),
-        '1.0.76',
+        '1.0.77',
         true
     );
 }
@@ -1786,6 +1786,7 @@ function ncllc_pro_customizer_live_preview() {
         var devices = ['desktop', 'tablet', 'mobile'];
         var builderInsertChoices = <?php echo wp_json_encode($builder_insert_choices); ?>;
         var activeInsertControl = '';
+        var activeInsertBuilder = '';
         var builderPreviews = {
             header: document.querySelector('.ajn-customizer-header-builder'),
             footer: document.querySelector('.ajn-customizer-footer-builder')
@@ -1821,6 +1822,38 @@ function ncllc_pro_customizer_live_preview() {
             }
         }
 
+        function rememberBuilderPreview(type) {
+            try {
+                window.sessionStorage.setItem('ajnActiveBuilderPreview', type);
+            } catch (error) {}
+        }
+
+        function getCustomizerManager() {
+            if (window.parent && window.parent.wp && window.parent.wp.customize) {
+                return window.parent.wp.customize;
+            }
+
+            if (window.wp && window.wp.customize) {
+                return window.wp.customize;
+            }
+
+            return null;
+        }
+
+        function getCustomizerSetting(controlId) {
+            var manager = getCustomizerManager();
+
+            if (!manager || !controlId) {
+                return null;
+            }
+
+            try {
+                return manager(controlId);
+            } catch (error) {
+                return null;
+            }
+        }
+
         function getInsertPopover() {
             var popover = document.querySelector('.ajn-builder-insert-popover');
 
@@ -1848,12 +1881,13 @@ function ncllc_pro_customizer_live_preview() {
             popover.addEventListener('click', function(event) {
                 var choice = event.target.closest('[data-ajn-insert-value]');
 
-                if (!choice || !activeInsertControl || !wp.customize || !wp.customize(activeInsertControl)) {
+                if (!choice || !getCustomizerSetting(activeInsertControl)) {
                     return;
                 }
 
                 event.preventDefault();
-                wp.customize(activeInsertControl).set(choice.getAttribute('data-ajn-insert-value'));
+                rememberBuilderPreview(activeInsertBuilder || 'footer');
+                setCustomizerControl(activeInsertControl, choice.getAttribute('data-ajn-insert-value'));
                 hideInsertPopover();
                 refreshCustomizerPreview();
             });
@@ -1863,12 +1897,14 @@ function ncllc_pro_customizer_live_preview() {
 
         function refreshCustomizerPreview() {
             window.setTimeout(function() {
-                if (wp.customize && wp.customize.previewer && wp.customize.previewer.refresh) {
-                    wp.customize.previewer.refresh();
+                var manager = getCustomizerManager();
+
+                if (manager && manager.previewer && manager.previewer.refresh) {
+                    manager.previewer.refresh();
                     return;
                 }
 
-                if (wp.customize && wp.customize.preview && wp.customize.preview.send) {
+                if (window.wp && wp.customize && wp.customize.preview && wp.customize.preview.send) {
                     wp.customize.preview.send('refresh');
                 }
             }, 120);
@@ -1882,6 +1918,7 @@ function ncllc_pro_customizer_live_preview() {
             }
 
             activeInsertControl = '';
+            activeInsertBuilder = '';
         }
 
         function showInsertPopover(button) {
@@ -1891,6 +1928,7 @@ function ncllc_pro_customizer_live_preview() {
             var grid = popover.querySelector('.ajn-builder-insert-grid');
 
             activeInsertControl = button.getAttribute('data-ajn-insert-control') || '';
+            activeInsertBuilder = builder;
             grid.innerHTML = '';
 
             Object.keys(choices).forEach(function(value) {
@@ -1942,19 +1980,23 @@ function ncllc_pro_customizer_live_preview() {
         }
 
         function clearCustomizerControl(controlId) {
-            if (!wp.customize || !wp.customize(controlId)) {
+            var setting = getCustomizerSetting(controlId);
+
+            if (!setting) {
                 return;
             }
 
-            wp.customize(controlId).set('none');
+            setting.set('none');
         }
 
         function setCustomizerControl(controlId, value) {
-            if (!wp.customize || !wp.customize(controlId)) {
+            var setting = getCustomizerSetting(controlId);
+
+            if (!setting) {
                 return;
             }
 
-            wp.customize(controlId).set(value);
+            setting.set(value);
         }
 
         document.addEventListener('click', function(event) {
@@ -1974,6 +2016,7 @@ function ncllc_pro_customizer_live_preview() {
             if (setButton) {
                 event.preventDefault();
                 event.stopPropagation();
+                rememberBuilderPreview(setButton.closest('.ajn-customizer-header-builder') ? 'header' : 'footer');
                 setCustomizerControl(setButton.getAttribute('data-ajn-set-control'), setButton.getAttribute('data-ajn-set-value'));
                 hideInsertPopover();
                 refreshCustomizerPreview();
@@ -2007,6 +2050,17 @@ function ncllc_pro_customizer_live_preview() {
                 showBuilderPreview('footer');
             }
         }, true);
+
+        try {
+            var restoredBuilderPreview = window.sessionStorage.getItem('ajnActiveBuilderPreview');
+
+            if (restoredBuilderPreview && builderPreviews[restoredBuilderPreview]) {
+                window.sessionStorage.removeItem('ajnActiveBuilderPreview');
+                window.setTimeout(function() {
+                    showBuilderPreview(restoredBuilderPreview);
+                }, 250);
+            }
+        } catch (error) {}
 
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
