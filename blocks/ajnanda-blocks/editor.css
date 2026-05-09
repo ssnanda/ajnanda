@@ -75,7 +75,6 @@
     height: 28px !important;
     min-height: 28px !important;
     pointer-events: auto;
-    transform: translate(-50%, -50%);
 }
 
 .aj-container-insert.components-dropdown-menu .components-button,
@@ -101,21 +100,25 @@
 .aj-container-insert--top {
     top: 0;
     left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .aj-container-insert--bottom {
     top: 100%;
     left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .aj-container-insert--left {
     top: 50%;
     left: 0;
+    transform: translate(0, -50%);
 }
 
 .aj-container-insert--right {
     top: 50%;
-    left: 100%;
+    right: 0;
+    transform: translate(0, -50%);
 }
 
 .editor-styles-wrapper .aj-container--flex,

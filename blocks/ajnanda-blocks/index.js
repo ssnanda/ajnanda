@@ -210,6 +210,7 @@
                     var parentIndex = grandParentId ? select('core/block-editor').getBlockIndex(parentId, grandParentId) : 0;
 
                     return {
+                        block: block,
                         hasChildBlocks: !!(block && block.innerBlocks && block.innerBlocks.length),
                         innerCount: block && block.innerBlocks ? block.innerBlocks.length : 0,
                         parentId: parentId,
@@ -367,13 +368,25 @@
         }
     }
 
-    function containerInsertTarget(props, context) {
-        var parentBlock = context && context.parentBlock;
-        var parentAttrs = parentBlock && parentBlock.attributes ? parentBlock.attributes : {};
-        var parentIsColumnRow = parentBlock && parentBlock.name === 'ajnanda/container' && (parentAttrs.layoutMode === 'grid' || parentAttrs.containerType === 'row');
+    function isContainerBlock(block) {
+        return block && block.name === 'ajnanda/container';
+    }
 
-        if (parentIsColumnRow && context.grandParentId) {
+    function isContainerRow(block) {
+        var attrs = block && block.attributes ? block.attributes : {};
+        return isContainerBlock(block) && (attrs.layoutMode === 'grid' || attrs.containerType === 'row');
+    }
+
+    function containerInsertTarget(props, context) {
+        var currentBlock = context && context.block;
+        var parentBlock = context && context.parentBlock;
+
+        if (isContainerRow(parentBlock) && context.grandParentId) {
             return { parentId: context.grandParentId, index: context.parentIndex };
+        }
+
+        if (isContainerRow(currentBlock) && context && context.parentId) {
+            return { parentId: context.parentId, index: context.index };
         }
 
         if (context && context.parentId) {
@@ -403,9 +416,9 @@
     function insertContainerColumn(props, context, position) {
         var editor = dispatch && dispatch('core/block-editor');
         var parentBlock = context && context.parentBlock;
-        var parentAttrs = parentBlock && parentBlock.attributes ? parentBlock.attributes : {};
-        var parentIsColumnRow = parentBlock && parentBlock.name === 'ajnanda/container' && (parentAttrs.layoutMode === 'grid' || parentAttrs.containerType === 'row');
-        var currentIsColumnRow = props.name === 'ajnanda/container' && (props.attributes.layoutMode === 'grid' || props.attributes.containerType === 'row');
+        var currentBlock = context && context.block;
+        var parentIsColumnRow = isContainerRow(parentBlock);
+        var currentIsColumnRow = isContainerRow(currentBlock);
         var block;
         var nextColumns;
 
@@ -447,9 +460,9 @@
 
     function containerInsertionControls(props, context) {
         var parentBlock = context && context.parentBlock;
-        var parentAttrs = parentBlock && parentBlock.attributes ? parentBlock.attributes : {};
-        var parentIsColumnRow = parentBlock && parentBlock.name === 'ajnanda/container' && (parentAttrs.layoutMode === 'grid' || parentAttrs.containerType === 'row');
-        var currentIsColumnRow = props.name === 'ajnanda/container' && (props.attributes.layoutMode === 'grid' || props.attributes.containerType === 'row');
+        var currentBlock = context && context.block;
+        var parentIsColumnRow = isContainerRow(parentBlock);
+        var currentIsColumnRow = isContainerRow(currentBlock);
         var showColumnControls = parentIsColumnRow || currentIsColumnRow;
 
         return el('div', { className: 'aj-container-insert-controls', 'aria-hidden': false },
