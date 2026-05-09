@@ -52,7 +52,7 @@ function ajnanda_blocks_register_assets() {
     wp_register_script(
         'ajnanda-blocks-editor',
         $base_uri . '/index.js',
-        array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-element', 'wp-i18n', 'wp-server-side-render'),
+        array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-data', 'wp-element', 'wp-i18n', 'wp-server-side-render'),
         ajnanda_blocks_asset_version('index.js'),
         true
     );

@@ -7,6 +7,9 @@
     var createElement = wp.element.createElement;
     var Fragment = wp.element.Fragment;
     var __ = wp.i18n.__;
+    var createBlock = wp.blocks.createBlock;
+    var dispatch = wp.data && wp.data.dispatch;
+    var useSelect = wp.data && wp.data.useSelect;
     var InspectorControls = wp.blockEditor.InspectorControls;
     var InnerBlocks = wp.blockEditor.InnerBlocks;
     var MediaUpload = wp.blockEditor.MediaUpload;
@@ -20,6 +23,7 @@
     var RangeControl = wp.components.RangeControl;
     var SelectControl = wp.components.SelectControl;
     var Button = wp.components.Button;
+    var ButtonGroup = wp.components.ButtonGroup;
     var ServerSideRender = wp.serverSideRender;
     var category = 'ajnanda-blocks';
 
@@ -109,6 +113,21 @@
         if (attrs.aspectRatio) {
             style.aspectRatio = attrs.aspectRatio;
         }
+        if (attrs.layoutMode === 'flex') {
+            style.display = 'flex';
+            style.flexDirection = attrs.direction || 'row';
+            style.flexWrap = attrs.wrapMode || 'wrap';
+            style.alignItems = attrs.alignItems || 'stretch';
+            style.justifyContent = attrs.justify || 'center';
+        }
+        if (attrs.layoutMode === 'grid') {
+            style.display = 'grid';
+            style.gridTemplateColumns = 'repeat(' + (attrs.columns || 2) + ', minmax(0, 1fr))';
+            style.gridTemplateRows = attrs.gridRows && attrs.gridRows > 1 ? 'repeat(' + attrs.gridRows + ', auto)' : undefined;
+            style.alignItems = attrs.alignItems || 'stretch';
+            style.justifyItems = attrs.justify || 'stretch';
+            style.alignContent = attrs.alignContent || 'stretch';
+        }
 
         return style;
     }
@@ -179,9 +198,17 @@
             supports: { align: ['wide', 'full'], anchor: true },
             attributes: withStyleAttributes(Object.assign({ className: { type: 'string' } }, options.attributes || {})),
             edit: function(props) {
+                var hasChildBlocks = useSelect ? useSelect(function(select) {
+                    var block = select('core/block-editor').getBlock(props.clientId);
+                    return !!(block && block.innerBlocks && block.innerBlocks.length);
+                }, [props.clientId]) : false;
+                var shouldChooseLayout = name === 'ajnanda/container' && !props.attributes.layoutSelected && !hasChildBlocks;
+
                 return el(Fragment, {},
                     inspector(controlsWithCommon(props, extraControls(props, options))),
-                    el('div', styledProps(className, props.attributes, classNames(props.attributes.className, extraClass(props.attributes, options))), el(InnerBlocks, { template: template || [], templateLock: false }))
+                    el('div', styledProps(className, props.attributes, classNames(props.attributes.className, extraClass(props.attributes, options))),
+                        shouldChooseLayout ? containerLayoutChooser(props) : el(InnerBlocks, { template: template || [], templateLock: false })
+                    )
                 );
             },
             save: function(props) {
@@ -241,6 +268,155 @@
         ];
     }
 
+    function segmented(label, value, options, onChange, help) {
+        return el('div', { className: 'aj-segmented-control' },
+            el('span', { className: 'aj-control-label' }, label),
+            el(ButtonGroup, { className: 'aj-segmented-control__buttons' }, options.map(function(option) {
+                return el(Button, {
+                    key: option.value,
+                    variant: value === option.value ? 'primary' : 'secondary',
+                    onClick: function() { onChange(option.value); }
+                }, option.label);
+            })),
+            help ? el('p', { className: 'aj-control-help' }, help) : null
+        );
+    }
+
+    function containerPreviewColumns(pattern) {
+        return el('span', { className: 'aj-container-layout-preview aj-container-layout-preview--' + pattern },
+            el('i', {}), el('i', {}), el('i', {}), el('i', {})
+        );
+    }
+
+    function containerTemplate(pattern) {
+        var group = function(label) {
+            return createBlock ? createBlock('core/group', { className: 'aj-container-cell' }, [
+                createBlock('core/paragraph', { placeholder: label || __('Add content', 'ncllc-pro') })
+            ]) : null;
+        };
+
+        if (!createBlock) {
+            return [];
+        }
+
+        switch (pattern) {
+            case 'two':
+                return [group(__('Left', 'ncllc-pro')), group(__('Right', 'ncllc-pro'))];
+            case 'three':
+                return [group(__('Column 1', 'ncllc-pro')), group(__('Column 2', 'ncllc-pro')), group(__('Column 3', 'ncllc-pro'))];
+            case 'four':
+                return [group(__('Column 1', 'ncllc-pro')), group(__('Column 2', 'ncllc-pro')), group(__('Column 3', 'ncllc-pro')), group(__('Column 4', 'ncllc-pro'))];
+            case 'grid-2x2':
+                return [group(__('Item 1', 'ncllc-pro')), group(__('Item 2', 'ncllc-pro')), group(__('Item 3', 'ncllc-pro')), group(__('Item 4', 'ncllc-pro'))];
+            case 'left-wide':
+                return [group(__('Main', 'ncllc-pro')), group(__('Side', 'ncllc-pro'))];
+            case 'right-wide':
+                return [group(__('Side', 'ncllc-pro')), group(__('Main', 'ncllc-pro'))];
+            default:
+                return [group(__('Add content', 'ncllc-pro'))];
+        }
+    }
+
+    function applyContainerLayout(props, pattern) {
+        var attrs = {
+            layoutSelected: true,
+            layoutPreset: pattern,
+            layoutMode: pattern === 'grid-2x2' ? 'grid' : 'flex',
+            direction: 'row',
+            childrenWidth: pattern === 'one' ? 'auto' : 'equal',
+            columns: pattern === 'grid-2x2' ? 2 : (pattern === 'four' ? 4 : (pattern === 'three' ? 3 : (pattern === 'one' ? 1 : 2))),
+            gridRows: pattern === 'grid-2x2' ? 2 : 1
+        };
+
+        props.setAttributes(attrs);
+
+        if (dispatch && createBlock) {
+            dispatch('core/block-editor').replaceInnerBlocks(props.clientId, containerTemplate(pattern), false);
+        }
+    }
+
+    function containerLayoutChooser(props) {
+        var patterns = [
+            { value: 'one', label: __('One column', 'ncllc-pro') },
+            { value: 'two', label: __('Two columns', 'ncllc-pro') },
+            { value: 'three', label: __('Three columns', 'ncllc-pro') },
+            { value: 'four', label: __('Four columns', 'ncllc-pro') },
+            { value: 'grid-2x2', label: __('Grid 2x2', 'ncllc-pro') },
+            { value: 'left-wide', label: __('Left wide', 'ncllc-pro') },
+            { value: 'right-wide', label: __('Right wide', 'ncllc-pro') }
+        ];
+
+        return el('div', { className: 'aj-container-layout-chooser' },
+            el('div', { className: 'aj-container-layout-chooser__intro' },
+                el('span', { className: 'dashicons dashicons-screenoptions' }),
+                el('strong', {}, __('Container', 'ncllc-pro')),
+                el('p', {}, __('Select a container layout to start with.', 'ncllc-pro'))
+            ),
+            el('div', { className: 'aj-container-layout-chooser__grid' }, patterns.map(function(pattern) {
+                return el(Button, {
+                    key: pattern.value,
+                    className: 'aj-container-layout-choice',
+                    label: pattern.label,
+                    onClick: function() { applyContainerLayout(props, pattern.value); }
+                }, containerPreviewColumns(pattern.value), el('span', {}, pattern.label));
+            }))
+        );
+    }
+
+    function containerControls(props) {
+        var attrs = props.attributes;
+        var isGrid = attrs.layoutMode === 'grid';
+
+        return [
+            segmented(__('Layout', 'ncllc-pro'), attrs.layoutMode || 'flex', [
+                { label: __('Flex', 'ncllc-pro'), value: 'flex' },
+                { label: __('Grid', 'ncllc-pro'), value: 'grid' }
+            ], function(value) { props.setAttributes({ layoutMode: value }); }),
+            !isGrid ? segmented(__('Direction', 'ncllc-pro'), attrs.direction || 'row', [
+                { label: __('Row', 'ncllc-pro'), value: 'row' },
+                { label: __('Column', 'ncllc-pro'), value: 'column' },
+                { label: __('Row Reverse', 'ncllc-pro'), value: 'row-reverse' },
+                { label: __('Column Reverse', 'ncllc-pro'), value: 'column-reverse' }
+            ], function(value) { props.setAttributes({ direction: value }); }, __('Define the direction in which blocks inside this container are placed.', 'ncllc-pro')) : null,
+            !isGrid ? segmented(__('Children Width', 'ncllc-pro'), attrs.childrenWidth || 'equal', [
+                { label: __('Auto', 'ncllc-pro'), value: 'auto' },
+                { label: __('Equal', 'ncllc-pro'), value: 'equal' }
+            ], function(value) { props.setAttributes({ childrenWidth: value }); }) : null,
+            isGrid ? el(RangeControl, { label: __('Columns', 'ncllc-pro'), min: 1, max: 6, value: attrs.columns || 2, onChange: function(value) { props.setAttributes({ columns: value }); } }) : null,
+            isGrid ? el(RangeControl, { label: __('Rows', 'ncllc-pro'), min: 1, max: 6, value: attrs.gridRows || 1, onChange: function(value) { props.setAttributes({ gridRows: value }); } }) : null,
+            segmented(__('Align Items', 'ncllc-pro'), attrs.alignItems || 'stretch', [
+                { label: __('Start', 'ncllc-pro'), value: 'flex-start' },
+                { label: __('Center', 'ncllc-pro'), value: 'center' },
+                { label: __('End', 'ncllc-pro'), value: 'flex-end' },
+                { label: __('Stretch', 'ncllc-pro'), value: 'stretch' }
+            ], function(value) { props.setAttributes({ alignItems: value }); }, isGrid ? __('Define the vertical alignment for grid items inside this container.', 'ncllc-pro') : __('Define the vertical alignment inside this container.', 'ncllc-pro')),
+            segmented(__('Justify Content', 'ncllc-pro'), attrs.justify || 'center', [
+                { label: __('Start', 'ncllc-pro'), value: 'flex-start' },
+                { label: __('Center', 'ncllc-pro'), value: 'center' },
+                { label: __('End', 'ncllc-pro'), value: 'flex-end' },
+                { label: __('Space Between', 'ncllc-pro'), value: 'space-between' },
+                { label: __('Space Around', 'ncllc-pro'), value: 'space-around' },
+                { label: __('Space Evenly', 'ncllc-pro'), value: 'space-evenly' }
+            ], function(value) { props.setAttributes({ justify: value }); }, isGrid ? __('Define the horizontal alignment for grid items within this container.', 'ncllc-pro') : __('Define the horizontal alignment inside this container.', 'ncllc-pro')),
+            isGrid ? segmented(__('Align Content', 'ncllc-pro'), attrs.alignContent || 'stretch', [
+                { label: __('Start', 'ncllc-pro'), value: 'start' },
+                { label: __('Center', 'ncllc-pro'), value: 'center' },
+                { label: __('End', 'ncllc-pro'), value: 'end' },
+                { label: __('Stretch', 'ncllc-pro'), value: 'stretch' },
+                { label: __('Between', 'ncllc-pro'), value: 'space-between' },
+                { label: __('Evenly', 'ncllc-pro'), value: 'space-evenly' }
+            ], function(value) { props.setAttributes({ alignContent: value }); }) : null,
+            !isGrid ? segmented(__('Wrap', 'ncllc-pro'), attrs.wrapMode || 'wrap', [
+                { label: __('No Wrap', 'ncllc-pro'), value: 'nowrap' },
+                { label: __('Wrap', 'ncllc-pro'), value: 'wrap' },
+                { label: __('Reverse', 'ncllc-pro'), value: 'wrap-reverse' }
+            ], function(value) { props.setAttributes({ wrapMode: value }); }) : null,
+            el(RangeControl, { label: __('Gap', 'ncllc-pro'), min: 0, max: 96, value: attrs.gap || 16, onChange: function(value) { props.setAttributes({ gap: value }); } }),
+            el(RangeControl, { label: __('Max width', 'ncllc-pro'), min: 320, max: 1800, value: attrs.maxWidth || 1100, onChange: function(value) { props.setAttributes({ maxWidth: value }); } }),
+            el(RangeControl, { label: __('Minimum height', 'ncllc-pro'), min: 0, max: 900, value: attrs.minHeight || 0, onChange: function(value) { props.setAttributes({ minHeight: value }); } })
+        ];
+    }
+
     function mediaControls(props) {
         var attrs = props.attributes;
 
@@ -271,13 +447,32 @@
         controls: layoutControls,
         className: function(attrs) { return classNames('aj-flexbox--' + attrs.direction, attrs.wrap === false ? 'aj-flexbox--nowrap' : ''); }
     });
-    registerContainerBlock('ajnanda/container', __('AJ Container', 'ncllc-pro'), __('Constrained content container.', 'ncllc-pro'), 'aj-container', [['core/paragraph', { placeholder: __('Container content', 'ncllc-pro') }]], {
-        attributes: { maxWidth: { type: 'number', default: 1100 }, minHeight: { type: 'number', default: 0 } },
-        controls: function(props) {
-            return [
-                el(RangeControl, { label: __('Max width', 'ncllc-pro'), min: 320, max: 1800, value: props.attributes.maxWidth || 1100, onChange: function(value) { props.setAttributes({ maxWidth: value }); } }),
-                el(RangeControl, { label: __('Minimum height', 'ncllc-pro'), min: 0, max: 900, value: props.attributes.minHeight || 0, onChange: function(value) { props.setAttributes({ minHeight: value }); } })
-            ];
+    registerContainerBlock('ajnanda/container', __('AJ Container', 'ncllc-pro'), __('Constrained content container.', 'ncllc-pro'), 'aj-container', [], {
+        attributes: {
+            layoutSelected: { type: 'boolean', default: false },
+            layoutPreset: { type: 'string', default: '' },
+            layoutMode: { type: 'string', default: 'flex' },
+            direction: { type: 'string', default: 'row' },
+            childrenWidth: { type: 'string', default: 'equal' },
+            alignItems: { type: 'string', default: 'stretch' },
+            justify: { type: 'string', default: 'center' },
+            wrapMode: { type: 'string', default: 'wrap' },
+            columns: { type: 'number', default: 2 },
+            gridRows: { type: 'number', default: 1 },
+            alignContent: { type: 'string', default: 'stretch' },
+            maxWidth: { type: 'number', default: 1100 },
+            minHeight: { type: 'number', default: 0 },
+            gap: { type: 'number', default: 16 }
+        },
+        controls: containerControls,
+        className: function(attrs) {
+            return classNames(
+                'aj-container--' + (attrs.layoutMode || 'flex'),
+                'aj-container--preset-' + (attrs.layoutPreset || 'custom'),
+                attrs.layoutMode === 'flex' ? 'aj-container--' + (attrs.direction || 'row') : '',
+                attrs.layoutMode === 'flex' ? 'aj-container--children-' + (attrs.childrenWidth || 'equal') : '',
+                attrs.layoutMode === 'flex' ? 'aj-container--wrap-' + (attrs.wrapMode || 'wrap') : ''
+            );
         }
     });
     registerContainerBlock('ajnanda/grid', __('AJ Grid', 'ncllc-pro'), __('Responsive grid layout.', 'ncllc-pro'), 'aj-grid', [['core/group', { className: 'aj-card' }], ['core/group', { className: 'aj-card' }], ['core/group', { className: 'aj-card' }]], {
