@@ -44,6 +44,26 @@
 
     function init() {
         Array.prototype.slice.call(document.querySelectorAll('.aj-faq')).forEach(initFaq);
+        Array.prototype.slice.call(document.querySelectorAll('.aj-icon-list')).forEach(function(list) {
+            var parentType = list.getAttribute('data-icon-type') || 'icon';
+            var parentIcon = list.getAttribute('data-icon') || '→';
+            var parentImage = list.getAttribute('data-icon-image') || '';
+
+            Array.prototype.slice.call(list.querySelectorAll('.aj-icon-list-item__marker')).forEach(function(marker) {
+                var type = marker.getAttribute('data-icon-type') || 'inherit';
+                var image = marker.getAttribute('data-icon-image') || '';
+
+                if (type === 'inherit') {
+                    marker.setAttribute('data-icon-type', parentType);
+                    marker.setAttribute('data-icon', parentIcon);
+                    image = parentImage;
+                }
+
+                if ((marker.getAttribute('data-icon-type') || '') === 'image' && image) {
+                    marker.style.backgroundImage = 'url("' + image.replace(/"/g, '\\"') + '")';
+                }
+            });
+        });
     }
 
     if (document.readyState === 'loading') {

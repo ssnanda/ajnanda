@@ -1033,12 +1033,148 @@
     });
     registerContainerBlock('ajnanda/basic-gallery', __('AJ Basic Gallery', 'ncllc-pro'), __('Simple image gallery wrapper.', 'ncllc-pro'), 'aj-gallery', [['core/gallery']], { attributes: { columns: { type: 'number', default: 3 }, gap: { type: 'number', default: 16 } }, controls: gridControls });
     registerContainerBlock('ajnanda/image-gallery', __('AJ Image Gallery', 'ncllc-pro'), __('Simple image gallery wrapper.', 'ncllc-pro'), 'aj-gallery', [['core/gallery']], { attributes: { columns: { type: 'number', default: 3 }, gap: { type: 'number', default: 16 } }, controls: gridControls });
-    registerContainerBlock('ajnanda/icon-list', __('AJ Icon List', 'ncllc-pro'), __('List with icons.', 'ncllc-pro'), 'aj-icon-list', [['core/list', { values: '<li>List item</li><li>List item</li>' }]], {
-        attributes: { icon: { type: 'string', default: '✓' }, layout: { type: 'string', default: 'stack' } },
-        controls: function(props) {
-            return [field(__('Icon', 'ncllc-pro'), props.attributes.icon, function(value) { props.setAttributes({ icon: value }); }, '✓'), el(SelectControl, { label: __('Layout', 'ncllc-pro'), value: props.attributes.layout || 'stack', options: [{ label: __('Stack', 'ncllc-pro'), value: 'stack' }, { label: __('Inline', 'ncllc-pro'), value: 'inline' }], onChange: function(value) { props.setAttributes({ layout: value }); } })];
+    registerBlockType('ajnanda/icon-list', {
+        title: __('AJ Icon List', 'ncllc-pro'),
+        description: __('Create a list highlighted with icons or images.', 'ncllc-pro'),
+        category: category,
+        icon: 'editor-ul',
+        supports: { align: ['wide', 'full'], anchor: true },
+        attributes: withStyleAttributes({
+            layout: { type: 'string', default: 'stack' },
+            columns: { type: 'number', default: 1 },
+            iconType: { type: 'string', default: 'icon' },
+            icon: { type: 'string', default: '→' },
+            iconImageUrl: { type: 'string', default: '' },
+            iconSize: { type: 'number', default: 24 },
+            iconColor: { type: 'string', default: '' },
+            iconBackground: { type: 'string', default: '' },
+            iconGap: { type: 'number', default: 12 },
+            itemGap: { type: 'number', default: 10 }
+        }),
+        edit: function(props) {
+            var attrs = props.attributes;
+            var listStyle = Object.assign(blockStyle(attrs), {
+                '--aj-list-columns': attrs.columns || 1,
+                '--aj-list-icon-size': (attrs.iconSize || 24) + 'px',
+                '--aj-list-icon-color': attrs.iconColor || '',
+                '--aj-list-icon-background': attrs.iconBackground || '',
+                '--aj-list-icon-gap': (attrs.iconGap || 12) + 'px',
+                '--aj-list-item-gap': (attrs.itemGap || 10) + 'px'
+            });
+
+            return el(Fragment, {},
+                el(InspectorControls, {},
+                    el(PanelBody, { title: __('Icon', 'ncllc-pro'), initialOpen: true },
+                        segmented(__('Type', 'ncllc-pro'), attrs.iconType || 'icon', [
+                            { label: __('Icon', 'ncllc-pro'), value: 'icon' },
+                            { label: __('Image', 'ncllc-pro'), value: 'image' },
+                            { label: __('None', 'ncllc-pro'), value: 'none' }
+                        ], function(value) { props.setAttributes({ iconType: value }); }),
+                        attrs.iconType === 'icon' ? field(__('Icon', 'ncllc-pro'), attrs.icon, function(value) { props.setAttributes({ icon: value }); }, '→') : null,
+                        attrs.iconType === 'image' ? el('div', { className: 'aj-image-control' },
+                            attrs.iconImageUrl ? el('img', { src: attrs.iconImageUrl, alt: '' }) : el('div', { className: 'aj-image-control__empty' }, '+'),
+                            el(MediaUploadCheck, {}, el(MediaUpload, {
+                                onSelect: function(media) { props.setAttributes({ iconImageUrl: media.url }); },
+                                allowedTypes: ['image'],
+                                render: function(obj) { return el(Button, { variant: 'secondary', onClick: obj.open }, attrs.iconImageUrl ? __('Replace Image', 'ncllc-pro') : __('Choose Image', 'ncllc-pro')); }
+                            }))
+                        ) : null,
+                        el(RangeControl, { label: __('Icon size', 'ncllc-pro'), min: 10, max: 80, value: attrs.iconSize || 24, onChange: function(value) { props.setAttributes({ iconSize: value }); } }),
+                        field(__('Icon color', 'ncllc-pro'), attrs.iconColor, function(value) { props.setAttributes({ iconColor: value }); }, '#111827'),
+                        field(__('Icon background', 'ncllc-pro'), attrs.iconBackground, function(value) { props.setAttributes({ iconBackground: value }); }, '#ffffff')
+                    ),
+                    el(PanelBody, { title: __('Content', 'ncllc-pro'), initialOpen: false },
+                        el(SelectControl, { label: __('Layout', 'ncllc-pro'), value: attrs.layout || 'stack', options: [{ label: __('Stack', 'ncllc-pro'), value: 'stack' }, { label: __('Inline', 'ncllc-pro'), value: 'inline' }, { label: __('Grid', 'ncllc-pro'), value: 'grid' }], onChange: function(value) { props.setAttributes({ layout: value }); } }),
+                        attrs.layout === 'grid' ? el(RangeControl, { label: __('Columns', 'ncllc-pro'), min: 1, max: 6, value: attrs.columns || 1, onChange: function(value) { props.setAttributes({ columns: value }); } }) : null,
+                        el(RangeControl, { label: __('Space between icon and text', 'ncllc-pro'), min: 0, max: 48, value: attrs.iconGap || 12, onChange: function(value) { props.setAttributes({ iconGap: value }); } }),
+                        el(RangeControl, { label: __('Space between items', 'ncllc-pro'), min: 0, max: 60, value: attrs.itemGap || 10, onChange: function(value) { props.setAttributes({ itemGap: value }); } })
+                    ),
+                    el(PanelBody, { title: __('Advanced', 'ncllc-pro'), initialOpen: false }, commonControls(props))
+                ),
+                el('ul', Object.assign({
+                    'data-icon-type': attrs.iconType || 'icon',
+                    'data-icon': attrs.icon || '→',
+                    'data-icon-image': attrs.iconImageUrl || ''
+                }, styledProps('aj-icon-list aj-icon-list--' + (attrs.layout || 'stack'), attrs, '',), { style: listStyle }), el(InnerBlocks, {
+                    allowedBlocks: ['ajnanda/icon-list-item'],
+                    template: [['ajnanda/icon-list-item', { content: 'List item' }], ['ajnanda/icon-list-item', { content: 'List item' }], ['ajnanda/icon-list-item', { content: 'List item' }]],
+                    templateLock: false,
+                    orientation: attrs.layout === 'inline' ? 'horizontal' : 'vertical'
+                }))
+            );
         },
-        className: function(attrs) { return 'aj-icon-list--' + attrs.layout; }
+        save: function(props) {
+            var attrs = props.attributes;
+            var listStyle = Object.assign(blockStyle(attrs), {
+                '--aj-list-columns': attrs.columns || 1,
+                '--aj-list-icon-size': (attrs.iconSize || 24) + 'px',
+                '--aj-list-icon-color': attrs.iconColor || '',
+                '--aj-list-icon-background': attrs.iconBackground || '',
+                '--aj-list-icon-gap': (attrs.iconGap || 12) + 'px',
+                '--aj-list-item-gap': (attrs.itemGap || 10) + 'px'
+            });
+
+            return el('ul', Object.assign({
+                'data-icon-type': attrs.iconType || 'icon',
+                'data-icon': attrs.icon || '→',
+                'data-icon-image': attrs.iconImageUrl || ''
+            }, styledProps('aj-icon-list aj-icon-list--' + (attrs.layout || 'stack'), attrs), { style: listStyle }), el(InnerBlocks.Content));
+        }
+    });
+
+    registerBlockType('ajnanda/icon-list-item', {
+        title: __('AJ List Item', 'ncllc-pro'),
+        parent: ['ajnanda/icon-list'],
+        category: category,
+        icon: 'editor-ul',
+        attributes: withStyleAttributes({
+            content: { type: 'string', source: 'html', selector: '.aj-icon-list-item__content', default: 'List item' },
+            iconType: { type: 'string', default: 'inherit' },
+            icon: { type: 'string', default: '' },
+            iconImageUrl: { type: 'string', default: '' },
+            linkEnabled: { type: 'boolean', default: false },
+            url: { type: 'string', default: '' }
+        }),
+        edit: function(props) {
+            var attrs = props.attributes;
+
+            return el(Fragment, {},
+                el(InspectorControls, {},
+                    el(PanelBody, { title: __('Icon', 'ncllc-pro'), initialOpen: true },
+                        segmented(__('Type', 'ncllc-pro'), attrs.iconType || 'inherit', [
+                            { label: __('Inherit', 'ncllc-pro'), value: 'inherit' },
+                            { label: __('Icon', 'ncllc-pro'), value: 'icon' },
+                            { label: __('Image', 'ncllc-pro'), value: 'image' },
+                            { label: __('None', 'ncllc-pro'), value: 'none' }
+                        ], function(value) { props.setAttributes({ iconType: value }); }),
+                        attrs.iconType === 'icon' ? field(__('Icon', 'ncllc-pro'), attrs.icon, function(value) { props.setAttributes({ icon: value }); }, '→') : null,
+                        attrs.iconType === 'image' ? el('div', { className: 'aj-image-control' },
+                            attrs.iconImageUrl ? el('img', { src: attrs.iconImageUrl, alt: '' }) : el('div', { className: 'aj-image-control__empty' }, '+'),
+                            el(MediaUploadCheck, {}, el(MediaUpload, {
+                                onSelect: function(media) { props.setAttributes({ iconImageUrl: media.url }); },
+                                allowedTypes: ['image'],
+                                render: function(obj) { return el(Button, { variant: 'secondary', onClick: obj.open }, attrs.iconImageUrl ? __('Replace Image', 'ncllc-pro') : __('Choose Image', 'ncllc-pro')); }
+                            }))
+                        ) : null,
+                        el(ToggleControl, { label: __('Link', 'ncllc-pro'), checked: !!attrs.linkEnabled, onChange: function(value) { props.setAttributes({ linkEnabled: value }); } }),
+                        attrs.linkEnabled ? urlField(attrs.url, function(value) { props.setAttributes({ url: value }); }) : null
+                    ),
+                    el(PanelBody, { title: __('Advanced', 'ncllc-pro'), initialOpen: false }, commonControls(props))
+                ),
+                el('li', styledProps('aj-icon-list-item', attrs),
+                    el('span', { className: 'aj-icon-list-item__marker', 'data-icon-type': attrs.iconType || 'inherit', 'data-icon': attrs.icon || '', 'data-icon-image': attrs.iconImageUrl || '', style: attrs.iconType === 'image' && attrs.iconImageUrl ? { backgroundImage: 'url(' + attrs.iconImageUrl + ')' } : {} }),
+                    el(RichText, { tagName: attrs.linkEnabled ? 'a' : 'span', className: 'aj-icon-list-item__content', href: attrs.linkEnabled ? attrs.url || '#' : undefined, value: attrs.content, placeholder: __('List item', 'ncllc-pro'), onChange: function(value) { props.setAttributes({ content: value }); } })
+                )
+            );
+        },
+        save: function(props) {
+            var attrs = props.attributes;
+
+            return el('li', styledProps('aj-icon-list-item', attrs),
+                el('span', { className: 'aj-icon-list-item__marker', 'data-icon-type': attrs.iconType || 'inherit', 'data-icon': attrs.icon || '', 'data-icon-image': attrs.iconImageUrl || '' }),
+                el(RichText.Content, { tagName: attrs.linkEnabled ? 'a' : 'span', className: 'aj-icon-list-item__content', href: attrs.linkEnabled ? attrs.url || '#' : undefined, value: attrs.content })
+            );
+        }
     });
 
     registerBlockType('ajnanda/counter', {
