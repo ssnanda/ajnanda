@@ -268,15 +268,21 @@
         ];
     }
 
+    function segmentedOptionContent(option) {
+        return option.icon ? el('span', { className: 'aj-control-icon', title: option.label }, option.icon) : option.label;
+    }
+
     function segmented(label, value, options, onChange, help) {
         return el('div', { className: 'aj-segmented-control' },
             el('span', { className: 'aj-control-label' }, label),
             el(ButtonGroup, { className: 'aj-segmented-control__buttons' }, options.map(function(option) {
                 return el(Button, {
                     key: option.value,
+                    label: option.label,
+                    showTooltip: !!option.icon,
                     variant: value === option.value ? 'primary' : 'secondary',
                     onClick: function() { onChange(option.value); }
-                }, option.label);
+                }, segmentedOptionContent(option));
             })),
             help ? el('p', { className: 'aj-control-help' }, help) : null
         );
@@ -373,10 +379,10 @@
                 { label: __('Grid', 'ncllc-pro'), value: 'grid' }
             ], function(value) { props.setAttributes({ layoutMode: value }); }),
             !isGrid ? segmented(__('Direction', 'ncllc-pro'), attrs.direction || 'row', [
-                { label: __('Row', 'ncllc-pro'), value: 'row' },
-                { label: __('Column', 'ncllc-pro'), value: 'column' },
-                { label: __('Row Reverse', 'ncllc-pro'), value: 'row-reverse' },
-                { label: __('Column Reverse', 'ncllc-pro'), value: 'column-reverse' }
+                { label: __('Row', 'ncllc-pro'), value: 'row', icon: '→' },
+                { label: __('Column', 'ncllc-pro'), value: 'column', icon: '↓' },
+                { label: __('Row Reverse', 'ncllc-pro'), value: 'row-reverse', icon: '←' },
+                { label: __('Column Reverse', 'ncllc-pro'), value: 'column-reverse', icon: '↑' }
             ], function(value) { props.setAttributes({ direction: value }); }, __('Define the direction in which blocks inside this container are placed.', 'ncllc-pro')) : null,
             !isGrid ? segmented(__('Children Width', 'ncllc-pro'), attrs.childrenWidth || 'equal', [
                 { label: __('Auto', 'ncllc-pro'), value: 'auto' },
@@ -385,31 +391,31 @@
             isGrid ? el(RangeControl, { label: __('Columns', 'ncllc-pro'), min: 1, max: 6, value: attrs.columns || 2, onChange: function(value) { props.setAttributes({ columns: value }); } }) : null,
             isGrid ? el(RangeControl, { label: __('Rows', 'ncllc-pro'), min: 1, max: 6, value: attrs.gridRows || 1, onChange: function(value) { props.setAttributes({ gridRows: value }); } }) : null,
             segmented(__('Align Items', 'ncllc-pro'), attrs.alignItems || 'stretch', [
-                { label: __('Start', 'ncllc-pro'), value: 'flex-start' },
-                { label: __('Center', 'ncllc-pro'), value: 'center' },
-                { label: __('End', 'ncllc-pro'), value: 'flex-end' },
-                { label: __('Stretch', 'ncllc-pro'), value: 'stretch' }
+                { label: __('Start', 'ncllc-pro'), value: 'flex-start', icon: '▔' },
+                { label: __('Center', 'ncllc-pro'), value: 'center', icon: '≡' },
+                { label: __('End', 'ncllc-pro'), value: 'flex-end', icon: '▁' },
+                { label: __('Stretch', 'ncllc-pro'), value: 'stretch', icon: '▮' }
             ], function(value) { props.setAttributes({ alignItems: value }); }, isGrid ? __('Define the vertical alignment for grid items inside this container.', 'ncllc-pro') : __('Define the vertical alignment inside this container.', 'ncllc-pro')),
             segmented(__('Justify Content', 'ncllc-pro'), attrs.justify || 'center', [
-                { label: __('Start', 'ncllc-pro'), value: 'flex-start' },
-                { label: __('Center', 'ncllc-pro'), value: 'center' },
-                { label: __('End', 'ncllc-pro'), value: 'flex-end' },
-                { label: __('Space Between', 'ncllc-pro'), value: 'space-between' },
-                { label: __('Space Around', 'ncllc-pro'), value: 'space-around' },
-                { label: __('Space Evenly', 'ncllc-pro'), value: 'space-evenly' }
+                { label: __('Start', 'ncllc-pro'), value: 'flex-start', icon: '▌▌' },
+                { label: __('Center', 'ncllc-pro'), value: 'center', icon: '|▌|' },
+                { label: __('End', 'ncllc-pro'), value: 'flex-end', icon: '▌▌' },
+                { label: __('Space Between', 'ncllc-pro'), value: 'space-between', icon: '▌  ▌' },
+                { label: __('Space Around', 'ncllc-pro'), value: 'space-around', icon: ' ▌ ▌ ' },
+                { label: __('Space Evenly', 'ncllc-pro'), value: 'space-evenly', icon: '▌ ▌ ▌' }
             ], function(value) { props.setAttributes({ justify: value }); }, isGrid ? __('Define the horizontal alignment for grid items within this container.', 'ncllc-pro') : __('Define the horizontal alignment inside this container.', 'ncllc-pro')),
             isGrid ? segmented(__('Align Content', 'ncllc-pro'), attrs.alignContent || 'stretch', [
-                { label: __('Start', 'ncllc-pro'), value: 'start' },
-                { label: __('Center', 'ncllc-pro'), value: 'center' },
-                { label: __('End', 'ncllc-pro'), value: 'end' },
-                { label: __('Stretch', 'ncllc-pro'), value: 'stretch' },
-                { label: __('Between', 'ncllc-pro'), value: 'space-between' },
-                { label: __('Evenly', 'ncllc-pro'), value: 'space-evenly' }
+                { label: __('Start', 'ncllc-pro'), value: 'start', icon: '▔' },
+                { label: __('Center', 'ncllc-pro'), value: 'center', icon: '≡' },
+                { label: __('End', 'ncllc-pro'), value: 'end', icon: '▁' },
+                { label: __('Stretch', 'ncllc-pro'), value: 'stretch', icon: '▮' },
+                { label: __('Between', 'ncllc-pro'), value: 'space-between', icon: '▔▁' },
+                { label: __('Evenly', 'ncllc-pro'), value: 'space-evenly', icon: '≡≡' }
             ], function(value) { props.setAttributes({ alignContent: value }); }) : null,
             !isGrid ? segmented(__('Wrap', 'ncllc-pro'), attrs.wrapMode || 'wrap', [
-                { label: __('No Wrap', 'ncllc-pro'), value: 'nowrap' },
-                { label: __('Wrap', 'ncllc-pro'), value: 'wrap' },
-                { label: __('Reverse', 'ncllc-pro'), value: 'wrap-reverse' }
+                { label: __('No Wrap', 'ncllc-pro'), value: 'nowrap', icon: '↔' },
+                { label: __('Wrap', 'ncllc-pro'), value: 'wrap', icon: '↵' },
+                { label: __('Reverse', 'ncllc-pro'), value: 'wrap-reverse', icon: '↩' }
             ], function(value) { props.setAttributes({ wrapMode: value }); }) : null,
             el(RangeControl, { label: __('Gap', 'ncllc-pro'), min: 0, max: 96, value: attrs.gap || 16, onChange: function(value) { props.setAttributes({ gap: value }); } }),
             el(RangeControl, { label: __('Max width', 'ncllc-pro'), min: 320, max: 1800, value: attrs.maxWidth || 1100, onChange: function(value) { props.setAttributes({ maxWidth: value }); } }),
