@@ -45,10 +45,10 @@ add_action('after_setup_theme', 'ncllc_pro_setup');
  */
 function ncllc_pro_scripts() {
     // Enqueue main stylesheet
-    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.81');
+    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.82');
     
     // Enqueue custom JavaScript
-    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.81', true);
+    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.82', true);
     
     // Localize script
     wp_localize_script('ncllc-pro-script', 'ncllcData', array(
@@ -69,12 +69,12 @@ function ncllc_pro_block_editor_assets() {
         null
     );
 
-    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.81');
+    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.82');
     wp_enqueue_script(
         'ncllc-pro-editor-controls',
         get_template_directory_uri() . '/js/editor-controls.js',
         array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-element', 'wp-hooks'),
-        '1.0.81',
+        '1.0.82',
         true
     );
 }
@@ -122,7 +122,7 @@ add_action('widgets_init', 'ncllc_pro_widgets_init');
  * Keep builder widget areas available while editing the Customizer.
  */
 function ncllc_pro_keep_builder_widget_sections_active($active, $section) {
-    if (!is_customize_preview() || empty($section->id)) {
+    if (empty($section->id)) {
         return $active;
     }
 
