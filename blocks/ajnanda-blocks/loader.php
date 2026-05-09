@@ -56,11 +56,20 @@ function ajnanda_blocks_register_assets() {
         ajnanda_blocks_asset_version('index.js'),
         true
     );
+
+    wp_register_script(
+        'ajnanda-blocks-frontend',
+        $base_uri . '/frontend.js',
+        array(),
+        ajnanda_blocks_asset_version('frontend.js'),
+        true
+    );
 }
 add_action('init', 'ajnanda_blocks_register_assets');
 
 function ajnanda_blocks_enqueue_frontend_assets() {
     wp_enqueue_style('ajnanda-blocks-style');
+    wp_enqueue_script('ajnanda-blocks-frontend');
 }
 add_action('wp_enqueue_scripts', 'ajnanda_blocks_enqueue_frontend_assets');
 

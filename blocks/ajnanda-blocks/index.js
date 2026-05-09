@@ -352,7 +352,166 @@
     simpleCardBlock('ajnanda/marketing-button', __('AJ Marketing Button', 'ncllc-pro'), 'external', 'aj-marketing-button', [['core/buttons', { layout: { type: 'flex', justifyContent: 'center' } }, [['core/button', { text: 'Marketing Button' }]]]]);
     editableTextBlock('ajnanda/blockquote', __('AJ Blockquote', 'ncllc-pro'), 'format-quote', 'blockquote', 'aj-blockquote', 'Add a quote or testimonial.', 'Quote');
     simpleCardBlock('ajnanda/content-timeline', __('AJ Content Timeline', 'ncllc-pro'), 'networking', 'aj-timeline', [['core/heading', { level: 3, content: 'Timeline Item' }], ['core/paragraph', { placeholder: 'Add milestone details.' }]]);
-    simpleCardBlock('ajnanda/faq', __('AJ FAQ', 'ncllc-pro'), 'editor-help', 'aj-faq', [['core/details', { summary: 'Question' }], ['core/details', { summary: 'Question' }]]);
+
+    registerBlockType('ajnanda/faq', {
+        title: __('AJ FAQ', 'ncllc-pro'),
+        description: __('Add accordions and FAQ schema to your page.', 'ncllc-pro'),
+        category: category,
+        icon: 'editor-help',
+        supports: { align: ['wide', 'full'], anchor: true },
+        attributes: withStyleAttributes({
+            layout: { type: 'string', default: 'accordion' },
+            columns: { type: 'number', default: 2 },
+            collapseOtherItems: { type: 'boolean', default: true },
+            expandFirstItem: { type: 'boolean', default: true },
+            enableToggle: { type: 'boolean', default: true },
+            enableSchema: { type: 'boolean', default: false },
+            enableSeparator: { type: 'boolean', default: false },
+            questionTag: { type: 'string', default: 'span' },
+            icon: { type: 'string', default: '+' },
+            activeIcon: { type: 'string', default: '-' },
+            iconPosition: { type: 'string', default: 'left' },
+            questionColor: { type: 'string', default: '' },
+            answerColor: { type: 'string', default: '' },
+            activeColor: { type: 'string', default: '' },
+            separatorColor: { type: 'string', default: '' },
+            animation: { type: 'string', default: 'none' }
+        }),
+        edit: function(props) {
+            var attrs = props.attributes;
+            var faqClass = classNames(
+                'aj-block',
+                'aj-faq',
+                'aj-faq--' + (attrs.layout || 'accordion'),
+                attrs.enableSeparator ? 'aj-faq--separator' : '',
+                attrs.iconPosition ? 'aj-faq--icon-' + attrs.iconPosition : '',
+                attrs.animation && attrs.animation !== 'none' ? 'aj-animate-' + attrs.animation : ''
+            );
+            var faqStyle = Object.assign(blockStyle(attrs), {
+                '--aj-faq-columns': attrs.columns || 2,
+                '--aj-faq-question-color': attrs.questionColor || '',
+                '--aj-faq-answer-color': attrs.answerColor || '',
+                '--aj-faq-active-color': attrs.activeColor || '',
+                '--aj-faq-separator-color': attrs.separatorColor || ''
+            });
+
+            return el(Fragment, {},
+                el(InspectorControls, {},
+                    el(PanelBody, { title: __('General', 'ncllc-pro'), initialOpen: true },
+                        el(SelectControl, {
+                            label: __('Layout', 'ncllc-pro'),
+                            value: attrs.layout,
+                            options: [
+                                { label: __('Accordion', 'ncllc-pro'), value: 'accordion' },
+                                { label: __('Grid', 'ncllc-pro'), value: 'grid' }
+                            ],
+                            onChange: function(value) { props.setAttributes({ layout: value }); }
+                        }),
+                        attrs.layout === 'grid' ? el(RangeControl, { label: __('Grid columns', 'ncllc-pro'), min: 1, max: 4, value: attrs.columns || 2, onChange: function(value) { props.setAttributes({ columns: value }); } }) : null,
+                        el(ToggleControl, { label: __('Collapse other items', 'ncllc-pro'), checked: !!attrs.collapseOtherItems, onChange: function(value) { props.setAttributes({ collapseOtherItems: value }); } }),
+                        el(ToggleControl, { label: __('Expand First Item', 'ncllc-pro'), checked: !!attrs.expandFirstItem, onChange: function(value) { props.setAttributes({ expandFirstItem: value }); } }),
+                        el(ToggleControl, { label: __('Enable Toggle', 'ncllc-pro'), checked: !!attrs.enableToggle, onChange: function(value) { props.setAttributes({ enableToggle: value }); } }),
+                        el(ToggleControl, { label: __('Enable Schema Support', 'ncllc-pro'), checked: !!attrs.enableSchema, onChange: function(value) { props.setAttributes({ enableSchema: value }); } }),
+                        el(ToggleControl, { label: __('Enable Separator', 'ncllc-pro'), checked: !!attrs.enableSeparator, onChange: function(value) { props.setAttributes({ enableSeparator: value }); } }),
+                        el(SelectControl, {
+                            label: __('Question Tag', 'ncllc-pro'),
+                            value: attrs.questionTag,
+                            options: [
+                                { label: 'H1', value: 'h1' },
+                                { label: 'H2', value: 'h2' },
+                                { label: 'H3', value: 'h3' },
+                                { label: 'H4', value: 'h4' },
+                                { label: 'H5', value: 'h5' },
+                                { label: 'H6', value: 'h6' },
+                                { label: 'Span', value: 'span' },
+                                { label: 'P', value: 'p' }
+                            ],
+                            onChange: function(value) { props.setAttributes({ questionTag: value }); }
+                        })
+                    ),
+                    el(PanelBody, { title: __('Icon', 'ncllc-pro'), initialOpen: false },
+                        field(__('Icon', 'ncllc-pro'), attrs.icon, function(value) { props.setAttributes({ icon: value }); }, '+'),
+                        field(__('Active Icon', 'ncllc-pro'), attrs.activeIcon, function(value) { props.setAttributes({ activeIcon: value }); }, '-'),
+                        el(SelectControl, {
+                            label: __('Icon Position', 'ncllc-pro'),
+                            value: attrs.iconPosition,
+                            options: [
+                                { label: __('Left', 'ncllc-pro'), value: 'left' },
+                                { label: __('Right', 'ncllc-pro'), value: 'right' }
+                            ],
+                            onChange: function(value) { props.setAttributes({ iconPosition: value }); }
+                        })
+                    ),
+                    el(PanelBody, { title: __('Style', 'ncllc-pro'), initialOpen: false },
+                        field(__('Question color', 'ncllc-pro'), attrs.questionColor, function(value) { props.setAttributes({ questionColor: value }); }, '#111827'),
+                        field(__('Answer color', 'ncllc-pro'), attrs.answerColor, function(value) { props.setAttributes({ answerColor: value }); }, '#374151'),
+                        field(__('Active question color', 'ncllc-pro'), attrs.activeColor, function(value) { props.setAttributes({ activeColor: value }); }, '#2563eb'),
+                        field(__('Separator color', 'ncllc-pro'), attrs.separatorColor, function(value) { props.setAttributes({ separatorColor: value }); }, '#e5e7eb'),
+                        field(__('Background color', 'ncllc-pro'), attrs.backgroundColor, function(value) { props.setAttributes({ backgroundColor: value }); }, '#ffffff'),
+                        field(__('Border color', 'ncllc-pro'), attrs.borderColor, function(value) { props.setAttributes({ borderColor: value }); }, '#e5e7eb'),
+                        el(RangeControl, { label: __('Border radius', 'ncllc-pro'), min: 0, max: 40, value: attrs.borderRadius || 0, onChange: function(value) { props.setAttributes({ borderRadius: value }); } }),
+                        el(RangeControl, { label: __('Padding', 'ncllc-pro'), min: 0, max: 80, value: attrs.padding || 0, onChange: function(value) { props.setAttributes({ padding: value }); } })
+                    ),
+                    el(PanelBody, { title: __('Advanced', 'ncllc-pro'), initialOpen: false },
+                        el(SelectControl, {
+                            label: __('Animation', 'ncllc-pro'),
+                            value: attrs.animation,
+                            options: [
+                                { label: __('None', 'ncllc-pro'), value: 'none' },
+                                { label: __('Fade In', 'ncllc-pro'), value: 'fade-in' },
+                                { label: __('Slide Up', 'ncllc-pro'), value: 'slide-up' },
+                                { label: __('Zoom In', 'ncllc-pro'), value: 'zoom-in' }
+                            ],
+                            onChange: function(value) { props.setAttributes({ animation: value }); }
+                        }),
+                        el(RangeControl, { label: __('Margin top', 'ncllc-pro'), min: 0, max: 160, value: attrs.marginTop || 0, onChange: function(value) { props.setAttributes({ marginTop: value }); } }),
+                        el(RangeControl, { label: __('Margin bottom', 'ncllc-pro'), min: 0, max: 160, value: attrs.marginBottom || 0, onChange: function(value) { props.setAttributes({ marginBottom: value }); } })
+                    )
+                ),
+                el('section', {
+                    className: faqClass,
+                    style: faqStyle,
+                    'data-layout': attrs.layout,
+                    'data-collapse-other-items': attrs.collapseOtherItems ? 'true' : 'false',
+                    'data-expand-first-item': attrs.expandFirstItem ? 'true' : 'false',
+                    'data-enable-toggle': attrs.enableToggle ? 'true' : 'false',
+                    'data-enable-schema': attrs.enableSchema ? 'true' : 'false',
+                    'data-question-tag': attrs.questionTag,
+                    'data-icon': attrs.icon || '+',
+                    'data-active-icon': attrs.activeIcon || '-'
+                }, el(InnerBlocks, { template: [['core/details', { summary: 'Question' }], ['core/details', { summary: 'Question' }]], templateLock: false }))
+            );
+        },
+        save: function(props) {
+            var attrs = props.attributes;
+            return el('section', {
+                className: classNames(
+                    'aj-block',
+                    'aj-faq',
+                    'aj-faq--' + (attrs.layout || 'accordion'),
+                    attrs.enableSeparator ? 'aj-faq--separator' : '',
+                    attrs.iconPosition ? 'aj-faq--icon-' + attrs.iconPosition : '',
+                    attrs.animation && attrs.animation !== 'none' ? 'aj-animate-' + attrs.animation : ''
+                ),
+                style: Object.assign(blockStyle(attrs), {
+                    '--aj-faq-columns': attrs.columns || 2,
+                    '--aj-faq-question-color': attrs.questionColor || '',
+                    '--aj-faq-answer-color': attrs.answerColor || '',
+                    '--aj-faq-active-color': attrs.activeColor || '',
+                    '--aj-faq-separator-color': attrs.separatorColor || ''
+                }),
+                'data-layout': attrs.layout,
+                'data-collapse-other-items': attrs.collapseOtherItems ? 'true' : 'false',
+                'data-expand-first-item': attrs.expandFirstItem ? 'true' : 'false',
+                'data-enable-toggle': attrs.enableToggle ? 'true' : 'false',
+                'data-enable-schema': attrs.enableSchema ? 'true' : 'false',
+                'data-question-tag': attrs.questionTag,
+                'data-icon': attrs.icon || '+',
+                'data-active-icon': attrs.activeIcon || '-'
+            }, el(InnerBlocks.Content));
+        }
+    });
+
     simpleCardBlock('ajnanda/how-to', __('AJ How To', 'ncllc-pro'), 'media-document', 'aj-how-to', [['core/heading', { level: 2, content: 'How To' }], ['core/list', { values: '<li>Step one</li><li>Step two</li><li>Step three</li>' }]]);
     editableTextBlock('ajnanda/inline-notice', __('AJ Inline Notice', 'ncllc-pro'), 'info', 'div', 'aj-inline-notice', 'Add an important notice.', 'Notice');
     simpleCardBlock('ajnanda/modal', __('AJ Modal Placeholder', 'ncllc-pro'), 'welcome-comments', 'aj-modal-placeholder', [['core/heading', { level: 3, content: 'Modal Placeholder' }], ['core/paragraph', { placeholder: 'Static modal content placeholder.' }]]);

@@ -367,6 +367,102 @@ input[type="checkbox"].aj-field {
     gap: 1rem;
 }
 
+.aj-faq--grid {
+    grid-template-columns: repeat(var(--aj-faq-columns, 2), minmax(0, 1fr));
+}
+
+.aj-faq details {
+    border: 1px solid var(--gray-200, #e5e7eb);
+    border-radius: 8px;
+    background: #fff;
+}
+
+.aj-faq summary {
+    position: relative;
+    padding: 1rem 1.15rem;
+    color: var(--aj-faq-question-color, var(--gray-900, #111827));
+    font-weight: 800;
+    cursor: pointer;
+    list-style: none;
+}
+
+.aj-faq summary::-webkit-details-marker {
+    display: none;
+}
+
+.aj-faq details[open] summary {
+    color: var(--aj-faq-active-color, var(--primary, #2563eb));
+}
+
+.aj-faq details > *:not(summary) {
+    padding: 0 1.15rem 1rem;
+    color: var(--aj-faq-answer-color, var(--gray-700, #374151));
+}
+
+.aj-faq--separator details:not(:last-child),
+.aj-faq--grid.aj-faq--separator details {
+    border-bottom-color: var(--aj-faq-separator-color, var(--gray-200, #e5e7eb));
+}
+
+.aj-faq summary::before {
+    content: attr(data-aj-icon);
+}
+
+.aj-faq details[open] summary::before {
+    content: attr(data-aj-active-icon);
+}
+
+.aj-faq--icon-left summary {
+    padding-left: 2.75rem;
+}
+
+.aj-faq--icon-left summary::before {
+    left: 1rem;
+}
+
+.aj-faq--icon-right summary {
+    padding-right: 2.75rem;
+}
+
+.aj-faq--icon-right summary::before {
+    right: 1rem;
+}
+
+.aj-faq summary::before {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: currentColor;
+    font-weight: 900;
+}
+
+.aj-animate-fade-in {
+    animation: ajFadeIn 500ms ease both;
+}
+
+.aj-animate-slide-up {
+    animation: ajSlideUp 500ms ease both;
+}
+
+.aj-animate-zoom-in {
+    animation: ajZoomIn 420ms ease both;
+}
+
+@keyframes ajFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes ajSlideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ajZoomIn {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+}
+
 @media (max-width: 640px) {
     .aj-search {
         align-items: stretch;
