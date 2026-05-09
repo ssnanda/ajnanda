@@ -45,10 +45,10 @@ add_action('after_setup_theme', 'ncllc_pro_setup');
  */
 function ncllc_pro_scripts() {
     // Enqueue main stylesheet
-    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.80');
+    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.81');
     
     // Enqueue custom JavaScript
-    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.80', true);
+    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.81', true);
     
     // Localize script
     wp_localize_script('ncllc-pro-script', 'ncllcData', array(
@@ -69,12 +69,12 @@ function ncllc_pro_block_editor_assets() {
         null
     );
 
-    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.80');
+    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.81');
     wp_enqueue_script(
         'ncllc-pro-editor-controls',
         get_template_directory_uri() . '/js/editor-controls.js',
         array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-element', 'wp-hooks'),
-        '1.0.80',
+        '1.0.81',
         true
     );
 }
@@ -117,6 +117,22 @@ function ncllc_pro_widgets_init() {
     }
 }
 add_action('widgets_init', 'ncllc_pro_widgets_init');
+
+/**
+ * Keep builder widget areas available while editing the Customizer.
+ */
+function ncllc_pro_keep_builder_widget_sections_active($active, $section) {
+    if (!is_customize_preview() || empty($section->id)) {
+        return $active;
+    }
+
+    if (0 === strpos($section->id, 'sidebar-widgets-header-builder-') || 0 === strpos($section->id, 'sidebar-widgets-footer-builder-')) {
+        return true;
+    }
+
+    return $active;
+}
+add_filter('customize_section_active', 'ncllc_pro_keep_builder_widget_sections_active', 10, 2);
 
 /**
  * Custom excerpt length
@@ -2038,10 +2054,20 @@ function ncllc_pro_customizer_live_preview() {
                 focusWidgetSetting(sectionId, manager);
             };
 
+            if (section && section.focus) {
+                section.focus();
+                return;
+            }
+
+            if (section && section.expand) {
+                section.expand();
+                return;
+            }
+
             if (panel && panel.focus) {
                 panel.focus({
                     completeCallback: function() {
-                        window.setTimeout(focusSection, 100);
+                        window.setTimeout(focusSection, 250);
                     }
                 });
                 return;
