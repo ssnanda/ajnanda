@@ -118,6 +118,94 @@ function ajnanda_blocks_render_posts($attrs) {
     return ob_get_clean();
 }
 
+function ajnanda_blocks_render_posts_variant($attrs, $variant = 'grid') {
+    $attrs = ajnanda_blocks_attrs($attrs, array(
+        'count' => 6,
+        'showExcerpt' => true,
+        'buttonText' => __('Read More', 'ncllc-pro'),
+    ));
+
+    $query = new WP_Query(array(
+        'post_type'           => 'post',
+        'posts_per_page'      => max(1, min(12, absint($attrs['count']))),
+        'post_status'         => 'publish',
+        'ignore_sticky_posts' => true,
+    ));
+
+    if (!$query->have_posts()) {
+        return '<div class="aj-block aj-posts aj-posts--' . esc_attr($variant) . '"><p>' . esc_html__('No posts found.', 'ncllc-pro') . '</p></div>';
+    }
+
+    ob_start();
+    ?>
+    <div class="aj-block aj-posts aj-posts--<?php echo esc_attr($variant); ?>">
+        <?php while ($query->have_posts()) : $query->the_post(); ?>
+            <article class="aj-post-card">
+                <?php if ('timeline' === $variant) : ?>
+                    <time datetime="<?php echo esc_attr(get_the_date('c')); ?>"><?php echo esc_html(get_the_date()); ?></time>
+                <?php endif; ?>
+                <?php if (has_post_thumbnail()) : ?>
+                    <a class="aj-post-card__image" href="<?php the_permalink(); ?>">
+                        <?php the_post_thumbnail('medium_large'); ?>
+                    </a>
+                <?php endif; ?>
+                <div class="aj-post-card__body">
+                    <h3><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h3>
+                    <?php if (!empty($attrs['showExcerpt'])) : ?>
+                        <p><?php echo esc_html(wp_trim_words(get_the_excerpt(), 24)); ?></p>
+                    <?php endif; ?>
+                    <a class="aj-button" href="<?php the_permalink(); ?>"><?php echo esc_html($attrs['buttonText']); ?></a>
+                </div>
+            </article>
+        <?php endwhile; ?>
+    </div>
+    <?php
+    wp_reset_postdata();
+
+    return ob_get_clean();
+}
+
+function ajnanda_blocks_render_post_grid($attrs) {
+    return ajnanda_blocks_render_posts_variant($attrs, 'grid');
+}
+
+function ajnanda_blocks_render_post_carousel($attrs) {
+    return ajnanda_blocks_render_posts_variant($attrs, 'carousel');
+}
+
+function ajnanda_blocks_render_post_timeline($attrs) {
+    return ajnanda_blocks_render_posts_variant($attrs, 'timeline');
+}
+
+function ajnanda_blocks_render_taxonomy_list($attrs) {
+    $attrs = ajnanda_blocks_attrs($attrs, array(
+        'taxonomy' => 'category',
+    ));
+
+    $taxonomy = taxonomy_exists($attrs['taxonomy']) ? $attrs['taxonomy'] : 'category';
+    $terms = get_terms(array(
+        'taxonomy'   => $taxonomy,
+        'hide_empty' => false,
+        'number'     => 24,
+    ));
+
+    if (is_wp_error($terms) || empty($terms)) {
+        return '<nav class="aj-block aj-taxonomy-list"><p>' . esc_html__('No terms found.', 'ncllc-pro') . '</p></nav>';
+    }
+
+    $items = array();
+
+    foreach ($terms as $term) {
+        $items[] = sprintf(
+            '<li><a href="%1$s">%2$s</a></li>',
+            esc_url(get_term_link($term)),
+            esc_html($term->name)
+        );
+    }
+
+    return '<nav class="aj-block aj-taxonomy-list"><ul>' . implode('', $items) . '</ul></nav>';
+}
+
 function ajnanda_blocks_render_search($attrs) {
     $attrs = ajnanda_blocks_attrs($attrs, array(
         'placeholder' => __('Search...', 'ncllc-pro'),
@@ -288,6 +376,30 @@ function ajnanda_blocks_register_dynamic_blocks() {
                 'buttonText' => array('type' => 'string', 'default' => __('Read More', 'ncllc-pro')),
             ),
         ),
+        'ajnanda/post-grid' => array(
+            'callback' => 'ajnanda_blocks_render_post_grid',
+            'attributes' => array(
+                'count' => array('type' => 'number', 'default' => 6),
+                'showExcerpt' => array('type' => 'boolean', 'default' => true),
+                'buttonText' => array('type' => 'string', 'default' => __('Read More', 'ncllc-pro')),
+            ),
+        ),
+        'ajnanda/post-carousel' => array(
+            'callback' => 'ajnanda_blocks_render_post_carousel',
+            'attributes' => array(
+                'count' => array('type' => 'number', 'default' => 6),
+                'showExcerpt' => array('type' => 'boolean', 'default' => true),
+                'buttonText' => array('type' => 'string', 'default' => __('Read More', 'ncllc-pro')),
+            ),
+        ),
+        'ajnanda/post-timeline' => array(
+            'callback' => 'ajnanda_blocks_render_post_timeline',
+            'attributes' => array(
+                'count' => array('type' => 'number', 'default' => 5),
+                'showExcerpt' => array('type' => 'boolean', 'default' => true),
+                'buttonText' => array('type' => 'string', 'default' => __('Read More', 'ncllc-pro')),
+            ),
+        ),
         'ajnanda/search' => array(
             'callback' => 'ajnanda_blocks_render_search',
             'attributes' => array(
@@ -302,6 +414,10 @@ function ajnanda_blocks_register_dynamic_blocks() {
         'ajnanda/table-of-contents' => array(
             'callback' => 'ajnanda_blocks_render_toc',
             'attributes' => array(),
+        ),
+        'ajnanda/taxonomy-list' => array(
+            'callback' => 'ajnanda_blocks_render_taxonomy_list',
+            'attributes' => array('taxonomy' => array('type' => 'string', 'default' => 'category')),
         ),
         'ajnanda/login-placeholder' => array(
             'callback' => 'ajnanda_blocks_render_login_placeholder',

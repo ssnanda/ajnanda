@@ -13,7 +13,20 @@
 .editor-styles-wrapper .aj-image-box,
 .editor-styles-wrapper .aj-icon-box,
 .editor-styles-wrapper .aj-gallery,
-.editor-styles-wrapper .aj-icon-list {
+.editor-styles-wrapper .aj-icon-list,
+.editor-styles-wrapper .aj-info-box,
+.editor-styles-wrapper .aj-call-to-action,
+.editor-styles-wrapper .aj-timeline,
+.editor-styles-wrapper .aj-faq,
+.editor-styles-wrapper .aj-how-to,
+.editor-styles-wrapper .aj-modal-placeholder,
+.editor-styles-wrapper .aj-slider-placeholder,
+.editor-styles-wrapper .aj-lottie-placeholder,
+.editor-styles-wrapper .aj-team,
+.editor-styles-wrapper .aj-testimonials,
+.editor-styles-wrapper .aj-review,
+.editor-styles-wrapper .aj-price-list,
+.editor-styles-wrapper .aj-inline-notice {
     min-height: 56px;
 }
 

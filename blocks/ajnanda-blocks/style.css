@@ -30,7 +30,17 @@
 .aj-image-box,
 .aj-icon-box,
 .aj-post-card,
-.aj-login-placeholder {
+.aj-login-placeholder,
+.aj-info-box,
+.aj-call-to-action,
+.aj-modal-placeholder,
+.aj-slider-placeholder,
+.aj-lottie-placeholder,
+.aj-team,
+.aj-testimonials,
+.aj-review,
+.aj-price-list,
+.aj-inline-notice {
     border: 1px solid var(--gray-200, #e5e7eb);
     border-radius: 8px;
     background: #fff;
@@ -41,7 +51,17 @@
 .aj-image-box,
 .aj-icon-box,
 .aj-post-card__body,
-.aj-login-placeholder {
+.aj-login-placeholder,
+.aj-info-box,
+.aj-call-to-action,
+.aj-modal-placeholder,
+.aj-slider-placeholder,
+.aj-lottie-placeholder,
+.aj-team,
+.aj-testimonials,
+.aj-review,
+.aj-price-list,
+.aj-inline-notice {
     padding: 1.25rem;
 }
 
@@ -95,6 +115,12 @@
     margin: 1.5rem 0;
     color: var(--gray-500, #6b7280);
     font-weight: 700;
+}
+
+.aj-separator-block {
+    height: 1px;
+    min-height: 1px;
+    background: var(--gray-200, #e5e7eb);
 }
 
 .aj-divider::before,
@@ -203,15 +229,36 @@ input[type="checkbox"].aj-field {
     text-align: center;
 }
 
-.aj-counter strong {
+.aj-counter strong,
+.aj-countdown strong {
     color: var(--primary, #2563eb);
     font-size: clamp(2.25rem, 6vw, 4rem);
     line-height: 1;
 }
 
-.aj-counter span {
+.aj-counter span,
+.aj-countdown span {
     color: var(--gray-600, #4b5563);
     font-weight: 800;
+}
+
+.aj-countdown,
+.aj-stars {
+    display: grid;
+    gap: 0.35rem;
+    text-align: center;
+}
+
+.aj-stars {
+    color: var(--accent, #f59e0b);
+    font-size: 1.6rem;
+    font-weight: 900;
+    letter-spacing: 0;
+}
+
+.aj-stars span {
+    color: var(--gray-600, #4b5563);
+    font-size: 0.95rem;
 }
 
 .aj-progress {
@@ -255,6 +302,69 @@ input[type="checkbox"].aj-field {
 
 .aj-post-card h3 {
     margin: 0 0 0.65rem;
+}
+
+.aj-posts--carousel {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    padding-bottom: 0.5rem;
+}
+
+.aj-posts--carousel .aj-post-card {
+    flex: 0 0 min(320px, 85vw);
+    scroll-snap-align: start;
+}
+
+.aj-posts--timeline {
+    display: grid;
+    gap: 1rem;
+}
+
+.aj-posts--timeline .aj-post-card {
+    display: grid;
+    gap: 0.75rem;
+    padding: 1rem;
+}
+
+.aj-posts--timeline time {
+    color: var(--primary, #2563eb);
+    font-size: 0.85rem;
+    font-weight: 800;
+}
+
+.aj-taxonomy-list ul,
+.aj-social-share .wp-block-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.aj-taxonomy-list a {
+    display: inline-flex;
+    padding: 0.45rem 0.75rem;
+    border: 1px solid var(--gray-200, #e5e7eb);
+    border-radius: 999px;
+    color: var(--primary, #2563eb);
+    text-decoration: none;
+}
+
+.aj-blockquote {
+    margin: 0;
+    padding: 1rem 1.25rem;
+    border-left: 4px solid var(--primary, #2563eb);
+    color: var(--gray-700, #374151);
+    background: var(--gray-50, #f9fafb);
+}
+
+.aj-timeline,
+.aj-faq,
+.aj-how-to {
+    display: grid;
+    gap: 1rem;
 }
 
 @media (max-width: 640px) {
