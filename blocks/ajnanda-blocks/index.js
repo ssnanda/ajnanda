@@ -197,6 +197,7 @@
             icon: 'screenoptions',
             supports: { align: ['wide', 'full'], anchor: true },
             attributes: withStyleAttributes(Object.assign({ className: { type: 'string' } }, options.attributes || {})),
+            __experimentalLabel: options.label || undefined,
             edit: function(props) {
                 var hasChildBlocks = useSelect ? useSelect(function(select) {
                     var block = select('core/block-editor').getBlock(props.clientId);
@@ -294,6 +295,50 @@
         );
     }
 
+    function containerChild(label, attrs, innerBlocks) {
+        if (!createBlock) {
+            return null;
+        }
+
+        return createBlock('ajnanda/container', Object.assign({
+            label: label,
+            layoutSelected: true,
+            layoutMode: 'flex',
+            direction: 'column',
+            childrenWidth: 'auto',
+            alignItems: 'stretch',
+            justify: 'flex-start',
+            wrapMode: 'wrap',
+            maxWidth: 1100,
+            gap: 12
+        }, attrs || {}), innerBlocks || [
+            createBlock('core/paragraph', { placeholder: label || __('Add content', 'ncllc-pro') })
+        ]);
+    }
+
+    function containerColumns(label, count) {
+        var children = [];
+        var index;
+
+        if (!createBlock) {
+            return null;
+        }
+
+        for (index = 1; index <= count; index++) {
+            children.push(containerChild(__('Column ', 'ncllc-pro') + index, { label: __('Column ', 'ncllc-pro') + index, containerType: 'tile' }));
+        }
+
+        return containerChild(label, {
+            layoutMode: 'grid',
+            columns: count,
+            gridRows: 1,
+            label: label,
+            containerType: 'row',
+            maxWidth: 1100,
+            gap: 28
+        }, children);
+    }
+
     function containerTemplate(pattern) {
         var group = function(label) {
             return createBlock ? createBlock('core/group', { className: 'aj-container-cell' }, [
@@ -306,6 +351,24 @@
         }
 
         switch (pattern) {
+            case 'section-three':
+                return [
+                    containerChild(__('Heading Container', 'ncllc-pro'), { label: __('Heading Container', 'ncllc-pro'), alignItems: 'center', containerType: 'header' }, [
+                        createBlock('core/heading', { level: 2, content: __('Section heading', 'ncllc-pro'), textAlign: 'center' }),
+                        createBlock('core/paragraph', { placeholder: __('Add supporting text.', 'ncllc-pro'), align: 'center' })
+                    ]),
+                    containerColumns(__('Tile Container', 'ncllc-pro'), 3),
+                    createBlock('core/buttons', { layout: { type: 'flex', justifyContent: 'center' } }, [
+                        createBlock('core/button', { text: __('Button', 'ncllc-pro') })
+                    ])
+                ];
+            case 'section-two':
+                return [
+                    containerChild(__('Heading Container', 'ncllc-pro'), { label: __('Heading Container', 'ncllc-pro'), alignItems: 'center', containerType: 'header' }, [
+                        createBlock('core/heading', { level: 2, content: __('Section heading', 'ncllc-pro'), textAlign: 'center' })
+                    ]),
+                    containerColumns(__('Tile Container', 'ncllc-pro'), 2)
+                ];
             case 'two':
                 return [group(__('Left', 'ncllc-pro')), group(__('Right', 'ncllc-pro'))];
             case 'three':
@@ -324,13 +387,16 @@
     }
 
     function applyContainerLayout(props, pattern) {
+        var isSection = pattern === 'section-three' || pattern === 'section-two';
         var attrs = {
             layoutSelected: true,
             layoutPreset: pattern,
+            label: isSection ? __('Section Container', 'ncllc-pro') : __('AJ Container', 'ncllc-pro'),
+            containerType: isSection ? 'section' : 'container',
             layoutMode: pattern === 'grid-2x2' ? 'grid' : 'flex',
-            direction: 'row',
-            childrenWidth: pattern === 'one' ? 'auto' : 'equal',
-            columns: pattern === 'grid-2x2' ? 2 : (pattern === 'four' ? 4 : (pattern === 'three' ? 3 : (pattern === 'one' ? 1 : 2))),
+            direction: isSection ? 'column' : 'row',
+            childrenWidth: (pattern === 'one' || isSection) ? 'auto' : 'equal',
+            columns: pattern === 'grid-2x2' ? 2 : (pattern === 'four' ? 4 : (pattern === 'three' || pattern === 'section-three' ? 3 : (pattern === 'one' ? 1 : 2))),
             gridRows: pattern === 'grid-2x2' ? 2 : 1
         };
 
@@ -349,7 +415,9 @@
             { value: 'four', label: __('Four columns', 'ncllc-pro') },
             { value: 'grid-2x2', label: __('Grid 2x2', 'ncllc-pro') },
             { value: 'left-wide', label: __('Left wide', 'ncllc-pro') },
-            { value: 'right-wide', label: __('Right wide', 'ncllc-pro') }
+            { value: 'right-wide', label: __('Right wide', 'ncllc-pro') },
+            { value: 'section-two', label: __('Heading + 2 columns', 'ncllc-pro') },
+            { value: 'section-three', label: __('Heading + 3 columns + button', 'ncllc-pro') }
         ];
 
         return el('div', { className: 'aj-container-layout-chooser' },
@@ -374,6 +442,34 @@
         var isGrid = attrs.layoutMode === 'grid';
 
         return [
+            field(__('Label', 'ncllc-pro'), attrs.label, function(value) { props.setAttributes({ label: value }); }, __('Container label', 'ncllc-pro')),
+            segmented(__('Container Type', 'ncllc-pro'), attrs.containerType || 'container', [
+                { label: __('Container', 'ncllc-pro'), value: 'container' },
+                { label: __('Section', 'ncllc-pro'), value: 'section' },
+                { label: __('Row', 'ncllc-pro'), value: 'row' },
+                { label: __('Tile', 'ncllc-pro'), value: 'tile' }
+            ], function(value) { props.setAttributes({ containerType: value }); }),
+            segmented(__('Width', 'ncllc-pro'), attrs.contentWidth || 'boxed', [
+                { label: __('Boxed', 'ncllc-pro'), value: 'boxed' },
+                { label: __('Full Width', 'ncllc-pro'), value: 'full' }
+            ], function(value) { props.setAttributes({ contentWidth: value }); }),
+            segmented(__('Quick Add', 'ncllc-pro'), 'none', [
+                { label: __('Header', 'ncllc-pro'), value: 'header' },
+                { label: __('Row', 'ncllc-pro'), value: 'row' },
+                { label: __('Footer', 'ncllc-pro'), value: 'footer' }
+            ], function(value) {
+                if (!dispatch || !createBlock) {
+                    return;
+                }
+
+                var block = value === 'row' ? containerColumns(__('Tile Container', 'ncllc-pro'), Math.max(2, attrs.columns || 3)) : containerChild(value === 'header' ? __('Heading Container', 'ncllc-pro') : __('Footer Container', 'ncllc-pro'), {
+                    label: value === 'header' ? __('Heading Container', 'ncllc-pro') : __('Footer Container', 'ncllc-pro'),
+                    containerType: value === 'header' ? 'header' : 'footer',
+                    alignItems: 'center'
+                }, value === 'header' ? [createBlock('core/heading', { level: 2, content: __('Section heading', 'ncllc-pro'), textAlign: 'center' })] : [createBlock('core/buttons', { layout: { type: 'flex', justifyContent: 'center' } }, [createBlock('core/button', { text: __('Button', 'ncllc-pro') })])]);
+
+                dispatch('core/block-editor').insertBlocks(block, undefined, props.clientId);
+            }, __('Add a heading, row, or footer/button area without converting everything into columns.', 'ncllc-pro')),
             segmented(__('Layout', 'ncllc-pro'), attrs.layoutMode || 'flex', [
                 { label: __('Flex', 'ncllc-pro'), value: 'flex' },
                 { label: __('Grid', 'ncllc-pro'), value: 'grid' }
@@ -454,7 +550,13 @@
         className: function(attrs) { return classNames('aj-flexbox--' + attrs.direction, attrs.wrap === false ? 'aj-flexbox--nowrap' : ''); }
     });
     registerContainerBlock('ajnanda/container', __('AJ Container', 'ncllc-pro'), __('Constrained content container.', 'ncllc-pro'), 'aj-container', [], {
+        label: function(attrs) {
+            return attrs.label || __('AJ Container', 'ncllc-pro');
+        },
         attributes: {
+            label: { type: 'string', default: '' },
+            containerType: { type: 'string', default: 'container' },
+            contentWidth: { type: 'string', default: 'boxed' },
             layoutSelected: { type: 'boolean', default: false },
             layoutPreset: { type: 'string', default: '' },
             layoutMode: { type: 'string', default: 'flex' },
@@ -475,6 +577,8 @@
             return classNames(
                 'aj-container--' + (attrs.layoutMode || 'flex'),
                 'aj-container--preset-' + (attrs.layoutPreset || 'custom'),
+                'aj-container--type-' + (attrs.containerType || 'container'),
+                'aj-container--width-' + (attrs.contentWidth || 'boxed'),
                 attrs.layoutMode === 'flex' ? 'aj-container--' + (attrs.direction || 'row') : '',
                 attrs.layoutMode === 'flex' ? 'aj-container--children-' + (attrs.childrenWidth || 'equal') : '',
                 attrs.layoutMode === 'flex' ? 'aj-container--wrap-' + (attrs.wrapMode || 'wrap') : ''
