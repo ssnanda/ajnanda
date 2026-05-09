@@ -657,10 +657,44 @@ body.admin-bar .site-header {
 }
 
 .ajn-customizer-builder-row-handle {
-    flex: 0 0 42px;
+    flex: 0 0 86px;
+    flex-direction: column;
+    gap: 6px;
     border-right: 1px dashed #d5dde5;
     color: #9aa4b2;
     font-size: 15px;
+}
+
+.ajn-customizer-builder-split {
+    display: inline-flex;
+    overflow: hidden;
+    border: 1px solid #d7dde5;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.ajn-customizer-builder-split button {
+    min-width: 22px;
+    min-height: 22px;
+    border: 0;
+    border-left: 1px solid #e5e7eb;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1;
+}
+
+.ajn-customizer-builder-split button:first-child {
+    border-left: 0;
+}
+
+.ajn-customizer-builder-split button:hover,
+.ajn-customizer-builder-split button:focus,
+.ajn-customizer-builder-split button.is-active {
+    background: #007cba;
+    color: #fff;
+    outline: none;
 }
 
 .ajn-customizer-builder-cell {
@@ -707,6 +741,162 @@ body.admin-bar .site-header {
     color: #7b8794;
     font-size: 24px;
     line-height: 1;
+}
+
+.ajn-customizer-builder-row-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.ajn-customizer-builder-row-action {
+    justify-self: center;
+    min-height: 38px;
+    padding: 0 18px;
+    border: 1px solid #d0d7de;
+    border-radius: 4px;
+    background: #fff;
+    color: #475569;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 600;
+}
+
+.ajn-customizer-builder-row-action:hover,
+.ajn-customizer-builder-row-action:focus {
+    border-color: #007cba;
+    color: #007cba;
+    outline: none;
+}
+
+.ajn-builder-insert-popover {
+    display: none;
+    position: fixed;
+    z-index: 100001;
+    width: min(440px, calc(100vw - 32px));
+    max-height: min(54vh, 520px);
+    overflow: auto;
+    padding: 22px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    color: #2f343b;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    box-shadow: 0 16px 42px rgba(15, 23, 42, 0.18);
+}
+
+.ajn-builder-insert-popover.is-active {
+    display: block;
+}
+
+.ajn-builder-insert-popover-head {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.ajn-builder-insert-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px 14px;
+}
+
+.ajn-builder-insert-choice {
+    display: grid;
+    gap: 8px;
+    align-items: center;
+    justify-items: center;
+    min-height: 74px;
+    padding: 8px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #343a40;
+    cursor: pointer;
+    font: inherit;
+    text-align: center;
+}
+
+.ajn-builder-insert-choice:hover,
+.ajn-builder-insert-choice:focus {
+    background: #f1f5f9;
+    outline: none;
+}
+
+.ajn-builder-insert-icon {
+    width: 22px;
+    height: 16px;
+    border: 2px solid currentColor;
+    border-radius: 3px;
+    opacity: 0.75;
+}
+
+.ajn-builder-insert-choice-footer-menu .ajn-builder-insert-icon,
+.ajn-builder-insert-choice-social .ajn-builder-insert-icon,
+.ajn-builder-insert-choice-widget-1 .ajn-builder-insert-icon,
+.ajn-builder-insert-choice-widget-2 .ajn-builder-insert-icon,
+.ajn-builder-insert-choice-widget-3 .ajn-builder-insert-icon,
+.ajn-builder-insert-choice-widget-4 .ajn-builder-insert-icon {
+    border: 0;
+    border-radius: 0;
+    background:
+        linear-gradient(currentColor, currentColor) 0 0 / 100% 3px no-repeat,
+        linear-gradient(currentColor, currentColor) 0 7px / 100% 3px no-repeat,
+        linear-gradient(currentColor, currentColor) 0 14px / 100% 3px no-repeat;
+}
+
+.ajn-builder-insert-choice-copyright .ajn-builder-insert-icon,
+.ajn-builder-insert-choice-html-1 .ajn-builder-insert-icon,
+.ajn-builder-insert-choice-html-2 .ajn-builder-insert-icon {
+    width: auto;
+    height: auto;
+    border: 0;
+}
+
+.ajn-builder-insert-choice-copyright .ajn-builder-insert-icon::before {
+    content: "\00a9";
+    font-weight: 700;
+}
+
+.ajn-builder-insert-choice-html-1 .ajn-builder-insert-icon::before,
+.ajn-builder-insert-choice-html-2 .ajn-builder-insert-icon::before {
+    content: "<>";
+    font-weight: 800;
+}
+
+.ajn-builder-insert-choice-divider-1 .ajn-builder-insert-icon,
+.ajn-builder-insert-choice-divider-2 .ajn-builder-insert-icon,
+.ajn-builder-insert-choice-divider-3 .ajn-builder-insert-icon {
+    width: 24px;
+    height: 2px;
+    border: 0;
+    background: currentColor;
+}
+
+.ajn-builder-divider {
+    display: block;
+    width: 100%;
+    min-width: 48px;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.24;
+}
+
+.ajn-builder-copyright,
+.ajn-builder-html,
+.ajn-builder-social {
+    color: inherit;
+}
+
+.ajn-builder-social a {
+    color: inherit;
+    text-decoration: none;
 }
 
 @keyframes fadeInUp {
