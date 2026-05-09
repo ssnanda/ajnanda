@@ -45,10 +45,10 @@ add_action('after_setup_theme', 'ncllc_pro_setup');
  */
 function ncllc_pro_scripts() {
     // Enqueue main stylesheet
-    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.78');
+    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.79');
     
     // Enqueue custom JavaScript
-    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.78', true);
+    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.79', true);
     
     // Localize script
     wp_localize_script('ncllc-pro-script', 'ncllcData', array(
@@ -69,12 +69,12 @@ function ncllc_pro_block_editor_assets() {
         null
     );
 
-    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.78');
+    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.79');
     wp_enqueue_script(
         'ncllc-pro-editor-controls',
         get_template_directory_uri() . '/js/editor-controls.js',
         array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-element', 'wp-hooks'),
-        '1.0.78',
+        '1.0.79',
         true
     );
 }
@@ -1958,6 +1958,11 @@ function ncllc_pro_customizer_live_preview() {
                 return;
             }
 
+            if (controlId.indexOf('sidebar-widgets-') === 0) {
+                focusWidgetSection(controlId, manager);
+                return;
+            }
+
             var control = manager.control(controlId);
             var section = manager.section ? manager.section(controlId) : null;
             var panel = manager.panel ? manager.panel(controlId) : null;
@@ -1976,13 +1981,44 @@ function ncllc_pro_customizer_live_preview() {
                 panel.focus();
                 return;
             }
+        }
 
-            if (controlId.indexOf('sidebar-widgets-') === 0 && manager.panel) {
-                panel = manager.panel('widgets');
+        function focusWidgetSection(sectionId, manager) {
+            var panel = manager.panel ? manager.panel('widgets') : null;
+            var section = manager.section ? manager.section(sectionId) : null;
+            var focusSection = function() {
+                section = manager.section ? manager.section(sectionId) : section;
 
-                if (panel && panel.focus) {
-                    panel.focus();
+                if (section && section.focus) {
+                    section.focus();
+                    return;
                 }
+
+                if (section && section.expand) {
+                    section.expand();
+                    return;
+                }
+
+                focusWidgetSetting(sectionId, manager);
+            };
+
+            if (panel && panel.focus) {
+                panel.focus({
+                    completeCallback: function() {
+                        window.setTimeout(focusSection, 100);
+                    }
+                });
+                return;
+            }
+
+            focusSection();
+        }
+
+        function focusWidgetSetting(sectionId, manager) {
+            var sidebarId = sectionId.replace(/^sidebar-widgets-/, '');
+
+            if (manager.previewer && manager.previewer.send) {
+                manager.previewer.send('focus-control-for-setting', 'sidebars_widgets[' + sidebarId + ']');
             }
         }
 
