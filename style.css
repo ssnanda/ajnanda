@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: http://ncllc.ddev.site/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.0.75
+Version: 1.0.76
 License: GNU General Public License v2 or later
 Text Domain: ncllc-pro
 */
@@ -615,7 +615,7 @@ body.admin-bar .site-header {
     z-index: 100000;
     max-height: min(44vh, 340px);
     overflow: auto;
-    padding: 18px;
+    padding: 18px 20px 20px;
     border-top: 4px solid #008ec2;
     border-bottom: 0;
     background: #f4f6f8;
@@ -647,6 +647,7 @@ body.admin-bar .site-header {
     min-height: 74px;
     border: 1px dashed #d5dde5;
     background: rgba(255,255,255,0.72);
+    border-radius: 4px;
 }
 
 .ajn-customizer-builder-row-handle,
@@ -657,7 +658,7 @@ body.admin-bar .site-header {
 }
 
 .ajn-customizer-builder-row-handle {
-    flex: 0 0 86px;
+    flex: 0 0 92px;
     flex-direction: column;
     gap: 6px;
     border-right: 1px dashed #d5dde5;
@@ -665,17 +666,24 @@ body.admin-bar .site-header {
     font-size: 15px;
 }
 
+.ajn-customizer-builder-gear {
+    width: 20px;
+    height: 20px;
+    text-align: center;
+    line-height: 20px;
+}
+
 .ajn-customizer-builder-split {
     display: inline-flex;
     overflow: hidden;
     border: 1px solid #d7dde5;
-    border-radius: 4px;
+    border-radius: 999px;
     background: #fff;
 }
 
 .ajn-customizer-builder-split button {
-    min-width: 22px;
-    min-height: 22px;
+    min-width: 24px;
+    min-height: 24px;
     border: 0;
     border-left: 1px solid #e5e7eb;
     background: transparent;
@@ -732,9 +740,20 @@ body.admin-bar .site-header {
     justify-content: center;
     min-width: 44px;
     min-height: 44px;
+    border-style: dashed;
+    border-radius: 6px;
     color: #64748b;
     font-size: 24px;
     line-height: 1;
+}
+
+.ajn-customizer-builder-add:hover,
+.ajn-customizer-builder-add:focus,
+.ajn-customizer-builder-chip:hover,
+.ajn-customizer-builder-chip:focus {
+    border-color: #007cba;
+    color: #007cba;
+    outline: none;
 }
 
 .ajn-customizer-builder-remove {
@@ -743,28 +762,61 @@ body.admin-bar .site-header {
     line-height: 1;
 }
 
-.ajn-customizer-builder-row-actions {
+.ajn-customizer-builder-add-row,
+.ajn-customizer-builder-remove-row {
     display: flex;
-    flex-wrap: wrap;
+    align-items: center;
     justify-content: center;
-    gap: 10px;
-}
-
-.ajn-customizer-builder-row-action {
     justify-self: center;
-    min-height: 38px;
-    padding: 0 18px;
-    border: 1px solid #d0d7de;
-    border-radius: 4px;
+    width: 34px;
+    height: 34px;
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
     background: #fff;
-    color: #475569;
+    color: #64748b;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
     cursor: pointer;
     font: inherit;
+    font-size: 22px;
     font-weight: 600;
+    line-height: 1;
 }
 
-.ajn-customizer-builder-row-action:hover,
-.ajn-customizer-builder-row-action:focus {
+.ajn-customizer-builder-add-row {
+    position: relative;
+    margin: -3px auto 0;
+}
+
+.ajn-customizer-builder-add-row::before,
+.ajn-customizer-builder-add-row::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: min(220px, 18vw);
+    height: 1px;
+    border-top: 1px dashed #d5dde5;
+}
+
+.ajn-customizer-builder-add-row::before {
+    right: calc(100% + 12px);
+}
+
+.ajn-customizer-builder-add-row::after {
+    left: calc(100% + 12px);
+}
+
+.ajn-customizer-builder-remove-row {
+    width: 28px;
+    height: 28px;
+    margin: -4px auto -2px;
+    color: #94a3b8;
+    font-size: 18px;
+}
+
+.ajn-customizer-builder-add-row:hover,
+.ajn-customizer-builder-add-row:focus,
+.ajn-customizer-builder-remove-row:hover,
+.ajn-customizer-builder-remove-row:focus {
     border-color: #007cba;
     color: #007cba;
     outline: none;

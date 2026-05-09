@@ -45,10 +45,10 @@ add_action('after_setup_theme', 'ncllc_pro_setup');
  */
 function ncllc_pro_scripts() {
     // Enqueue main stylesheet
-    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.75');
+    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.76');
     
     // Enqueue custom JavaScript
-    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.75', true);
+    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.76', true);
     
     // Localize script
     wp_localize_script('ncllc-pro-script', 'ncllcData', array(
@@ -69,12 +69,12 @@ function ncllc_pro_block_editor_assets() {
         null
     );
 
-    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.75');
+    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.76');
     wp_enqueue_script(
         'ncllc-pro-editor-controls',
         get_template_directory_uri() . '/js/editor-controls.js',
         array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-element', 'wp-hooks'),
-        '1.0.75',
+        '1.0.76',
         true
     );
 }
@@ -194,7 +194,7 @@ function ncllc_pro_sanitize_builder_width($value) {
 function ncllc_pro_sanitize_builder_count($value) {
     $value = absint($value);
 
-    return min(3, max(1, $value));
+    return min(4, max(1, $value));
 }
 
 function ncllc_pro_sanitize_builder_row_count($value) {
@@ -728,14 +728,14 @@ function ncllc_pro_builder_element_choices() {
 function ncllc_pro_builder_default($builder, $row, $cell) {
     $defaults = array(
         'header' => array(
-            1 => array(1 => 'site-logo', 2 => 'widget-1', 3 => 'primary-menu'),
-            2 => array(1 => 'none', 2 => 'none', 3 => 'none'),
-            3 => array(1 => 'none', 2 => 'none', 3 => 'none'),
+            1 => array(1 => 'site-logo', 2 => 'widget-1', 3 => 'primary-menu', 4 => 'none'),
+            2 => array(1 => 'none', 2 => 'none', 3 => 'none', 4 => 'none'),
+            3 => array(1 => 'none', 2 => 'none', 3 => 'none', 4 => 'none'),
         ),
         'footer' => array(
-            1 => array(1 => 'none', 2 => 'none', 3 => 'none'),
-            2 => array(1 => 'none', 2 => 'none', 3 => 'none'),
-            3 => array(1 => 'none', 2 => 'none', 3 => 'none'),
+            1 => array(1 => 'none', 2 => 'none', 3 => 'none', 4 => 'none'),
+            2 => array(1 => 'none', 2 => 'none', 3 => 'none', 4 => 'none'),
+            3 => array(1 => 'none', 2 => 'none', 3 => 'none', 4 => 'none'),
         ),
     );
 
@@ -847,6 +847,40 @@ function ncllc_pro_builder_focus_control($builder, $element, $fallback_setting_i
     return $fallback_setting_id;
 }
 
+function ncllc_pro_builder_contains_element($builder, $elements) {
+    $elements = (array) $elements;
+
+    for ($row = 1; $row <= 6; $row++) {
+        for ($cell = 1; $cell <= 4; $cell++) {
+            if (in_array(ncllc_pro_get_builder_value($builder, $row, $cell), $elements, true)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+function ncllc_pro_footer_builder_button_1_active() {
+    return ncllc_pro_builder_contains_element('footer', array('button', 'button-1'));
+}
+
+function ncllc_pro_footer_builder_button_2_active() {
+    return ncllc_pro_builder_contains_element('footer', 'button-2');
+}
+
+function ncllc_pro_footer_builder_html_2_active() {
+    return ncllc_pro_builder_contains_element('footer', 'html-2');
+}
+
+function ncllc_pro_footer_builder_social_active() {
+    return ncllc_pro_builder_contains_element('footer', 'social');
+}
+
+function ncllc_pro_footer_builder_copyright_active() {
+    return ncllc_pro_builder_contains_element('footer', 'copyright');
+}
+
 function ncllc_pro_builder_insert_choices($builder = '') {
     $choices = ncllc_pro_builder_element_choices();
     unset($choices['none'], $choices['button']);
@@ -874,16 +908,16 @@ function ncllc_pro_render_customizer_builder_row($builder, $row) {
     ?>
     <div class="ajn-customizer-builder-row">
         <div class="ajn-customizer-builder-row-handle">
-            <span aria-hidden="true">⚙</span>
+            <span aria-hidden="true" class="ajn-customizer-builder-gear">⚙</span>
             <span class="ajn-customizer-builder-split" aria-label="<?php esc_attr_e('Split row into columns', 'ncllc-pro'); ?>">
-                <?php for ($columns = 1; $columns <= 3; $columns++) : ?>
+                <?php foreach (array(1, 2, 4) as $columns) : ?>
                     <button
                         type="button"
                         class="<?php echo $columns === $column_count ? 'is-active' : ''; ?>"
                         data-ajn-set-control="<?php echo esc_attr($columns_setting_id); ?>"
                         data-ajn-set-value="<?php echo esc_attr($columns); ?>"
                     ><?php echo esc_html($columns); ?></button>
-                <?php endfor; ?>
+                <?php endforeach; ?>
             </span>
         </div>
         <?php for ($cell = 1; $cell <= $column_count; $cell++) : ?>
@@ -916,6 +950,36 @@ function ncllc_pro_render_customizer_builder_row($builder, $row) {
     <?php
 }
 
+function ncllc_pro_render_customizer_builder_add_row($row_count_setting_id, $next_count) {
+    if ($next_count > 6) {
+        return;
+    }
+    ?>
+    <button
+        type="button"
+        class="ajn-customizer-builder-add-row"
+        data-ajn-set-control="<?php echo esc_attr($row_count_setting_id); ?>"
+        data-ajn-set-value="<?php echo esc_attr($next_count); ?>"
+        aria-label="<?php esc_attr_e('Add row', 'ncllc-pro'); ?>"
+    >+</button>
+    <?php
+}
+
+function ncllc_pro_render_customizer_builder_remove_row($row_count_setting_id, $previous_count) {
+    if ($previous_count < 1) {
+        return;
+    }
+    ?>
+    <button
+        type="button"
+        class="ajn-customizer-builder-remove-row"
+        data-ajn-set-control="<?php echo esc_attr($row_count_setting_id); ?>"
+        data-ajn-set-value="<?php echo esc_attr($previous_count); ?>"
+        aria-label="<?php esc_attr_e('Remove last row', 'ncllc-pro'); ?>"
+    >&minus;</button>
+    <?php
+}
+
 function ncllc_pro_render_header_builder_preview() {
     if (!is_customize_preview()) {
         return;
@@ -928,16 +992,14 @@ function ncllc_pro_render_header_builder_preview() {
         <?php
         for ($row = 1; $row <= $row_count; $row++) {
             ncllc_pro_render_customizer_builder_row('header', $row);
+            if ($row === $row_count && $row_count > 1) {
+                ncllc_pro_render_customizer_builder_remove_row($row_count_setting_id, $row_count - 1);
+            }
+            if ($row === $row_count) {
+                ncllc_pro_render_customizer_builder_add_row($row_count_setting_id, $row_count + 1);
+            }
         }
         ?>
-        <div class="ajn-customizer-builder-row-actions">
-            <?php if ($row_count > 1) : ?>
-                <button type="button" class="ajn-customizer-builder-row-action" data-ajn-set-control="<?php echo esc_attr($row_count_setting_id); ?>" data-ajn-set-value="<?php echo esc_attr($row_count - 1); ?>"><?php esc_html_e('Remove Last Row', 'ncllc-pro'); ?></button>
-            <?php endif; ?>
-            <?php if ($row_count < 6) : ?>
-                <button type="button" class="ajn-customizer-builder-row-action" data-ajn-set-control="<?php echo esc_attr($row_count_setting_id); ?>" data-ajn-set-value="<?php echo esc_attr($row_count + 1); ?>"><?php esc_html_e('Add Row', 'ncllc-pro'); ?></button>
-            <?php endif; ?>
-        </div>
     </div>
     <?php
 }
@@ -954,16 +1016,14 @@ function ncllc_pro_render_footer_builder_preview() {
         <?php
         for ($row = 1; $row <= $row_count; $row++) {
             ncllc_pro_render_customizer_builder_row('footer', $row);
+            if ($row === $row_count && $row_count > 1) {
+                ncllc_pro_render_customizer_builder_remove_row($row_count_setting_id, $row_count - 1);
+            }
+            if ($row === $row_count) {
+                ncllc_pro_render_customizer_builder_add_row($row_count_setting_id, $row_count + 1);
+            }
         }
         ?>
-        <div class="ajn-customizer-builder-row-actions">
-            <?php if ($row_count > 1) : ?>
-                <button type="button" class="ajn-customizer-builder-row-action" data-ajn-set-control="<?php echo esc_attr($row_count_setting_id); ?>" data-ajn-set-value="<?php echo esc_attr($row_count - 1); ?>"><?php esc_html_e('Remove Last Row', 'ncllc-pro'); ?></button>
-            <?php endif; ?>
-            <?php if ($row_count < 6) : ?>
-                <button type="button" class="ajn-customizer-builder-row-action" data-ajn-set-control="<?php echo esc_attr($row_count_setting_id); ?>" data-ajn-set-value="<?php echo esc_attr($row_count + 1); ?>"><?php esc_html_e('Add Row', 'ncllc-pro'); ?></button>
-            <?php endif; ?>
-        </div>
     </div>
     <?php
 }
@@ -1012,7 +1072,7 @@ function ncllc_pro_register_builder_controls($wp_customize, $builder, $section, 
             'active_callback' => '__return_false',
         ));
 
-        for ($cell = 1; $cell <= 3; $cell++) {
+        for ($cell = 1; $cell <= 4; $cell++) {
             $setting_id = ncllc_pro_builder_setting_id($builder, $row, $cell);
 
             $wp_customize->add_setting($setting_id, array(
@@ -1484,7 +1544,7 @@ function ncllc_pro_customize_register($wp_customize) {
     $wp_customize->add_section('ncllc_footer', array(
         'title'       => __('Footer', 'ncllc-pro'),
         'priority'    => 26,
-        'description' => __('Choose a footer layout. For linked column lines, use Label|URL, for example Home|/.', 'ncllc-pro'),
+        'description' => __('Use the footer builder preview to add, remove, and arrange footer elements.', 'ncllc-pro'),
     ));
 
     $wp_customize->add_section('ncllc_footer_builder_widths', array(
@@ -1524,9 +1584,10 @@ function ncllc_pro_customize_register($wp_customize) {
     ));
 
     $wp_customize->add_control('ajn_footer_builder_button_text', array(
-        'label'   => __('Footer Button 1 Text', 'ncllc-pro'),
-        'section' => 'ncllc_footer',
-        'type'    => 'text',
+        'label'           => __('Button 1 Text', 'ncllc-pro'),
+        'section'         => 'ncllc_footer',
+        'type'            => 'text',
+        'active_callback' => 'ncllc_pro_footer_builder_button_1_active',
     ));
 
     $wp_customize->add_setting('ajn_footer_builder_button_url', array(
@@ -1536,9 +1597,10 @@ function ncllc_pro_customize_register($wp_customize) {
     ));
 
     $wp_customize->add_control('ajn_footer_builder_button_url', array(
-        'label'   => __('Footer Button 1 URL', 'ncllc-pro'),
-        'section' => 'ncllc_footer',
-        'type'    => 'url',
+        'label'           => __('Button 1 URL', 'ncllc-pro'),
+        'section'         => 'ncllc_footer',
+        'type'            => 'url',
+        'active_callback' => 'ncllc_pro_footer_builder_button_1_active',
     ));
 
     $wp_customize->add_setting('ajn_builder_button_2_text', array(
@@ -1548,9 +1610,10 @@ function ncllc_pro_customize_register($wp_customize) {
     ));
 
     $wp_customize->add_control('ajn_builder_button_2_text', array(
-        'label'   => __('Builder Button 2 Text', 'ncllc-pro'),
-        'section' => 'ncllc_footer',
-        'type'    => 'text',
+        'label'           => __('Button 2 Text', 'ncllc-pro'),
+        'section'         => 'ncllc_footer',
+        'type'            => 'text',
+        'active_callback' => 'ncllc_pro_footer_builder_button_2_active',
     ));
 
     $wp_customize->add_setting('ajn_builder_button_2_url', array(
@@ -1560,9 +1623,10 @@ function ncllc_pro_customize_register($wp_customize) {
     ));
 
     $wp_customize->add_control('ajn_builder_button_2_url', array(
-        'label'   => __('Builder Button 2 URL', 'ncllc-pro'),
-        'section' => 'ncllc_footer',
-        'type'    => 'url',
+        'label'           => __('Button 2 URL', 'ncllc-pro'),
+        'section'         => 'ncllc_footer',
+        'type'            => 'url',
+        'active_callback' => 'ncllc_pro_footer_builder_button_2_active',
     ));
 
     $wp_customize->add_setting('ajn_builder_html_1', array(
@@ -1584,9 +1648,10 @@ function ncllc_pro_customize_register($wp_customize) {
     ));
 
     $wp_customize->add_control('ajn_builder_html_2', array(
-        'label'   => __('Builder HTML 2', 'ncllc-pro'),
-        'section' => 'ncllc_footer',
-        'type'    => 'textarea',
+        'label'           => __('HTML 2', 'ncllc-pro'),
+        'section'         => 'ncllc_footer',
+        'type'            => 'textarea',
+        'active_callback' => 'ncllc_pro_footer_builder_html_2_active',
     ));
 
     $wp_customize->add_setting('ajn_builder_social_1_label', array(
@@ -1596,9 +1661,10 @@ function ncllc_pro_customize_register($wp_customize) {
     ));
 
     $wp_customize->add_control('ajn_builder_social_1_label', array(
-        'label'   => __('Builder Social Label', 'ncllc-pro'),
-        'section' => 'ncllc_footer',
-        'type'    => 'text',
+        'label'           => __('Social Label', 'ncllc-pro'),
+        'section'         => 'ncllc_footer',
+        'type'            => 'text',
+        'active_callback' => 'ncllc_pro_footer_builder_social_active',
     ));
 
     $wp_customize->add_setting('ajn_builder_social_1_url', array(
@@ -1608,9 +1674,10 @@ function ncllc_pro_customize_register($wp_customize) {
     ));
 
     $wp_customize->add_control('ajn_builder_social_1_url', array(
-        'label'   => __('Builder Social URL', 'ncllc-pro'),
-        'section' => 'ncllc_footer',
-        'type'    => 'url',
+        'label'           => __('Social URL', 'ncllc-pro'),
+        'section'         => 'ncllc_footer',
+        'type'            => 'url',
+        'active_callback' => 'ncllc_pro_footer_builder_social_active',
     ));
 
     ncllc_pro_register_builder_controls($wp_customize, 'footer', 'ncllc_footer', __('Footer', 'ncllc-pro'), 'ncllc_footer_builder_widths');
@@ -1652,16 +1719,33 @@ function ncllc_pro_customize_register($wp_customize) {
     ));
 
     $wp_customize->add_control('footer_bottom_text', array(
-        'label'   => __('Footer Bottom Text', 'ncllc-pro'),
-        'section' => 'ncllc_footer',
-        'type'    => 'text',
+        'label'           => __('Copyright Text', 'ncllc-pro'),
+        'section'         => 'ncllc_footer',
+        'type'            => 'text',
+        'active_callback' => 'ncllc_pro_footer_builder_copyright_active',
     ));
 
     if (isset($wp_customize->selective_refresh)) {
-        $footer_settings = array('footer_bottom_text');
+        $footer_settings = array(
+            'footer_bottom_text',
+            'ajn_footer_builder_button_text',
+            'ajn_footer_builder_button_url',
+            'ajn_builder_button_2_text',
+            'ajn_builder_button_2_url',
+            'ajn_builder_html_2',
+            'ajn_builder_social_1_label',
+            'ajn_builder_social_1_url',
+            ncllc_pro_builder_row_count_setting_id('footer'),
+        );
         for ($i = 1; $i <= 4; $i++) {
             $footer_settings[] = 'footer_column_' . $i . '_title';
             $footer_settings[] = 'footer_column_' . $i . '_text';
+        }
+        for ($row = 1; $row <= 6; $row++) {
+            $footer_settings[] = ncllc_pro_builder_row_columns_setting_id('footer', $row);
+            for ($cell = 1; $cell <= 4; $cell++) {
+                $footer_settings[] = ncllc_pro_builder_setting_id('footer', $row, $cell);
+            }
         }
 
         $wp_customize->selective_refresh->add_partial('ncllc_footer_partial', array(
@@ -1746,7 +1830,19 @@ function ncllc_pro_customizer_live_preview() {
 
             popover = document.createElement('div');
             popover.className = 'ajn-builder-insert-popover';
-            popover.innerHTML = '<div class="ajn-builder-insert-popover-head"><span>Insert Elements</span></div><div class="ajn-builder-insert-grid"></div>';
+
+            var popoverHead = document.createElement('div');
+            popoverHead.className = 'ajn-builder-insert-popover-head';
+
+            var popoverTitle = document.createElement('span');
+            popoverTitle.textContent = 'Insert Elements';
+            popoverHead.appendChild(popoverTitle);
+
+            var popoverGrid = document.createElement('div');
+            popoverGrid.className = 'ajn-builder-insert-grid';
+
+            popover.appendChild(popoverHead);
+            popover.appendChild(popoverGrid);
             document.body.appendChild(popover);
 
             popover.addEventListener('click', function(event) {
@@ -1759,9 +1855,23 @@ function ncllc_pro_customizer_live_preview() {
                 event.preventDefault();
                 wp.customize(activeInsertControl).set(choice.getAttribute('data-ajn-insert-value'));
                 hideInsertPopover();
+                refreshCustomizerPreview();
             });
 
             return popover;
+        }
+
+        function refreshCustomizerPreview() {
+            window.setTimeout(function() {
+                if (wp.customize && wp.customize.previewer && wp.customize.previewer.refresh) {
+                    wp.customize.previewer.refresh();
+                    return;
+                }
+
+                if (wp.customize && wp.customize.preview && wp.customize.preview.send) {
+                    wp.customize.preview.send('refresh');
+                }
+            }, 120);
         }
 
         function hideInsertPopover() {
@@ -1785,10 +1895,19 @@ function ncllc_pro_customizer_live_preview() {
 
             Object.keys(choices).forEach(function(value) {
                 var item = document.createElement('button');
+                var icon = document.createElement('span');
+                var label = document.createElement('span');
+
                 item.type = 'button';
                 item.className = 'ajn-builder-insert-choice ajn-builder-insert-choice-' + value;
                 item.setAttribute('data-ajn-insert-value', value);
-                item.innerHTML = '<span class="ajn-builder-insert-icon" aria-hidden="true"></span><span>' + choices[value] + '</span>';
+
+                icon.className = 'ajn-builder-insert-icon';
+                icon.setAttribute('aria-hidden', 'true');
+                label.textContent = choices[value];
+
+                item.appendChild(icon);
+                item.appendChild(label);
                 grid.appendChild(item);
             });
 
@@ -1857,6 +1976,7 @@ function ncllc_pro_customizer_live_preview() {
                 event.stopPropagation();
                 setCustomizerControl(setButton.getAttribute('data-ajn-set-control'), setButton.getAttribute('data-ajn-set-value'));
                 hideInsertPopover();
+                refreshCustomizerPreview();
                 return;
             }
 
