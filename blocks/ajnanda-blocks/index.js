@@ -206,7 +206,7 @@
                     var parentBlock = parentId ? select('core/block-editor').getBlock(parentId) : null;
                     var grandParentId = parentId ? select('core/block-editor').getBlockRootClientId(parentId) : null;
                     var grandParentBlock = grandParentId ? select('core/block-editor').getBlock(grandParentId) : null;
-                    var index = parentId ? select('core/block-editor').getBlockIndex(props.clientId, parentId) : 0;
+                    var index = select('core/block-editor').getBlockIndex(props.clientId, parentId || undefined);
                     var parentIndex = grandParentId ? select('core/block-editor').getBlockIndex(parentId, grandParentId) : 0;
 
                     return {
@@ -223,12 +223,17 @@
                 }, [props.clientId]) : false;
                 var shouldChooseLayout = name === 'ajnanda/container' && !props.attributes.layoutSelected && !(blockContext && blockContext.hasChildBlocks);
                 var insertionControls = name === 'ajnanda/container' && !shouldChooseLayout && props.isSelected ? containerInsertionControls(props, blockContext) : null;
+                var innerBlocksProps = { template: template || [], templateLock: false };
+
+                if (name === 'ajnanda/container' && blockContext && isContainerRow(blockContext.block)) {
+                    innerBlocksProps.renderAppender = false;
+                }
 
                 return el(Fragment, {},
                     inspector(controlsWithCommon(props, extraControls(props, options))),
                     el('div', styledProps(className, props.attributes, classNames(props.attributes.className, extraClass(props.attributes, options))),
                         insertionControls,
-                        shouldChooseLayout ? containerLayoutChooser(props) : el(InnerBlocks, { template: template || [], templateLock: false })
+                        shouldChooseLayout ? containerLayoutChooser(props) : el(InnerBlocks, innerBlocksProps)
                     )
                 );
             },
@@ -377,6 +382,11 @@
         return isContainerBlock(block) && (attrs.layoutMode === 'grid' || attrs.containerType === 'row');
     }
 
+    function isContainerSection(block) {
+        var attrs = block && block.attributes ? block.attributes : {};
+        return isContainerBlock(block) && attrs.containerType === 'section';
+    }
+
     function containerInsertTarget(props, context) {
         var currentBlock = context && context.block;
         var parentBlock = context && context.parentBlock;
@@ -385,8 +395,16 @@
             return { parentId: context.grandParentId, index: context.parentIndex };
         }
 
+        if (isContainerSection(currentBlock)) {
+            return { parentId: props.clientId, index: 0, insideCurrent: true };
+        }
+
         if (isContainerRow(currentBlock) && context && context.parentId) {
             return { parentId: context.parentId, index: context.index };
+        }
+
+        if (isContainerRow(currentBlock)) {
+            return { parentId: undefined, index: context && typeof context.index === 'number' ? context.index : 0 };
         }
 
         if (context && context.parentId) {
@@ -406,7 +424,7 @@
 
         if (position === 'before' || position === 'after') {
             target = containerInsertTarget(props, context);
-            editor.insertBlocks(block, position === 'before' ? target.index : target.index + 1, target.parentId);
+            editor.insertBlocks(block, position === 'before' ? target.index : (target.insideCurrent ? undefined : target.index + 1), target.parentId);
             return;
         }
 
@@ -485,7 +503,7 @@
         );
     }
 
-    function containerColumns(label, count) {
+    function containerColumns(label, count, attrs) {
         var children = [];
         var index;
 
@@ -497,24 +515,19 @@
             children.push(containerChild(__('Column ', 'ncllc-pro') + index, { label: __('Column ', 'ncllc-pro') + index, containerType: 'tile' }));
         }
 
-        return containerChild(label, {
+        return containerChild(label, Object.assign({
             layoutMode: 'grid',
             columns: count,
-            gridRows: 1,
+            gridRows: attrs && attrs.gridRows ? attrs.gridRows : 1,
+            direction: 'row',
             label: label,
             containerType: 'row',
             maxWidth: 1100,
             gap: 28
-        }, children);
+        }, attrs || {}, { columns: count }), children);
     }
 
     function containerTemplate(pattern) {
-        var group = function(label) {
-            return createBlock ? createBlock('core/group', { className: 'aj-container-cell' }, [
-                createBlock('core/paragraph', { placeholder: label || __('Add content', 'ncllc-pro') })
-            ]) : null;
-        };
-
         if (!createBlock) {
             return [];
         }
@@ -532,30 +545,30 @@
                     containerColumns(__('Tile Container', 'ncllc-pro'), 2)
                 ];
             case 'two':
-                return [group(__('Left', 'ncllc-pro')), group(__('Right', 'ncllc-pro'))];
+                return [containerColumns(__('Tile Container', 'ncllc-pro'), 2)];
             case 'three':
-                return [group(__('Column 1', 'ncllc-pro')), group(__('Column 2', 'ncllc-pro')), group(__('Column 3', 'ncllc-pro'))];
+                return [containerColumns(__('Tile Container', 'ncllc-pro'), 3)];
             case 'four':
-                return [group(__('Column 1', 'ncllc-pro')), group(__('Column 2', 'ncllc-pro')), group(__('Column 3', 'ncllc-pro')), group(__('Column 4', 'ncllc-pro'))];
+                return [containerColumns(__('Tile Container', 'ncllc-pro'), 4)];
             case 'grid-2x2':
-                return [group(__('Item 1', 'ncllc-pro')), group(__('Item 2', 'ncllc-pro')), group(__('Item 3', 'ncllc-pro')), group(__('Item 4', 'ncllc-pro'))];
+                return [containerColumns(__('Tile Container', 'ncllc-pro'), 4, { gridRows: 2 })];
             case 'left-wide':
-                return [group(__('Main', 'ncllc-pro')), group(__('Side', 'ncllc-pro'))];
+                return [containerColumns(__('Tile Container', 'ncllc-pro'), 2)];
             case 'right-wide':
-                return [group(__('Side', 'ncllc-pro')), group(__('Main', 'ncllc-pro'))];
+                return [containerColumns(__('Tile Container', 'ncllc-pro'), 2)];
             default:
-                return [group(__('Add content', 'ncllc-pro'))];
+                return [containerBlankBlock()];
         }
     }
 
     function applyContainerLayout(props, pattern) {
-        var isSection = pattern === 'section-three' || pattern === 'section-two';
+        var isSection = pattern !== 'one';
         var attrs = {
             layoutSelected: true,
             layoutPreset: pattern,
             label: isSection ? __('Section Container', 'ncllc-pro') : __('AJ Container', 'ncllc-pro'),
             containerType: isSection ? 'section' : 'container',
-            layoutMode: pattern === 'grid-2x2' ? 'grid' : 'flex',
+            layoutMode: 'flex',
             direction: isSection ? 'column' : 'row',
             childrenWidth: (pattern === 'one' || isSection) ? 'auto' : 'equal',
             columns: pattern === 'grid-2x2' ? 2 : (pattern === 'four' ? 4 : (pattern === 'three' || pattern === 'section-three' ? 3 : (pattern === 'one' ? 1 : 2))),
