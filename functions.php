@@ -45,10 +45,10 @@ add_action('after_setup_theme', 'ncllc_pro_setup');
  */
 function ncllc_pro_scripts() {
     // Enqueue main stylesheet
-    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.83');
+    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.84');
     
     // Enqueue custom JavaScript
-    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.83', true);
+    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.84', true);
     
     // Localize script
     wp_localize_script('ncllc-pro-script', 'ncllcData', array(
@@ -69,12 +69,12 @@ function ncllc_pro_block_editor_assets() {
         null
     );
 
-    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.83');
+    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.84');
     wp_enqueue_script(
         'ncllc-pro-editor-controls',
         get_template_directory_uri() . '/js/editor-controls.js',
         array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-element', 'wp-hooks'),
-        '1.0.83',
+        '1.0.84',
         true
     );
 }
@@ -149,6 +149,178 @@ function ncllc_pro_excerpt_more($more) {
     return '...';
 }
 add_filter('excerpt_more', 'ncllc_pro_excerpt_more');
+
+/**
+ * Convert saved Spectra markup to native WordPress block markup when Spectra is inactive.
+ */
+function ncllc_pro_convert_spectra_markup_to_core($content) {
+    if (false === strpos($content, 'wp-block-uagb-') || ncllc_pro_is_spectra_active()) {
+        return $content;
+    }
+
+    if (!class_exists('DOMDocument')) {
+        return ncllc_pro_convert_spectra_markup_to_core_basic($content);
+    }
+
+    $previous_errors = libxml_use_internal_errors(true);
+    $dom = new DOMDocument();
+    $charset = get_bloginfo('charset') ? get_bloginfo('charset') : 'UTF-8';
+    $encoded_content = function_exists('mb_convert_encoding') ? mb_convert_encoding($content, 'HTML-ENTITIES', $charset) : $content;
+    $wrapped = '<!DOCTYPE html><html><body>' . $encoded_content . '</body></html>';
+
+    $dom->loadHTML($wrapped, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    $xpath = new DOMXPath($dom);
+
+    foreach ($xpath->query('//*[contains(concat(" ", normalize-space(@class), " "), " wp-block-uagb-buttons ")]') as $node) {
+        ncllc_pro_replace_spectra_buttons_node($dom, $xpath, $node);
+    }
+
+    foreach ($xpath->query('//*[contains(concat(" ", normalize-space(@class), " "), " wp-block-uagb-marketing-button ")]') as $node) {
+        ncllc_pro_replace_spectra_marketing_button_node($dom, $xpath, $node);
+    }
+
+    foreach ($xpath->query('//*[contains(concat(" ", normalize-space(@class), " "), " wp-block-uagb-advanced-heading ")]') as $node) {
+        ncllc_pro_unwrap_spectra_node($dom, $node);
+    }
+
+    foreach ($xpath->query('//*[contains(concat(" ", normalize-space(@class), " "), " wp-block-uagb-image ")]') as $node) {
+        ncllc_pro_replace_spectra_image_node($dom, $xpath, $node);
+    }
+
+    foreach ($xpath->query('//*[contains(concat(" ", normalize-space(@class), " "), " wp-block-uagb-container ")]') as $node) {
+        ncllc_pro_replace_spectra_container_node($dom, $node);
+    }
+
+    $body = $dom->getElementsByTagName('body')->item(0);
+    $output = '';
+
+    if ($body) {
+        foreach ($body->childNodes as $child) {
+            $output .= $dom->saveHTML($child);
+        }
+    }
+
+    libxml_clear_errors();
+    libxml_use_internal_errors($previous_errors);
+
+    return $output ? $output : $content;
+}
+add_filter('the_content', 'ncllc_pro_convert_spectra_markup_to_core', 8);
+
+function ncllc_pro_is_spectra_active() {
+    return defined('UAGB_VER') || defined('UAGB_FILE') || class_exists('UAGB_Loader') || class_exists('UAGB_Init');
+}
+
+function ncllc_pro_replace_spectra_buttons_node($dom, $xpath, $node) {
+    $buttons = $dom->createElement('div');
+    $buttons->setAttribute('class', 'wp-block-buttons is-content-justification-center is-layout-flex');
+
+    foreach ($xpath->query('.//a[contains(concat(" ", normalize-space(@class), " "), " wp-block-button__link ")]', $node) as $link) {
+        $button = $dom->createElement('div');
+        $button->setAttribute('class', 'wp-block-button');
+        $button->appendChild(ncllc_pro_clone_anchor_as_core_button($dom, $xpath, $link, './/*[contains(concat(" ", normalize-space(@class), " "), " uagb-button__link ")]'));
+        $buttons->appendChild($button);
+    }
+
+    $node->parentNode->replaceChild($buttons, $node);
+}
+
+function ncllc_pro_replace_spectra_marketing_button_node($dom, $xpath, $node) {
+    $buttons = $dom->createElement('div');
+    $buttons->setAttribute('class', 'wp-block-buttons is-content-justification-center is-layout-flex');
+    $link = $xpath->query('.//a[contains(concat(" ", normalize-space(@class), " "), " wp-block-button__link ")]', $node)->item(0);
+
+    if ($link) {
+        $button = $dom->createElement('div');
+        $button->setAttribute('class', 'wp-block-button');
+        $button->appendChild(ncllc_pro_clone_anchor_as_core_button($dom, $xpath, $link, './/*[contains(concat(" ", normalize-space(@class), " "), " uagb-marketing-btn__title ")]'));
+        $buttons->appendChild($button);
+    }
+
+    $node->parentNode->replaceChild($buttons, $node);
+}
+
+function ncllc_pro_clone_anchor_as_core_button($dom, $xpath, $link, $label_selector) {
+    $new_link = $dom->createElement('a');
+    $label = trim($link->textContent);
+    $label_node = $xpath->query($label_selector, $link)->item(0);
+
+    if ($label_node) {
+        $label = trim($label_node->textContent);
+    }
+
+    foreach (array('href', 'target', 'rel', 'aria-label') as $attribute) {
+        if ($link->hasAttribute($attribute)) {
+            $new_link->setAttribute($attribute, $link->getAttribute($attribute));
+        }
+    }
+
+    $new_link->setAttribute('class', 'wp-block-button__link wp-element-button');
+    $new_link->appendChild($dom->createTextNode($label));
+
+    return $new_link;
+}
+
+function ncllc_pro_unwrap_spectra_node($dom, $node) {
+    $fragment = $dom->createDocumentFragment();
+
+    while ($node->firstChild) {
+        $fragment->appendChild($node->firstChild);
+    }
+
+    $node->parentNode->replaceChild($fragment, $node);
+}
+
+function ncllc_pro_replace_spectra_image_node($dom, $xpath, $node) {
+    $figure = $xpath->query('.//figure', $node)->item(0);
+
+    if (!$figure) {
+        ncllc_pro_unwrap_spectra_node($dom, $node);
+        return;
+    }
+
+    $new_figure = $figure->cloneNode(true);
+    $new_figure->setAttribute('class', 'wp-block-image');
+    $node->parentNode->replaceChild($new_figure, $node);
+}
+
+function ncllc_pro_replace_spectra_container_node($dom, $node) {
+    $classes = $node->hasAttribute('class') ? $node->getAttribute('class') : '';
+    $group = $dom->createElement('div');
+    $group_classes = array('wp-block-group');
+
+    if (false !== strpos($classes, 'alignfull')) {
+        $group_classes[] = 'alignfull';
+    } elseif (false !== strpos($classes, 'alignwide')) {
+        $group_classes[] = 'alignwide';
+    }
+
+    $group->setAttribute('class', implode(' ', $group_classes));
+
+    while ($node->firstChild) {
+        if ($node->firstChild instanceof DOMElement && false !== strpos(' ' . $node->firstChild->getAttribute('class') . ' ', ' uagb-container-inner-blocks-wrap ')) {
+            while ($node->firstChild->firstChild) {
+                $group->appendChild($node->firstChild->firstChild);
+            }
+            $node->removeChild($node->firstChild);
+            continue;
+        }
+
+        $group->appendChild($node->firstChild);
+    }
+
+    $node->parentNode->replaceChild($group, $node);
+}
+
+function ncllc_pro_convert_spectra_markup_to_core_basic($content) {
+    $content = preg_replace('/wp-block-uagb-buttons[^\"]*/', 'wp-block-buttons is-content-justification-center is-layout-flex', $content);
+    $content = preg_replace('/wp-block-uagb-buttons-child[^\"]*/', 'wp-block-button', $content);
+    $content = preg_replace('/uagb-buttons-repeater wp-block-button__link/', 'wp-block-button__link wp-element-button', $content);
+    $content = preg_replace('/wp-block-uagb-container[^\"]*/', 'wp-block-group', $content);
+    $content = preg_replace('/wp-block-uagb-image[^\"]*/', 'wp-block-image', $content);
+
+    return $content;
+}
 
 /**
  * Add body classes

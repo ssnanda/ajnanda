@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: http://ncllc.ddev.site/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.0.83
+Version: 1.0.84
 License: GNU General Public License v2 or later
 Text Domain: ncllc-pro
 */
@@ -2059,164 +2059,6 @@ body.admin-bar .site-header {
     border-color: var(--primary-dark);
 }
 
-.editor-front-page .wp-block-uagb-buttons,
-.page-content-panel .wp-block-uagb-buttons,
-.builder-canvas-content .wp-block-uagb-buttons {
-    width: auto;
-    max-width: 100%;
-}
-
-.editor-front-page .uagb-buttons__wrap,
-.page-content-panel .uagb-buttons__wrap,
-.builder-canvas-content .uagb-buttons__wrap {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    width: 100%;
-}
-
-.editor-front-page .wp-block-uagb-buttons-child,
-.page-content-panel .wp-block-uagb-buttons-child,
-.builder-canvas-content .wp-block-uagb-buttons-child,
-.editor-front-page .uagb-button__wrapper,
-.page-content-panel .uagb-button__wrapper,
-.builder-canvas-content .uagb-button__wrapper {
-    display: inline-flex;
-    width: auto;
-    max-width: 100%;
-}
-
-.editor-front-page .uagb-buttons-repeater.wp-block-button__link,
-.page-content-panel .uagb-buttons-repeater.wp-block-button__link,
-.builder-canvas-content .uagb-buttons-repeater.wp-block-button__link,
-.editor-front-page .uagb-marketing-btn__link.wp-block-button__link,
-.page-content-panel .uagb-marketing-btn__link.wp-block-button__link,
-.builder-canvas-content .uagb-marketing-btn__link.wp-block-button__link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    min-width: 180px;
-    min-height: 52px;
-    padding: 0.85rem 1.5rem;
-    border-radius: 999px;
-    color: #fff;
-    font-weight: 800;
-    line-height: 1.2;
-    text-align: center;
-    text-decoration: none;
-    white-space: nowrap;
-}
-
-.editor-front-page .uagb-button__link,
-.page-content-panel .uagb-button__link,
-.builder-canvas-content .uagb-button__link {
-    color: inherit;
-    line-height: inherit;
-}
-
-.editor-front-page .wp-block-uagb-marketing-button,
-.page-content-panel .wp-block-uagb-marketing-button,
-.builder-canvas-content .wp-block-uagb-marketing-button {
-    display: flex;
-    justify-content: center;
-}
-
-.editor-front-page .uagb-marketing-btn__link svg,
-.page-content-panel .uagb-marketing-btn__link svg,
-.builder-canvas-content .uagb-marketing-btn__link svg {
-    width: 1em;
-    height: 1em;
-    fill: currentColor;
-}
-
-.editor-front-page .uagb-marketing-btn__prefix,
-.page-content-panel .uagb-marketing-btn__prefix,
-.builder-canvas-content .uagb-marketing-btn__prefix {
-    display: none;
-}
-
-.editor-front-page .wp-block-uagb-container.alignfull,
-.page-content-panel .wp-block-uagb-container.alignfull,
-.builder-canvas-content .wp-block-uagb-container.alignfull {
-    width: 100%;
-    max-width: none;
-    margin-right: 0;
-    margin-left: 0;
-}
-
-.editor-front-page .wp-block-uagb-container.uagb-is-root-container,
-.page-content-panel .wp-block-uagb-container.uagb-is-root-container,
-.builder-canvas-content .wp-block-uagb-container.uagb-is-root-container {
-    padding: 4rem 1.5rem;
-}
-
-.editor-front-page .wp-block-uagb-container.uagb-is-root-container > .uagb-container-inner-blocks-wrap,
-.page-content-panel .wp-block-uagb-container.uagb-is-root-container > .uagb-container-inner-blocks-wrap,
-.builder-canvas-content .wp-block-uagb-container.uagb-is-root-container > .uagb-container-inner-blocks-wrap {
-    width: min(100%, var(--wp--style--global--wide-size, 1280px));
-    margin-right: auto;
-    margin-left: auto;
-}
-
-.editor-front-page .wp-block-uagb-container .wp-block-uagb-image__figure,
-.page-content-panel .wp-block-uagb-container .wp-block-uagb-image__figure,
-.builder-canvas-content .wp-block-uagb-container .wp-block-uagb-image__figure {
-    margin: 0;
-}
-
-.editor-front-page .wp-block-uagb-image img,
-.page-content-panel .wp-block-uagb-image img,
-.builder-canvas-content .wp-block-uagb-image img {
-    display: block;
-    max-width: 100%;
-    height: auto;
-}
-
-.editor-front-page .uagb-heading-text,
-.page-content-panel .uagb-heading-text,
-.builder-canvas-content .uagb-heading-text {
-    margin-top: 0;
-}
-
-.editor-front-page .uagb-block-813fe154 > .uagb-container-inner-blocks-wrap {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.75fr);
-    align-items: center;
-    gap: 3rem;
-}
-
-.editor-front-page .uagb-block-ec7f3c76 > .uagb-container-inner-blocks-wrap {
-    text-align: center;
-}
-
-.editor-front-page .uagb-block-30569880 {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 2.5rem;
-    margin-top: 3rem;
-}
-
-.editor-front-page .uagb-block-30569880 > .wp-block-uagb-container {
-    display: grid;
-    align-content: start;
-    gap: 1.5rem;
-    padding: 0;
-}
-
-.editor-front-page .uagb-block-30569880 figure {
-    margin: 0;
-}
-
-.editor-front-page .uagb-block-30569880 img {
-    width: 100%;
-    aspect-ratio: 16 / 10;
-    object-fit: cover;
-    border-radius: 1rem;
-}
-
 .editor-front-page .wp-block-verse,
 .editor-styles-wrapper .wp-block-verse {
     width: min(100% - 3rem, var(--wp--style--global--wide-size, 1280px));
@@ -2856,32 +2698,6 @@ body.admin-bar .site-header {
     .page-content-panel .uagb-block-fc0661c3 > .uagb-container-inner-blocks-wrap,
     .page-content-panel .uagb-infobox-icon-left {
         flex-direction: column;
-    }
-    .editor-front-page .uagb-buttons__wrap,
-    .page-content-panel .uagb-buttons__wrap,
-    .builder-canvas-content .uagb-buttons__wrap {
-        align-items: stretch;
-        flex-direction: column;
-    }
-    .editor-front-page .wp-block-uagb-buttons-child,
-    .page-content-panel .wp-block-uagb-buttons-child,
-    .builder-canvas-content .wp-block-uagb-buttons-child,
-    .editor-front-page .uagb-button__wrapper,
-    .page-content-panel .uagb-button__wrapper,
-    .builder-canvas-content .uagb-button__wrapper,
-    .editor-front-page .uagb-buttons-repeater.wp-block-button__link,
-    .page-content-panel .uagb-buttons-repeater.wp-block-button__link,
-    .builder-canvas-content .uagb-buttons-repeater.wp-block-button__link {
-        width: 100%;
-    }
-    .editor-front-page .uagb-buttons-repeater.wp-block-button__link,
-    .page-content-panel .uagb-buttons-repeater.wp-block-button__link,
-    .builder-canvas-content .uagb-buttons-repeater.wp-block-button__link {
-        white-space: normal;
-    }
-    .editor-front-page .uagb-block-813fe154 > .uagb-container-inner-blocks-wrap,
-    .editor-front-page .uagb-block-30569880 {
-        grid-template-columns: 1fr;
     }
     .page-content-panel .about-intro-section,
     .page-content-panel .about-values-section,
