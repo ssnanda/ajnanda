@@ -199,15 +199,27 @@
             attributes: withStyleAttributes(Object.assign({ className: { type: 'string' } }, options.attributes || {})),
             __experimentalLabel: options.label || undefined,
             edit: function(props) {
-                var hasChildBlocks = useSelect ? useSelect(function(select) {
+                var blockContext = useSelect ? useSelect(function(select) {
                     var block = select('core/block-editor').getBlock(props.clientId);
-                    return !!(block && block.innerBlocks && block.innerBlocks.length);
+                    var parentId = select('core/block-editor').getBlockRootClientId(props.clientId);
+                    var parentBlock = parentId ? select('core/block-editor').getBlock(parentId) : null;
+                    var index = parentId ? select('core/block-editor').getBlockIndex(props.clientId, parentId) : 0;
+
+                    return {
+                        hasChildBlocks: !!(block && block.innerBlocks && block.innerBlocks.length),
+                        innerCount: block && block.innerBlocks ? block.innerBlocks.length : 0,
+                        parentId: parentId,
+                        parentBlock: parentBlock,
+                        index: index
+                    };
                 }, [props.clientId]) : false;
-                var shouldChooseLayout = name === 'ajnanda/container' && !props.attributes.layoutSelected && !hasChildBlocks;
+                var shouldChooseLayout = name === 'ajnanda/container' && !props.attributes.layoutSelected && !(blockContext && blockContext.hasChildBlocks);
+                var insertionControls = name === 'ajnanda/container' && !shouldChooseLayout && props.isSelected ? containerInsertionControls(props, blockContext) : null;
 
                 return el(Fragment, {},
                     inspector(controlsWithCommon(props, extraControls(props, options))),
                     el('div', styledProps(className, props.attributes, classNames(props.attributes.className, extraClass(props.attributes, options))),
+                        insertionControls,
                         shouldChooseLayout ? containerLayoutChooser(props) : el(InnerBlocks, { template: template || [], templateLock: false })
                     )
                 );
@@ -316,6 +328,82 @@
         ]);
     }
 
+    function containerFooterBlock() {
+        return createBlock('core/buttons', { layout: { type: 'flex', justifyContent: 'center' } }, [
+            createBlock('core/button', { text: __('Button', 'ncllc-pro') })
+        ]);
+    }
+
+    function containerHeadingBlock() {
+        return containerChild(__('Heading Container', 'ncllc-pro'), { label: __('Heading Container', 'ncllc-pro'), alignItems: 'center', containerType: 'header' }, [
+            createBlock('core/heading', { level: 2, content: __('Section heading', 'ncllc-pro'), textAlign: 'center' }),
+            createBlock('core/paragraph', { placeholder: __('Add supporting text.', 'ncllc-pro'), align: 'center' })
+        ]);
+    }
+
+    function insertContainerBlock(props, context, position, block) {
+        var editor = dispatch && dispatch('core/block-editor');
+
+        if (!editor || !block) {
+            return;
+        }
+
+        if (context && context.parentId && (position === 'before' || position === 'after')) {
+            editor.insertBlocks(block, position === 'before' ? context.index : context.index + 1, context.parentId);
+            return;
+        }
+
+        editor.insertBlocks(block, position === 'before' ? 0 : undefined, props.clientId);
+    }
+
+    function insertContainerColumn(props, context, position) {
+        var editor = dispatch && dispatch('core/block-editor');
+        var parentBlock = context && context.parentBlock;
+        var parentAttrs = parentBlock && parentBlock.attributes ? parentBlock.attributes : {};
+        var parentIsColumnRow = parentBlock && parentBlock.name === 'ajnanda/container' && (parentAttrs.layoutMode === 'grid' || parentAttrs.containerType === 'row');
+        var block;
+        var nextColumns;
+
+        if (!editor || !context || !context.parentId || !parentIsColumnRow) {
+            return;
+        }
+
+        block = containerChild(__('Column', 'ncllc-pro'), { label: __('Column', 'ncllc-pro'), containerType: 'tile' });
+        nextColumns = Math.max(1, (parentBlock.innerBlocks ? parentBlock.innerBlocks.length : 0) + 1);
+
+        editor.insertBlocks(block, position === 'left' ? context.index : context.index + 1, context.parentId);
+        editor.updateBlockAttributes(context.parentId, { columns: nextColumns });
+    }
+
+    function containerInsertionControls(props, context) {
+        var parentBlock = context && context.parentBlock;
+        var parentAttrs = parentBlock && parentBlock.attributes ? parentBlock.attributes : {};
+        var parentIsColumnRow = parentBlock && parentBlock.name === 'ajnanda/container' && (parentAttrs.layoutMode === 'grid' || parentAttrs.containerType === 'row');
+
+        return el('div', { className: 'aj-container-insert-controls', 'aria-hidden': false },
+            el(Button, {
+                className: 'aj-container-insert aj-container-insert--top',
+                label: __('Add heading/container above', 'ncllc-pro'),
+                onClick: function() { insertContainerBlock(props, context, 'before', containerHeadingBlock()); }
+            }, '+'),
+            el(Button, {
+                className: 'aj-container-insert aj-container-insert--bottom',
+                label: __('Add footer/button below', 'ncllc-pro'),
+                onClick: function() { insertContainerBlock(props, context, 'after', containerFooterBlock()); }
+            }, '+'),
+            parentIsColumnRow ? el(Button, {
+                className: 'aj-container-insert aj-container-insert--left',
+                label: __('Add column on the left', 'ncllc-pro'),
+                onClick: function() { insertContainerColumn(props, context, 'left'); }
+            }, '+') : null,
+            parentIsColumnRow ? el(Button, {
+                className: 'aj-container-insert aj-container-insert--right',
+                label: __('Add column on the right', 'ncllc-pro'),
+                onClick: function() { insertContainerColumn(props, context, 'right'); }
+            }, '+') : null
+        );
+    }
+
     function containerColumns(label, count) {
         var children = [];
         var index;
@@ -353,20 +441,13 @@
         switch (pattern) {
             case 'section-three':
                 return [
-                    containerChild(__('Heading Container', 'ncllc-pro'), { label: __('Heading Container', 'ncllc-pro'), alignItems: 'center', containerType: 'header' }, [
-                        createBlock('core/heading', { level: 2, content: __('Section heading', 'ncllc-pro'), textAlign: 'center' }),
-                        createBlock('core/paragraph', { placeholder: __('Add supporting text.', 'ncllc-pro'), align: 'center' })
-                    ]),
+                    containerHeadingBlock(),
                     containerColumns(__('Tile Container', 'ncllc-pro'), 3),
-                    createBlock('core/buttons', { layout: { type: 'flex', justifyContent: 'center' } }, [
-                        createBlock('core/button', { text: __('Button', 'ncllc-pro') })
-                    ])
+                    containerFooterBlock()
                 ];
             case 'section-two':
                 return [
-                    containerChild(__('Heading Container', 'ncllc-pro'), { label: __('Heading Container', 'ncllc-pro'), alignItems: 'center', containerType: 'header' }, [
-                        createBlock('core/heading', { level: 2, content: __('Section heading', 'ncllc-pro'), textAlign: 'center' })
-                    ]),
+                    containerHeadingBlock(),
                     containerColumns(__('Tile Container', 'ncllc-pro'), 2)
                 ];
             case 'two':
