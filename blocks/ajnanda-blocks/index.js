@@ -44,6 +44,90 @@
         return el('div', { className: 'aj-url-control' }, el('span', {}, __('Link', 'ncllc-pro')), el(URLInputButton, { url: value || '', onChange: onChange }));
     }
 
+    function withStyleAttributes(attrs) {
+        return Object.assign({
+            alignText: { type: 'string', default: '' },
+            backgroundColor: { type: 'string', default: '' },
+            textColor: { type: 'string', default: '' },
+            borderColor: { type: 'string', default: '' },
+            borderRadius: { type: 'number', default: 0 },
+            padding: { type: 'number', default: 0 },
+            marginTop: { type: 'number', default: 0 },
+            marginBottom: { type: 'number', default: 0 }
+        }, attrs || {});
+    }
+
+    function blockStyle(attrs) {
+        attrs = attrs || {};
+        var style = {};
+
+        if (attrs.backgroundColor) {
+            style.backgroundColor = attrs.backgroundColor;
+        }
+        if (attrs.textColor) {
+            style.color = attrs.textColor;
+        }
+        if (attrs.borderColor) {
+            style.borderColor = attrs.borderColor;
+            style.borderStyle = 'solid';
+            style.borderWidth = '1px';
+        }
+        if (attrs.borderRadius) {
+            style.borderRadius = attrs.borderRadius + 'px';
+        }
+        if (attrs.padding) {
+            style.padding = attrs.padding + 'px';
+        }
+        if (attrs.marginTop) {
+            style.marginTop = attrs.marginTop + 'px';
+        }
+        if (attrs.marginBottom) {
+            style.marginBottom = attrs.marginBottom + 'px';
+        }
+        if (attrs.alignText) {
+            style.textAlign = attrs.alignText;
+        }
+
+        return style;
+    }
+
+    function styledProps(baseClass, attrs, extraClass) {
+        return {
+            className: classNames('aj-block', baseClass, extraClass, attrs && attrs.alignText ? 'has-text-align-' + attrs.alignText : ''),
+            style: blockStyle(attrs)
+        };
+    }
+
+    function commonControls(props) {
+        var attrs = props.attributes || {};
+
+        return [
+            el(SelectControl, {
+                label: __('Alignment', 'ncllc-pro'),
+                value: attrs.alignText || '',
+                options: [
+                    { label: __('Default', 'ncllc-pro'), value: '' },
+                    { label: __('Left', 'ncllc-pro'), value: 'left' },
+                    { label: __('Center', 'ncllc-pro'), value: 'center' },
+                    { label: __('Right', 'ncllc-pro'), value: 'right' }
+                ],
+                onChange: function(value) { props.setAttributes({ alignText: value }); }
+            }),
+            field(__('Background color', 'ncllc-pro'), attrs.backgroundColor, function(value) { props.setAttributes({ backgroundColor: value }); }, '#ffffff'),
+            field(__('Text color', 'ncllc-pro'), attrs.textColor, function(value) { props.setAttributes({ textColor: value }); }, '#111827'),
+            field(__('Border color', 'ncllc-pro'), attrs.borderColor, function(value) { props.setAttributes({ borderColor: value }); }, '#e5e7eb'),
+            el(RangeControl, { label: __('Border radius', 'ncllc-pro'), min: 0, max: 80, value: attrs.borderRadius || 0, onChange: function(value) { props.setAttributes({ borderRadius: value }); } }),
+            el(RangeControl, { label: __('Padding', 'ncllc-pro'), min: 0, max: 120, value: attrs.padding || 0, onChange: function(value) { props.setAttributes({ padding: value }); } }),
+            el(RangeControl, { label: __('Margin top', 'ncllc-pro'), min: 0, max: 160, value: attrs.marginTop || 0, onChange: function(value) { props.setAttributes({ marginTop: value }); } }),
+            el(RangeControl, { label: __('Margin bottom', 'ncllc-pro'), min: 0, max: 160, value: attrs.marginBottom || 0, onChange: function(value) { props.setAttributes({ marginBottom: value }); } })
+        ];
+    }
+
+    function controlsWithCommon(props, controls) {
+        controls = controls ? (Array.isArray(controls) ? controls : [controls]) : [];
+        return controls.concat(commonControls(props));
+    }
+
     function registerContainerBlock(name, title, description, className, template) {
         registerBlockType(name, {
             title: title,
@@ -51,12 +135,15 @@
             category: category,
             icon: 'screenoptions',
             supports: { align: ['wide', 'full'], anchor: true },
-            attributes: { className: { type: 'string' } },
+            attributes: withStyleAttributes({ className: { type: 'string' } }),
             edit: function(props) {
-                return el('div', { className: classNames('aj-block', className, props.className) }, el(InnerBlocks, { template: template || [], templateLock: false }));
+                return el(Fragment, {},
+                    inspector(controlsWithCommon(props)),
+                    el('div', styledProps(className, props.attributes, props.attributes.className), el(InnerBlocks, { template: template || [], templateLock: false }))
+                );
             },
             save: function(props) {
-                return el('div', { className: classNames('aj-block', className, props.className) }, el(InnerBlocks.Content));
+                return el('div', styledProps(className, props.attributes, props.attributes.className), el(InnerBlocks.Content));
             }
         });
     }
@@ -70,16 +157,16 @@
         title: __('AJ Heading', 'ncllc-pro'),
         category: category,
         icon: 'heading',
-        attributes: { content: { type: 'string', source: 'html', selector: 'h2' }, level: { type: 'number', default: 2 } },
+        attributes: withStyleAttributes({ content: { type: 'string', source: 'html', selector: 'h2' }, level: { type: 'number', default: 2 } }),
         edit: function(props) {
             var level = props.attributes.level || 2;
             return el(Fragment, {},
-                inspector(el(RangeControl, { label: __('Level', 'ncllc-pro'), min: 1, max: 6, value: level, onChange: function(value) { props.setAttributes({ level: value }); } })),
-                el(RichText, { tagName: 'h' + level, className: 'aj-block aj-heading', value: props.attributes.content, placeholder: __('Heading', 'ncllc-pro'), onChange: function(value) { props.setAttributes({ content: value }); } })
+                inspector(controlsWithCommon(props, el(RangeControl, { label: __('Level', 'ncllc-pro'), min: 1, max: 6, value: level, onChange: function(value) { props.setAttributes({ level: value }); } }))),
+                el(RichText, Object.assign({ tagName: 'h' + level, value: props.attributes.content, placeholder: __('Heading', 'ncllc-pro'), onChange: function(value) { props.setAttributes({ content: value }); } }, styledProps('aj-heading', props.attributes)))
             );
         },
         save: function(props) {
-            return el(RichText.Content, { tagName: 'h' + (props.attributes.level || 2), className: 'aj-block aj-heading', value: props.attributes.content });
+            return el(RichText.Content, Object.assign({ tagName: 'h' + (props.attributes.level || 2), value: props.attributes.content }, styledProps('aj-heading', props.attributes)));
         }
     });
 
@@ -87,12 +174,15 @@
         title: __('AJ Paragraph/Text Editor', 'ncllc-pro'),
         category: category,
         icon: 'editor-paragraph',
-        attributes: { content: { type: 'string', source: 'html', selector: 'p' } },
+        attributes: withStyleAttributes({ content: { type: 'string', source: 'html', selector: 'p' } }),
         edit: function(props) {
-            return el(RichText, { tagName: 'p', className: 'aj-block aj-text', value: props.attributes.content, placeholder: __('Text', 'ncllc-pro'), onChange: function(value) { props.setAttributes({ content: value }); } });
+            return el(Fragment, {},
+                inspector(controlsWithCommon(props)),
+                el(RichText, Object.assign({ tagName: 'p', value: props.attributes.content, placeholder: __('Text', 'ncllc-pro'), onChange: function(value) { props.setAttributes({ content: value }); } }, styledProps('aj-text', props.attributes)))
+            );
         },
         save: function(props) {
-            return el(RichText.Content, { tagName: 'p', className: 'aj-block aj-text', value: props.attributes.content });
+            return el(RichText.Content, Object.assign({ tagName: 'p', value: props.attributes.content }, styledProps('aj-text', props.attributes)));
         }
     });
 
@@ -100,12 +190,12 @@
         title: __('AJ Image', 'ncllc-pro'),
         category: category,
         icon: 'format-image',
-        attributes: { url: { type: 'string' }, alt: { type: 'string' } },
+        attributes: withStyleAttributes({ url: { type: 'string' }, alt: { type: 'string' } }),
         edit: function(props) {
             var attrs = props.attributes;
             return el(Fragment, {},
-                inspector(field(__('Alt text', 'ncllc-pro'), attrs.alt, function(value) { props.setAttributes({ alt: value }); })),
-                el('figure', { className: 'aj-block aj-image' },
+                inspector(controlsWithCommon(props, field(__('Alt text', 'ncllc-pro'), attrs.alt, function(value) { props.setAttributes({ alt: value }); }))),
+                el('figure', styledProps('aj-image', attrs),
                     attrs.url ? el('img', { src: attrs.url, alt: attrs.alt || '' }) : null,
                     el(MediaUploadCheck, {}, el(MediaUpload, {
                         onSelect: function(media) { props.setAttributes({ url: media.url, alt: media.alt || '' }); },
@@ -116,7 +206,7 @@
             );
         },
         save: function(props) {
-            return el('figure', { className: 'aj-block aj-image' }, props.attributes.url ? el('img', { src: props.attributes.url, alt: props.attributes.alt || '' }) : null);
+            return el('figure', styledProps('aj-image', props.attributes), props.attributes.url ? el('img', { src: props.attributes.url, alt: props.attributes.alt || '' }) : null);
         }
     });
 
@@ -124,15 +214,15 @@
         title: __('AJ Button', 'ncllc-pro'),
         category: category,
         icon: 'button',
-        attributes: { text: { type: 'string', default: 'Button' }, url: { type: 'string' } },
+        attributes: withStyleAttributes({ text: { type: 'string', default: 'Button' }, url: { type: 'string' } }),
         edit: function(props) {
             return el(Fragment, {},
-                inspector(urlField(props.attributes.url, function(value) { props.setAttributes({ url: value }); })),
-                el(RichText, { tagName: 'a', className: 'aj-block aj-button', value: props.attributes.text, placeholder: __('Button text', 'ncllc-pro'), onChange: function(value) { props.setAttributes({ text: value }); } })
+                inspector(controlsWithCommon(props, urlField(props.attributes.url, function(value) { props.setAttributes({ url: value }); }))),
+                el(RichText, Object.assign({ tagName: 'a', value: props.attributes.text, placeholder: __('Button text', 'ncllc-pro'), onChange: function(value) { props.setAttributes({ text: value }); } }, styledProps('aj-button', props.attributes)))
             );
         },
         save: function(props) {
-            return el('a', { className: 'aj-block aj-button', href: props.attributes.url || '#' }, props.attributes.text);
+            return el('a', Object.assign({ href: props.attributes.url || '#' }, styledProps('aj-button', props.attributes)), props.attributes.text);
         }
     });
 
@@ -140,15 +230,15 @@
         title: __('AJ Divider', 'ncllc-pro'),
         category: category,
         icon: 'minus',
-        attributes: { label: { type: 'string', default: '' } },
+        attributes: withStyleAttributes({ label: { type: 'string', default: '' } }),
         edit: function(props) {
             return el(Fragment, {},
-                inspector(field(__('Optional label', 'ncllc-pro'), props.attributes.label, function(value) { props.setAttributes({ label: value }); })),
-                el('div', { className: 'aj-block aj-divider' }, props.attributes.label ? el('span', {}, props.attributes.label) : null)
+                inspector(controlsWithCommon(props, field(__('Optional label', 'ncllc-pro'), props.attributes.label, function(value) { props.setAttributes({ label: value }); }))),
+                el('div', styledProps('aj-divider', props.attributes), props.attributes.label ? el('span', {}, props.attributes.label) : null)
             );
         },
         save: function(props) {
-            return el('div', { className: 'aj-block aj-divider' }, props.attributes.label ? el('span', {}, props.attributes.label) : null);
+            return el('div', styledProps('aj-divider', props.attributes), props.attributes.label ? el('span', {}, props.attributes.label) : null);
         }
     });
 
@@ -156,15 +246,15 @@
         title: __('AJ Spacer', 'ncllc-pro'),
         category: category,
         icon: 'image-flip-vertical',
-        attributes: { height: { type: 'number', default: 48 } },
+        attributes: withStyleAttributes({ height: { type: 'number', default: 48 } }),
         edit: function(props) {
             return el(Fragment, {},
-                inspector(el(RangeControl, { label: __('Height', 'ncllc-pro'), min: 8, max: 320, value: props.attributes.height, onChange: function(value) { props.setAttributes({ height: value }); } })),
-                el('div', { className: 'aj-block aj-spacer', style: { height: props.attributes.height + 'px' } })
+                inspector(controlsWithCommon(props, el(RangeControl, { label: __('Height', 'ncllc-pro'), min: 8, max: 320, value: props.attributes.height, onChange: function(value) { props.setAttributes({ height: value }); } }))),
+                el('div', Object.assign(styledProps('aj-spacer', props.attributes), { style: Object.assign(blockStyle(props.attributes), { height: props.attributes.height + 'px' }) }))
             );
         },
         save: function(props) {
-            return el('div', { className: 'aj-block aj-spacer', style: { height: props.attributes.height + 'px' } });
+            return el('div', Object.assign(styledProps('aj-spacer', props.attributes), { style: Object.assign(blockStyle(props.attributes), { height: props.attributes.height + 'px' }) }));
         }
     });
 
@@ -172,15 +262,15 @@
         title: __('AJ Icon', 'ncllc-pro'),
         category: category,
         icon: 'star-filled',
-        attributes: { icon: { type: 'string', default: '★' }, label: { type: 'string', default: '' } },
+        attributes: withStyleAttributes({ icon: { type: 'string', default: '★' }, label: { type: 'string', default: '' } }),
         edit: function(props) {
             return el(Fragment, {},
-                inspector([field(__('Icon character', 'ncllc-pro'), props.attributes.icon, function(value) { props.setAttributes({ icon: value }); }), field(__('Label', 'ncllc-pro'), props.attributes.label, function(value) { props.setAttributes({ label: value }); })]),
-                el('span', { className: 'aj-block aj-icon', 'aria-label': props.attributes.label || undefined }, props.attributes.icon)
+                inspector(controlsWithCommon(props, [field(__('Icon character', 'ncllc-pro'), props.attributes.icon, function(value) { props.setAttributes({ icon: value }); }), field(__('Label', 'ncllc-pro'), props.attributes.label, function(value) { props.setAttributes({ label: value }); })])),
+                el('span', Object.assign({ 'aria-label': props.attributes.label || undefined }, styledProps('aj-icon', props.attributes)), props.attributes.icon)
             );
         },
         save: function(props) {
-            return el('span', { className: 'aj-block aj-icon', 'aria-label': props.attributes.label || undefined }, props.attributes.icon);
+            return el('span', Object.assign({ 'aria-label': props.attributes.label || undefined }, styledProps('aj-icon', props.attributes)), props.attributes.icon);
         }
     });
 
@@ -188,10 +278,10 @@
         title: __('AJ SVG', 'ncllc-pro'),
         category: category,
         icon: 'admin-customizer',
-        attributes: { svg: { type: 'string', default: '<svg viewBox="0 0 80 80" role="img" aria-label="Circle"><circle cx="40" cy="40" r="32"/></svg>' } },
+        attributes: withStyleAttributes({ svg: { type: 'string', default: '<svg viewBox="0 0 80 80" role="img" aria-label="Circle"><circle cx="40" cy="40" r="32"/></svg>' } }),
         edit: function(props) {
             return el(Fragment, {},
-                inspector(el(TextareaControl, { label: __('SVG markup', 'ncllc-pro'), value: props.attributes.svg, onChange: function(value) { props.setAttributes({ svg: value }); } })),
+                inspector(controlsWithCommon(props, el(TextareaControl, { label: __('SVG markup', 'ncllc-pro'), value: props.attributes.svg, onChange: function(value) { props.setAttributes({ svg: value }); } }))),
                 ServerSideRender ? el(ServerSideRender, { block: 'ajnanda/svg', attributes: props.attributes }) : el('div', { className: 'aj-block aj-svg' }, __('SVG preview', 'ncllc-pro'))
             );
         },
@@ -205,12 +295,12 @@
             title: title,
             category: category,
             icon: icon,
-            attributes: { url: { type: 'string' } },
+            attributes: withStyleAttributes({ url: { type: 'string' } }),
             edit: function(props) {
-                return el(Fragment, {}, inspector(field(__('URL', 'ncllc-pro'), props.attributes.url, function(value) { props.setAttributes({ url: value }); }, placeholder)), el('div', { className: 'aj-block ' + className }, props.attributes.url || placeholder));
+                return el(Fragment, {}, inspector(controlsWithCommon(props, field(__('URL', 'ncllc-pro'), props.attributes.url, function(value) { props.setAttributes({ url: value }); }, placeholder))), el('div', styledProps(className, props.attributes), props.attributes.url || placeholder));
             },
             save: function(props) {
-                return el('div', { className: 'aj-block ' + className }, props.attributes.url ? el('iframe', { src: props.attributes.url, loading: 'lazy', allowFullScreen: true, title: title }) : null);
+                return el('div', styledProps(className, props.attributes), props.attributes.url ? el('iframe', { src: props.attributes.url, loading: 'lazy', allowFullScreen: true, title: title }) : null);
             }
         });
     }
@@ -224,12 +314,15 @@
             title: title,
             category: category,
             icon: icon,
-            attributes: { content: { type: 'string', source: 'html', selector: tagName, default: defaultText || '' } },
+            attributes: withStyleAttributes({ content: { type: 'string', source: 'html', selector: tagName, default: defaultText || '' } }),
             edit: function(props) {
-                return el(RichText, { tagName: tagName, className: 'aj-block ' + className, value: props.attributes.content, placeholder: placeholder || title, onChange: function(value) { props.setAttributes({ content: value }); } });
+                return el(Fragment, {},
+                    inspector(controlsWithCommon(props)),
+                    el(RichText, Object.assign({ tagName: tagName, value: props.attributes.content, placeholder: placeholder || title, onChange: function(value) { props.setAttributes({ content: value }); } }, styledProps(className, props.attributes)))
+                );
             },
             save: function(props) {
-                return el(RichText.Content, { tagName: tagName, className: 'aj-block ' + className, value: props.attributes.content });
+                return el(RichText.Content, Object.assign({ tagName: tagName, value: props.attributes.content }, styledProps(className, props.attributes)));
             }
         });
     }
@@ -240,11 +333,15 @@
             category: category,
             icon: icon,
             supports: { align: ['wide', 'full'], anchor: true },
-            edit: function() {
-                return el('section', { className: 'aj-block ' + className }, el(InnerBlocks, { template: template || [], templateLock: false }));
+            attributes: withStyleAttributes({}),
+            edit: function(props) {
+                return el(Fragment, {},
+                    inspector(controlsWithCommon(props)),
+                    el('section', styledProps(className, props.attributes), el(InnerBlocks, { template: template || [], templateLock: false }))
+                );
             },
-            save: function() {
-                return el('section', { className: 'aj-block ' + className }, el(InnerBlocks.Content));
+            save: function(props) {
+                return el('section', styledProps(className, props.attributes), el(InnerBlocks.Content));
             }
         });
     }
@@ -275,20 +372,20 @@
             title: title,
             category: category,
             icon: 'forms',
-            attributes: Object.assign({ text: { type: 'string', default: defaults.text || '' }, placeholder: { type: 'string', default: defaults.placeholder || '' }, name: { type: 'string', default: defaults.name || '' } }, defaults.attributes || {}),
+            attributes: withStyleAttributes(Object.assign({ text: { type: 'string', default: defaults.text || '' }, placeholder: { type: 'string', default: defaults.placeholder || '' }, name: { type: 'string', default: defaults.name || '' } }, defaults.attributes || {})),
             edit: function(props) {
                 var attrs = props.attributes;
                 return el(Fragment, {},
-                    inspector([field(__('Name', 'ncllc-pro'), attrs.name, function(value) { props.setAttributes({ name: value }); }), field(__('Placeholder', 'ncllc-pro'), attrs.placeholder, function(value) { props.setAttributes({ placeholder: value }); })]),
-                    tag === 'label' ? el(RichText, { tagName: 'label', className: 'aj-label', value: attrs.text, placeholder: __('Label', 'ncllc-pro'), onChange: function(value) { props.setAttributes({ text: value }); } }) : el(tag, { className: 'aj-field', placeholder: attrs.placeholder, type: defaults.type || undefined, value: '', readOnly: true })
+                    inspector(controlsWithCommon(props, [field(__('Name', 'ncllc-pro'), attrs.name, function(value) { props.setAttributes({ name: value }); }), field(__('Placeholder', 'ncllc-pro'), attrs.placeholder, function(value) { props.setAttributes({ placeholder: value }); })])),
+                    tag === 'label' ? el(RichText, Object.assign({ tagName: 'label', value: attrs.text, placeholder: __('Label', 'ncllc-pro'), onChange: function(value) { props.setAttributes({ text: value }); } }, styledProps('aj-label', attrs))) : el(tag, Object.assign({ placeholder: attrs.placeholder, type: defaults.type || undefined, value: '', readOnly: true }, styledProps('aj-field', attrs)))
                 );
             },
             save: function(props) {
                 var attrs = props.attributes;
                 if (tag === 'label') {
-                    return el(RichText.Content, { tagName: 'label', className: 'aj-label', value: attrs.text });
+                    return el(RichText.Content, Object.assign({ tagName: 'label', value: attrs.text }, styledProps('aj-label', attrs)));
                 }
-                return el(tag, { className: 'aj-field', name: attrs.name, placeholder: attrs.placeholder, type: defaults.type || undefined });
+                return el(tag, Object.assign({ name: attrs.name, placeholder: attrs.placeholder, type: defaults.type || undefined }, styledProps('aj-field', attrs)));
             }
         });
     }
@@ -302,12 +399,15 @@
         title: __('AJ Submit Button', 'ncllc-pro'),
         category: category,
         icon: 'yes',
-        attributes: { text: { type: 'string', default: 'Submit' } },
+        attributes: withStyleAttributes({ text: { type: 'string', default: 'Submit' } }),
         edit: function(props) {
-            return el(RichText, { tagName: 'button', className: 'aj-button aj-submit', value: props.attributes.text, onChange: function(value) { props.setAttributes({ text: value }); } });
+            return el(Fragment, {},
+                inspector(controlsWithCommon(props)),
+                el(RichText, Object.assign({ tagName: 'button', value: props.attributes.text, onChange: function(value) { props.setAttributes({ text: value }); } }, styledProps('aj-button aj-submit', props.attributes)))
+            );
         },
         save: function(props) {
-            return el('button', { className: 'aj-button aj-submit', type: 'submit' }, props.attributes.text);
+            return el('button', Object.assign({ type: 'submit' }, styledProps('aj-button aj-submit', props.attributes)), props.attributes.text);
         }
     });
 
@@ -323,12 +423,12 @@
         title: __('AJ Counter', 'ncllc-pro'),
         category: category,
         icon: 'dashboard',
-        attributes: { value: { type: 'number', default: 100 }, label: { type: 'string', default: 'Counter' } },
+        attributes: withStyleAttributes({ value: { type: 'number', default: 100 }, label: { type: 'string', default: 'Counter' } }),
         edit: function(props) {
-            return el(Fragment, {}, inspector([el(RangeControl, { label: __('Value', 'ncllc-pro'), min: 0, max: 10000, value: props.attributes.value, onChange: function(value) { props.setAttributes({ value: value }); } }), field(__('Label', 'ncllc-pro'), props.attributes.label, function(value) { props.setAttributes({ label: value }); })]), el('div', { className: 'aj-block aj-counter' }, el('strong', {}, props.attributes.value), el('span', {}, props.attributes.label)));
+            return el(Fragment, {}, inspector(controlsWithCommon(props, [el(RangeControl, { label: __('Value', 'ncllc-pro'), min: 0, max: 10000, value: props.attributes.value, onChange: function(value) { props.setAttributes({ value: value }); } }), field(__('Label', 'ncllc-pro'), props.attributes.label, function(value) { props.setAttributes({ label: value }); })])), el('div', styledProps('aj-counter', props.attributes), el('strong', {}, props.attributes.value), el('span', {}, props.attributes.label)));
         },
         save: function(props) {
-            return el('div', { className: 'aj-block aj-counter' }, el('strong', {}, props.attributes.value), el('span', {}, props.attributes.label));
+            return el('div', styledProps('aj-counter', props.attributes), el('strong', {}, props.attributes.value), el('span', {}, props.attributes.label));
         }
     });
 
@@ -336,12 +436,12 @@
         title: __('AJ Progress Bar', 'ncllc-pro'),
         category: category,
         icon: 'chart-bar',
-        attributes: { value: { type: 'number', default: 65 }, label: { type: 'string', default: 'Progress' } },
+        attributes: withStyleAttributes({ value: { type: 'number', default: 65 }, label: { type: 'string', default: 'Progress' } }),
         edit: function(props) {
-            return el(Fragment, {}, inspector(el(RangeControl, { label: __('Percent', 'ncllc-pro'), min: 0, max: 100, value: props.attributes.value, onChange: function(value) { props.setAttributes({ value: value }); } })), el('div', { className: 'aj-block aj-progress' }, el('span', {}, props.attributes.label), el('div', { className: 'aj-progress__track' }, el('i', { style: { width: props.attributes.value + '%' } }))));
+            return el(Fragment, {}, inspector(controlsWithCommon(props, el(RangeControl, { label: __('Percent', 'ncllc-pro'), min: 0, max: 100, value: props.attributes.value, onChange: function(value) { props.setAttributes({ value: value }); } }))), el('div', styledProps('aj-progress', props.attributes), el('span', {}, props.attributes.label), el('div', { className: 'aj-progress__track' }, el('i', { style: { width: props.attributes.value + '%' } }))));
         },
         save: function(props) {
-            return el('div', { className: 'aj-block aj-progress' }, el('span', {}, props.attributes.label), el('div', { className: 'aj-progress__track' }, el('i', { style: { width: props.attributes.value + '%' } })));
+            return el('div', styledProps('aj-progress', props.attributes), el('span', {}, props.attributes.label), el('div', { className: 'aj-progress__track' }, el('i', { style: { width: props.attributes.value + '%' } })));
         }
     });
 
@@ -349,15 +449,15 @@
         title: __('AJ Countdown', 'ncllc-pro'),
         category: category,
         icon: 'clock',
-        attributes: { label: { type: 'string', default: 'Countdown' }, date: { type: 'string', default: '' } },
+        attributes: withStyleAttributes({ label: { type: 'string', default: 'Countdown' }, date: { type: 'string', default: '' } }),
         edit: function(props) {
             return el(Fragment, {},
-                inspector([field(__('Label', 'ncllc-pro'), props.attributes.label, function(value) { props.setAttributes({ label: value }); }), field(__('Target date', 'ncllc-pro'), props.attributes.date, function(value) { props.setAttributes({ date: value }); }, '2026-12-31')]),
-                el('div', { className: 'aj-block aj-countdown' }, el('strong', {}, props.attributes.date || 'YYYY-MM-DD'), el('span', {}, props.attributes.label))
+                inspector(controlsWithCommon(props, [field(__('Label', 'ncllc-pro'), props.attributes.label, function(value) { props.setAttributes({ label: value }); }), field(__('Target date', 'ncllc-pro'), props.attributes.date, function(value) { props.setAttributes({ date: value }); }, '2026-12-31')])),
+                el('div', styledProps('aj-countdown', props.attributes), el('strong', {}, props.attributes.date || 'YYYY-MM-DD'), el('span', {}, props.attributes.label))
             );
         },
         save: function(props) {
-            return el('div', { className: 'aj-block aj-countdown', 'data-target-date': props.attributes.date || '' }, el('strong', {}, props.attributes.date || 'YYYY-MM-DD'), el('span', {}, props.attributes.label));
+            return el('div', Object.assign({ 'data-target-date': props.attributes.date || '' }, styledProps('aj-countdown', props.attributes)), el('strong', {}, props.attributes.date || 'YYYY-MM-DD'), el('span', {}, props.attributes.label));
         }
     });
 
@@ -365,15 +465,15 @@
         title: __('AJ Star Ratings', 'ncllc-pro'),
         category: category,
         icon: 'star-half',
-        attributes: { rating: { type: 'number', default: 5 }, label: { type: 'string', default: '5.0' } },
+        attributes: withStyleAttributes({ rating: { type: 'number', default: 5 }, label: { type: 'string', default: '5.0' } }),
         edit: function(props) {
             return el(Fragment, {},
-                inspector([el(RangeControl, { label: __('Rating', 'ncllc-pro'), min: 1, max: 5, value: props.attributes.rating, onChange: function(value) { props.setAttributes({ rating: value }); } }), field(__('Label', 'ncllc-pro'), props.attributes.label, function(value) { props.setAttributes({ label: value }); })]),
-                el('div', { className: 'aj-block aj-stars', 'aria-label': props.attributes.label }, '★★★★★'.slice(0, props.attributes.rating), el('span', {}, props.attributes.label))
+                inspector(controlsWithCommon(props, [el(RangeControl, { label: __('Rating', 'ncllc-pro'), min: 1, max: 5, value: props.attributes.rating, onChange: function(value) { props.setAttributes({ rating: value }); } }), field(__('Label', 'ncllc-pro'), props.attributes.label, function(value) { props.setAttributes({ label: value }); })])),
+                el('div', Object.assign({ 'aria-label': props.attributes.label }, styledProps('aj-stars', props.attributes)), '★★★★★'.slice(0, props.attributes.rating), el('span', {}, props.attributes.label))
             );
         },
         save: function(props) {
-            return el('div', { className: 'aj-block aj-stars', 'aria-label': props.attributes.label }, '★★★★★'.slice(0, props.attributes.rating), el('span', {}, props.attributes.label));
+            return el('div', Object.assign({ 'aria-label': props.attributes.label }, styledProps('aj-stars', props.attributes)), '★★★★★'.slice(0, props.attributes.rating), el('span', {}, props.attributes.label));
         }
     });
 
