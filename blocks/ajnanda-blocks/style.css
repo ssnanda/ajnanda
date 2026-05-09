@@ -18,11 +18,27 @@
     gap: 1rem;
 }
 
+.aj-flexbox--column {
+    flex-direction: column;
+}
+
+.aj-flexbox--row-reverse {
+    flex-direction: row-reverse;
+}
+
+.aj-flexbox--column-reverse {
+    flex-direction: column-reverse;
+}
+
+.aj-flexbox--nowrap {
+    flex-wrap: nowrap;
+}
+
 .aj-grid,
 .aj-posts,
 .aj-gallery {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(var(--aj-columns, auto-fit), minmax(220px, 1fr));
     gap: 1.25rem;
 }
 
@@ -208,6 +224,15 @@ input[type="checkbox"].aj-field {
     align-items: center;
 }
 
+.aj-search--stacked {
+    align-items: stretch;
+    flex-direction: column;
+}
+
+.aj-search--button-left button {
+    order: -1;
+}
+
 .aj-tabs,
 .aj-accordion,
 .aj-toc {
@@ -293,6 +318,39 @@ input[type="checkbox"].aj-field {
     list-style: none;
 }
 
+.aj-nav-menu--vertical ul {
+    align-items: flex-start;
+    flex-direction: column;
+}
+
+.aj-nav-menu .menu-item-has-children {
+    position: relative;
+}
+
+.aj-nav-menu .sub-menu {
+    display: none;
+    position: absolute;
+    z-index: 20;
+    top: 100%;
+    left: 0;
+    min-width: 220px;
+    padding: 0.75rem;
+    border: 1px solid var(--gray-200, #e5e7eb);
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 16px 35px rgba(15, 23, 42, 0.16);
+}
+
+.aj-nav-menu--vertical .sub-menu {
+    position: static;
+    box-shadow: none;
+}
+
+.aj-nav-menu--hover .menu-item-has-children:hover > .sub-menu,
+.aj-nav-menu--hover .menu-item-has-children:focus-within > .sub-menu {
+    display: flex;
+}
+
 .aj-nav-menu a,
 .aj-post-card a,
 .aj-toc a {
@@ -343,6 +401,17 @@ input[type="checkbox"].aj-field {
     list-style: none;
 }
 
+.aj-taxonomy-list--list ul {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.aj-taxonomy-list--inline a {
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+}
+
 .aj-taxonomy-list a {
     display: inline-flex;
     padding: 0.45rem 0.75rem;
@@ -364,6 +433,66 @@ input[type="checkbox"].aj-field {
 .aj-faq,
 .aj-how-to {
     display: grid;
+    gap: 1rem;
+}
+
+.aj-media-left,
+.aj-media-right,
+.aj-cta--inline {
+    display: grid;
+    align-items: center;
+    gap: 1rem;
+}
+
+.aj-media-left {
+    grid-template-columns: minmax(120px, 0.8fr) minmax(0, 1.2fr);
+}
+
+.aj-media-right {
+    grid-template-columns: minmax(0, 1.2fr) minmax(120px, 0.8fr);
+}
+
+.aj-cta--inline {
+    grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.aj-buttons--vertical .wp-block-buttons {
+    align-items: flex-start;
+    flex-direction: column;
+}
+
+.aj-icon-list--inline ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+}
+
+.aj-how-to--cards ol,
+.aj-how-to--cards ul {
+    display: grid;
+    gap: 0.75rem;
+    padding-left: 0;
+    list-style: none;
+}
+
+.aj-how-to--cards li {
+    padding: 1rem;
+    border: 1px solid var(--gray-200, #e5e7eb);
+    border-radius: 8px;
+    background: #fff;
+}
+
+.aj-team--image-circle img {
+    border-radius: 999px;
+}
+
+.aj-team--image-square img {
+    border-radius: 0;
+}
+
+.aj-testimonials--grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 1rem;
 }
 
@@ -467,5 +596,11 @@ input[type="checkbox"].aj-field {
     .aj-search {
         align-items: stretch;
         flex-direction: column;
+    }
+
+    .aj-media-left,
+    .aj-media-right,
+    .aj-cta--inline {
+        grid-template-columns: 1fr;
     }
 }

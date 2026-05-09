@@ -46,6 +46,33 @@
         ajnPaddingRightMobile: { type: 'string', default: '' }
     };
 
+    var LAYOUT_BLOCKS = {
+        'core/group': true,
+        'core/columns': true,
+        'core/column': true,
+        'core/cover': true,
+        'core/media-text': true,
+        'core/spacer': true,
+        'ajnanda/div-block': true,
+        'ajnanda/flexbox': true,
+        'ajnanda/container': true,
+        'ajnanda/grid': true,
+        'ajnanda/form': true,
+        'ajnanda/tabs': true,
+        'ajnanda/accordion': true,
+        'ajnanda/image-box': true,
+        'ajnanda/icon-box': true,
+        'ajnanda/basic-gallery': true,
+        'ajnanda/image-gallery': true,
+        'ajnanda/info-box': true,
+        'ajnanda/call-to-action': true,
+        'ajnanda/buttons': true
+    };
+
+    function hasLayoutControls(blockName) {
+        return !!LAYOUT_BLOCKS[blockName];
+    }
+
     function normalizeSize(value) {
         value = (value || '').trim();
 
@@ -251,7 +278,11 @@
 
     registerHeroBlockVariation();
 
-    addFilter('blocks.registerBlockType', 'ajn/block-layout-attributes', function(settings) {
+    addFilter('blocks.registerBlockType', 'ajn/block-layout-attributes', function(settings, name) {
+        if (!hasLayoutControls(name || settings.name)) {
+            return settings;
+        }
+
         settings.attributes = Object.assign({}, settings.attributes || {}, LAYOUT_ATTRS);
         return settings;
     });
@@ -261,6 +292,10 @@
         'ajn/block-layout-controls',
         createHigherOrderComponent(function(BlockEdit) {
             return function(props) {
+                if (!hasLayoutControls(props.name)) {
+                    return createElement(BlockEdit, props);
+                }
+
                 var attrs = props.attributes || {};
                 var setAttributes = props.setAttributes;
                 var measuredHeight = useMeasuredBlockHeight(props.clientId);
@@ -355,7 +390,7 @@
                 var wrapperProps = Object.assign({}, props.wrapperProps || {});
                 var existingStyle = Object.assign({}, wrapperProps.style || {});
 
-                if (hasLayout(attrs)) {
+                if (hasLayoutControls(props.name) && hasLayout(attrs)) {
                     wrapperProps.className = getLayoutClass(attrs, wrapperProps.className);
                     wrapperProps.style = Object.assign(existingStyle, getLayoutStyles(attrs));
                 }
@@ -368,7 +403,7 @@
     addFilter('blocks.getSaveContent.extraProps', 'ajn/save-block-layout-props', function(extraProps, blockType, attrs) {
         attrs = attrs || {};
 
-        if (!hasLayout(attrs)) {
+        if (!hasLayoutControls(blockType.name) || !hasLayout(attrs)) {
             return extraProps;
         }
 

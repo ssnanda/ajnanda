@@ -53,7 +53,8 @@
             borderRadius: { type: 'number', default: 0 },
             padding: { type: 'number', default: 0 },
             marginTop: { type: 'number', default: 0 },
-            marginBottom: { type: 'number', default: 0 }
+            marginBottom: { type: 'number', default: 0 },
+            animation: { type: 'string', default: 'none' }
         }, attrs || {});
     }
 
@@ -87,13 +88,34 @@
         if (attrs.alignText) {
             style.textAlign = attrs.alignText;
         }
+        if (attrs.gap) {
+            style.gap = attrs.gap + 'px';
+        }
+        if (attrs.columns) {
+            style['--aj-columns'] = attrs.columns;
+        }
+        if (attrs.width) {
+            style.width = attrs.width + '%';
+        }
+        if (attrs.thickness) {
+            style.height = attrs.thickness + 'px';
+        }
+        if (attrs.maxWidth) {
+            style.maxWidth = attrs.maxWidth + 'px';
+        }
+        if (attrs.minHeight) {
+            style.minHeight = attrs.minHeight + 'px';
+        }
+        if (attrs.aspectRatio) {
+            style.aspectRatio = attrs.aspectRatio;
+        }
 
         return style;
     }
 
     function styledProps(baseClass, attrs, extraClass) {
         return {
-            className: classNames('aj-block', baseClass, extraClass, attrs && attrs.alignText ? 'has-text-align-' + attrs.alignText : ''),
+            className: classNames('aj-block', baseClass, extraClass, attrs && attrs.alignText ? 'has-text-align-' + attrs.alignText : '', attrs && attrs.animation && attrs.animation !== 'none' ? 'aj-animate-' + attrs.animation : ''),
             style: blockStyle(attrs)
         };
     }
@@ -119,7 +141,18 @@
             el(RangeControl, { label: __('Border radius', 'ncllc-pro'), min: 0, max: 80, value: attrs.borderRadius || 0, onChange: function(value) { props.setAttributes({ borderRadius: value }); } }),
             el(RangeControl, { label: __('Padding', 'ncllc-pro'), min: 0, max: 120, value: attrs.padding || 0, onChange: function(value) { props.setAttributes({ padding: value }); } }),
             el(RangeControl, { label: __('Margin top', 'ncllc-pro'), min: 0, max: 160, value: attrs.marginTop || 0, onChange: function(value) { props.setAttributes({ marginTop: value }); } }),
-            el(RangeControl, { label: __('Margin bottom', 'ncllc-pro'), min: 0, max: 160, value: attrs.marginBottom || 0, onChange: function(value) { props.setAttributes({ marginBottom: value }); } })
+            el(RangeControl, { label: __('Margin bottom', 'ncllc-pro'), min: 0, max: 160, value: attrs.marginBottom || 0, onChange: function(value) { props.setAttributes({ marginBottom: value }); } }),
+            el(SelectControl, {
+                label: __('Animation', 'ncllc-pro'),
+                value: attrs.animation || 'none',
+                options: [
+                    { label: __('None', 'ncllc-pro'), value: 'none' },
+                    { label: __('Fade In', 'ncllc-pro'), value: 'fade-in' },
+                    { label: __('Slide Up', 'ncllc-pro'), value: 'slide-up' },
+                    { label: __('Zoom In', 'ncllc-pro'), value: 'zoom-in' }
+                ],
+                onChange: function(value) { props.setAttributes({ animation: value }); }
+            })
         ];
     }
 
@@ -128,30 +161,129 @@
         return controls.concat(commonControls(props));
     }
 
-    function registerContainerBlock(name, title, description, className, template) {
+    function extraControls(props, options) {
+        return options && options.controls ? options.controls(props) : [];
+    }
+
+    function extraClass(attrs, options) {
+        return options && options.className ? options.className(attrs || {}) : '';
+    }
+
+    function registerContainerBlock(name, title, description, className, template, options) {
+        options = options || {};
         registerBlockType(name, {
             title: title,
             description: description,
             category: category,
             icon: 'screenoptions',
             supports: { align: ['wide', 'full'], anchor: true },
-            attributes: withStyleAttributes({ className: { type: 'string' } }),
+            attributes: withStyleAttributes(Object.assign({ className: { type: 'string' } }, options.attributes || {})),
             edit: function(props) {
                 return el(Fragment, {},
-                    inspector(controlsWithCommon(props)),
-                    el('div', styledProps(className, props.attributes, props.attributes.className), el(InnerBlocks, { template: template || [], templateLock: false }))
+                    inspector(controlsWithCommon(props, extraControls(props, options))),
+                    el('div', styledProps(className, props.attributes, classNames(props.attributes.className, extraClass(props.attributes, options))), el(InnerBlocks, { template: template || [], templateLock: false }))
                 );
             },
             save: function(props) {
-                return el('div', styledProps(className, props.attributes, props.attributes.className), el(InnerBlocks.Content));
+                return el('div', styledProps(className, props.attributes, classNames(props.attributes.className, extraClass(props.attributes, options))), el(InnerBlocks.Content));
             }
         });
     }
 
-    registerContainerBlock('ajnanda/div-block', __('AJ Div Block', 'ncllc-pro'), __('Simple wrapper block.', 'ncllc-pro'), 'aj-div');
-    registerContainerBlock('ajnanda/flexbox', __('AJ Flexbox', 'ncllc-pro'), __('Flexible row or column layout.', 'ncllc-pro'), 'aj-flexbox', [['core/paragraph', { placeholder: __('Flex item', 'ncllc-pro') }]]);
-    registerContainerBlock('ajnanda/container', __('AJ Container', 'ncllc-pro'), __('Constrained content container.', 'ncllc-pro'), 'aj-container', [['core/paragraph', { placeholder: __('Container content', 'ncllc-pro') }]]);
-    registerContainerBlock('ajnanda/grid', __('AJ Grid', 'ncllc-pro'), __('Responsive grid layout.', 'ncllc-pro'), 'aj-grid', [['core/group', { className: 'aj-card' }], ['core/group', { className: 'aj-card' }], ['core/group', { className: 'aj-card' }]]);
+    function layoutControls(props) {
+        var attrs = props.attributes;
+
+        return [
+            el(SelectControl, {
+                label: __('Direction', 'ncllc-pro'),
+                value: attrs.direction || 'row',
+                options: [
+                    { label: __('Row', 'ncllc-pro'), value: 'row' },
+                    { label: __('Column', 'ncllc-pro'), value: 'column' },
+                    { label: __('Row Reverse', 'ncllc-pro'), value: 'row-reverse' },
+                    { label: __('Column Reverse', 'ncllc-pro'), value: 'column-reverse' }
+                ],
+                onChange: function(value) { props.setAttributes({ direction: value }); }
+            }),
+            el(SelectControl, {
+                label: __('Justify content', 'ncllc-pro'),
+                value: attrs.justify || 'flex-start',
+                options: [
+                    { label: __('Start', 'ncllc-pro'), value: 'flex-start' },
+                    { label: __('Center', 'ncllc-pro'), value: 'center' },
+                    { label: __('End', 'ncllc-pro'), value: 'flex-end' },
+                    { label: __('Space Between', 'ncllc-pro'), value: 'space-between' }
+                ],
+                onChange: function(value) { props.setAttributes({ justify: value }); }
+            }),
+            el(SelectControl, {
+                label: __('Align items', 'ncllc-pro'),
+                value: attrs.alignItems || 'stretch',
+                options: [
+                    { label: __('Stretch', 'ncllc-pro'), value: 'stretch' },
+                    { label: __('Start', 'ncllc-pro'), value: 'flex-start' },
+                    { label: __('Center', 'ncllc-pro'), value: 'center' },
+                    { label: __('End', 'ncllc-pro'), value: 'flex-end' }
+                ],
+                onChange: function(value) { props.setAttributes({ alignItems: value }); }
+            }),
+            el(ToggleControl, { label: __('Allow wrap', 'ncllc-pro'), checked: attrs.wrap !== false, onChange: function(value) { props.setAttributes({ wrap: value }); } }),
+            el(RangeControl, { label: __('Gap', 'ncllc-pro'), min: 0, max: 80, value: attrs.gap || 16, onChange: function(value) { props.setAttributes({ gap: value }); } })
+        ];
+    }
+
+    function gridControls(props) {
+        var attrs = props.attributes;
+
+        return [
+            el(RangeControl, { label: __('Columns', 'ncllc-pro'), min: 1, max: 6, value: attrs.columns || 3, onChange: function(value) { props.setAttributes({ columns: value }); } }),
+            el(RangeControl, { label: __('Gap', 'ncllc-pro'), min: 0, max: 80, value: attrs.gap || 20, onChange: function(value) { props.setAttributes({ gap: value }); } })
+        ];
+    }
+
+    function mediaControls(props) {
+        var attrs = props.attributes;
+
+        return [
+            el(RangeControl, { label: __('Minimum height', 'ncllc-pro'), min: 100, max: 800, value: attrs.minHeight || 320, onChange: function(value) { props.setAttributes({ minHeight: value }); } }),
+            el(SelectControl, {
+                label: __('Aspect ratio', 'ncllc-pro'),
+                value: attrs.aspectRatio || '16 / 9',
+                options: [
+                    { label: '16:9', value: '16 / 9' },
+                    { label: '4:3', value: '4 / 3' },
+                    { label: '1:1', value: '1 / 1' },
+                    { label: __('Auto', 'ncllc-pro'), value: '' }
+                ],
+                onChange: function(value) { props.setAttributes({ aspectRatio: value }); }
+            })
+        ];
+    }
+
+    registerContainerBlock('ajnanda/div-block', __('AJ Div Block', 'ncllc-pro'), __('Simple wrapper block.', 'ncllc-pro'), 'aj-div', [], {
+        attributes: { minHeight: { type: 'number', default: 0 } },
+        controls: function(props) {
+            return el(RangeControl, { label: __('Minimum height', 'ncllc-pro'), min: 0, max: 800, value: props.attributes.minHeight || 0, onChange: function(value) { props.setAttributes({ minHeight: value }); } });
+        }
+    });
+    registerContainerBlock('ajnanda/flexbox', __('AJ Flexbox', 'ncllc-pro'), __('Flexible row or column layout.', 'ncllc-pro'), 'aj-flexbox', [['core/paragraph', { placeholder: __('Flex item', 'ncllc-pro') }]], {
+        attributes: { direction: { type: 'string', default: 'row' }, justify: { type: 'string', default: 'flex-start' }, alignItems: { type: 'string', default: 'stretch' }, wrap: { type: 'boolean', default: true }, gap: { type: 'number', default: 16 } },
+        controls: layoutControls,
+        className: function(attrs) { return classNames('aj-flexbox--' + attrs.direction, attrs.wrap === false ? 'aj-flexbox--nowrap' : ''); }
+    });
+    registerContainerBlock('ajnanda/container', __('AJ Container', 'ncllc-pro'), __('Constrained content container.', 'ncllc-pro'), 'aj-container', [['core/paragraph', { placeholder: __('Container content', 'ncllc-pro') }]], {
+        attributes: { maxWidth: { type: 'number', default: 1100 }, minHeight: { type: 'number', default: 0 } },
+        controls: function(props) {
+            return [
+                el(RangeControl, { label: __('Max width', 'ncllc-pro'), min: 320, max: 1800, value: props.attributes.maxWidth || 1100, onChange: function(value) { props.setAttributes({ maxWidth: value }); } }),
+                el(RangeControl, { label: __('Minimum height', 'ncllc-pro'), min: 0, max: 900, value: props.attributes.minHeight || 0, onChange: function(value) { props.setAttributes({ minHeight: value }); } })
+            ];
+        }
+    });
+    registerContainerBlock('ajnanda/grid', __('AJ Grid', 'ncllc-pro'), __('Responsive grid layout.', 'ncllc-pro'), 'aj-grid', [['core/group', { className: 'aj-card' }], ['core/group', { className: 'aj-card' }], ['core/group', { className: 'aj-card' }]], {
+        attributes: { columns: { type: 'number', default: 3 }, gap: { type: 'number', default: 20 } },
+        controls: gridControls
+    });
 
     registerBlockType('ajnanda/heading', {
         title: __('AJ Heading', 'ncllc-pro'),
@@ -290,14 +422,14 @@
         }
     });
 
-    function mediaEmbedBlock(name, title, icon, className, placeholder) {
+    function mediaEmbedBlock(name, title, icon, className, placeholder, extraAttrs, extraControlBuilder) {
         registerBlockType(name, {
             title: title,
             category: category,
             icon: icon,
-            attributes: withStyleAttributes({ url: { type: 'string' } }),
+            attributes: withStyleAttributes(Object.assign({ url: { type: 'string' }, minHeight: { type: 'number', default: 320 }, aspectRatio: { type: 'string', default: '16 / 9' } }, extraAttrs || {})),
             edit: function(props) {
-                return el(Fragment, {}, inspector(controlsWithCommon(props, field(__('URL', 'ncllc-pro'), props.attributes.url, function(value) { props.setAttributes({ url: value }); }, placeholder))), el('div', styledProps(className, props.attributes), props.attributes.url || placeholder));
+                return el(Fragment, {}, inspector(controlsWithCommon(props, [field(__('URL', 'ncllc-pro'), props.attributes.url, function(value) { props.setAttributes({ url: value }); }, placeholder)].concat(mediaControls(props), extraControlBuilder ? extraControlBuilder(props) : []))), el('div', styledProps(className, props.attributes), props.attributes.url || placeholder));
             },
             save: function(props) {
                 return el('div', styledProps(className, props.attributes), props.attributes.url ? el('iframe', { src: props.attributes.url, loading: 'lazy', allowFullScreen: true, title: title }) : null);
@@ -306,8 +438,12 @@
     }
 
     mediaEmbedBlock('ajnanda/youtube', __('AJ YouTube', 'ncllc-pro'), 'video-alt3', 'aj-embed', 'https://www.youtube.com/embed/...');
-    mediaEmbedBlock('ajnanda/video', __('AJ Video', 'ncllc-pro'), 'format-video', 'aj-embed', 'Video embed URL');
-    mediaEmbedBlock('ajnanda/google-maps', __('AJ Google Maps Embed', 'ncllc-pro'), 'location-alt', 'aj-embed', 'Google Maps embed URL');
+    mediaEmbedBlock('ajnanda/video', __('AJ Video', 'ncllc-pro'), 'format-video', 'aj-embed', 'Video embed URL', { controls: { type: 'string', default: 'playback' } }, function(props) {
+        return el(SelectControl, { label: __('Controls', 'ncllc-pro'), value: props.attributes.controls || 'playback', options: [{ label: __('Playback controls', 'ncllc-pro'), value: 'playback' }, { label: __('Minimal', 'ncllc-pro'), value: 'minimal' }], onChange: function(value) { props.setAttributes({ controls: value }); } });
+    });
+    mediaEmbedBlock('ajnanda/google-maps', __('AJ Google Maps Embed', 'ncllc-pro'), 'location-alt', 'aj-embed', 'Google Maps embed URL', { zoom: { type: 'number', default: 12 } }, function(props) {
+        return el(RangeControl, { label: __('Zoom', 'ncllc-pro'), min: 1, max: 20, value: props.attributes.zoom || 12, onChange: function(value) { props.setAttributes({ zoom: value }); } });
+    });
 
     function editableTextBlock(name, title, icon, tagName, className, defaultText, placeholder) {
         registerBlockType(name, {
@@ -327,31 +463,62 @@
         });
     }
 
-    function simpleCardBlock(name, title, icon, className, template) {
+    function simpleCardBlock(name, title, icon, className, template, options) {
+        options = options || {};
         registerBlockType(name, {
             title: title,
             category: category,
             icon: icon,
             supports: { align: ['wide', 'full'], anchor: true },
-            attributes: withStyleAttributes({}),
+            attributes: withStyleAttributes(options.attributes || {}),
             edit: function(props) {
                 return el(Fragment, {},
-                    inspector(controlsWithCommon(props)),
-                    el('section', styledProps(className, props.attributes), el(InnerBlocks, { template: template || [], templateLock: false }))
+                    inspector(controlsWithCommon(props, extraControls(props, options))),
+                    el('section', styledProps(className, props.attributes, extraClass(props.attributes, options)), el(InnerBlocks, { template: template || [], templateLock: false }))
                 );
             },
             save: function(props) {
-                return el('section', styledProps(className, props.attributes), el(InnerBlocks.Content));
+                return el('section', styledProps(className, props.attributes, extraClass(props.attributes, options)), el(InnerBlocks.Content));
             }
         });
     }
 
-    simpleCardBlock('ajnanda/info-box', __('AJ Info Box', 'ncllc-pro'), 'welcome-widgets-menus', 'aj-info-box', [['ajnanda/icon'], ['core/heading', { level: 3, content: 'Info Box' }], ['core/paragraph', { placeholder: 'Add supporting text.' }]]);
-    simpleCardBlock('ajnanda/call-to-action', __('AJ Call To Action', 'ncllc-pro'), 'megaphone', 'aj-call-to-action', [['core/heading', { level: 2, content: 'Ready to get started?' }], ['core/paragraph', { placeholder: 'Add a short call to action.' }], ['ajnanda/button', { text: 'Get Started' }]]);
-    simpleCardBlock('ajnanda/buttons', __('AJ Buttons', 'ncllc-pro'), 'button', 'aj-buttons', [['core/buttons', {}, [['core/button', { text: 'Button' }], ['core/button', { text: 'Button' }]]]]);
-    simpleCardBlock('ajnanda/marketing-button', __('AJ Marketing Button', 'ncllc-pro'), 'external', 'aj-marketing-button', [['core/buttons', { layout: { type: 'flex', justifyContent: 'center' } }, [['core/button', { text: 'Marketing Button' }]]]]);
+    simpleCardBlock('ajnanda/info-box', __('AJ Info Box', 'ncllc-pro'), 'welcome-widgets-menus', 'aj-info-box', [['ajnanda/icon'], ['core/heading', { level: 3, content: 'Info Box' }], ['core/paragraph', { placeholder: 'Add supporting text.' }]], {
+        attributes: { mediaPosition: { type: 'string', default: 'top' } },
+        controls: function(props) {
+            return el(SelectControl, { label: __('Icon/Image position', 'ncllc-pro'), value: props.attributes.mediaPosition || 'top', options: [{ label: __('Top', 'ncllc-pro'), value: 'top' }, { label: __('Left', 'ncllc-pro'), value: 'left' }, { label: __('Right', 'ncllc-pro'), value: 'right' }], onChange: function(value) { props.setAttributes({ mediaPosition: value }); } });
+        },
+        className: function(attrs) { return 'aj-media-' + attrs.mediaPosition; }
+    });
+    simpleCardBlock('ajnanda/call-to-action', __('AJ Call To Action', 'ncllc-pro'), 'megaphone', 'aj-call-to-action', [['core/heading', { level: 2, content: 'Ready to get started?' }], ['core/paragraph', { placeholder: 'Add a short call to action.' }], ['ajnanda/button', { text: 'Get Started' }]], {
+        attributes: { layout: { type: 'string', default: 'stacked' } },
+        controls: function(props) {
+            return el(SelectControl, { label: __('Layout', 'ncllc-pro'), value: props.attributes.layout || 'stacked', options: [{ label: __('Stacked', 'ncllc-pro'), value: 'stacked' }, { label: __('Inline', 'ncllc-pro'), value: 'inline' }], onChange: function(value) { props.setAttributes({ layout: value }); } });
+        },
+        className: function(attrs) { return 'aj-cta--' + attrs.layout; }
+    });
+    simpleCardBlock('ajnanda/buttons', __('AJ Buttons', 'ncllc-pro'), 'button', 'aj-buttons', [['core/buttons', {}, [['core/button', { text: 'Button' }], ['core/button', { text: 'Button' }]]]], {
+        attributes: { orientation: { type: 'string', default: 'horizontal' }, gap: { type: 'number', default: 12 } },
+        controls: function(props) {
+            return [el(SelectControl, { label: __('Orientation', 'ncllc-pro'), value: props.attributes.orientation || 'horizontal', options: [{ label: __('Horizontal', 'ncllc-pro'), value: 'horizontal' }, { label: __('Vertical', 'ncllc-pro'), value: 'vertical' }], onChange: function(value) { props.setAttributes({ orientation: value }); } }), el(RangeControl, { label: __('Button gap', 'ncllc-pro'), min: 0, max: 60, value: props.attributes.gap || 12, onChange: function(value) { props.setAttributes({ gap: value }); } })];
+        },
+        className: function(attrs) { return 'aj-buttons--' + attrs.orientation; }
+    });
+    simpleCardBlock('ajnanda/marketing-button', __('AJ Marketing Button', 'ncllc-pro'), 'external', 'aj-marketing-button', [['core/buttons', { layout: { type: 'flex', justifyContent: 'center' } }, [['core/button', { text: 'Marketing Button' }]]]], {
+        attributes: { showIcon: { type: 'boolean', default: true }, iconPosition: { type: 'string', default: 'after' } },
+        controls: function(props) {
+            return [el(ToggleControl, { label: __('Show icon', 'ncllc-pro'), checked: !!props.attributes.showIcon, onChange: function(value) { props.setAttributes({ showIcon: value }); } }), el(SelectControl, { label: __('Icon position', 'ncllc-pro'), value: props.attributes.iconPosition || 'after', options: [{ label: __('Before', 'ncllc-pro'), value: 'before' }, { label: __('After', 'ncllc-pro'), value: 'after' }], onChange: function(value) { props.setAttributes({ iconPosition: value }); } })];
+        },
+        className: function(attrs) { return classNames(attrs.showIcon ? 'aj-marketing-button--icon' : '', 'aj-icon-' + attrs.iconPosition); }
+    });
     editableTextBlock('ajnanda/blockquote', __('AJ Blockquote', 'ncllc-pro'), 'format-quote', 'blockquote', 'aj-blockquote', 'Add a quote or testimonial.', 'Quote');
-    simpleCardBlock('ajnanda/content-timeline', __('AJ Content Timeline', 'ncllc-pro'), 'networking', 'aj-timeline', [['core/heading', { level: 3, content: 'Timeline Item' }], ['core/paragraph', { placeholder: 'Add milestone details.' }]]);
+    simpleCardBlock('ajnanda/content-timeline', __('AJ Content Timeline', 'ncllc-pro'), 'networking', 'aj-timeline', [['core/heading', { level: 3, content: 'Timeline Item' }], ['core/paragraph', { placeholder: 'Add milestone details.' }]], {
+        attributes: { linePosition: { type: 'string', default: 'left' } },
+        controls: function(props) {
+            return el(SelectControl, { label: __('Line position', 'ncllc-pro'), value: props.attributes.linePosition || 'left', options: [{ label: __('Left', 'ncllc-pro'), value: 'left' }, { label: __('Center', 'ncllc-pro'), value: 'center' }], onChange: function(value) { props.setAttributes({ linePosition: value }); } });
+        },
+        className: function(attrs) { return 'aj-timeline--line-' + attrs.linePosition; }
+    });
 
     registerBlockType('ajnanda/faq', {
         title: __('AJ FAQ', 'ncllc-pro'),
@@ -512,31 +679,96 @@
         }
     });
 
-    simpleCardBlock('ajnanda/how-to', __('AJ How To', 'ncllc-pro'), 'media-document', 'aj-how-to', [['core/heading', { level: 2, content: 'How To' }], ['core/list', { values: '<li>Step one</li><li>Step two</li><li>Step three</li>' }]]);
+    simpleCardBlock('ajnanda/how-to', __('AJ How To', 'ncllc-pro'), 'media-document', 'aj-how-to', [['core/heading', { level: 2, content: 'How To' }], ['core/list', { values: '<li>Step one</li><li>Step two</li><li>Step three</li>' }]], {
+        attributes: { showSchema: { type: 'boolean', default: false }, stepStyle: { type: 'string', default: 'numbered' } },
+        controls: function(props) {
+            return [el(ToggleControl, { label: __('Enable HowTo schema', 'ncllc-pro'), checked: !!props.attributes.showSchema, onChange: function(value) { props.setAttributes({ showSchema: value }); } }), el(SelectControl, { label: __('Step style', 'ncllc-pro'), value: props.attributes.stepStyle || 'numbered', options: [{ label: __('Numbered', 'ncllc-pro'), value: 'numbered' }, { label: __('Bullets', 'ncllc-pro'), value: 'bullets' }, { label: __('Cards', 'ncllc-pro'), value: 'cards' }], onChange: function(value) { props.setAttributes({ stepStyle: value }); } })];
+        },
+        className: function(attrs) { return 'aj-how-to--' + attrs.stepStyle; }
+    });
     editableTextBlock('ajnanda/inline-notice', __('AJ Inline Notice', 'ncllc-pro'), 'info', 'div', 'aj-inline-notice', 'Add an important notice.', 'Notice');
-    simpleCardBlock('ajnanda/modal', __('AJ Modal Placeholder', 'ncllc-pro'), 'welcome-comments', 'aj-modal-placeholder', [['core/heading', { level: 3, content: 'Modal Placeholder' }], ['core/paragraph', { placeholder: 'Static modal content placeholder.' }]]);
-    simpleCardBlock('ajnanda/slider', __('AJ Slider Placeholder', 'ncllc-pro'), 'slides', 'aj-slider-placeholder', [['core/image'], ['core/heading', { level: 3, content: 'Slide Title' }], ['core/paragraph', { placeholder: 'Slide text.' }]]);
-    simpleCardBlock('ajnanda/lottie-animation', __('AJ Lottie Animation Placeholder', 'ncllc-pro'), 'controls-repeat', 'aj-lottie-placeholder', [['core/paragraph', { content: 'Lottie animation placeholder.' }]]);
-    simpleCardBlock('ajnanda/team', __('AJ Team', 'ncllc-pro'), 'groups', 'aj-team', [['core/image'], ['core/heading', { level: 3, content: 'Team Member' }], ['core/paragraph', { content: 'Role or short bio.' }]]);
-    simpleCardBlock('ajnanda/testimonials', __('AJ Testimonials', 'ncllc-pro'), 'format-chat', 'aj-testimonials', [['core/quote', { value: 'Add testimonial text.', citation: 'Customer Name' }]]);
-    simpleCardBlock('ajnanda/review', __('AJ Review', 'ncllc-pro'), 'star-filled', 'aj-review', [['ajnanda/star-ratings'], ['core/quote', { value: 'Add review text.', citation: 'Reviewer Name' }]]);
-    simpleCardBlock('ajnanda/price-list', __('AJ Price List', 'ncllc-pro'), 'money-alt', 'aj-price-list', [['core/list', { values: '<li>Service - $99</li><li>Service - $149</li>' }]]);
-    simpleCardBlock('ajnanda/social-share', __('AJ Social Share', 'ncllc-pro'), 'share', 'aj-social-share', [['core/buttons', {}, [['core/button', { text: 'Share' }], ['core/button', { text: 'LinkedIn' }], ['core/button', { text: 'Email' }]]]]);
-    simpleCardBlock('ajnanda/separator', __('AJ Separator', 'ncllc-pro'), 'minus', 'aj-separator-block', []);
+    simpleCardBlock('ajnanda/modal', __('AJ Modal Placeholder', 'ncllc-pro'), 'welcome-comments', 'aj-modal-placeholder', [['core/heading', { level: 3, content: 'Modal Placeholder' }], ['core/paragraph', { placeholder: 'Static modal content placeholder.' }]], {
+        attributes: { triggerText: { type: 'string', default: 'Open Modal' }, modalWidth: { type: 'number', default: 640 } },
+        controls: function(props) {
+            return [field(__('Trigger text', 'ncllc-pro'), props.attributes.triggerText, function(value) { props.setAttributes({ triggerText: value }); }), el(RangeControl, { label: __('Modal width', 'ncllc-pro'), min: 320, max: 1200, value: props.attributes.modalWidth || 640, onChange: function(value) { props.setAttributes({ modalWidth: value }); } })];
+        }
+    });
+    simpleCardBlock('ajnanda/slider', __('AJ Slider Placeholder', 'ncllc-pro'), 'slides', 'aj-slider-placeholder', [['core/image'], ['core/heading', { level: 3, content: 'Slide Title' }], ['core/paragraph', { placeholder: 'Slide text.' }]], {
+        attributes: { autoplay: { type: 'boolean', default: false }, delay: { type: 'number', default: 4 }, showArrows: { type: 'boolean', default: true } },
+        controls: function(props) {
+            return [el(ToggleControl, { label: __('Autoplay', 'ncllc-pro'), checked: !!props.attributes.autoplay, onChange: function(value) { props.setAttributes({ autoplay: value }); } }), el(RangeControl, { label: __('Delay seconds', 'ncllc-pro'), min: 1, max: 12, value: props.attributes.delay || 4, onChange: function(value) { props.setAttributes({ delay: value }); } }), el(ToggleControl, { label: __('Show arrows', 'ncllc-pro'), checked: !!props.attributes.showArrows, onChange: function(value) { props.setAttributes({ showArrows: value }); } })];
+        }
+    });
+    simpleCardBlock('ajnanda/lottie-animation', __('AJ Lottie Animation Placeholder', 'ncllc-pro'), 'controls-repeat', 'aj-lottie-placeholder', [['core/paragraph', { content: 'Lottie animation placeholder.' }]], {
+        attributes: { jsonUrl: { type: 'string', default: '' }, loop: { type: 'boolean', default: true }, autoplay: { type: 'boolean', default: true } },
+        controls: function(props) {
+            return [field(__('Lottie JSON URL', 'ncllc-pro'), props.attributes.jsonUrl, function(value) { props.setAttributes({ jsonUrl: value }); }), el(ToggleControl, { label: __('Loop', 'ncllc-pro'), checked: !!props.attributes.loop, onChange: function(value) { props.setAttributes({ loop: value }); } }), el(ToggleControl, { label: __('Autoplay', 'ncllc-pro'), checked: !!props.attributes.autoplay, onChange: function(value) { props.setAttributes({ autoplay: value }); } })];
+        }
+    });
+    simpleCardBlock('ajnanda/team', __('AJ Team', 'ncllc-pro'), 'groups', 'aj-team', [['core/image'], ['core/heading', { level: 3, content: 'Team Member' }], ['core/paragraph', { content: 'Role or short bio.' }]], {
+        attributes: { imageShape: { type: 'string', default: 'rounded' }, socialLinks: { type: 'boolean', default: false } },
+        controls: function(props) {
+            return [el(SelectControl, { label: __('Image shape', 'ncllc-pro'), value: props.attributes.imageShape || 'rounded', options: [{ label: __('Rounded', 'ncllc-pro'), value: 'rounded' }, { label: __('Circle', 'ncllc-pro'), value: 'circle' }, { label: __('Square', 'ncllc-pro'), value: 'square' }], onChange: function(value) { props.setAttributes({ imageShape: value }); } }), el(ToggleControl, { label: __('Show social links area', 'ncllc-pro'), checked: !!props.attributes.socialLinks, onChange: function(value) { props.setAttributes({ socialLinks: value }); } })];
+        },
+        className: function(attrs) { return 'aj-team--image-' + attrs.imageShape; }
+    });
+    simpleCardBlock('ajnanda/testimonials', __('AJ Testimonials', 'ncllc-pro'), 'format-chat', 'aj-testimonials', [['core/quote', { value: 'Add testimonial text.', citation: 'Customer Name' }]], {
+        attributes: { layout: { type: 'string', default: 'single' }, showQuoteIcon: { type: 'boolean', default: true } },
+        controls: function(props) {
+            return [el(SelectControl, { label: __('Layout', 'ncllc-pro'), value: props.attributes.layout || 'single', options: [{ label: __('Single', 'ncllc-pro'), value: 'single' }, { label: __('Grid', 'ncllc-pro'), value: 'grid' }, { label: __('Carousel placeholder', 'ncllc-pro'), value: 'carousel' }], onChange: function(value) { props.setAttributes({ layout: value }); } }), el(ToggleControl, { label: __('Show quote icon', 'ncllc-pro'), checked: !!props.attributes.showQuoteIcon, onChange: function(value) { props.setAttributes({ showQuoteIcon: value }); } })];
+        },
+        className: function(attrs) { return 'aj-testimonials--' + attrs.layout; }
+    });
+    simpleCardBlock('ajnanda/review', __('AJ Review', 'ncllc-pro'), 'star-filled', 'aj-review', [['ajnanda/star-ratings'], ['core/quote', { value: 'Add review text.', citation: 'Reviewer Name' }]], {
+        attributes: { enableSchema: { type: 'boolean', default: false }, reviewerImage: { type: 'boolean', default: false } },
+        controls: function(props) {
+            return [el(ToggleControl, { label: __('Enable review schema', 'ncllc-pro'), checked: !!props.attributes.enableSchema, onChange: function(value) { props.setAttributes({ enableSchema: value }); } }), el(ToggleControl, { label: __('Reviewer image area', 'ncllc-pro'), checked: !!props.attributes.reviewerImage, onChange: function(value) { props.setAttributes({ reviewerImage: value }); } })];
+        }
+    });
+    simpleCardBlock('ajnanda/price-list', __('AJ Price List', 'ncllc-pro'), 'money-alt', 'aj-price-list', [['core/list', { values: '<li>Service - $99</li><li>Service - $149</li>' }]], {
+        attributes: { currency: { type: 'string', default: '$' }, layout: { type: 'string', default: 'list' } },
+        controls: function(props) {
+            return [field(__('Currency symbol', 'ncllc-pro'), props.attributes.currency, function(value) { props.setAttributes({ currency: value }); }), el(SelectControl, { label: __('Layout', 'ncllc-pro'), value: props.attributes.layout || 'list', options: [{ label: __('List', 'ncllc-pro'), value: 'list' }, { label: __('Cards', 'ncllc-pro'), value: 'cards' }], onChange: function(value) { props.setAttributes({ layout: value }); } })];
+        },
+        className: function(attrs) { return 'aj-price-list--' + attrs.layout; }
+    });
+    simpleCardBlock('ajnanda/social-share', __('AJ Social Share', 'ncllc-pro'), 'share', 'aj-social-share', [['core/buttons', {}, [['core/button', { text: 'Share' }], ['core/button', { text: 'LinkedIn' }], ['core/button', { text: 'Email' }]]]], {
+        attributes: { networks: { type: 'string', default: 'Facebook, LinkedIn, Email' }, iconOnly: { type: 'boolean', default: false } },
+        controls: function(props) {
+            return [field(__('Networks', 'ncllc-pro'), props.attributes.networks, function(value) { props.setAttributes({ networks: value }); }, 'Facebook, LinkedIn, Email'), el(ToggleControl, { label: __('Icon only', 'ncllc-pro'), checked: !!props.attributes.iconOnly, onChange: function(value) { props.setAttributes({ iconOnly: value }); } })];
+        },
+        className: function(attrs) { return attrs.iconOnly ? 'aj-social-share--icon-only' : ''; }
+    });
+    simpleCardBlock('ajnanda/separator', __('AJ Separator', 'ncllc-pro'), 'minus', 'aj-separator-block', [], {
+        attributes: { thickness: { type: 'number', default: 1 }, width: { type: 'number', default: 100 } },
+        controls: function(props) {
+            return [el(RangeControl, { label: __('Thickness', 'ncllc-pro'), min: 1, max: 16, value: props.attributes.thickness || 1, onChange: function(value) { props.setAttributes({ thickness: value }); } }), el(RangeControl, { label: __('Width percent', 'ncllc-pro'), min: 10, max: 100, value: props.attributes.width || 100, onChange: function(value) { props.setAttributes({ width: value }); } })];
+        }
+    });
 
-    registerContainerBlock('ajnanda/form', __('AJ Form', 'ncllc-pro'), __('Static form layout.', 'ncllc-pro'), 'aj-form', [['ajnanda/label'], ['ajnanda/input'], ['ajnanda/submit-button']]);
+    registerContainerBlock('ajnanda/form', __('AJ Form', 'ncllc-pro'), __('Static form layout.', 'ncllc-pro'), 'aj-form', [['ajnanda/label'], ['ajnanda/input'], ['ajnanda/submit-button']], {
+        attributes: { submitAction: { type: 'string', default: 'none' }, fieldGap: { type: 'number', default: 14 } },
+        controls: function(props) {
+            return [el(SelectControl, { label: __('Submit action', 'ncllc-pro'), value: props.attributes.submitAction || 'none', options: [{ label: __('Placeholder only', 'ncllc-pro'), value: 'none' }, { label: __('Email placeholder', 'ncllc-pro'), value: 'email' }, { label: __('Webhook placeholder', 'ncllc-pro'), value: 'webhook' }], onChange: function(value) { props.setAttributes({ submitAction: value }); } }), el(RangeControl, { label: __('Field gap', 'ncllc-pro'), min: 0, max: 48, value: props.attributes.fieldGap || 14, onChange: function(value) { props.setAttributes({ fieldGap: value, gap: value }); } })];
+        }
+    });
 
     function formFieldBlock(name, title, tag, defaults) {
         registerBlockType(name, {
             title: title,
             category: category,
             icon: 'forms',
-            attributes: withStyleAttributes(Object.assign({ text: { type: 'string', default: defaults.text || '' }, placeholder: { type: 'string', default: defaults.placeholder || '' }, name: { type: 'string', default: defaults.name || '' } }, defaults.attributes || {})),
+            attributes: withStyleAttributes(Object.assign({ text: { type: 'string', default: defaults.text || '' }, placeholder: { type: 'string', default: defaults.placeholder || '' }, name: { type: 'string', default: defaults.name || '' }, required: { type: 'boolean', default: false }, fieldType: { type: 'string', default: defaults.type || 'text' } }, defaults.attributes || {})),
             edit: function(props) {
                 var attrs = props.attributes;
                 return el(Fragment, {},
-                    inspector(controlsWithCommon(props, [field(__('Name', 'ncllc-pro'), attrs.name, function(value) { props.setAttributes({ name: value }); }), field(__('Placeholder', 'ncllc-pro'), attrs.placeholder, function(value) { props.setAttributes({ placeholder: value }); })])),
-                    tag === 'label' ? el(RichText, Object.assign({ tagName: 'label', value: attrs.text, placeholder: __('Label', 'ncllc-pro'), onChange: function(value) { props.setAttributes({ text: value }); } }, styledProps('aj-label', attrs))) : el(tag, Object.assign({ placeholder: attrs.placeholder, type: defaults.type || undefined, value: '', readOnly: true }, styledProps('aj-field', attrs)))
+                    inspector(controlsWithCommon(props, [
+                        field(__('Name', 'ncllc-pro'), attrs.name, function(value) { props.setAttributes({ name: value }); }),
+                        field(__('Placeholder', 'ncllc-pro'), attrs.placeholder, function(value) { props.setAttributes({ placeholder: value }); }),
+                        tag === 'input' && defaults.type !== 'checkbox' ? el(SelectControl, { label: __('Input type', 'ncllc-pro'), value: attrs.fieldType || 'text', options: [{ label: __('Text', 'ncllc-pro'), value: 'text' }, { label: __('Email', 'ncllc-pro'), value: 'email' }, { label: __('Phone', 'ncllc-pro'), value: 'tel' }, { label: __('Number', 'ncllc-pro'), value: 'number' }, { label: __('URL', 'ncllc-pro'), value: 'url' }], onChange: function(value) { props.setAttributes({ fieldType: value }); } }) : null,
+                        tag !== 'label' ? el(ToggleControl, { label: __('Required', 'ncllc-pro'), checked: !!attrs.required, onChange: function(value) { props.setAttributes({ required: value }); } }) : null
+                    ])),
+                    tag === 'label' ? el(RichText, Object.assign({ tagName: 'label', value: attrs.text, placeholder: __('Label', 'ncllc-pro'), onChange: function(value) { props.setAttributes({ text: value }); } }, styledProps('aj-label', attrs))) : el(tag, Object.assign({ placeholder: attrs.placeholder, type: attrs.fieldType || defaults.type || undefined, value: '', readOnly: true, required: !!attrs.required }, styledProps('aj-field', attrs)))
                 );
             },
             save: function(props) {
@@ -544,7 +776,7 @@
                 if (tag === 'label') {
                     return el(RichText.Content, Object.assign({ tagName: 'label', value: attrs.text }, styledProps('aj-label', attrs)));
                 }
-                return el(tag, Object.assign({ name: attrs.name, placeholder: attrs.placeholder, type: defaults.type || undefined }, styledProps('aj-field', attrs)));
+                return el(tag, Object.assign({ name: attrs.name, placeholder: attrs.placeholder, type: attrs.fieldType || defaults.type || undefined, required: !!attrs.required }, styledProps('aj-field', attrs)));
             }
         });
     }
@@ -570,13 +802,43 @@
         }
     });
 
-    registerContainerBlock('ajnanda/tabs', __('AJ Tabs', 'ncllc-pro'), __('Tabbed content placeholder.', 'ncllc-pro'), 'aj-tabs', [['core/heading', { level: 3, content: 'Tab Title' }], ['core/paragraph', { placeholder: 'Tab content' }]]);
-    registerContainerBlock('ajnanda/accordion', __('AJ Accordion', 'ncllc-pro'), __('Expandable content layout.', 'ncllc-pro'), 'aj-accordion', [['core/details', { summary: 'Accordion item' }]]);
-    registerContainerBlock('ajnanda/image-box', __('AJ Image Box', 'ncllc-pro'), __('Image with text.', 'ncllc-pro'), 'aj-image-box', [['ajnanda/image'], ['ajnanda/heading', { content: 'Image Box' }], ['ajnanda/text-editor']]);
-    registerContainerBlock('ajnanda/icon-box', __('AJ Icon Box', 'ncllc-pro'), __('Icon with text.', 'ncllc-pro'), 'aj-icon-box', [['ajnanda/icon'], ['ajnanda/heading', { content: 'Icon Box', level: 3 }], ['ajnanda/text-editor']]);
-    registerContainerBlock('ajnanda/basic-gallery', __('AJ Basic Gallery', 'ncllc-pro'), __('Simple image gallery wrapper.', 'ncllc-pro'), 'aj-gallery', [['core/gallery']]);
-    registerContainerBlock('ajnanda/image-gallery', __('AJ Image Gallery', 'ncllc-pro'), __('Simple image gallery wrapper.', 'ncllc-pro'), 'aj-gallery', [['core/gallery']]);
-    registerContainerBlock('ajnanda/icon-list', __('AJ Icon List', 'ncllc-pro'), __('List with icons.', 'ncllc-pro'), 'aj-icon-list', [['core/list', { values: '<li>List item</li><li>List item</li>' }]]);
+    registerContainerBlock('ajnanda/tabs', __('AJ Tabs', 'ncllc-pro'), __('Tabbed content placeholder.', 'ncllc-pro'), 'aj-tabs', [['core/heading', { level: 3, content: 'Tab Title' }], ['core/paragraph', { placeholder: 'Tab content' }]], {
+        attributes: { tabPosition: { type: 'string', default: 'top' }, activeTab: { type: 'number', default: 1 } },
+        controls: function(props) {
+            return [el(SelectControl, { label: __('Tab position', 'ncllc-pro'), value: props.attributes.tabPosition || 'top', options: [{ label: __('Top', 'ncllc-pro'), value: 'top' }, { label: __('Left', 'ncllc-pro'), value: 'left' }, { label: __('Right', 'ncllc-pro'), value: 'right' }], onChange: function(value) { props.setAttributes({ tabPosition: value }); } }), el(RangeControl, { label: __('Default active tab', 'ncllc-pro'), min: 1, max: 10, value: props.attributes.activeTab || 1, onChange: function(value) { props.setAttributes({ activeTab: value }); } })];
+        },
+        className: function(attrs) { return 'aj-tabs--' + attrs.tabPosition; }
+    });
+    registerContainerBlock('ajnanda/accordion', __('AJ Accordion', 'ncllc-pro'), __('Expandable content layout.', 'ncllc-pro'), 'aj-accordion', [['core/details', { summary: 'Accordion item' }]], {
+        attributes: { collapseOtherItems: { type: 'boolean', default: true }, expandFirstItem: { type: 'boolean', default: true }, iconPosition: { type: 'string', default: 'left' } },
+        controls: function(props) {
+            return [el(ToggleControl, { label: __('Collapse other items', 'ncllc-pro'), checked: !!props.attributes.collapseOtherItems, onChange: function(value) { props.setAttributes({ collapseOtherItems: value }); } }), el(ToggleControl, { label: __('Expand first item', 'ncllc-pro'), checked: !!props.attributes.expandFirstItem, onChange: function(value) { props.setAttributes({ expandFirstItem: value }); } }), el(SelectControl, { label: __('Icon position', 'ncllc-pro'), value: props.attributes.iconPosition || 'left', options: [{ label: __('Left', 'ncllc-pro'), value: 'left' }, { label: __('Right', 'ncllc-pro'), value: 'right' }], onChange: function(value) { props.setAttributes({ iconPosition: value }); } })];
+        },
+        className: function(attrs) { return 'aj-accordion--icon-' + attrs.iconPosition; }
+    });
+    registerContainerBlock('ajnanda/image-box', __('AJ Image Box', 'ncllc-pro'), __('Image with text.', 'ncllc-pro'), 'aj-image-box', [['ajnanda/image'], ['ajnanda/heading', { content: 'Image Box' }], ['ajnanda/text-editor']], {
+        attributes: { imagePosition: { type: 'string', default: 'top' } },
+        controls: function(props) {
+            return el(SelectControl, { label: __('Image position', 'ncllc-pro'), value: props.attributes.imagePosition || 'top', options: [{ label: __('Top', 'ncllc-pro'), value: 'top' }, { label: __('Left', 'ncllc-pro'), value: 'left' }, { label: __('Right', 'ncllc-pro'), value: 'right' }], onChange: function(value) { props.setAttributes({ imagePosition: value }); } });
+        },
+        className: function(attrs) { return 'aj-media-' + attrs.imagePosition; }
+    });
+    registerContainerBlock('ajnanda/icon-box', __('AJ Icon Box', 'ncllc-pro'), __('Icon with text.', 'ncllc-pro'), 'aj-icon-box', [['ajnanda/icon'], ['ajnanda/heading', { content: 'Icon Box', level: 3 }], ['ajnanda/text-editor']], {
+        attributes: { iconPosition: { type: 'string', default: 'top' } },
+        controls: function(props) {
+            return el(SelectControl, { label: __('Icon position', 'ncllc-pro'), value: props.attributes.iconPosition || 'top', options: [{ label: __('Top', 'ncllc-pro'), value: 'top' }, { label: __('Left', 'ncllc-pro'), value: 'left' }, { label: __('Right', 'ncllc-pro'), value: 'right' }], onChange: function(value) { props.setAttributes({ iconPosition: value }); } });
+        },
+        className: function(attrs) { return 'aj-media-' + attrs.iconPosition; }
+    });
+    registerContainerBlock('ajnanda/basic-gallery', __('AJ Basic Gallery', 'ncllc-pro'), __('Simple image gallery wrapper.', 'ncllc-pro'), 'aj-gallery', [['core/gallery']], { attributes: { columns: { type: 'number', default: 3 }, gap: { type: 'number', default: 16 } }, controls: gridControls });
+    registerContainerBlock('ajnanda/image-gallery', __('AJ Image Gallery', 'ncllc-pro'), __('Simple image gallery wrapper.', 'ncllc-pro'), 'aj-gallery', [['core/gallery']], { attributes: { columns: { type: 'number', default: 3 }, gap: { type: 'number', default: 16 } }, controls: gridControls });
+    registerContainerBlock('ajnanda/icon-list', __('AJ Icon List', 'ncllc-pro'), __('List with icons.', 'ncllc-pro'), 'aj-icon-list', [['core/list', { values: '<li>List item</li><li>List item</li>' }]], {
+        attributes: { icon: { type: 'string', default: '✓' }, layout: { type: 'string', default: 'stack' } },
+        controls: function(props) {
+            return [field(__('Icon', 'ncllc-pro'), props.attributes.icon, function(value) { props.setAttributes({ icon: value }); }, '✓'), el(SelectControl, { label: __('Layout', 'ncllc-pro'), value: props.attributes.layout || 'stack', options: [{ label: __('Stack', 'ncllc-pro'), value: 'stack' }, { label: __('Inline', 'ncllc-pro'), value: 'inline' }], onChange: function(value) { props.setAttributes({ layout: value }); } })];
+        },
+        className: function(attrs) { return 'aj-icon-list--' + attrs.layout; }
+    });
 
     registerBlockType('ajnanda/counter', {
         title: __('AJ Counter', 'ncllc-pro'),
@@ -651,27 +913,109 @@
         });
     }
 
-    dynamicBlock('ajnanda/posts', __('AJ Posts', 'ncllc-pro'), 'admin-post', { count: { type: 'number', default: 3 }, showExcerpt: { type: 'boolean', default: true }, buttonText: { type: 'string', default: 'Read More' } }, function(props) {
-        return [el(RangeControl, { label: __('Post count', 'ncllc-pro'), min: 1, max: 12, value: props.attributes.count, onChange: function(value) { props.setAttributes({ count: value }); } }), el(ToggleControl, { label: __('Show excerpt', 'ncllc-pro'), checked: !!props.attributes.showExcerpt, onChange: function(value) { props.setAttributes({ showExcerpt: value }); } }), field(__('Button text', 'ncllc-pro'), props.attributes.buttonText, function(value) { props.setAttributes({ buttonText: value }); })];
+    function postAttrs(defaultCount) {
+        return { count: { type: 'number', default: defaultCount }, showExcerpt: { type: 'boolean', default: true }, showImage: { type: 'boolean', default: true }, buttonText: { type: 'string', default: 'Read More' }, order: { type: 'string', default: 'desc' }, orderBy: { type: 'string', default: 'date' }, columns: { type: 'number', default: 3 } };
+    }
+
+    function postControls(props) {
+        return [
+            el(RangeControl, { label: __('Post count', 'ncllc-pro'), min: 1, max: 12, value: props.attributes.count, onChange: function(value) { props.setAttributes({ count: value }); } }),
+            el(RangeControl, { label: __('Columns', 'ncllc-pro'), min: 1, max: 4, value: props.attributes.columns || 3, onChange: function(value) { props.setAttributes({ columns: value }); } }),
+            el(SelectControl, { label: __('Order by', 'ncllc-pro'), value: props.attributes.orderBy || 'date', options: [{ label: __('Date', 'ncllc-pro'), value: 'date' }, { label: __('Title', 'ncllc-pro'), value: 'title' }, { label: __('Menu order', 'ncllc-pro'), value: 'menu_order' }], onChange: function(value) { props.setAttributes({ orderBy: value }); } }),
+            el(SelectControl, { label: __('Order', 'ncllc-pro'), value: props.attributes.order || 'desc', options: [{ label: __('Descending', 'ncllc-pro'), value: 'desc' }, { label: __('Ascending', 'ncllc-pro'), value: 'asc' }], onChange: function(value) { props.setAttributes({ order: value }); } }),
+            el(ToggleControl, { label: __('Show featured image', 'ncllc-pro'), checked: props.attributes.showImage !== false, onChange: function(value) { props.setAttributes({ showImage: value }); } }),
+            el(ToggleControl, { label: __('Show excerpt', 'ncllc-pro'), checked: !!props.attributes.showExcerpt, onChange: function(value) { props.setAttributes({ showExcerpt: value }); } }),
+            field(__('Button text', 'ncllc-pro'), props.attributes.buttonText, function(value) { props.setAttributes({ buttonText: value }); })
+        ];
+    }
+
+    dynamicBlock('ajnanda/posts', __('AJ Posts', 'ncllc-pro'), 'admin-post', postAttrs(3), postControls);
+    dynamicBlock('ajnanda/post-grid', __('AJ Post Grid', 'ncllc-pro'), 'grid-view', postAttrs(6), postControls);
+    dynamicBlock('ajnanda/post-carousel', __('AJ Post Carousel Placeholder', 'ncllc-pro'), 'images-alt2', Object.assign(postAttrs(6), { autoplay: { type: 'boolean', default: false }, delay: { type: 'number', default: 4 } }), function(props) {
+        return postControls(props).concat([el(ToggleControl, { label: __('Autoplay', 'ncllc-pro'), checked: !!props.attributes.autoplay, onChange: function(value) { props.setAttributes({ autoplay: value }); } }), el(RangeControl, { label: __('Delay seconds', 'ncllc-pro'), min: 1, max: 12, value: props.attributes.delay || 4, onChange: function(value) { props.setAttributes({ delay: value }); } })]);
     });
-    dynamicBlock('ajnanda/post-grid', __('AJ Post Grid', 'ncllc-pro'), 'grid-view', { count: { type: 'number', default: 6 }, showExcerpt: { type: 'boolean', default: true }, buttonText: { type: 'string', default: 'Read More' } }, function(props) {
-        return [el(RangeControl, { label: __('Post count', 'ncllc-pro'), min: 1, max: 12, value: props.attributes.count, onChange: function(value) { props.setAttributes({ count: value }); } }), el(ToggleControl, { label: __('Show excerpt', 'ncllc-pro'), checked: !!props.attributes.showExcerpt, onChange: function(value) { props.setAttributes({ showExcerpt: value }); } }), field(__('Button text', 'ncllc-pro'), props.attributes.buttonText, function(value) { props.setAttributes({ buttonText: value }); })];
+    dynamicBlock('ajnanda/post-timeline', __('AJ Post Timeline', 'ncllc-pro'), 'backup', Object.assign(postAttrs(5), { dateFormat: { type: 'string', default: 'M j, Y' } }), function(props) {
+        return postControls(props).concat(field(__('Date format', 'ncllc-pro'), props.attributes.dateFormat, function(value) { props.setAttributes({ dateFormat: value }); }, 'M j, Y'));
     });
-    dynamicBlock('ajnanda/post-carousel', __('AJ Post Carousel Placeholder', 'ncllc-pro'), 'images-alt2', { count: { type: 'number', default: 6 }, showExcerpt: { type: 'boolean', default: true }, buttonText: { type: 'string', default: 'Read More' } }, function(props) {
-        return [el(RangeControl, { label: __('Post count', 'ncllc-pro'), min: 1, max: 12, value: props.attributes.count, onChange: function(value) { props.setAttributes({ count: value }); } }), el(ToggleControl, { label: __('Show excerpt', 'ncllc-pro'), checked: !!props.attributes.showExcerpt, onChange: function(value) { props.setAttributes({ showExcerpt: value }); } }), field(__('Button text', 'ncllc-pro'), props.attributes.buttonText, function(value) { props.setAttributes({ buttonText: value }); })];
+    dynamicBlock('ajnanda/search', __('AJ Search', 'ncllc-pro'), 'search', {
+        placeholder: { type: 'string', default: 'Search...' },
+        buttonText: { type: 'string', default: 'Search' },
+        layout: { type: 'string', default: 'inline' },
+        buttonPosition: { type: 'string', default: 'right' }
+    }, function(props) {
+        return [
+            field(__('Placeholder', 'ncllc-pro'), props.attributes.placeholder, function(value) { props.setAttributes({ placeholder: value }); }),
+            field(__('Button text', 'ncllc-pro'), props.attributes.buttonText, function(value) { props.setAttributes({ buttonText: value }); }),
+            el(SelectControl, {
+                label: __('Layout', 'ncllc-pro'),
+                value: props.attributes.layout || 'inline',
+                options: [
+                    { label: __('Inline', 'ncllc-pro'), value: 'inline' },
+                    { label: __('Stacked', 'ncllc-pro'), value: 'stacked' }
+                ],
+                onChange: function(value) { props.setAttributes({ layout: value }); }
+            }),
+            el(SelectControl, {
+                label: __('Button position', 'ncllc-pro'),
+                value: props.attributes.buttonPosition || 'right',
+                options: [
+                    { label: __('Right', 'ncllc-pro'), value: 'right' },
+                    { label: __('Left', 'ncllc-pro'), value: 'left' }
+                ],
+                onChange: function(value) { props.setAttributes({ buttonPosition: value }); }
+            })
+        ];
     });
-    dynamicBlock('ajnanda/post-timeline', __('AJ Post Timeline', 'ncllc-pro'), 'backup', { count: { type: 'number', default: 5 }, showExcerpt: { type: 'boolean', default: true }, buttonText: { type: 'string', default: 'Read More' } }, function(props) {
-        return [el(RangeControl, { label: __('Post count', 'ncllc-pro'), min: 1, max: 12, value: props.attributes.count, onChange: function(value) { props.setAttributes({ count: value }); } }), el(ToggleControl, { label: __('Show excerpt', 'ncllc-pro'), checked: !!props.attributes.showExcerpt, onChange: function(value) { props.setAttributes({ showExcerpt: value }); } }), field(__('Button text', 'ncllc-pro'), props.attributes.buttonText, function(value) { props.setAttributes({ buttonText: value }); })];
+    dynamicBlock('ajnanda/nav-menu', __('AJ Menu/Nav Menu', 'ncllc-pro'), 'menu', {
+        menuLocation: { type: 'string', default: 'primary' },
+        layout: { type: 'string', default: 'horizontal' },
+        depth: { type: 'number', default: 2 },
+        dropdownOnHover: { type: 'boolean', default: true }
+    }, function(props) {
+        return [
+            el(SelectControl, { label: __('Menu location', 'ncllc-pro'), value: props.attributes.menuLocation, options: [{ label: 'Primary', value: 'primary' }, { label: 'Footer', value: 'footer' }], onChange: function(value) { props.setAttributes({ menuLocation: value }); } }),
+            el(SelectControl, { label: __('Layout', 'ncllc-pro'), value: props.attributes.layout || 'horizontal', options: [{ label: __('Horizontal', 'ncllc-pro'), value: 'horizontal' }, { label: __('Vertical', 'ncllc-pro'), value: 'vertical' }], onChange: function(value) { props.setAttributes({ layout: value }); } }),
+            el(RangeControl, { label: __('Menu depth', 'ncllc-pro'), min: 1, max: 4, value: props.attributes.depth || 2, onChange: function(value) { props.setAttributes({ depth: value }); } }),
+            el(ToggleControl, { label: __('Open submenu on hover', 'ncllc-pro'), checked: props.attributes.dropdownOnHover !== false, onChange: function(value) { props.setAttributes({ dropdownOnHover: value }); } })
+        ];
     });
-    dynamicBlock('ajnanda/search', __('AJ Search', 'ncllc-pro'), 'search', { placeholder: { type: 'string', default: 'Search...' }, buttonText: { type: 'string', default: 'Search' } }, function(props) {
-        return [field(__('Placeholder', 'ncllc-pro'), props.attributes.placeholder, function(value) { props.setAttributes({ placeholder: value }); }), field(__('Button text', 'ncllc-pro'), props.attributes.buttonText, function(value) { props.setAttributes({ buttonText: value }); })];
+    dynamicBlock('ajnanda/table-of-contents', __('AJ Table of Contents', 'ncllc-pro'), 'list-view', {
+        title: { type: 'string', default: 'On this page' },
+        minLevel: { type: 'number', default: 2 },
+        maxLevel: { type: 'number', default: 3 },
+        ordered: { type: 'boolean', default: true },
+        collapsible: { type: 'boolean', default: false }
+    }, function(props) {
+        return [
+            field(__('Title', 'ncllc-pro'), props.attributes.title, function(value) { props.setAttributes({ title: value }); }),
+            el(RangeControl, { label: __('Minimum heading level', 'ncllc-pro'), min: 1, max: 6, value: props.attributes.minLevel || 2, onChange: function(value) { props.setAttributes({ minLevel: value }); } }),
+            el(RangeControl, { label: __('Maximum heading level', 'ncllc-pro'), min: 1, max: 6, value: props.attributes.maxLevel || 3, onChange: function(value) { props.setAttributes({ maxLevel: value }); } }),
+            el(ToggleControl, { label: __('Ordered list', 'ncllc-pro'), checked: props.attributes.ordered !== false, onChange: function(value) { props.setAttributes({ ordered: value }); } }),
+            el(ToggleControl, { label: __('Collapsible placeholder', 'ncllc-pro'), checked: !!props.attributes.collapsible, onChange: function(value) { props.setAttributes({ collapsible: value }); } })
+        ];
     });
-    dynamicBlock('ajnanda/nav-menu', __('AJ Menu/Nav Menu', 'ncllc-pro'), 'menu', { menuLocation: { type: 'string', default: 'primary' } }, function(props) {
-        return el(SelectControl, { label: __('Menu location', 'ncllc-pro'), value: props.attributes.menuLocation, options: [{ label: 'Primary', value: 'primary' }, { label: 'Footer', value: 'footer' }], onChange: function(value) { props.setAttributes({ menuLocation: value }); } });
+    dynamicBlock('ajnanda/taxonomy-list', __('AJ Taxonomy List', 'ncllc-pro'), 'category', {
+        taxonomy: { type: 'string', default: 'category' },
+        layout: { type: 'string', default: 'pills' },
+        hideEmpty: { type: 'boolean', default: false },
+        showCount: { type: 'boolean', default: false }
+    }, function(props) {
+        return [
+            el(SelectControl, { label: __('Taxonomy', 'ncllc-pro'), value: props.attributes.taxonomy, options: [{ label: 'Categories', value: 'category' }, { label: 'Tags', value: 'post_tag' }], onChange: function(value) { props.setAttributes({ taxonomy: value }); } }),
+            el(SelectControl, { label: __('Layout', 'ncllc-pro'), value: props.attributes.layout || 'pills', options: [{ label: __('Pills', 'ncllc-pro'), value: 'pills' }, { label: __('List', 'ncllc-pro'), value: 'list' }, { label: __('Inline', 'ncllc-pro'), value: 'inline' }], onChange: function(value) { props.setAttributes({ layout: value }); } }),
+            el(ToggleControl, { label: __('Hide empty terms', 'ncllc-pro'), checked: !!props.attributes.hideEmpty, onChange: function(value) { props.setAttributes({ hideEmpty: value }); } }),
+            el(ToggleControl, { label: __('Show post count', 'ncllc-pro'), checked: !!props.attributes.showCount, onChange: function(value) { props.setAttributes({ showCount: value }); } })
+        ];
     });
-    dynamicBlock('ajnanda/table-of-contents', __('AJ Table of Contents', 'ncllc-pro'), 'list-view', {});
-    dynamicBlock('ajnanda/taxonomy-list', __('AJ Taxonomy List', 'ncllc-pro'), 'category', { taxonomy: { type: 'string', default: 'category' } }, function(props) {
-        return el(SelectControl, { label: __('Taxonomy', 'ncllc-pro'), value: props.attributes.taxonomy, options: [{ label: 'Categories', value: 'category' }, { label: 'Tags', value: 'post_tag' }], onChange: function(value) { props.setAttributes({ taxonomy: value }); } });
+    dynamicBlock('ajnanda/login-placeholder', __('AJ Login Placeholder', 'ncllc-pro'), 'admin-users', {
+        loggedOutText: { type: 'string', default: 'Login area placeholder.' },
+        loginText: { type: 'string', default: 'Log In' },
+        logoutText: { type: 'string', default: 'Log Out' }
+    }, function(props) {
+        return [
+            field(__('Logged out text', 'ncllc-pro'), props.attributes.loggedOutText, function(value) { props.setAttributes({ loggedOutText: value }); }),
+            field(__('Login button text', 'ncllc-pro'), props.attributes.loginText, function(value) { props.setAttributes({ loginText: value }); }),
+            field(__('Logout button text', 'ncllc-pro'), props.attributes.logoutText, function(value) { props.setAttributes({ logoutText: value }); })
+        ];
     });
-    dynamicBlock('ajnanda/login-placeholder', __('AJ Login Placeholder', 'ncllc-pro'), 'admin-users', {});
 })(window.wp);
