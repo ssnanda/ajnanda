@@ -45,10 +45,10 @@ add_action('after_setup_theme', 'ncllc_pro_setup');
  */
 function ncllc_pro_scripts() {
     // Enqueue main stylesheet
-    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.79');
+    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.80');
     
     // Enqueue custom JavaScript
-    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.79', true);
+    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.80', true);
     
     // Localize script
     wp_localize_script('ncllc-pro-script', 'ncllcData', array(
@@ -69,12 +69,12 @@ function ncllc_pro_block_editor_assets() {
         null
     );
 
-    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.79');
+    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.80');
     wp_enqueue_script(
         'ncllc-pro-editor-controls',
         get_template_directory_uri() . '/js/editor-controls.js',
         array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-element', 'wp-hooks'),
-        '1.0.79',
+        '1.0.80',
         true
     );
 }
@@ -1407,6 +1407,24 @@ function ncllc_pro_customize_register($wp_customize) {
         'description' => __('Advanced responsive width controls for Header Builder slots.', 'ncllc-pro'),
     ));
 
+    $wp_customize->add_setting('header_background_color', array(
+        'default'           => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ));
+
+    if (class_exists('WP_Customize_Color_Control')) {
+        $wp_customize->add_control(new WP_Customize_Color_Control(
+            $wp_customize,
+            'header_background_color',
+            array(
+                'label'       => __('Header Background Color', 'ncllc-pro'),
+                'description' => __('Set the header background color.', 'ncllc-pro'),
+                'section'     => 'ncllc_header',
+            )
+        ));
+    }
+
     $wp_customize->add_setting('header_layout', array(
         'default'           => 'logo-left-menu-right',
         'sanitize_callback' => 'ncllc_pro_sanitize_choice',
@@ -1552,6 +1570,24 @@ function ncllc_pro_customize_register($wp_customize) {
         'priority'    => 27,
         'description' => __('Advanced responsive width controls for Footer Builder slots.', 'ncllc-pro'),
     ));
+
+    $wp_customize->add_setting('footer_background_color', array(
+        'default'           => '#111827',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ));
+
+    if (class_exists('WP_Customize_Color_Control')) {
+        $wp_customize->add_control(new WP_Customize_Color_Control(
+            $wp_customize,
+            'footer_background_color',
+            array(
+                'label'       => __('Footer Background Color', 'ncllc-pro'),
+                'description' => __('Set the footer background color.', 'ncllc-pro'),
+                'section'     => 'ncllc_footer',
+            )
+        ));
+    }
 
     $wp_customize->add_setting('ajn_builder_button_text', array(
         'default'           => __('Contact Us', 'ncllc-pro'),
@@ -2212,6 +2248,8 @@ function ncllc_pro_customizer_css() {
     $theme_primary_dark_color = get_theme_mod('theme_primary_dark_color', '#1e40af');
     $theme_secondary_color = get_theme_mod('theme_secondary_color', '#7c3aed');
     $theme_accent_color = get_theme_mod('theme_accent_color', '#f59e0b');
+    $header_background_color = get_theme_mod('header_background_color', '#ffffff');
+    $footer_background_color = get_theme_mod('footer_background_color', '#111827');
 
     $old_logo_height = get_theme_mod('logo_height', '50');
     $old_header_padding = get_theme_mod('header_padding', '0.75');
@@ -2249,6 +2287,8 @@ function ncllc_pro_customizer_css() {
             --primary-dark: <?php echo esc_attr($theme_primary_dark_color); ?>;
             --secondary: <?php echo esc_attr($theme_secondary_color); ?>;
             --accent: <?php echo esc_attr($theme_accent_color); ?>;
+            --ajn-header-background: <?php echo esc_attr($header_background_color); ?>;
+            --ajn-footer-background: <?php echo esc_attr($footer_background_color); ?>;
             --ast-global-color-0: <?php echo esc_attr($theme_primary_color); ?>;
             --ast-global-color-1: <?php echo esc_attr($theme_primary_dark_color); ?>;
             --ast-global-color-2: <?php echo esc_attr($theme_secondary_color); ?>;
