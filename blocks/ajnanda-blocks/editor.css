@@ -67,8 +67,19 @@
     pointer-events: none;
 }
 
-.aj-container-insert {
+.aj-container-insert,
+.aj-container-insert.components-dropdown-menu {
     position: absolute !important;
+    width: 28px !important;
+    min-width: 28px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    pointer-events: auto;
+    transform: translate(-50%, -50%);
+}
+
+.aj-container-insert.components-dropdown-menu .components-button,
+.aj-container-insert:not(.components-dropdown-menu) {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -84,8 +95,6 @@
     font-size: 20px !important;
     font-weight: 600 !important;
     line-height: 1 !important;
-    pointer-events: auto;
-    transform: translate(-50%, -50%);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
 }
 

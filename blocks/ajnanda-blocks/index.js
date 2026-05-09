@@ -24,6 +24,7 @@
     var SelectControl = wp.components.SelectControl;
     var Button = wp.components.Button;
     var ButtonGroup = wp.components.ButtonGroup;
+    var DropdownMenu = wp.components.DropdownMenu;
     var ServerSideRender = wp.serverSideRender;
     var category = 'ajnanda-blocks';
 
@@ -203,14 +204,20 @@
                     var block = select('core/block-editor').getBlock(props.clientId);
                     var parentId = select('core/block-editor').getBlockRootClientId(props.clientId);
                     var parentBlock = parentId ? select('core/block-editor').getBlock(parentId) : null;
+                    var grandParentId = parentId ? select('core/block-editor').getBlockRootClientId(parentId) : null;
+                    var grandParentBlock = grandParentId ? select('core/block-editor').getBlock(grandParentId) : null;
                     var index = parentId ? select('core/block-editor').getBlockIndex(props.clientId, parentId) : 0;
+                    var parentIndex = grandParentId ? select('core/block-editor').getBlockIndex(parentId, grandParentId) : 0;
 
                     return {
                         hasChildBlocks: !!(block && block.innerBlocks && block.innerBlocks.length),
                         innerCount: block && block.innerBlocks ? block.innerBlocks.length : 0,
                         parentId: parentId,
                         parentBlock: parentBlock,
-                        index: index
+                        grandParentId: grandParentId,
+                        grandParentBlock: grandParentBlock,
+                        index: index,
+                        parentIndex: parentIndex
                     };
                 }, [props.clientId]) : false;
                 var shouldChooseLayout = name === 'ajnanda/container' && !props.attributes.layoutSelected && !(blockContext && blockContext.hasChildBlocks);
@@ -334,6 +341,10 @@
         ]);
     }
 
+    function containerBlankBlock() {
+        return containerChild(__('Container', 'ncllc-pro'), { label: __('Container', 'ncllc-pro') });
+    }
+
     function containerHeadingBlock() {
         return containerChild(__('Heading Container', 'ncllc-pro'), { label: __('Heading Container', 'ncllc-pro'), alignItems: 'center', containerType: 'header' }, [
             createBlock('core/heading', { level: 2, content: __('Section heading', 'ncllc-pro'), textAlign: 'center' }),
@@ -341,15 +352,48 @@
         ]);
     }
 
+    function containerBlockForInsert(type) {
+        switch (type) {
+            case 'heading':
+                return containerHeadingBlock();
+            case 'row-two':
+                return containerColumns(__('Tile Container', 'ncllc-pro'), 2);
+            case 'row-three':
+                return containerColumns(__('Tile Container', 'ncllc-pro'), 3);
+            case 'button':
+                return containerFooterBlock();
+            default:
+                return containerBlankBlock();
+        }
+    }
+
+    function containerInsertTarget(props, context) {
+        var parentBlock = context && context.parentBlock;
+        var parentAttrs = parentBlock && parentBlock.attributes ? parentBlock.attributes : {};
+        var parentIsColumnRow = parentBlock && parentBlock.name === 'ajnanda/container' && (parentAttrs.layoutMode === 'grid' || parentAttrs.containerType === 'row');
+
+        if (parentIsColumnRow && context.grandParentId) {
+            return { parentId: context.grandParentId, index: context.parentIndex };
+        }
+
+        if (context && context.parentId) {
+            return { parentId: context.parentId, index: context.index };
+        }
+
+        return { parentId: props.clientId, index: 0 };
+    }
+
     function insertContainerBlock(props, context, position, block) {
         var editor = dispatch && dispatch('core/block-editor');
+        var target;
 
         if (!editor || !block) {
             return;
         }
 
-        if (context && context.parentId && (position === 'before' || position === 'after')) {
-            editor.insertBlocks(block, position === 'before' ? context.index : context.index + 1, context.parentId);
+        if (position === 'before' || position === 'after') {
+            target = containerInsertTarget(props, context);
+            editor.insertBlocks(block, position === 'before' ? target.index : target.index + 1, target.parentId);
             return;
         }
 
@@ -361,42 +405,66 @@
         var parentBlock = context && context.parentBlock;
         var parentAttrs = parentBlock && parentBlock.attributes ? parentBlock.attributes : {};
         var parentIsColumnRow = parentBlock && parentBlock.name === 'ajnanda/container' && (parentAttrs.layoutMode === 'grid' || parentAttrs.containerType === 'row');
+        var currentIsColumnRow = props.name === 'ajnanda/container' && (props.attributes.layoutMode === 'grid' || props.attributes.containerType === 'row');
         var block;
         var nextColumns;
 
-        if (!editor || !context || !context.parentId || !parentIsColumnRow) {
+        if (!editor || !context || (!parentIsColumnRow && !currentIsColumnRow)) {
             return;
         }
 
         block = containerChild(__('Column', 'ncllc-pro'), { label: __('Column', 'ncllc-pro'), containerType: 'tile' });
-        nextColumns = Math.max(1, (parentBlock.innerBlocks ? parentBlock.innerBlocks.length : 0) + 1);
 
-        editor.insertBlocks(block, position === 'left' ? context.index : context.index + 1, context.parentId);
-        editor.updateBlockAttributes(context.parentId, { columns: nextColumns });
+        if (parentIsColumnRow && context.parentId) {
+            nextColumns = Math.max(1, (parentBlock.innerBlocks ? parentBlock.innerBlocks.length : 0) + 1);
+            editor.insertBlocks(block, position === 'left' ? context.index : context.index + 1, context.parentId);
+            editor.updateBlockAttributes(context.parentId, { columns: nextColumns });
+            return;
+        }
+
+        nextColumns = Math.max(1, (context.innerCount || 0) + 1);
+        editor.insertBlocks(block, position === 'left' ? 0 : undefined, props.clientId);
+        editor.updateBlockAttributes(props.clientId, { columns: nextColumns });
+    }
+
+    function containerInsertDropdown(className, label, onSelect) {
+        var controls = [
+            { title: __('Heading container', 'ncllc-pro'), onClick: function() { onSelect('heading'); } },
+            { title: __('Blank container', 'ncllc-pro'), onClick: function() { onSelect('blank'); } },
+            { title: __('2 column row', 'ncllc-pro'), onClick: function() { onSelect('row-two'); } },
+            { title: __('3 column row', 'ncllc-pro'), onClick: function() { onSelect('row-three'); } },
+            { title: __('Button row', 'ncllc-pro'), onClick: function() { onSelect('button'); } }
+        ];
+
+        return DropdownMenu ? el(DropdownMenu, {
+            className: className,
+            icon: 'plus',
+            label: label,
+            controls: controls,
+            popoverProps: { placement: 'bottom-start' }
+        }) : el(Button, { className: className, label: label, onClick: function() { onSelect('blank'); } }, '+');
     }
 
     function containerInsertionControls(props, context) {
         var parentBlock = context && context.parentBlock;
         var parentAttrs = parentBlock && parentBlock.attributes ? parentBlock.attributes : {};
         var parentIsColumnRow = parentBlock && parentBlock.name === 'ajnanda/container' && (parentAttrs.layoutMode === 'grid' || parentAttrs.containerType === 'row');
+        var currentIsColumnRow = props.name === 'ajnanda/container' && (props.attributes.layoutMode === 'grid' || props.attributes.containerType === 'row');
+        var showColumnControls = parentIsColumnRow || currentIsColumnRow;
 
         return el('div', { className: 'aj-container-insert-controls', 'aria-hidden': false },
-            el(Button, {
-                className: 'aj-container-insert aj-container-insert--top',
-                label: __('Add heading/container above', 'ncllc-pro'),
-                onClick: function() { insertContainerBlock(props, context, 'before', containerHeadingBlock()); }
-            }, '+'),
-            el(Button, {
-                className: 'aj-container-insert aj-container-insert--bottom',
-                label: __('Add footer/button below', 'ncllc-pro'),
-                onClick: function() { insertContainerBlock(props, context, 'after', containerFooterBlock()); }
-            }, '+'),
-            parentIsColumnRow ? el(Button, {
+            containerInsertDropdown('aj-container-insert aj-container-insert--top', __('Add above', 'ncllc-pro'), function(type) {
+                insertContainerBlock(props, context, 'before', containerBlockForInsert(type));
+            }),
+            containerInsertDropdown('aj-container-insert aj-container-insert--bottom', __('Add below', 'ncllc-pro'), function(type) {
+                insertContainerBlock(props, context, 'after', containerBlockForInsert(type));
+            }),
+            showColumnControls ? el(Button, {
                 className: 'aj-container-insert aj-container-insert--left',
                 label: __('Add column on the left', 'ncllc-pro'),
                 onClick: function() { insertContainerColumn(props, context, 'left'); }
             }, '+') : null,
-            parentIsColumnRow ? el(Button, {
+            showColumnControls ? el(Button, {
                 className: 'aj-container-insert aj-container-insert--right',
                 label: __('Add column on the right', 'ncllc-pro'),
                 onClick: function() { insertContainerColumn(props, context, 'right'); }
