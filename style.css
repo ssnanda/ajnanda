@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: http://ncllc.ddev.site/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.0.77
+Version: 1.0.78
 License: GNU General Public License v2 or later
 Text Domain: ncllc-pro
 */
@@ -587,7 +587,14 @@ body.admin-bar .site-header {
     list-style: none;
 }
 
+.footer-menu li {
+    position: relative;
+    margin: 0;
+    list-style: none;
+}
+
 .footer-menu a {
+    display: block;
     color: #fff;
     text-decoration: none;
 }
@@ -595,6 +602,43 @@ body.admin-bar .site-header {
 .footer-menu a:hover,
 .footer-menu a:focus {
     color: var(--accent, #f59e0b);
+}
+
+.footer-menu .sub-menu {
+    position: absolute;
+    right: 0;
+    bottom: 100%;
+    z-index: 1002;
+    display: none;
+    min-width: 240px;
+    margin: 0 0 0.75rem;
+    padding: 0.5rem;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 0.75rem;
+    background: #fff;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+}
+
+.footer-menu li:hover > .sub-menu,
+.footer-menu li:focus-within > .sub-menu {
+    display: block;
+}
+
+.footer-menu .sub-menu a {
+    color: var(--gray-800);
+    padding: 0.65rem 0.75rem;
+    white-space: nowrap;
+}
+
+.footer-menu .sub-menu a:hover,
+.footer-menu .sub-menu a:focus {
+    color: var(--primary);
+    background: var(--gray-50);
+}
+
+.footer-menu .sub-menu .sub-menu {
+    right: 100%;
+    bottom: 0;
 }
 
 .footer-builder-container .ajn-builder-row {
@@ -2589,6 +2633,20 @@ body.admin-bar .site-header {
     }
     .footer-menu {
         justify-content: center;
+    }
+    .footer-menu .sub-menu,
+    .footer-menu .sub-menu .sub-menu {
+        position: static;
+        display: none;
+        min-width: 0;
+        margin: 0.5rem 0 0;
+    }
+    .footer-menu li:hover > .sub-menu,
+    .footer-menu li:focus-within > .sub-menu {
+        display: block;
+    }
+    .footer-menu .sub-menu a {
+        white-space: normal;
     }
     .ajn-customizer-builder-cell {
         flex: var(--ajn-builder-width-mobile, 1) 1 0;

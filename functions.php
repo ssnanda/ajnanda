@@ -45,10 +45,10 @@ add_action('after_setup_theme', 'ncllc_pro_setup');
  */
 function ncllc_pro_scripts() {
     // Enqueue main stylesheet
-    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.77');
+    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.78');
     
     // Enqueue custom JavaScript
-    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.77', true);
+    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.78', true);
     
     // Localize script
     wp_localize_script('ncllc-pro-script', 'ncllcData', array(
@@ -69,12 +69,12 @@ function ncllc_pro_block_editor_assets() {
         null
     );
 
-    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.77');
+    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.78');
     wp_enqueue_script(
         'ncllc-pro-editor-controls',
         get_template_directory_uri() . '/js/editor-controls.js',
         array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-element', 'wp-hooks'),
-        '1.0.77',
+        '1.0.78',
         true
     );
 }
@@ -1078,7 +1078,7 @@ function ncllc_pro_register_builder_controls($wp_customize, $builder, $section, 
             $wp_customize->add_setting($setting_id, array(
                 'default'           => ncllc_pro_builder_default($builder, $row, $cell),
                 'sanitize_callback' => 'ncllc_pro_sanitize_choice',
-                'transport'         => 'refresh',
+                'transport'         => 'postMessage',
             ));
 
             $wp_customize->add_control($setting_id, array(
@@ -1787,6 +1787,7 @@ function ncllc_pro_customizer_live_preview() {
         var builderInsertChoices = <?php echo wp_json_encode($builder_insert_choices); ?>;
         var activeInsertControl = '';
         var activeInsertBuilder = '';
+        var activeInsertCell = null;
         var builderPreviews = {
             header: document.querySelector('.ajn-customizer-header-builder'),
             footer: document.querySelector('.ajn-customizer-footer-builder')
@@ -1820,12 +1821,6 @@ function ncllc_pro_customizer_live_preview() {
             if (builderPreviews[type]) {
                 builderPreviews[type].classList.add('is-active');
             }
-        }
-
-        function rememberBuilderPreview(type) {
-            try {
-                window.sessionStorage.setItem('ajnActiveBuilderPreview', type);
-            } catch (error) {}
         }
 
         function getCustomizerManager() {
@@ -1886,10 +1881,9 @@ function ncllc_pro_customizer_live_preview() {
                 }
 
                 event.preventDefault();
-                rememberBuilderPreview(activeInsertBuilder || 'footer');
                 setCustomizerControl(activeInsertControl, choice.getAttribute('data-ajn-insert-value'));
+                renderBuilderCellElement(activeInsertCell, activeInsertBuilder || 'footer', activeInsertControl, choice.getAttribute('data-ajn-insert-value'));
                 hideInsertPopover();
-                refreshCustomizerPreview();
             });
 
             return popover;
@@ -1919,6 +1913,7 @@ function ncllc_pro_customizer_live_preview() {
 
             activeInsertControl = '';
             activeInsertBuilder = '';
+            activeInsertCell = null;
         }
 
         function showInsertPopover(button) {
@@ -1929,6 +1924,7 @@ function ncllc_pro_customizer_live_preview() {
 
             activeInsertControl = button.getAttribute('data-ajn-insert-control') || '';
             activeInsertBuilder = builder;
+            activeInsertCell = button.closest('.ajn-customizer-builder-cell');
             grid.innerHTML = '';
 
             Object.keys(choices).forEach(function(value) {
@@ -1956,13 +1952,15 @@ function ncllc_pro_customizer_live_preview() {
         }
 
         function focusCustomizerControl(controlId) {
-            if (!window.parent || !window.parent.wp || !window.parent.wp.customize || !window.parent.wp.customize.control) {
+            var manager = getCustomizerManager();
+
+            if (!manager || !manager.control) {
                 return;
             }
 
-            var control = window.parent.wp.customize.control(controlId);
-            var section = window.parent.wp.customize.section ? window.parent.wp.customize.section(controlId) : null;
-            var panel = window.parent.wp.customize.panel ? window.parent.wp.customize.panel(controlId) : null;
+            var control = manager.control(controlId);
+            var section = manager.section ? manager.section(controlId) : null;
+            var panel = manager.panel ? manager.panel(controlId) : null;
 
             if (control && control.focus) {
                 control.focus();
@@ -1976,7 +1974,111 @@ function ncllc_pro_customizer_live_preview() {
 
             if (panel && panel.focus) {
                 panel.focus();
+                return;
             }
+
+            if (controlId.indexOf('sidebar-widgets-') === 0 && manager.panel) {
+                panel = manager.panel('widgets');
+
+                if (panel && panel.focus) {
+                    panel.focus();
+                }
+            }
+        }
+
+        function getBuilderElementLabel(builder, value) {
+            var choices = builderInsertChoices[builder] || builderInsertChoices.footer || {};
+
+            return choices[value] || value;
+        }
+
+        function getBuilderElementFocusControl(builder, value, fallbackControlId) {
+            if ('site-logo' === value) {
+                return 'custom_logo';
+            }
+
+            if ('primary-menu' === value) {
+                return 'nav_menu_locations[primary]';
+            }
+
+            if ('footer-menu' === value) {
+                return 'nav_menu_locations[footer]';
+            }
+
+            if ('footer' === builder && ('button' === value || 'button-1' === value)) {
+                return 'ajn_footer_builder_button_text';
+            }
+
+            if ('button' === value || 'button-1' === value) {
+                return 'ajn_builder_button_text';
+            }
+
+            if ('button-2' === value) {
+                return 'ajn_builder_button_2_text';
+            }
+
+            if ('copyright' === value) {
+                return 'footer_bottom_text';
+            }
+
+            if ('html-1' === value) {
+                return 'ajn_builder_html_1';
+            }
+
+            if ('html-2' === value) {
+                return 'ajn_builder_html_2';
+            }
+
+            if ('social' === value) {
+                return 'ajn_builder_social_1_url';
+            }
+
+            if (0 === value.indexOf('widget-')) {
+                return 'sidebar-widgets-' + builder + '-builder-' + value.replace('widget-', '');
+            }
+
+            return fallbackControlId;
+        }
+
+        function renderBuilderCellAdd(cell, builder, controlId) {
+            var addButton = document.createElement('button');
+
+            if (!cell) {
+                return;
+            }
+
+            addButton.type = 'button';
+            addButton.className = 'ajn-customizer-builder-add';
+            addButton.setAttribute('data-ajn-insert-control', controlId);
+            addButton.setAttribute('data-ajn-builder', builder);
+            addButton.textContent = '+';
+
+            cell.textContent = '';
+            cell.appendChild(addButton);
+        }
+
+        function renderBuilderCellElement(cell, builder, controlId, value) {
+            var chip = document.createElement('button');
+            var remove = document.createElement('span');
+
+            if (!cell || 'none' === value) {
+                renderBuilderCellAdd(cell, builder, controlId);
+                return;
+            }
+
+            chip.type = 'button';
+            chip.className = 'ajn-customizer-builder-chip';
+            chip.setAttribute('data-ajn-focus-control', getBuilderElementFocusControl(builder, value, controlId));
+            chip.appendChild(document.createTextNode(getBuilderElementLabel(builder, value)));
+
+            remove.setAttribute('aria-hidden', 'true');
+            remove.className = 'ajn-customizer-builder-remove';
+            remove.setAttribute('data-ajn-clear-control', controlId);
+            remove.textContent = '\u00d7';
+
+            chip.appendChild(remove);
+            cell.textContent = '';
+            cell.appendChild(chip);
         }
 
         function clearCustomizerControl(controlId) {
@@ -2010,13 +2112,17 @@ function ncllc_pro_customizer_live_preview() {
                 event.preventDefault();
                 event.stopPropagation();
                 clearCustomizerControl(clearButton.getAttribute('data-ajn-clear-control'));
+                renderBuilderCellAdd(
+                    clearButton.closest('.ajn-customizer-builder-cell'),
+                    clearButton.closest('.ajn-customizer-header-builder') ? 'header' : 'footer',
+                    clearButton.getAttribute('data-ajn-clear-control')
+                );
                 return;
             }
 
             if (setButton) {
                 event.preventDefault();
                 event.stopPropagation();
-                rememberBuilderPreview(setButton.closest('.ajn-customizer-header-builder') ? 'header' : 'footer');
                 setCustomizerControl(setButton.getAttribute('data-ajn-set-control'), setButton.getAttribute('data-ajn-set-value'));
                 hideInsertPopover();
                 refreshCustomizerPreview();
@@ -2050,17 +2156,6 @@ function ncllc_pro_customizer_live_preview() {
                 showBuilderPreview('footer');
             }
         }, true);
-
-        try {
-            var restoredBuilderPreview = window.sessionStorage.getItem('ajnActiveBuilderPreview');
-
-            if (restoredBuilderPreview && builderPreviews[restoredBuilderPreview]) {
-                window.sessionStorage.removeItem('ajnActiveBuilderPreview');
-                window.setTimeout(function() {
-                    showBuilderPreview(restoredBuilderPreview);
-                }, 250);
-            }
-        } catch (error) {}
 
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
