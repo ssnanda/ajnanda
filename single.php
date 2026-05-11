@@ -26,7 +26,7 @@ get_header(); ?>
             <?php else : ?>
                 <section class="page-hero blog-hero">
                     <div class="container">
-                        <div class="page-hero-badge"><?php esc_html_e('NC LLC Agents Inc', 'ncllc-pro'); ?></div>
+                        <div class="page-hero-badge"><?php echo esc_html(get_bloginfo('name')); ?></div>
                         <?php the_title('<h1 class="entry-title">', '</h1>'); ?>
                         <?php if (has_excerpt()) : ?>
                             <p><?php echo esc_html(get_the_excerpt()); ?></p>

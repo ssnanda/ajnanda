@@ -29,7 +29,7 @@ if (!$page_intro) {
     <?php else : ?>
         <section class="page-hero blog-hero">
             <div class="container">
-                <div class="page-hero-badge"><?php esc_html_e('NC LLC Agents Inc', 'ncllc-pro'); ?></div>
+                <div class="page-hero-badge"><?php echo esc_html(get_bloginfo('name')); ?></div>
                 <h1 class="entry-title"><?php echo esc_html($page_title); ?></h1>
                 <p><?php echo esc_html($page_intro); ?></p>
             </div>
