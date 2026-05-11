@@ -9,14 +9,24 @@
 
 get_header();
 
+// Check if this is the static posts page with custom content
 $posts_page_id = (int) get_option('page_for_posts');
-$page_title = $posts_page_id ? get_the_title($posts_page_id) : __('Knowledge Base', 'ncllc-pro');
-$page_intro = $posts_page_id ? get_post_field('post_excerpt', $posts_page_id) : '';
-$page_content = $posts_page_id ? get_post_field('post_content', $posts_page_id) : '';
+$page_content = '';
 
-if (!$page_intro) {
-    $page_intro = __('Expert insights on North Carolina business compliance, LLC formation, and registered agent services.', 'ncllc-pro');
+if (is_home() && $posts_page_id) {
+    // Static posts page - use its title/excerpt/content
+    $page_title = get_the_title($posts_page_id);
+    $page_intro = get_post_field('post_excerpt', $posts_page_id);
+    $page_content = get_post_field('post_content', $posts_page_id);
+} else {
+    // All archives (category, tag, date, author, search) - use WordPress APIs
+    $page_title = get_the_archive_title();
+    $page_intro = get_the_archive_description();
 }
+
+// Clean up HTML tags from descriptions
+$page_title = strip_tags($page_title);
+$page_intro = strip_tags($page_intro);
 ?>
 
 <main id="main-content" class="site-main">
@@ -29,9 +39,15 @@ if (!$page_intro) {
     <?php else : ?>
         <section class="page-hero blog-hero">
             <div class="container">
-                <div class="page-hero-badge"><?php echo esc_html(get_bloginfo('name')); ?></div>
+                <?php if (is_home() && $posts_page_id) : ?>
+                    <div class="page-hero-badge"><?php echo esc_html(get_bloginfo('name')); ?></div>
+                <?php else : ?>
+                    <div class="page-hero-badge"><?php echo esc_html(get_post_type_object('post')->labels->name); ?></div>
+                <?php endif; ?>
                 <h1 class="entry-title"><?php echo esc_html($page_title); ?></h1>
-                <p><?php echo esc_html($page_intro); ?></p>
+                <?php if ($page_intro) : ?>
+                    <p><?php echo esc_html($page_intro); ?></p>
+                <?php endif; ?>
             </div>
         </section>
     <?php endif; ?>
