@@ -45,10 +45,10 @@ add_action('after_setup_theme', 'ncllc_pro_setup');
  */
 function ncllc_pro_scripts() {
     // Enqueue main stylesheet
-    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.0.99');
+    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.1.0');
     
     // Enqueue custom JavaScript
-    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.0.99', true);
+    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.1.0', true);
     
     // Localize script
     wp_localize_script('ncllc-pro-script', 'ncllcData', array(
@@ -69,12 +69,12 @@ function ncllc_pro_block_editor_assets() {
         null
     );
 
-    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.0.99');
+    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.1.0');
     wp_enqueue_script(
         'ncllc-pro-editor-controls',
         get_template_directory_uri() . '/js/editor-controls.js',
         array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-element', 'wp-hooks'),
-        '1.0.99',
+        '1.1.0',
         true
     );
 }
@@ -432,6 +432,50 @@ function ncllc_pro_sanitize_css_color($value) {
     }
 
     return '';
+}
+
+/**
+ * Sanitize CSS backgrounds used by Header/Footer controls.
+ */
+function ncllc_pro_sanitize_css_background($value) {
+    $value = trim((string) $value);
+
+    if ('' === $value) {
+        return '';
+    }
+
+    $color = ncllc_pro_sanitize_css_color($value);
+    if ($color) {
+        return $color;
+    }
+
+    if (preg_match('/^(linear|radial)-gradient\([#%.,\s0-9a-zA-Z-]+\)$/', $value) && false === stripos($value, 'url') && false === stripos($value, 'expression')) {
+        return $value;
+    }
+
+    return '';
+}
+
+function ncllc_pro_sanitize_font_family($value) {
+    $allowed = array('inherit', 'Inter', 'Poppins', 'Arial', 'Georgia', 'system-ui');
+
+    return in_array($value, $allowed, true) ? $value : 'inherit';
+}
+
+function ncllc_pro_sanitize_font_weight($value) {
+    $allowed = array('400', '500', '600', '700', '800');
+
+    return in_array((string) $value, $allowed, true) ? (string) $value : '500';
+}
+
+function ncllc_pro_sanitize_checkbox($value) {
+    return (bool) $value;
+}
+
+function ncllc_pro_sanitize_opacity($value) {
+    $value = (float) $value;
+
+    return (string) min(1, max(0, $value));
 }
 
 
@@ -1597,21 +1641,16 @@ function ncllc_pro_customize_register($wp_customize) {
 
     $wp_customize->add_setting('header_background_color', array(
         'default'           => '#ffffff',
-        'sanitize_callback' => 'sanitize_hex_color',
+        'sanitize_callback' => 'ncllc_pro_sanitize_css_background',
         'transport'         => 'refresh',
     ));
 
-    if (class_exists('WP_Customize_Color_Control')) {
-        $wp_customize->add_control(new WP_Customize_Color_Control(
-            $wp_customize,
-            'header_background_color',
-            array(
-                'label'       => __('Header Background Color', 'ncllc-pro'),
-                'description' => __('Set the header background color.', 'ncllc-pro'),
-                'section'     => 'ncllc_header',
-            )
-        ));
-    }
+    $wp_customize->add_control('header_background_color', array(
+        'label'       => __('Header Background', 'ncllc-pro'),
+        'description' => __('Use a color or gradient. Example: linear-gradient(90deg, #ffffff, #eef6ff).', 'ncllc-pro'),
+        'section'     => 'ncllc_header',
+        'type'        => 'text',
+    ));
 
     $wp_customize->add_setting('header_text_color', array(
         'default'           => '#1f2937',
@@ -1630,6 +1669,119 @@ function ncllc_pro_customize_register($wp_customize) {
             )
         ));
     }
+
+    $header_color_controls = array(
+        'header_link_hover_color'        => array('label' => __('Header Link Hover Color', 'ncllc-pro'), 'default' => '#2563eb'),
+        'header_link_hover_background'   => array('label' => __('Header Link Hover Background', 'ncllc-pro'), 'default' => '#f9fafb'),
+        'header_submenu_background'      => array('label' => __('Header Submenu Background', 'ncllc-pro'), 'default' => '#ffffff'),
+        'header_submenu_text_color'      => array('label' => __('Header Submenu Text Color', 'ncllc-pro'), 'default' => '#1f2937'),
+        'header_submenu_hover_color'     => array('label' => __('Header Submenu Hover Text Color', 'ncllc-pro'), 'default' => '#2563eb'),
+        'header_submenu_hover_background'=> array('label' => __('Header Submenu Hover Background', 'ncllc-pro'), 'default' => '#f9fafb'),
+    );
+
+    foreach ($header_color_controls as $setting_id => $control) {
+        $wp_customize->add_setting($setting_id, array(
+            'default'           => $control['default'],
+            'sanitize_callback' => 'sanitize_hex_color',
+            'transport'         => 'refresh',
+        ));
+
+        if (class_exists('WP_Customize_Color_Control')) {
+            $wp_customize->add_control(new WP_Customize_Color_Control(
+                $wp_customize,
+                $setting_id,
+                array(
+                    'label'   => $control['label'],
+                    'section' => 'ncllc_header',
+                )
+            ));
+        }
+    }
+
+    $header_typography_controls = array(
+        'header_font_family' => array(
+            'label'    => __('Header Font Family', 'ncllc-pro'),
+            'default'  => 'inherit',
+            'type'     => 'select',
+            'sanitize' => 'ncllc_pro_sanitize_font_family',
+            'choices'  => array(
+                'inherit'   => __('Theme Default', 'ncllc-pro'),
+                'Inter'     => __('Inter', 'ncllc-pro'),
+                'Poppins'   => __('Poppins', 'ncllc-pro'),
+                'Arial'     => __('Arial', 'ncllc-pro'),
+                'Georgia'   => __('Georgia', 'ncllc-pro'),
+                'system-ui' => __('System UI', 'ncllc-pro'),
+            ),
+        ),
+        'header_font_size' => array(
+            'label'    => __('Header Text Size', 'ncllc-pro'),
+            'default'  => '1rem',
+            'type'     => 'text',
+            'sanitize' => 'ncllc_pro_sanitize_css_size',
+        ),
+        'header_font_weight' => array(
+            'label'    => __('Header Font Weight', 'ncllc-pro'),
+            'default'  => '500',
+            'type'     => 'select',
+            'sanitize' => 'ncllc_pro_sanitize_font_weight',
+            'choices'  => array('400' => '400', '500' => '500', '600' => '600', '700' => '700', '800' => '800'),
+        ),
+        'header_menu_gap' => array(
+            'label'    => __('Header Menu Gap', 'ncllc-pro'),
+            'default'  => '2rem',
+            'type'     => 'text',
+            'sanitize' => 'ncllc_pro_sanitize_css_size',
+        ),
+        'header_container_width' => array(
+            'label'    => __('Header Container Width', 'ncllc-pro'),
+            'default'  => '1400px',
+            'type'     => 'text',
+            'sanitize' => 'ncllc_pro_sanitize_css_size',
+        ),
+        'header_shadow_opacity' => array(
+            'label'    => __('Header Shadow Opacity', 'ncllc-pro'),
+            'default'  => '0.10',
+            'type'     => 'number',
+            'sanitize' => 'ncllc_pro_sanitize_opacity',
+        ),
+    );
+
+    foreach ($header_typography_controls as $setting_id => $control) {
+        $wp_customize->add_setting($setting_id, array(
+            'default'           => $control['default'],
+            'sanitize_callback' => $control['sanitize'],
+            'transport'         => 'refresh',
+        ));
+
+        $args = array(
+            'label'       => $control['label'],
+            'section'     => 'ncllc_header',
+            'type'        => $control['type'],
+            'description' => 'text' === $control['type'] ? __('Examples: 1rem, 16px, 2rem.', 'ncllc-pro') : '',
+        );
+
+        if (!empty($control['choices'])) {
+            $args['choices'] = $control['choices'];
+        }
+
+        if ('number' === $control['type']) {
+            $args['input_attrs'] = array('min' => 0, 'max' => 1, 'step' => 0.05);
+        }
+
+        $wp_customize->add_control($setting_id, $args);
+    }
+
+    $wp_customize->add_setting('header_sticky', array(
+        'default'           => true,
+        'sanitize_callback' => 'ncllc_pro_sanitize_checkbox',
+        'transport'         => 'refresh',
+    ));
+
+    $wp_customize->add_control('header_sticky', array(
+        'label'   => __('Sticky Header', 'ncllc-pro'),
+        'section' => 'ncllc_header',
+        'type'    => 'checkbox',
+    ));
 
     $wp_customize->add_setting('header_layout', array(
         'default'           => 'logo-left-menu-right',
@@ -1779,21 +1931,16 @@ function ncllc_pro_customize_register($wp_customize) {
 
     $wp_customize->add_setting('footer_background_color', array(
         'default'           => '#111827',
-        'sanitize_callback' => 'sanitize_hex_color',
+        'sanitize_callback' => 'ncllc_pro_sanitize_css_background',
         'transport'         => 'refresh',
     ));
 
-    if (class_exists('WP_Customize_Color_Control')) {
-        $wp_customize->add_control(new WP_Customize_Color_Control(
-            $wp_customize,
-            'footer_background_color',
-            array(
-                'label'       => __('Footer Background Color', 'ncllc-pro'),
-                'description' => __('Set the footer background color.', 'ncllc-pro'),
-                'section'     => 'ncllc_footer',
-            )
-        ));
-    }
+    $wp_customize->add_control('footer_background_color', array(
+        'label'       => __('Footer Background', 'ncllc-pro'),
+        'description' => __('Use a color or gradient. Example: linear-gradient(90deg, #111827, #1f2937).', 'ncllc-pro'),
+        'section'     => 'ncllc_footer',
+        'type'        => 'text',
+    ));
 
     $wp_customize->add_setting('footer_text_color', array(
         'default'           => '#f9fafb',
@@ -1811,6 +1958,109 @@ function ncllc_pro_customize_register($wp_customize) {
                 'section'     => 'ncllc_footer',
             )
         ));
+    }
+
+    $footer_color_controls = array(
+        'footer_link_hover_color'         => array('label' => __('Footer Link Hover Color', 'ncllc-pro'), 'default' => '#f59e0b'),
+        'footer_divider_color'            => array('label' => __('Footer Divider Color', 'ncllc-pro'), 'default' => '#374151'),
+        'footer_submenu_background'       => array('label' => __('Footer Submenu Background', 'ncllc-pro'), 'default' => '#ffffff'),
+        'footer_submenu_text_color'       => array('label' => __('Footer Submenu Text Color', 'ncllc-pro'), 'default' => '#1f2937'),
+        'footer_submenu_hover_color'      => array('label' => __('Footer Submenu Hover Text Color', 'ncllc-pro'), 'default' => '#2563eb'),
+        'footer_submenu_hover_background' => array('label' => __('Footer Submenu Hover Background', 'ncllc-pro'), 'default' => '#f9fafb'),
+    );
+
+    foreach ($footer_color_controls as $setting_id => $control) {
+        $wp_customize->add_setting($setting_id, array(
+            'default'           => $control['default'],
+            'sanitize_callback' => 'sanitize_hex_color',
+            'transport'         => 'refresh',
+        ));
+
+        if (class_exists('WP_Customize_Color_Control')) {
+            $wp_customize->add_control(new WP_Customize_Color_Control(
+                $wp_customize,
+                $setting_id,
+                array(
+                    'label'   => $control['label'],
+                    'section' => 'ncllc_footer',
+                )
+            ));
+        }
+    }
+
+    $footer_typography_controls = array(
+        'footer_font_family' => array(
+            'label'    => __('Footer Font Family', 'ncllc-pro'),
+            'default'  => 'inherit',
+            'type'     => 'select',
+            'sanitize' => 'ncllc_pro_sanitize_font_family',
+            'choices'  => array(
+                'inherit'   => __('Theme Default', 'ncllc-pro'),
+                'Inter'     => __('Inter', 'ncllc-pro'),
+                'Poppins'   => __('Poppins', 'ncllc-pro'),
+                'Arial'     => __('Arial', 'ncllc-pro'),
+                'Georgia'   => __('Georgia', 'ncllc-pro'),
+                'system-ui' => __('System UI', 'ncllc-pro'),
+            ),
+        ),
+        'footer_font_size' => array(
+            'label'    => __('Footer Text Size', 'ncllc-pro'),
+            'default'  => '1rem',
+            'type'     => 'text',
+            'sanitize' => 'ncllc_pro_sanitize_css_size',
+        ),
+        'footer_font_weight' => array(
+            'label'    => __('Footer Font Weight', 'ncllc-pro'),
+            'default'  => '400',
+            'type'     => 'select',
+            'sanitize' => 'ncllc_pro_sanitize_font_weight',
+            'choices'  => array('400' => '400', '500' => '500', '600' => '600', '700' => '700', '800' => '800'),
+        ),
+        'footer_menu_gap' => array(
+            'label'    => __('Footer Menu Gap', 'ncllc-pro'),
+            'default'  => '1.4rem',
+            'type'     => 'text',
+            'sanitize' => 'ncllc_pro_sanitize_css_size',
+        ),
+        'footer_container_width' => array(
+            'label'    => __('Footer Container Width', 'ncllc-pro'),
+            'default'  => '1280px',
+            'type'     => 'text',
+            'sanitize' => 'ncllc_pro_sanitize_css_size',
+        ),
+        'footer_padding_top' => array(
+            'label'    => __('Footer Padding Top', 'ncllc-pro'),
+            'default'  => '4rem',
+            'type'     => 'text',
+            'sanitize' => 'ncllc_pro_sanitize_css_size',
+        ),
+        'footer_padding_bottom' => array(
+            'label'    => __('Footer Padding Bottom', 'ncllc-pro'),
+            'default'  => '2rem',
+            'type'     => 'text',
+            'sanitize' => 'ncllc_pro_sanitize_css_size',
+        ),
+    );
+
+    foreach ($footer_typography_controls as $setting_id => $control) {
+        $wp_customize->add_setting($setting_id, array(
+            'default'           => $control['default'],
+            'sanitize_callback' => $control['sanitize'],
+            'transport'         => 'refresh',
+        ));
+
+        $args = array(
+            'label'       => $control['label'],
+            'section'     => 'ncllc_footer',
+            'type'        => $control['type'],
+            'description' => 'text' === $control['type'] ? __('Examples: 1rem, 16px, 2rem.', 'ncllc-pro') : '',
+        );
+
+        if (!empty($control['choices'])) {
+            $args['choices'] = $control['choices'];
+        }
+
+        $wp_customize->add_control($setting_id, $args);
     }
 
     $wp_customize->add_setting('ajn_builder_button_text', array(
@@ -2484,8 +2734,34 @@ function ncllc_pro_customizer_css() {
     $theme_accent_color = get_theme_mod('theme_accent_color', '#f59e0b');
     $header_background_color = get_theme_mod('header_background_color', '#ffffff');
     $header_text_color = get_theme_mod('header_text_color', '#1f2937');
+    $header_link_hover_color = get_theme_mod('header_link_hover_color', '#2563eb');
+    $header_link_hover_background = get_theme_mod('header_link_hover_background', '#f9fafb');
+    $header_submenu_background = get_theme_mod('header_submenu_background', '#ffffff');
+    $header_submenu_text_color = get_theme_mod('header_submenu_text_color', '#1f2937');
+    $header_submenu_hover_color = get_theme_mod('header_submenu_hover_color', '#2563eb');
+    $header_submenu_hover_background = get_theme_mod('header_submenu_hover_background', '#f9fafb');
+    $header_font_family = get_theme_mod('header_font_family', 'inherit');
+    $header_font_size = get_theme_mod('header_font_size', '1rem');
+    $header_font_weight = get_theme_mod('header_font_weight', '500');
+    $header_menu_gap = get_theme_mod('header_menu_gap', '2rem');
+    $header_container_width = get_theme_mod('header_container_width', '1400px');
+    $header_shadow_opacity = get_theme_mod('header_shadow_opacity', '0.10');
+    $header_sticky = get_theme_mod('header_sticky', true);
     $footer_background_color = get_theme_mod('footer_background_color', '#111827');
     $footer_text_color = get_theme_mod('footer_text_color', '#f9fafb');
+    $footer_link_hover_color = get_theme_mod('footer_link_hover_color', '#f59e0b');
+    $footer_divider_color = get_theme_mod('footer_divider_color', '#374151');
+    $footer_submenu_background = get_theme_mod('footer_submenu_background', '#ffffff');
+    $footer_submenu_text_color = get_theme_mod('footer_submenu_text_color', '#1f2937');
+    $footer_submenu_hover_color = get_theme_mod('footer_submenu_hover_color', '#2563eb');
+    $footer_submenu_hover_background = get_theme_mod('footer_submenu_hover_background', '#f9fafb');
+    $footer_font_family = get_theme_mod('footer_font_family', 'inherit');
+    $footer_font_size = get_theme_mod('footer_font_size', '1rem');
+    $footer_font_weight = get_theme_mod('footer_font_weight', '400');
+    $footer_menu_gap = get_theme_mod('footer_menu_gap', '1.4rem');
+    $footer_container_width = get_theme_mod('footer_container_width', '1280px');
+    $footer_padding_top = get_theme_mod('footer_padding_top', '4rem');
+    $footer_padding_bottom = get_theme_mod('footer_padding_bottom', '2rem');
 
     $old_logo_height = get_theme_mod('logo_height', '50');
     $old_header_padding = get_theme_mod('header_padding', '0.75');
@@ -2525,8 +2801,34 @@ function ncllc_pro_customizer_css() {
             --accent: <?php echo esc_attr($theme_accent_color); ?>;
             --ajn-header-background: <?php echo esc_attr($header_background_color); ?>;
             --ajn-header-text-color: <?php echo esc_attr($header_text_color); ?>;
+            --ajn-header-link-hover-color: <?php echo esc_attr($header_link_hover_color); ?>;
+            --ajn-header-link-hover-background: <?php echo esc_attr($header_link_hover_background); ?>;
+            --ajn-header-submenu-background: <?php echo esc_attr($header_submenu_background); ?>;
+            --ajn-header-submenu-text-color: <?php echo esc_attr($header_submenu_text_color); ?>;
+            --ajn-header-submenu-hover-color: <?php echo esc_attr($header_submenu_hover_color); ?>;
+            --ajn-header-submenu-hover-background: <?php echo esc_attr($header_submenu_hover_background); ?>;
+            --ajn-header-font-family: <?php echo esc_attr($header_font_family); ?>;
+            --ajn-header-font-size: <?php echo esc_attr($header_font_size); ?>;
+            --ajn-header-font-weight: <?php echo esc_attr($header_font_weight); ?>;
+            --ajn-header-menu-gap: <?php echo esc_attr($header_menu_gap); ?>;
+            --ajn-header-container-width: <?php echo esc_attr($header_container_width); ?>;
+            --ajn-header-shadow-opacity: <?php echo esc_attr($header_shadow_opacity); ?>;
+            --ajn-header-position: <?php echo $header_sticky ? 'sticky' : 'relative'; ?>;
             --ajn-footer-background: <?php echo esc_attr($footer_background_color); ?>;
             --ajn-footer-text-color: <?php echo esc_attr($footer_text_color); ?>;
+            --ajn-footer-link-hover-color: <?php echo esc_attr($footer_link_hover_color); ?>;
+            --ajn-footer-divider-color: <?php echo esc_attr($footer_divider_color); ?>;
+            --ajn-footer-submenu-background: <?php echo esc_attr($footer_submenu_background); ?>;
+            --ajn-footer-submenu-text-color: <?php echo esc_attr($footer_submenu_text_color); ?>;
+            --ajn-footer-submenu-hover-color: <?php echo esc_attr($footer_submenu_hover_color); ?>;
+            --ajn-footer-submenu-hover-background: <?php echo esc_attr($footer_submenu_hover_background); ?>;
+            --ajn-footer-font-family: <?php echo esc_attr($footer_font_family); ?>;
+            --ajn-footer-font-size: <?php echo esc_attr($footer_font_size); ?>;
+            --ajn-footer-font-weight: <?php echo esc_attr($footer_font_weight); ?>;
+            --ajn-footer-menu-gap: <?php echo esc_attr($footer_menu_gap); ?>;
+            --ajn-footer-container-width: <?php echo esc_attr($footer_container_width); ?>;
+            --ajn-footer-padding-top: <?php echo esc_attr($footer_padding_top); ?>;
+            --ajn-footer-padding-bottom: <?php echo esc_attr($footer_padding_bottom); ?>;
             --ast-global-color-0: <?php echo esc_attr($theme_primary_color); ?>;
             --ast-global-color-1: <?php echo esc_attr($theme_primary_dark_color); ?>;
             --ast-global-color-2: <?php echo esc_attr($theme_secondary_color); ?>;

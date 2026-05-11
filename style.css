@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: http://ncllc.ddev.site/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.0.99
+Version: 1.1.0
 License: GNU General Public License v2 or later
 Text Domain: ncllc-pro
 */
@@ -24,8 +24,34 @@ Text Domain: ncllc-pro
     --white: #ffffff;
     --ajn-header-background: #ffffff;
     --ajn-header-text-color: #1f2937;
+    --ajn-header-link-hover-color: var(--primary);
+    --ajn-header-link-hover-background: var(--gray-50);
+    --ajn-header-submenu-background: #ffffff;
+    --ajn-header-submenu-text-color: #1f2937;
+    --ajn-header-submenu-hover-color: var(--primary);
+    --ajn-header-submenu-hover-background: var(--gray-50);
+    --ajn-header-font-family: inherit;
+    --ajn-header-font-size: 1rem;
+    --ajn-header-font-weight: 500;
+    --ajn-header-menu-gap: 2rem;
+    --ajn-header-container-width: 1400px;
+    --ajn-header-shadow-opacity: 0.10;
+    --ajn-header-position: sticky;
     --ajn-footer-background: #111827;
     --ajn-footer-text-color: #f9fafb;
+    --ajn-footer-link-hover-color: var(--accent);
+    --ajn-footer-divider-color: #374151;
+    --ajn-footer-submenu-background: #ffffff;
+    --ajn-footer-submenu-text-color: #1f2937;
+    --ajn-footer-submenu-hover-color: var(--primary);
+    --ajn-footer-submenu-hover-background: var(--gray-50);
+    --ajn-footer-font-family: inherit;
+    --ajn-footer-font-size: 1rem;
+    --ajn-footer-font-weight: 400;
+    --ajn-footer-menu-gap: 1.4rem;
+    --ajn-footer-container-width: 1280px;
+    --ajn-footer-padding-top: 4rem;
+    --ajn-footer-padding-bottom: 2rem;
     --transition: 300ms cubic-bezier(0.4, 0, 0.2, 1);
     --ast-global-color-0: var(--primary);
     --ast-global-color-1: var(--primary-dark);
@@ -63,13 +89,16 @@ a:hover { color: var(--primary-dark); }
 
 /* Header */
 .site-header {
-    position: sticky;
+    position: var(--ajn-header-position);
     top: 0;
     width: 100%;
     z-index: 1000;
     background: var(--ajn-header-background);
     backdrop-filter: blur(10px);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 3px rgba(0,0,0,var(--ajn-header-shadow-opacity));
+    color: var(--ajn-header-text-color);
+    font-family: var(--ajn-header-font-family);
+    font-size: var(--ajn-header-font-size);
 }
 
 body.admin-bar .site-header {
@@ -82,7 +111,7 @@ body.admin-bar .site-header {
     align-items: center;
     position: relative;
     padding: 0.75rem 1.5rem;
-    max-width: 1400px;
+    max-width: var(--ajn-header-container-width);
     margin: 0 auto;
 }
 
@@ -102,13 +131,14 @@ body.admin-bar .site-header {
     font-size: 1.25rem;
     font-weight: 800;
     color: var(--ajn-header-text-color);
+    font-family: var(--ajn-header-font-family);
     display: flex;
     align-items: center;
 }
 
 .nav-menu {
     display: flex;
-    gap: 2rem;
+    gap: var(--ajn-header-menu-gap);
     list-style: none;
     margin: 0;
     padding: 0;
@@ -121,15 +151,17 @@ body.admin-bar .site-header {
 
 .nav-menu a {
     display: block;
-    font-weight: 500;
+    font-family: var(--ajn-header-font-family);
+    font-size: var(--ajn-header-font-size);
+    font-weight: var(--ajn-header-font-weight);
     color: var(--ajn-header-text-color);
     padding: 0.5rem 1rem;
     border-radius: 0.5rem;
 }
 
 .nav-menu a:hover {
-    background: var(--gray-50);
-    color: var(--primary);
+    background: var(--ajn-header-link-hover-background);
+    color: var(--ajn-header-link-hover-color);
 }
 
 .nav-menu .sub-menu {
@@ -142,7 +174,7 @@ body.admin-bar .site-header {
     margin: 0;
     padding: 0.5rem;
     list-style: none;
-    background: #fff;
+    background: var(--ajn-header-submenu-background);
     border: 1px solid var(--gray-200);
     border-radius: 0.75rem;
     box-shadow: 0 18px 45px rgba(15, 23, 42, 0.16);
@@ -155,8 +187,14 @@ body.admin-bar .site-header {
 
 .nav-menu .sub-menu a {
     width: 100%;
-    color: var(--gray-800);
+    color: var(--ajn-header-submenu-text-color);
     white-space: nowrap;
+}
+
+.nav-menu .sub-menu a:hover,
+.nav-menu .sub-menu a:focus {
+    color: var(--ajn-header-submenu-hover-color);
+    background: var(--ajn-header-submenu-hover-background);
 }
 
 .nav-menu .sub-menu .sub-menu {
@@ -199,6 +237,11 @@ body.admin-bar .site-header {
     display: grid;
     gap: 0.75rem;
     width: 100%;
+}
+
+.header-builder-container {
+    max-width: var(--ajn-header-container-width);
+    margin-inline: auto;
 }
 
 .ajn-builder-row {
@@ -516,7 +559,10 @@ body.admin-bar .site-header {
 .site-footer {
     background: var(--ajn-footer-background);
     color: var(--ajn-footer-text-color);
-    padding: 4rem 1.5rem 2rem;
+    font-family: var(--ajn-footer-font-family);
+    font-size: var(--ajn-footer-font-size);
+    font-weight: var(--ajn-footer-font-weight);
+    padding: var(--ajn-footer-padding-top) 1.5rem var(--ajn-footer-padding-bottom);
 }
 
 .footer-content {
@@ -548,11 +594,11 @@ body.admin-bar .site-header {
 
 .footer-section a:hover,
 .footer-section a:focus {
-    color: var(--accent, #f59e0b);
+    color: var(--ajn-footer-link-hover-color);
 }
 
 .footer-bottom {
-    border-top: 1px solid var(--gray-800);
+    border-top: 1px solid var(--ajn-footer-divider-color);
     padding-top: 2rem;
     text-align: center;
 }
@@ -569,6 +615,8 @@ body.admin-bar .site-header {
     justify-content: space-between;
     gap: 2rem;
     min-height: 96px;
+    max-width: var(--ajn-footer-container-width);
+    margin-inline: auto;
     padding: 1.5rem 0;
 }
 
@@ -586,7 +634,7 @@ body.admin-bar .site-header {
     flex-wrap: wrap;
     align-items: center;
     justify-content: flex-end;
-    gap: 1.4rem;
+    gap: var(--ajn-footer-menu-gap);
     margin: 0;
     padding: 0;
     list-style: none;
@@ -600,13 +648,16 @@ body.admin-bar .site-header {
 
 .footer-menu a {
     display: block;
+    font-family: var(--ajn-footer-font-family);
+    font-size: var(--ajn-footer-font-size);
+    font-weight: var(--ajn-footer-font-weight);
     color: var(--ajn-footer-text-color);
     text-decoration: none;
 }
 
 .footer-menu a:hover,
 .footer-menu a:focus {
-    color: var(--accent, #f59e0b);
+    color: var(--ajn-footer-link-hover-color);
 }
 
 .footer-menu .sub-menu {
@@ -618,9 +669,9 @@ body.admin-bar .site-header {
     min-width: 240px;
     margin: 0 0 0.75rem;
     padding: 0.5rem;
-    border: 1px solid rgba(255,255,255,0.12);
+    border: 1px solid var(--ajn-footer-divider-color);
     border-radius: 0.75rem;
-    background: #fff;
+    background: var(--ajn-footer-submenu-background);
     box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
 }
 
@@ -630,15 +681,15 @@ body.admin-bar .site-header {
 }
 
 .footer-menu .sub-menu a {
-    color: var(--gray-800);
+    color: var(--ajn-footer-submenu-text-color);
     padding: 0.65rem 0.75rem;
     white-space: nowrap;
 }
 
 .footer-menu .sub-menu a:hover,
 .footer-menu .sub-menu a:focus {
-    color: var(--primary);
-    background: var(--gray-50);
+    color: var(--ajn-footer-submenu-hover-color);
+    background: var(--ajn-footer-submenu-hover-background);
 }
 
 .footer-menu .sub-menu .sub-menu {
@@ -648,10 +699,12 @@ body.admin-bar .site-header {
 
 .footer-builder-container .ajn-builder-row {
     min-height: 64px;
+    max-width: var(--ajn-footer-container-width);
+    margin-inline: auto;
 }
 
 .footer-builder-container .ajn-builder-cell {
-    color: #d1d5db;
+    color: var(--ajn-footer-text-color);
 }
 
 .ajn-customizer-builder-preview {
@@ -2596,7 +2649,7 @@ body.admin-bar .site-header {
         padding: 0.75rem;
         border: 1px solid var(--gray-200);
         border-radius: 0.75rem;
-        background: rgba(255, 255, 255, 0.98);
+        background: var(--ajn-header-submenu-background);
         box-shadow: 0 18px 45px rgba(15, 23, 42, 0.16);
         backdrop-filter: blur(10px);
     }
