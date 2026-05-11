@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: http://ncllc.ddev.site/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.0.98
+Version: 1.0.99
 License: GNU General Public License v2 or later
 Text Domain: ncllc-pro
 */
@@ -23,7 +23,9 @@ Text Domain: ncllc-pro
     --gray-900: #111827;
     --white: #ffffff;
     --ajn-header-background: #ffffff;
+    --ajn-header-text-color: #1f2937;
     --ajn-footer-background: #111827;
+    --ajn-footer-text-color: #f9fafb;
     --transition: 300ms cubic-bezier(0.4, 0, 0.2, 1);
     --ast-global-color-0: var(--primary);
     --ast-global-color-1: var(--primary-dark);
@@ -99,7 +101,7 @@ body.admin-bar .site-header {
 .site-logo {
     font-size: 1.25rem;
     font-weight: 800;
-    color: var(--gray-900);
+    color: var(--ajn-header-text-color);
     display: flex;
     align-items: center;
 }
@@ -120,7 +122,7 @@ body.admin-bar .site-header {
 .nav-menu a {
     display: block;
     font-weight: 500;
-    color: var(--gray-800);
+    color: var(--ajn-header-text-color);
     padding: 0.5rem 1rem;
     border-radius: 0.5rem;
 }
@@ -153,6 +155,7 @@ body.admin-bar .site-header {
 
 .nav-menu .sub-menu a {
     width: 100%;
+    color: var(--gray-800);
     white-space: nowrap;
 }
 
@@ -512,7 +515,7 @@ body.admin-bar .site-header {
 /* Footer */
 .site-footer {
     background: var(--ajn-footer-background);
-    color: #9ca3af;
+    color: var(--ajn-footer-text-color);
     padding: 4rem 1.5rem 2rem;
 }
 
@@ -524,7 +527,7 @@ body.admin-bar .site-header {
 }
 
 .footer-section h3 {
-    color: white;
+    color: var(--ajn-footer-text-color);
     margin-bottom: 1rem;
 }
 
@@ -539,13 +542,13 @@ body.admin-bar .site-header {
 }
 
 .footer-section a {
-    color: #d1d5db;
+    color: var(--ajn-footer-text-color);
     text-decoration: none;
 }
 
 .footer-section a:hover,
 .footer-section a:focus {
-    color: white;
+    color: var(--accent, #f59e0b);
 }
 
 .footer-bottom {
@@ -556,8 +559,8 @@ body.admin-bar .site-header {
 
 .footer-layout-menu-bar {
     padding: 0;
-    background: #0f2f35;
-    color: #fff;
+    background: var(--ajn-footer-background);
+    color: var(--ajn-footer-text-color);
 }
 
 .footer-menu-bar {
@@ -570,7 +573,7 @@ body.admin-bar .site-header {
 }
 
 .footer-menu-bar-brand {
-    color: rgba(255,255,255,0.76);
+    color: var(--ajn-footer-text-color);
     font-size: 0.95rem;
 }
 
@@ -597,7 +600,7 @@ body.admin-bar .site-header {
 
 .footer-menu a {
     display: block;
-    color: #fff;
+    color: var(--ajn-footer-text-color);
     text-decoration: none;
 }
 
