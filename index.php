@@ -36,20 +36,6 @@ $page_intro = strip_tags($page_intro);
                 <?php echo apply_filters('the_content', $page_content); ?>
             </div>
         </section>
-    <?php else : ?>
-        <section class="page-hero blog-hero">
-            <div class="container">
-                <?php if (is_home() && $posts_page_id) : ?>
-                    <div class="page-hero-badge"><?php echo esc_html(get_bloginfo('name')); ?></div>
-                <?php else : ?>
-                    <div class="page-hero-badge"><?php echo esc_html(get_post_type_object('post')->labels->name); ?></div>
-                <?php endif; ?>
-                <h1 class="entry-title"><?php echo esc_html($page_title); ?></h1>
-                <?php if ($page_intro) : ?>
-                    <p><?php echo esc_html($page_intro); ?></p>
-                <?php endif; ?>
-            </div>
-        </section>
     <?php endif; ?>
 
     <section class="blog-index-section">

@@ -2,8 +2,6 @@
 /**
  * Template for displaying single posts
  *
- * Supports an editable leading hero block when the first block has class "builder-hero-section".
- *
  * @package NCLLC_Pro
  */
 
@@ -13,28 +11,8 @@ get_header(); ?>
     <?php
     while (have_posts()) :
         the_post();
-
-        $content = get_the_content();
-        $split_content = ncllc_pro_split_leading_builder_hero($content);
-        $has_leading_hero = '' !== $split_content['hero'];
         ?>
         <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
-            <?php if ($has_leading_hero) : ?>
-                <div class="entry-content builder-canvas-content page-hero-content">
-                    <?php echo $split_content['hero']; ?>
-                </div>
-            <?php else : ?>
-                <section class="page-hero blog-hero">
-                    <div class="container">
-                        <div class="page-hero-badge"><?php echo esc_html(get_bloginfo('name')); ?></div>
-                        <?php the_title('<h1 class="entry-title">', '</h1>'); ?>
-                        <?php if (has_excerpt()) : ?>
-                            <p><?php echo esc_html(get_the_excerpt()); ?></p>
-                        <?php endif; ?>
-                    </div>
-                </section>
-            <?php endif; ?>
-
             <div class="container">
                 <?php if (has_post_thumbnail()) : ?>
                     <div class="post-thumbnail" style="margin: 2rem 0;">
@@ -44,7 +22,7 @@ get_header(); ?>
 
                 <div class="entry-content" style="padding: 2rem 0 4rem; max-width: 800px; margin: 0 auto; line-height: 1.8;">
                     <?php
-                    echo apply_filters('the_content', $has_leading_hero ? $split_content['rest'] : $content);
+                    the_content();
 
                     wp_link_pages(array(
                         'before' => '<div class="page-links">' . esc_html__('Pages:', 'ncllc-pro'),
