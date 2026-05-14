@@ -15,6 +15,7 @@
     var TextControl = wp.components.TextControl;
     var Notice = wp.components.Notice;
     var ToggleControl = wp.components.ToggleControl;
+    var SelectControl = wp.components.SelectControl;
     var createHigherOrderComponent = wp.compose.createHigherOrderComponent;
     var useEffect = wp.element.useEffect;
     var useState = wp.element.useState;
@@ -139,6 +140,244 @@
         return (className + ' ' + classToAdd).trim();
     }
 
+    var AJN_PRESET_CLASSES = [
+        'builder-hero-section',
+        'hero-height-compact',
+        'hero-height-standard',
+        'hero-height-tall',
+        'hero-height-full',
+        'hero-width-narrow',
+        'hero-width-standard',
+        'hero-width-wide',
+        'hero-text-left',
+        'builder-section',
+        'builder-section-soft',
+        'builder-card',
+        'builder-card-grid'
+    ];
+
+    var HERO_HEIGHT_CLASSES = [
+        'hero-height-compact',
+        'hero-height-standard',
+        'hero-height-tall',
+        'hero-height-full'
+    ];
+
+    var HERO_WIDTH_CLASSES = [
+        'hero-width-narrow',
+        'hero-width-standard',
+        'hero-width-wide'
+    ];
+
+    function removeClasses(className, classes) {
+        var remove = {};
+
+        classes.forEach(function(item) {
+            remove[item] = true;
+        });
+
+        return (className || '')
+            .split(/\s+/)
+            .filter(function(item) {
+                return item && !remove[item];
+            })
+            .join(' ');
+    }
+
+    function hasClass(className, classToFind) {
+        return (className || '').split(/\s+/).indexOf(classToFind) !== -1;
+    }
+
+    function addClasses(className, classes) {
+        classes.forEach(function(item) {
+            if (item) {
+                className = mergeClassName(className, item);
+            }
+        });
+
+        return className;
+    }
+
+    function getHeroHeight(className) {
+        if (hasClass(className, 'hero-height-compact')) {
+            return 'compact';
+        }
+        if (hasClass(className, 'hero-height-tall')) {
+            return 'tall';
+        }
+        if (hasClass(className, 'hero-height-full')) {
+            return 'full';
+        }
+        if (hasClass(className, 'hero-height-standard')) {
+            return 'standard';
+        }
+
+        return 'auto';
+    }
+
+    function getHeroWidth(className) {
+        if (hasClass(className, 'hero-width-narrow')) {
+            return 'narrow';
+        }
+        if (hasClass(className, 'hero-width-wide')) {
+            return 'wide';
+        }
+        if (hasClass(className, 'hero-width-standard')) {
+            return 'standard';
+        }
+
+        return 'full';
+    }
+
+    function getDesignPreset(className) {
+        if (hasClass(className, 'builder-hero-section')) {
+            return 'hero';
+        }
+        if (hasClass(className, 'builder-section-soft')) {
+            return 'soft-section';
+        }
+        if (hasClass(className, 'builder-section')) {
+            return 'section';
+        }
+        if (hasClass(className, 'builder-card')) {
+            return 'card';
+        }
+        if (hasClass(className, 'builder-card-grid')) {
+            return 'card-grid';
+        }
+
+        return '';
+    }
+
+    function setDesignPreset(className, preset) {
+        className = removeClasses(className, AJN_PRESET_CLASSES);
+
+        if (preset === 'hero') {
+            return addClasses(className, ['builder-hero-section', 'hero-width-standard']);
+        }
+        if (preset === 'section') {
+            return addClasses(className, ['builder-section']);
+        }
+        if (preset === 'soft-section') {
+            return addClasses(className, ['builder-section', 'builder-section-soft']);
+        }
+        if (preset === 'card') {
+            return addClasses(className, ['builder-card']);
+        }
+        if (preset === 'card-grid') {
+            return addClasses(className, ['builder-card-grid']);
+        }
+
+        return className;
+    }
+
+    function setHeroHeightClass(className, value) {
+        className = removeClasses(className, HERO_HEIGHT_CLASSES);
+
+        if (value && value !== 'auto') {
+            className = mergeClassName(className, 'hero-height-' + value);
+        }
+
+        return className;
+    }
+
+    function setHeroWidthClass(className, value) {
+        className = removeClasses(className, HERO_WIDTH_CLASSES);
+
+        if (value && value !== 'full') {
+            className = mergeClassName(className, 'hero-width-' + value);
+        }
+
+        return className;
+    }
+
+    function setHeroTextClass(className, value) {
+        className = removeClasses(className, ['hero-text-left']);
+
+        if (value === 'left') {
+            className = mergeClassName(className, 'hero-text-left');
+        }
+
+        return className;
+    }
+
+    function designPresetControls(props) {
+        var attrs = props.attributes || {};
+        var className = attrs.className || '';
+        var preset = getDesignPreset(className);
+
+        if (props.name !== 'core/group') {
+            return null;
+        }
+
+        return createElement(
+            PanelBody,
+            {
+                title: 'AJNanda CSS Preset',
+                initialOpen: true
+            },
+            createElement(SelectControl, {
+                label: 'Preset',
+                value: preset,
+                options: [
+                    { label: 'None', value: '' },
+                    { label: 'Hero section', value: 'hero' },
+                    { label: 'Content section', value: 'section' },
+                    { label: 'Soft content section', value: 'soft-section' },
+                    { label: 'Card', value: 'card' },
+                    { label: 'Card grid wrapper', value: 'card-grid' }
+                ],
+                onChange: function(value) {
+                    props.setAttributes(value === 'hero' ? {
+                        align: 'full',
+                        className: setDesignPreset(className, value)
+                    } : {
+                        className: setDesignPreset(className, value)
+                    });
+                }
+            }),
+            preset === 'hero' ? createElement(SelectControl, {
+                label: 'Hero height',
+                help: 'Auto grows with the amount of text. Fixed presets are optional.',
+                value: getHeroHeight(className),
+                options: [
+                    { label: 'Auto / content height', value: 'auto' },
+                    { label: 'Compact', value: 'compact' },
+                    { label: 'Standard', value: 'standard' },
+                    { label: 'Tall', value: 'tall' },
+                    { label: 'Full screen', value: 'full' }
+                ],
+                onChange: function(value) {
+                    props.setAttributes({ className: setHeroHeightClass(className, value) });
+                }
+            }) : null,
+            preset === 'hero' ? createElement(SelectControl, {
+                label: 'Hero width',
+                value: getHeroWidth(className),
+                options: [
+                    { label: 'Full page width', value: 'full' },
+                    { label: 'Narrow content', value: 'narrow' },
+                    { label: 'Standard content', value: 'standard' },
+                    { label: 'Wide content', value: 'wide' }
+                ],
+                onChange: function(value) {
+                    props.setAttributes({ className: setHeroWidthClass(className, value) });
+                }
+            }) : null,
+            preset === 'hero' ? createElement(SelectControl, {
+                label: 'Hero text alignment',
+                value: hasClass(className, 'hero-text-left') ? 'left' : 'center',
+                options: [
+                    { label: 'Center', value: 'center' },
+                    { label: 'Left', value: 'left' }
+                ],
+                onChange: function(value) {
+                    props.setAttributes({ className: setHeroTextClass(className, value) });
+                }
+            }) : null
+        );
+    }
+
     function getLayoutClass(attrs, className) {
         className = mergeClassName(className, 'ajn-layout-control');
 
@@ -248,7 +487,7 @@
             keywords: ['hero', 'page header', 'post header'],
             attributes: {
                 align: 'full',
-                className: 'builder-hero-section hero-height-standard hero-width-standard',
+                className: 'builder-hero-section hero-width-standard',
                 layout: {
                     type: 'flex',
                     orientation: 'vertical',
@@ -307,6 +546,7 @@
                     createElement(
                         InspectorControls,
                         {},
+                        designPresetControls(props),
                         createElement(
                             PanelBody,
                             {
