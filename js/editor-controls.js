@@ -16,6 +16,7 @@
     var Notice = wp.components.Notice;
     var ToggleControl = wp.components.ToggleControl;
     var SelectControl = wp.components.SelectControl;
+    var CheckboxControl = wp.components.CheckboxControl;
     var createHigherOrderComponent = wp.compose.createHigherOrderComponent;
     var useEffect = wp.element.useEffect;
     var useState = wp.element.useState;
@@ -146,6 +147,7 @@
         'hero-height-standard',
         'hero-height-tall',
         'hero-height-full',
+        'hero-width-full',
         'hero-width-narrow',
         'hero-width-standard',
         'hero-width-wide',
@@ -164,6 +166,7 @@
     ];
 
     var HERO_WIDTH_CLASSES = [
+        'hero-width-full',
         'hero-width-narrow',
         'hero-width-standard',
         'hero-width-wide'
@@ -216,6 +219,9 @@
     }
 
     function getHeroWidth(className) {
+        if (hasClass(className, 'hero-width-full')) {
+            return 'full';
+        }
         if (hasClass(className, 'hero-width-narrow')) {
             return 'narrow';
         }
@@ -253,7 +259,7 @@
         className = removeClasses(className, AJN_PRESET_CLASSES);
 
         if (preset === 'hero') {
-            return addClasses(className, ['builder-hero-section', 'hero-width-standard']);
+            return addClasses(className, ['builder-hero-section', 'hero-width-full']);
         }
         if (preset === 'section') {
             return addClasses(className, ['builder-section']);
@@ -284,7 +290,7 @@
     function setHeroWidthClass(className, value) {
         className = removeClasses(className, HERO_WIDTH_CLASSES);
 
-        if (value && value !== 'full') {
+        if (value) {
             className = mergeClassName(className, 'hero-width-' + value);
         }
 
@@ -301,10 +307,92 @@
         return className;
     }
 
+    var AJN_CLASS_OPTIONS = [
+        {
+            label: 'Hero',
+            classes: [
+                { label: 'Hero section', value: 'builder-hero-section' },
+                { label: 'Height: compact', value: 'hero-height-compact' },
+                { label: 'Height: standard', value: 'hero-height-standard' },
+                { label: 'Height: tall', value: 'hero-height-tall' },
+                { label: 'Height: full screen', value: 'hero-height-full' },
+                { label: 'Width: full page', value: 'hero-width-full' },
+                { label: 'Width: narrow content', value: 'hero-width-narrow' },
+                { label: 'Width: standard content', value: 'hero-width-standard' },
+                { label: 'Width: wide content', value: 'hero-width-wide' },
+                { label: 'Text: left aligned', value: 'hero-text-left' }
+            ]
+        },
+        {
+            label: 'Sections and Cards',
+            classes: [
+                { label: 'Content section', value: 'builder-section' },
+                { label: 'Soft content section', value: 'builder-section-soft' },
+                { label: 'Card', value: 'builder-card' },
+                { label: 'Card grid wrapper', value: 'builder-card-grid' },
+                { label: 'Section intro text', value: 'builder-section-intro' },
+                { label: 'Split content layout', value: 'builder-split' },
+                { label: 'CTA panel', value: 'builder-cta-panel' }
+            ]
+        }
+    ];
+
+    function checkboxClassToggle(className, cssClass, checked) {
+        var exclusiveClasses = [cssClass];
+
+        if (HERO_HEIGHT_CLASSES.indexOf(cssClass) !== -1) {
+            exclusiveClasses = HERO_HEIGHT_CLASSES;
+        }
+
+        if (HERO_WIDTH_CLASSES.indexOf(cssClass) !== -1) {
+            exclusiveClasses = HERO_WIDTH_CLASSES;
+        }
+
+        className = removeClasses(className, exclusiveClasses);
+
+        if (checked) {
+            className = mergeClassName(className, cssClass);
+        }
+
+        return className;
+    }
+
+    function classCheckboxes(props) {
+        var attrs = props.attributes || {};
+        var className = attrs.className || '';
+
+        return AJN_CLASS_OPTIONS.map(function(group) {
+            return createElement(
+                PanelBody,
+                {
+                    key: group.label,
+                    title: group.label + ' CSS Classes',
+                    initialOpen: false
+                },
+                group.classes.map(function(option) {
+                    return createElement(CheckboxControl, {
+                        key: option.value,
+                        label: option.label,
+                        checked: hasClass(className, option.value),
+                        onChange: function(checked) {
+                            props.setAttributes({
+                                className: checkboxClassToggle((props.attributes && props.attributes.className) || '', option.value, checked)
+                            });
+                        }
+                    });
+                })
+            );
+        });
+    }
+
     function designPresetControls(props) {
         var attrs = props.attributes || {};
         var className = attrs.className || '';
         var preset = getDesignPreset(className);
+
+        function updateClassName(callback) {
+            props.setAttributes({ className: callback((props.attributes && props.attributes.className) || '') });
+        }
 
         if (props.name !== 'core/group') {
             return null;
@@ -330,9 +418,9 @@
                 onChange: function(value) {
                     props.setAttributes(value === 'hero' ? {
                         align: 'full',
-                        className: setDesignPreset(className, value)
+                        className: setDesignPreset((props.attributes && props.attributes.className) || '', value)
                     } : {
-                        className: setDesignPreset(className, value)
+                        className: setDesignPreset((props.attributes && props.attributes.className) || '', value)
                     });
                 }
             }),
@@ -348,7 +436,9 @@
                     { label: 'Full screen', value: 'full' }
                 ],
                 onChange: function(value) {
-                    props.setAttributes({ className: setHeroHeightClass(className, value) });
+                    updateClassName(function(currentClassName) {
+                        return setHeroHeightClass(currentClassName, value);
+                    });
                 }
             }) : null,
             preset === 'hero' ? createElement(SelectControl, {
@@ -361,7 +451,9 @@
                     { label: 'Wide content', value: 'wide' }
                 ],
                 onChange: function(value) {
-                    props.setAttributes({ className: setHeroWidthClass(className, value) });
+                    updateClassName(function(currentClassName) {
+                        return setHeroWidthClass(currentClassName, value);
+                    });
                 }
             }) : null,
             preset === 'hero' ? createElement(SelectControl, {
@@ -372,7 +464,9 @@
                     { label: 'Left', value: 'left' }
                 ],
                 onChange: function(value) {
-                    props.setAttributes({ className: setHeroTextClass(className, value) });
+                    updateClassName(function(currentClassName) {
+                        return setHeroTextClass(currentClassName, value);
+                    });
                 }
             }) : null
         );
@@ -487,7 +581,7 @@
             keywords: ['hero', 'page header', 'post header'],
             attributes: {
                 align: 'full',
-                className: 'builder-hero-section hero-width-standard',
+                className: 'builder-hero-section hero-width-full',
                 layout: {
                     type: 'flex',
                     orientation: 'vertical',
@@ -547,6 +641,7 @@
                         InspectorControls,
                         {},
                         designPresetControls(props),
+                        classCheckboxes(props),
                         createElement(
                             PanelBody,
                             {

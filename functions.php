@@ -45,10 +45,10 @@ add_action('after_setup_theme', 'ncllc_pro_setup');
  */
 function ncllc_pro_scripts() {
     // Enqueue main stylesheet
-    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.1.3');
+    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.1.4');
     
     // Enqueue custom JavaScript
-    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.1.3', true);
+    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.1.4', true);
     
     // Localize script
     wp_localize_script('ncllc-pro-script', 'ncllcData', array(
@@ -69,12 +69,12 @@ function ncllc_pro_block_editor_assets() {
         null
     );
 
-    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.1.3');
+    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.1.4');
     wp_enqueue_script(
         'ncllc-pro-editor-controls',
         get_template_directory_uri() . '/js/editor-controls.js',
         array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-element', 'wp-hooks'),
-        '1.1.3',
+        '1.1.4',
         true
     );
 }
@@ -2967,7 +2967,7 @@ function ncllc_pro_register_block_patterns() {
         'description' => __('A full-width page or post hero that uses the theme hero defaults until you override it on the block.', 'ncllc-pro'),
         'categories'  => array('ncllc-builder'),
         'keywords'    => array(__('hero', 'ncllc-pro'), __('page header', 'ncllc-pro'), __('post header', 'ncllc-pro')),
-        'content'     => '<!-- wp:group {"align":"full","className":"builder-hero-section hero-width-standard","layout":{"type":"flex","orientation":"vertical","justifyContent":"center","verticalAlignment":"center","flexWrap":"nowrap"}} --><div class="wp-block-group alignfull builder-hero-section hero-width-standard"><!-- wp:heading {"textAlign":"center","level":1} --><h1 class="wp-block-heading has-text-align-center">Page Hero</h1><!-- /wp:heading --></div><!-- /wp:group -->',
+        'content'     => '<!-- wp:group {"align":"full","className":"builder-hero-section hero-width-full","layout":{"type":"flex","orientation":"vertical","justifyContent":"center","verticalAlignment":"center","flexWrap":"nowrap"}} --><div class="wp-block-group alignfull builder-hero-section hero-width-full"><!-- wp:heading {"textAlign":"center","level":1} --><h1 class="wp-block-heading has-text-align-center">Page Hero</h1><!-- /wp:heading --></div><!-- /wp:group -->',
     ));
 
     register_block_pattern('ncllc-pro/three-feature-cards', array(
