@@ -686,6 +686,8 @@ input[type="checkbox"].aj-field {
     flex-wrap: wrap;
     gap: var(--aj-buttons-gap-desktop, 12px);
     align-items: center;
+    margin-right: auto;
+    margin-left: auto;
 }
 
 :where(.aj-buttons, .aj-buttons-control) > .wp-block-button {
@@ -722,6 +724,75 @@ input[type="checkbox"].aj-field {
     width: 100%;
 }
 
+.aj-buttons-width-desktop-auto {
+    width: auto;
+    max-width: none;
+}
+
+.aj-buttons-width-desktop-narrow {
+    width: min(100%, 480px);
+}
+
+.aj-buttons-width-desktop-standard {
+    width: min(100%, 720px);
+}
+
+.aj-buttons-width-desktop-wide {
+    width: min(100%, 960px);
+}
+
+.aj-buttons-width-desktop-full {
+    width: 100%;
+}
+
+.aj-buttons-width-desktop-custom {
+    width: min(100%, var(--aj-buttons-custom-width-desktop, 100%));
+}
+
+.aj-button-width-control {
+    flex: 0 1 auto;
+}
+
+.aj-button-width-control .wp-block-button__link {
+    width: 100%;
+}
+
+.aj-button-width-desktop-auto {
+    width: auto;
+    flex-basis: auto;
+}
+
+.aj-button-width-desktop-small {
+    width: 140px;
+    flex-basis: 140px;
+}
+
+.aj-button-width-desktop-medium {
+    width: 180px;
+    flex-basis: 180px;
+}
+
+.aj-button-width-desktop-large {
+    width: 240px;
+    flex-basis: 240px;
+}
+
+.aj-button-width-desktop-full {
+    width: 100%;
+    flex-basis: 100%;
+}
+
+.aj-button-width-desktop-custom {
+    width: var(--aj-button-custom-width-desktop, auto);
+    flex-basis: var(--aj-button-custom-width-desktop, auto);
+}
+
+.aj-buttons-desktop-grid > .aj-button-width-control,
+.aj-buttons-desktop-featured > .aj-button-width-control {
+    width: 100%;
+    flex-basis: auto;
+}
+
 @media (max-width: 1024px) {
     :where(.aj-buttons, .aj-buttons-control) {
         gap: var(--aj-buttons-gap-tablet, var(--aj-buttons-gap-desktop, 12px));
@@ -753,6 +824,67 @@ input[type="checkbox"].aj-field {
     .aj-buttons-tablet-grid > .wp-block-button,
     .aj-buttons-tablet-featured > .wp-block-button {
         width: 100%;
+    }
+
+    .aj-buttons-width-tablet-auto {
+        width: auto;
+        max-width: none;
+    }
+
+    .aj-buttons-width-tablet-narrow {
+        width: min(100%, 480px);
+    }
+
+    .aj-buttons-width-tablet-standard {
+        width: min(100%, 720px);
+    }
+
+    .aj-buttons-width-tablet-wide {
+        width: min(100%, 960px);
+    }
+
+    .aj-buttons-width-tablet-full {
+        width: 100%;
+    }
+
+    .aj-buttons-width-tablet-custom {
+        width: min(100%, var(--aj-buttons-custom-width-tablet, var(--aj-buttons-custom-width-desktop, 100%)));
+    }
+
+    .aj-button-width-tablet-auto {
+        width: auto;
+        flex-basis: auto;
+    }
+
+    .aj-button-width-tablet-small {
+        width: 140px;
+        flex-basis: 140px;
+    }
+
+    .aj-button-width-tablet-medium {
+        width: 180px;
+        flex-basis: 180px;
+    }
+
+    .aj-button-width-tablet-large {
+        width: 240px;
+        flex-basis: 240px;
+    }
+
+    .aj-button-width-tablet-full {
+        width: 100%;
+        flex-basis: 100%;
+    }
+
+    .aj-button-width-tablet-custom {
+        width: var(--aj-button-custom-width-tablet, var(--aj-button-custom-width-desktop, auto));
+        flex-basis: var(--aj-button-custom-width-tablet, var(--aj-button-custom-width-desktop, auto));
+    }
+
+    .aj-buttons-tablet-grid > .aj-button-width-control,
+    .aj-buttons-tablet-featured > .aj-button-width-control {
+        width: 100%;
+        flex-basis: auto;
     }
 }
 
@@ -786,6 +918,50 @@ input[type="checkbox"].aj-field {
     .aj-buttons-mobile-grid > .wp-block-button,
     .aj-buttons-mobile-featured > .wp-block-button {
         width: 100%;
+    }
+
+    .aj-buttons-width-mobile-auto,
+    .aj-buttons-width-mobile-narrow,
+    .aj-buttons-width-mobile-standard,
+    .aj-buttons-width-mobile-wide,
+    .aj-buttons-width-mobile-full {
+        width: 100%;
+    }
+
+    .aj-buttons-width-mobile-custom {
+        width: min(100%, var(--aj-buttons-custom-width-mobile, var(--aj-buttons-custom-width-tablet, var(--aj-buttons-custom-width-desktop, 100%))));
+    }
+
+    .aj-button-width-mobile-auto {
+        width: auto;
+        flex-basis: auto;
+    }
+
+    .aj-button-width-mobile-small {
+        width: 120px;
+        flex-basis: 120px;
+    }
+
+    .aj-button-width-mobile-medium {
+        width: calc(50% - 6px);
+        flex-basis: calc(50% - 6px);
+    }
+
+    .aj-button-width-mobile-large,
+    .aj-button-width-mobile-full {
+        width: 100%;
+        flex-basis: 100%;
+    }
+
+    .aj-button-width-mobile-custom {
+        width: var(--aj-button-custom-width-mobile, var(--aj-button-custom-width-tablet, var(--aj-button-custom-width-desktop, auto)));
+        flex-basis: var(--aj-button-custom-width-mobile, var(--aj-button-custom-width-tablet, var(--aj-button-custom-width-desktop, auto)));
+    }
+
+    .aj-buttons-mobile-grid > .aj-button-width-control,
+    .aj-buttons-mobile-featured > .aj-button-width-control {
+        width: 100%;
+        flex-basis: auto;
     }
 }
 

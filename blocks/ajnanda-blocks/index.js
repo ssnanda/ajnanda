@@ -1026,12 +1026,11 @@
 
     function registerAJButtonsBlock() {
         registerBlockType('ajnanda/buttons', {
-            title: __('AJ Buttons (Legacy)', 'ncllc-pro'),
+            title: __('AJ Buttons', 'ncllc-pro'),
             description: __('Legacy AJ Buttons wrapper. Use the native AJ Buttons variation instead.', 'ncllc-pro'),
             category: category,
             icon: 'button',
-            inserter: false,
-            supports: { align: ['wide', 'full'], anchor: true },
+            supports: { align: ['wide', 'full'], anchor: true, inserter: false },
             attributes: withStyleAttributes({
                 layoutDesktop: { type: 'string', default: 'row' },
                 layoutTablet: { type: 'string', default: 'row' },

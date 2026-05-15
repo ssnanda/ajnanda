@@ -79,7 +79,22 @@
         ajnButtonLayoutMobile: { type: 'string', default: 'stack' },
         ajnButtonGapDesktop: { type: 'number', default: 12 },
         ajnButtonGapTablet: { type: 'number', default: 12 },
-        ajnButtonGapMobile: { type: 'number', default: 12 }
+        ajnButtonGapMobile: { type: 'number', default: 12 },
+        ajnButtonsWidthDesktop: { type: 'string', default: 'auto' },
+        ajnButtonsWidthTablet: { type: 'string', default: 'auto' },
+        ajnButtonsWidthMobile: { type: 'string', default: 'auto' },
+        ajnButtonsCustomWidthDesktop: { type: 'string', default: '' },
+        ajnButtonsCustomWidthTablet: { type: 'string', default: '' },
+        ajnButtonsCustomWidthMobile: { type: 'string', default: '' }
+    };
+
+    var SINGLE_BUTTON_ATTRS = {
+        ajnSingleButtonWidthDesktop: { type: 'string', default: 'auto' },
+        ajnSingleButtonWidthTablet: { type: 'string', default: 'auto' },
+        ajnSingleButtonWidthMobile: { type: 'string', default: 'auto' },
+        ajnSingleButtonCustomWidthDesktop: { type: 'string', default: '' },
+        ajnSingleButtonCustomWidthTablet: { type: 'string', default: '' },
+        ajnSingleButtonCustomWidthMobile: { type: 'string', default: '' }
     };
 
     function hasLayoutControls(blockName) {
@@ -544,22 +559,49 @@
             'aj-buttons-mobile-row',
             'aj-buttons-mobile-stack',
             'aj-buttons-mobile-grid',
-            'aj-buttons-mobile-featured'
+            'aj-buttons-mobile-featured',
+            'aj-buttons-width-desktop-auto',
+            'aj-buttons-width-desktop-narrow',
+            'aj-buttons-width-desktop-standard',
+            'aj-buttons-width-desktop-wide',
+            'aj-buttons-width-desktop-full',
+            'aj-buttons-width-desktop-custom',
+            'aj-buttons-width-tablet-auto',
+            'aj-buttons-width-tablet-narrow',
+            'aj-buttons-width-tablet-standard',
+            'aj-buttons-width-tablet-wide',
+            'aj-buttons-width-tablet-full',
+            'aj-buttons-width-tablet-custom',
+            'aj-buttons-width-mobile-auto',
+            'aj-buttons-width-mobile-narrow',
+            'aj-buttons-width-mobile-standard',
+            'aj-buttons-width-mobile-wide',
+            'aj-buttons-width-mobile-full',
+            'aj-buttons-width-mobile-custom'
         ]);
 
         className = mergeClassName(className, 'aj-buttons-desktop-' + (attrs.ajnButtonLayoutDesktop || 'row'));
         className = mergeClassName(className, 'aj-buttons-tablet-' + (attrs.ajnButtonLayoutTablet || attrs.ajnButtonLayoutDesktop || 'row'));
         className = mergeClassName(className, 'aj-buttons-mobile-' + (attrs.ajnButtonLayoutMobile || attrs.ajnButtonLayoutTablet || attrs.ajnButtonLayoutDesktop || 'stack'));
+        className = mergeClassName(className, 'aj-buttons-width-desktop-' + (attrs.ajnButtonsWidthDesktop || 'auto'));
+        className = mergeClassName(className, 'aj-buttons-width-tablet-' + (attrs.ajnButtonsWidthTablet || attrs.ajnButtonsWidthDesktop || 'auto'));
+        className = mergeClassName(className, 'aj-buttons-width-mobile-' + (attrs.ajnButtonsWidthMobile || attrs.ajnButtonsWidthTablet || attrs.ajnButtonsWidthDesktop || 'auto'));
 
         return className;
     }
 
     function getButtonLayoutStyles(attrs) {
-        return {
+        var style = {
             '--aj-buttons-gap-desktop': (attrs.ajnButtonGapDesktop || 12) + 'px',
             '--aj-buttons-gap-tablet': (attrs.ajnButtonGapTablet || attrs.ajnButtonGapDesktop || 12) + 'px',
             '--aj-buttons-gap-mobile': (attrs.ajnButtonGapMobile || attrs.ajnButtonGapTablet || attrs.ajnButtonGapDesktop || 12) + 'px'
         };
+
+        setVar(style, '--aj-buttons-custom-width-desktop', attrs.ajnButtonsCustomWidthDesktop);
+        setVar(style, '--aj-buttons-custom-width-tablet', attrs.ajnButtonsCustomWidthTablet);
+        setVar(style, '--aj-buttons-custom-width-mobile', attrs.ajnButtonsCustomWidthMobile);
+
+        return style;
     }
 
     function hasButtonLayout(attrs) {
@@ -571,7 +613,65 @@
             (attrs.ajnButtonLayoutMobile && attrs.ajnButtonLayoutMobile !== 'stack') ||
             (attrs.ajnButtonGapDesktop && attrs.ajnButtonGapDesktop !== 12) ||
             (attrs.ajnButtonGapTablet && attrs.ajnButtonGapTablet !== 12) ||
-            (attrs.ajnButtonGapMobile && attrs.ajnButtonGapMobile !== 12);
+            (attrs.ajnButtonGapMobile && attrs.ajnButtonGapMobile !== 12) ||
+            (attrs.ajnButtonsWidthDesktop && attrs.ajnButtonsWidthDesktop !== 'auto') ||
+            (attrs.ajnButtonsWidthTablet && attrs.ajnButtonsWidthTablet !== 'auto') ||
+            (attrs.ajnButtonsWidthMobile && attrs.ajnButtonsWidthMobile !== 'auto') ||
+            !!attrs.ajnButtonsCustomWidthDesktop ||
+            !!attrs.ajnButtonsCustomWidthTablet ||
+            !!attrs.ajnButtonsCustomWidthMobile;
+    }
+
+    function getSingleButtonClass(attrs, className) {
+        className = mergeClassName(className || '', 'aj-button-width-control');
+        className = removeClasses(className, [
+            'aj-button-width-desktop-auto',
+            'aj-button-width-desktop-small',
+            'aj-button-width-desktop-medium',
+            'aj-button-width-desktop-large',
+            'aj-button-width-desktop-full',
+            'aj-button-width-desktop-custom',
+            'aj-button-width-tablet-auto',
+            'aj-button-width-tablet-small',
+            'aj-button-width-tablet-medium',
+            'aj-button-width-tablet-large',
+            'aj-button-width-tablet-full',
+            'aj-button-width-tablet-custom',
+            'aj-button-width-mobile-auto',
+            'aj-button-width-mobile-small',
+            'aj-button-width-mobile-medium',
+            'aj-button-width-mobile-large',
+            'aj-button-width-mobile-full',
+            'aj-button-width-mobile-custom'
+        ]);
+
+        className = mergeClassName(className, 'aj-button-width-desktop-' + (attrs.ajnSingleButtonWidthDesktop || 'auto'));
+        className = mergeClassName(className, 'aj-button-width-tablet-' + (attrs.ajnSingleButtonWidthTablet || attrs.ajnSingleButtonWidthDesktop || 'auto'));
+        className = mergeClassName(className, 'aj-button-width-mobile-' + (attrs.ajnSingleButtonWidthMobile || attrs.ajnSingleButtonWidthTablet || attrs.ajnSingleButtonWidthDesktop || 'auto'));
+
+        return className;
+    }
+
+    function getSingleButtonStyles(attrs) {
+        var style = {};
+
+        setVar(style, '--aj-button-custom-width-desktop', attrs.ajnSingleButtonCustomWidthDesktop);
+        setVar(style, '--aj-button-custom-width-tablet', attrs.ajnSingleButtonCustomWidthTablet);
+        setVar(style, '--aj-button-custom-width-mobile', attrs.ajnSingleButtonCustomWidthMobile);
+
+        return style;
+    }
+
+    function hasSingleButtonLayout(attrs) {
+        var className = attrs.className || '';
+
+        return className.split(/\s+/).indexOf('aj-button-width-control') !== -1 ||
+            (attrs.ajnSingleButtonWidthDesktop && attrs.ajnSingleButtonWidthDesktop !== 'auto') ||
+            (attrs.ajnSingleButtonWidthTablet && attrs.ajnSingleButtonWidthTablet !== 'auto') ||
+            (attrs.ajnSingleButtonWidthMobile && attrs.ajnSingleButtonWidthMobile !== 'auto') ||
+            !!attrs.ajnSingleButtonCustomWidthDesktop ||
+            !!attrs.ajnSingleButtonCustomWidthTablet ||
+            !!attrs.ajnSingleButtonCustomWidthMobile;
     }
 
     function buttonLayoutControl(props, attr, label, fallback) {
@@ -598,6 +698,46 @@
             min: 0,
             max: 60,
             value: props.attributes[attr] || fallback,
+            onChange: function(value) {
+                var update = {};
+                update[attr] = value;
+                props.setAttributes(update);
+            }
+        });
+    }
+
+    function widthControl(props, attr, label, fallback) {
+        return createElement(SelectControl, {
+            label: label,
+            value: props.attributes[attr] || fallback,
+            options: [
+                { label: 'Auto', value: 'auto' },
+                { label: 'Narrow', value: 'narrow' },
+                { label: 'Standard', value: 'standard' },
+                { label: 'Wide', value: 'wide' },
+                { label: 'Full width', value: 'full' },
+                { label: 'Custom', value: 'custom' }
+            ],
+            onChange: function(value) {
+                var update = {};
+                update[attr] = value;
+                props.setAttributes(update);
+            }
+        });
+    }
+
+    function singleButtonWidthControl(props, attr, label, fallback) {
+        return createElement(SelectControl, {
+            label: label,
+            value: props.attributes[attr] || fallback,
+            options: [
+                { label: 'Auto', value: 'auto' },
+                { label: 'Small', value: 'small' },
+                { label: 'Medium', value: 'medium' },
+                { label: 'Large', value: 'large' },
+                { label: 'Full row', value: 'full' },
+                { label: 'Custom', value: 'custom' }
+            ],
             onChange: function(value) {
                 var update = {};
                 update[attr] = value;
@@ -724,9 +864,9 @@
                 ajnButtonGapMobile: 12
             },
             innerBlocks: [
-                ['core/button', { text: 'Button' }],
-                ['core/button', { text: 'Button' }],
-                ['core/button', { text: 'Button' }]
+                ['core/button', { text: 'Button', className: 'aj-button-width-control aj-button-width-desktop-medium aj-button-width-tablet-medium aj-button-width-mobile-full', ajnSingleButtonWidthDesktop: 'medium', ajnSingleButtonWidthTablet: 'medium', ajnSingleButtonWidthMobile: 'full' }],
+                ['core/button', { text: 'Button', className: 'aj-button-width-control aj-button-width-desktop-medium aj-button-width-tablet-medium aj-button-width-mobile-medium', ajnSingleButtonWidthDesktop: 'medium', ajnSingleButtonWidthTablet: 'medium', ajnSingleButtonWidthMobile: 'medium' }],
+                ['core/button', { text: 'Button', className: 'aj-button-width-control aj-button-width-desktop-medium aj-button-width-tablet-medium aj-button-width-mobile-medium', ajnSingleButtonWidthDesktop: 'medium', ajnSingleButtonWidthTablet: 'medium', ajnSingleButtonWidthMobile: 'medium' }]
             ],
             scope: ['inserter'],
             isActive: function(blockAttributes) {
@@ -744,6 +884,10 @@
             settings.attributes = Object.assign({}, settings.attributes || {}, BUTTON_LAYOUT_ATTRS);
         }
 
+        if ('core/button' === blockName) {
+            settings.attributes = Object.assign({}, settings.attributes || {}, SINGLE_BUTTON_ATTRS);
+        }
+
         if (!hasLayoutControls(blockName)) {
             return settings;
         }
@@ -758,7 +902,7 @@
         createHigherOrderComponent(function(BlockEdit) {
             return function(props) {
                 if (!hasLayoutControls(props.name)) {
-                    if ('core/buttons' !== props.name) {
+                    if ('core/buttons' !== props.name && 'core/button' !== props.name) {
                         return createElement(BlockEdit, props);
                     }
                 }
@@ -786,7 +930,38 @@
                                 buttonLayoutControl(props, 'ajnButtonLayoutMobile', 'Mobile layout', attrs.ajnButtonLayoutMobile || attrs.ajnButtonLayoutTablet || attrs.ajnButtonLayoutDesktop || 'stack'),
                                 buttonGapControl(props, 'ajnButtonGapDesktop', 'Desktop gap', attrs.ajnButtonGapDesktop || 12),
                                 buttonGapControl(props, 'ajnButtonGapTablet', 'Tablet gap', attrs.ajnButtonGapTablet || attrs.ajnButtonGapDesktop || 12),
-                                buttonGapControl(props, 'ajnButtonGapMobile', 'Mobile gap', attrs.ajnButtonGapMobile || attrs.ajnButtonGapTablet || attrs.ajnButtonGapDesktop || 12)
+                                buttonGapControl(props, 'ajnButtonGapMobile', 'Mobile gap', attrs.ajnButtonGapMobile || attrs.ajnButtonGapTablet || attrs.ajnButtonGapDesktop || 12),
+                                widthControl(props, 'ajnButtonsWidthDesktop', 'Buttons area width - Desktop', attrs.ajnButtonsWidthDesktop || 'auto'),
+                                attrs.ajnButtonsWidthDesktop === 'custom' ? field('Custom desktop width', attrs.ajnButtonsCustomWidthDesktop, 'Example: 760px or 70%', '', function(value) { setAttributes({ ajnButtonsCustomWidthDesktop: value }); }) : null,
+                                widthControl(props, 'ajnButtonsWidthTablet', 'Buttons area width - Tablet', attrs.ajnButtonsWidthTablet || attrs.ajnButtonsWidthDesktop || 'auto'),
+                                attrs.ajnButtonsWidthTablet === 'custom' ? field('Custom tablet width', attrs.ajnButtonsCustomWidthTablet, 'Leave blank to use desktop', '', function(value) { setAttributes({ ajnButtonsCustomWidthTablet: value }); }) : null,
+                                widthControl(props, 'ajnButtonsWidthMobile', 'Buttons area width - Mobile', attrs.ajnButtonsWidthMobile || attrs.ajnButtonsWidthTablet || attrs.ajnButtonsWidthDesktop || 'auto'),
+                                attrs.ajnButtonsWidthMobile === 'custom' ? field('Custom mobile width', attrs.ajnButtonsCustomWidthMobile, 'Leave blank to use tablet/desktop', '', function(value) { setAttributes({ ajnButtonsCustomWidthMobile: value }); }) : null
+                            )
+                        )
+                    );
+                }
+
+                if ('core/button' === props.name) {
+                    return createElement(
+                        Fragment,
+                        {},
+                        createElement(BlockEdit, props),
+                        createElement(
+                            InspectorControls,
+                            {},
+                            createElement(
+                                PanelBody,
+                                {
+                                    title: 'AJNanda Button Width',
+                                    initialOpen: true
+                                },
+                                singleButtonWidthControl(props, 'ajnSingleButtonWidthDesktop', 'Desktop width', attrs.ajnSingleButtonWidthDesktop || 'auto'),
+                                attrs.ajnSingleButtonWidthDesktop === 'custom' ? field('Custom desktop width', attrs.ajnSingleButtonCustomWidthDesktop, 'Example: 220px or 50%', '', function(value) { setAttributes({ ajnSingleButtonCustomWidthDesktop: value }); }) : null,
+                                singleButtonWidthControl(props, 'ajnSingleButtonWidthTablet', 'Tablet width', attrs.ajnSingleButtonWidthTablet || attrs.ajnSingleButtonWidthDesktop || 'auto'),
+                                attrs.ajnSingleButtonWidthTablet === 'custom' ? field('Custom tablet width', attrs.ajnSingleButtonCustomWidthTablet, 'Leave blank to use desktop', '', function(value) { setAttributes({ ajnSingleButtonCustomWidthTablet: value }); }) : null,
+                                singleButtonWidthControl(props, 'ajnSingleButtonWidthMobile', 'Mobile width', attrs.ajnSingleButtonWidthMobile || attrs.ajnSingleButtonWidthTablet || attrs.ajnSingleButtonWidthDesktop || 'auto'),
+                                attrs.ajnSingleButtonWidthMobile === 'custom' ? field('Custom mobile width', attrs.ajnSingleButtonCustomWidthMobile, 'Leave blank to use tablet/desktop', '', function(value) { setAttributes({ ajnSingleButtonCustomWidthMobile: value }); }) : null
                             )
                         )
                     );
@@ -894,6 +1069,11 @@
                     wrapperProps.style = Object.assign(existingStyle, getButtonLayoutStyles(attrs));
                 }
 
+                if ('core/button' === props.name && hasSingleButtonLayout(attrs)) {
+                    wrapperProps.className = getSingleButtonClass(attrs, wrapperProps.className);
+                    wrapperProps.style = Object.assign(existingStyle, getSingleButtonStyles(attrs));
+                }
+
                 return createElement(BlockListBlock, Object.assign({}, props, { wrapperProps: wrapperProps }));
             };
         }, 'withAjnLiveBlockLayoutPreview')
@@ -903,7 +1083,7 @@
         attrs = attrs || {};
 
         if (!hasLayoutControls(blockType.name) || !hasLayout(attrs)) {
-            if ('core/buttons' !== blockType.name || !hasButtonLayout(attrs)) {
+            if (('core/buttons' !== blockType.name || !hasButtonLayout(attrs)) && ('core/button' !== blockType.name || !hasSingleButtonLayout(attrs))) {
                 return extraProps;
             }
         }
@@ -916,6 +1096,11 @@
         if ('core/buttons' === blockType.name && hasButtonLayout(attrs)) {
             extraProps.className = getButtonLayoutClass(attrs, extraProps.className);
             extraProps.style = Object.assign({}, extraProps.style || {}, getButtonLayoutStyles(attrs));
+        }
+
+        if ('core/button' === blockType.name && hasSingleButtonLayout(attrs)) {
+            extraProps.className = getSingleButtonClass(attrs, extraProps.className);
+            extraProps.style = Object.assign({}, extraProps.style || {}, getSingleButtonStyles(attrs));
         }
 
         return extraProps;
