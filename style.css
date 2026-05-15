@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: http://ncllc.ddev.site/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.1.8
+Version: 1.1.9
 License: GNU General Public License v2 or later
 Text Domain: ncllc-pro
 */
@@ -242,6 +242,7 @@ body.admin-bar .site-header {
 .header-builder-container {
     max-width: var(--ajn-header-container-width);
     margin-inline: auto;
+    position: relative;
 }
 
 .ajn-builder-row {
@@ -277,20 +278,33 @@ body.admin-bar .site-header {
 
 .mobile-menu-toggle {
     display: none;
-    width: 44px;
+    min-width: 44px;
     height: 44px;
     align-items: center;
     justify-content: center;
-    flex-direction: column;
-    gap: 5px;
+    gap: 0.5rem;
+    padding: 0 0.75rem;
     border: 1px solid var(--gray-200);
     border-radius: 0.5rem;
     background: var(--white);
     color: var(--gray-900);
     cursor: pointer;
+    font: inherit;
+    font-weight: 700;
 }
 
-.mobile-menu-toggle span {
+.mobile-menu-icon {
+    display: inline-flex;
+    width: 22px;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.mobile-menu-label {
+    line-height: 1;
+}
+
+.mobile-menu-icon span {
     display: block;
     width: 22px;
     height: 2px;
@@ -299,15 +313,15 @@ body.admin-bar .site-header {
     transition: var(--transition);
 }
 
-.mobile-menu-toggle.active span:nth-child(1) {
+.mobile-menu-toggle.active .mobile-menu-icon span:nth-child(1) {
     transform: translateY(7px) rotate(45deg);
 }
 
-.mobile-menu-toggle.active span:nth-child(2) {
+.mobile-menu-toggle.active .mobile-menu-icon span:nth-child(2) {
     opacity: 0;
 }
 
-.mobile-menu-toggle.active span:nth-child(3) {
+.mobile-menu-toggle.active .mobile-menu-icon span:nth-child(3) {
     transform: translateY(-7px) rotate(-45deg);
 }
 
@@ -2653,6 +2667,37 @@ body.admin-bar .site-header {
         right: 1rem;
         z-index: 1001;
     }
+    .header-builder-container {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 1rem;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+    }
+    .header-builder-container .ajn-builder-row {
+        display: contents;
+    }
+    .header-builder-container .ajn-builder-cell {
+        width: auto;
+    }
+    .header-builder-container .ajn-builder-cell-site-logo {
+        grid-column: 1;
+        justify-content: flex-start;
+    }
+    .header-builder-container .ajn-builder-cell-primary-menu {
+        position: absolute;
+        top: calc(100% + 0.75rem);
+        right: 1rem;
+        left: 1rem;
+        z-index: 1001;
+        width: auto;
+        justify-content: stretch;
+    }
+    .header-builder-container > .mobile-menu-toggle {
+        grid-column: 2;
+        justify-self: end;
+    }
     .header-layout-centered-menu .site-branding {
         position: static;
     }
@@ -2670,14 +2715,14 @@ body.admin-bar .site-header {
     .ajn-builder-cell {
         flex: var(--ajn-builder-width-mobile, 1) 1 0;
     }
-    .ajn-builder-row {
+    .footer-builder-container .ajn-builder-row {
         align-items: stretch;
         flex-direction: column;
     }
-    .ajn-builder-cell,
-    .ajn-builder-cell-primary-menu,
-    .ajn-builder-cell-footer-menu,
-    .ajn-builder-cell-site-logo {
+    .footer-builder-container .ajn-builder-cell,
+    .footer-builder-container .ajn-builder-cell-primary-menu,
+    .footer-builder-container .ajn-builder-cell-footer-menu,
+    .footer-builder-container .ajn-builder-cell-site-logo {
         justify-content: center;
         width: 100%;
     }

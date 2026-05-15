@@ -45,10 +45,10 @@ add_action('after_setup_theme', 'ncllc_pro_setup');
  */
 function ncllc_pro_scripts() {
     // Enqueue main stylesheet
-    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.1.8');
+    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.1.9');
     
     // Enqueue custom JavaScript
-    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.1.8', true);
+    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.1.9', true);
     
     // Localize script
     wp_localize_script('ncllc-pro-script', 'ncllcData', array(
@@ -69,12 +69,12 @@ function ncllc_pro_block_editor_assets() {
         null
     );
 
-    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.1.8');
+    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.1.9');
     wp_enqueue_script(
         'ncllc-pro-editor-controls',
         get_template_directory_uri() . '/js/editor-controls.js',
         array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-element', 'wp-hooks'),
-        '1.1.8',
+        '1.1.9',
         true
     );
 }
@@ -817,8 +817,11 @@ function ncllc_pro_render_builder_site_identity() {
 }
 
 function ncllc_pro_render_builder_menu($location, $class_name) {
+    $menu_id = 'primary' === $location ? 'primary-menu' : 'footer-menu';
+
     wp_nav_menu(array(
         'theme_location' => $location,
+        'menu_id'        => $menu_id,
         'menu_class'     => $class_name,
         'container'      => false,
         'fallback_cb'    => false,

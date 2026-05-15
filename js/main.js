@@ -68,7 +68,7 @@
 
         // Close mobile menu when clicking outside
         $(document).on('click', function(e) {
-            if (!$(e.target).closest('.main-navigation, #mobile-menu-toggle').length) {
+            if (!$(e.target).closest('.main-navigation, .ajn-builder-cell-primary-menu, #mobile-menu-toggle').length) {
                 $('#mobile-menu-toggle').removeClass('active');
                 $('#mobile-menu-toggle').attr('aria-expanded', 'false');
                 $('.nav-menu').removeClass('mobile-active');
