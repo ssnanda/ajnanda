@@ -16,10 +16,12 @@
     var Notice = wp.components.Notice;
     var ToggleControl = wp.components.ToggleControl;
     var SelectControl = wp.components.SelectControl;
+    var RangeControl = wp.components.RangeControl;
     var CheckboxControl = wp.components.CheckboxControl;
     var createHigherOrderComponent = wp.compose.createHigherOrderComponent;
     var useEffect = wp.element.useEffect;
     var useState = wp.element.useState;
+    var registerBlockVariation = wp.blocks.registerBlockVariation;
 
     var LAYOUT_ATTRS = {
         ajnMinHeightDesktop: { type: 'string', default: '' },
@@ -69,6 +71,15 @@
         'ajnanda/info-box': true,
         'ajnanda/call-to-action': true,
         'ajnanda/buttons': true
+    };
+
+    var BUTTON_LAYOUT_ATTRS = {
+        ajnButtonLayoutDesktop: { type: 'string', default: 'row' },
+        ajnButtonLayoutTablet: { type: 'string', default: 'row' },
+        ajnButtonLayoutMobile: { type: 'string', default: 'stack' },
+        ajnButtonGapDesktop: { type: 'number', default: 12 },
+        ajnButtonGapTablet: { type: 'number', default: 12 },
+        ajnButtonGapMobile: { type: 'number', default: 12 }
     };
 
     function hasLayoutControls(blockName) {
@@ -519,6 +530,82 @@
         return className;
     }
 
+    function getButtonLayoutClass(attrs, className) {
+        className = mergeClassName(className || '', 'aj-buttons-control');
+        className = removeClasses(className, [
+            'aj-buttons-desktop-row',
+            'aj-buttons-desktop-stack',
+            'aj-buttons-desktop-grid',
+            'aj-buttons-desktop-featured',
+            'aj-buttons-tablet-row',
+            'aj-buttons-tablet-stack',
+            'aj-buttons-tablet-grid',
+            'aj-buttons-tablet-featured',
+            'aj-buttons-mobile-row',
+            'aj-buttons-mobile-stack',
+            'aj-buttons-mobile-grid',
+            'aj-buttons-mobile-featured'
+        ]);
+
+        className = mergeClassName(className, 'aj-buttons-desktop-' + (attrs.ajnButtonLayoutDesktop || 'row'));
+        className = mergeClassName(className, 'aj-buttons-tablet-' + (attrs.ajnButtonLayoutTablet || attrs.ajnButtonLayoutDesktop || 'row'));
+        className = mergeClassName(className, 'aj-buttons-mobile-' + (attrs.ajnButtonLayoutMobile || attrs.ajnButtonLayoutTablet || attrs.ajnButtonLayoutDesktop || 'stack'));
+
+        return className;
+    }
+
+    function getButtonLayoutStyles(attrs) {
+        return {
+            '--aj-buttons-gap-desktop': (attrs.ajnButtonGapDesktop || 12) + 'px',
+            '--aj-buttons-gap-tablet': (attrs.ajnButtonGapTablet || attrs.ajnButtonGapDesktop || 12) + 'px',
+            '--aj-buttons-gap-mobile': (attrs.ajnButtonGapMobile || attrs.ajnButtonGapTablet || attrs.ajnButtonGapDesktop || 12) + 'px'
+        };
+    }
+
+    function hasButtonLayout(attrs) {
+        var className = attrs.className || '';
+
+        return className.split(/\s+/).indexOf('aj-buttons-control') !== -1 ||
+            (attrs.ajnButtonLayoutDesktop && attrs.ajnButtonLayoutDesktop !== 'row') ||
+            (attrs.ajnButtonLayoutTablet && attrs.ajnButtonLayoutTablet !== 'row') ||
+            (attrs.ajnButtonLayoutMobile && attrs.ajnButtonLayoutMobile !== 'stack') ||
+            (attrs.ajnButtonGapDesktop && attrs.ajnButtonGapDesktop !== 12) ||
+            (attrs.ajnButtonGapTablet && attrs.ajnButtonGapTablet !== 12) ||
+            (attrs.ajnButtonGapMobile && attrs.ajnButtonGapMobile !== 12);
+    }
+
+    function buttonLayoutControl(props, attr, label, fallback) {
+        return createElement(SelectControl, {
+            label: label,
+            value: props.attributes[attr] || fallback,
+            options: [
+                { label: 'Horizontal row', value: 'row' },
+                { label: 'Stacked', value: 'stack' },
+                { label: 'Equal grid', value: 'grid' },
+                { label: 'First wide, rest below', value: 'featured' }
+            ],
+            onChange: function(value) {
+                var update = {};
+                update[attr] = value;
+                props.setAttributes(update);
+            }
+        });
+    }
+
+    function buttonGapControl(props, attr, label, fallback) {
+        return createElement(RangeControl, {
+            label: label,
+            min: 0,
+            max: 60,
+            value: props.attributes[attr] || fallback,
+            onChange: function(value) {
+                var update = {};
+                update[attr] = value;
+                props.setAttributes(update);
+            }
+        });
+    }
+
     function useMeasuredBlockHeight(clientId) {
         var state = useState('');
         var measuredHeight = state[0];
@@ -616,8 +703,48 @@
 
     registerHeroBlockVariation();
 
+    function registerButtonsBlockVariation() {
+        if (!registerBlockVariation) {
+            return;
+        }
+
+        registerBlockVariation('core/buttons', {
+            name: 'ajnanda-buttons',
+            title: 'AJ Buttons',
+            description: 'Native WordPress buttons with AJNanda responsive layout controls.',
+            icon: 'button',
+            category: 'ajnanda-blocks',
+            attributes: {
+                className: 'aj-buttons-control aj-buttons-desktop-row aj-buttons-tablet-row aj-buttons-mobile-featured',
+                ajnButtonLayoutDesktop: 'row',
+                ajnButtonLayoutTablet: 'row',
+                ajnButtonLayoutMobile: 'featured',
+                ajnButtonGapDesktop: 12,
+                ajnButtonGapTablet: 12,
+                ajnButtonGapMobile: 12
+            },
+            innerBlocks: [
+                ['core/button', { text: 'Button' }],
+                ['core/button', { text: 'Button' }],
+                ['core/button', { text: 'Button' }]
+            ],
+            scope: ['inserter'],
+            isActive: function(blockAttributes) {
+                return (blockAttributes.className || '').split(/\s+/).indexOf('aj-buttons-control') !== -1;
+            }
+        });
+    }
+
+    registerButtonsBlockVariation();
+
     addFilter('blocks.registerBlockType', 'ajn/block-layout-attributes', function(settings, name) {
-        if (!hasLayoutControls(name || settings.name)) {
+        var blockName = name || settings.name;
+
+        if ('core/buttons' === blockName) {
+            settings.attributes = Object.assign({}, settings.attributes || {}, BUTTON_LAYOUT_ATTRS);
+        }
+
+        if (!hasLayoutControls(blockName)) {
             return settings;
         }
 
@@ -631,12 +758,39 @@
         createHigherOrderComponent(function(BlockEdit) {
             return function(props) {
                 if (!hasLayoutControls(props.name)) {
-                    return createElement(BlockEdit, props);
+                    if ('core/buttons' !== props.name) {
+                        return createElement(BlockEdit, props);
+                    }
                 }
 
                 var attrs = props.attributes || {};
                 var setAttributes = props.setAttributes;
                 var measuredHeight = useMeasuredBlockHeight(props.clientId);
+
+                if ('core/buttons' === props.name) {
+                    return createElement(
+                        Fragment,
+                        {},
+                        createElement(BlockEdit, props),
+                        createElement(
+                            InspectorControls,
+                            {},
+                            createElement(
+                                PanelBody,
+                                {
+                                    title: 'AJNanda Button Layout',
+                                    initialOpen: true
+                                },
+                                buttonLayoutControl(props, 'ajnButtonLayoutDesktop', 'Desktop layout', attrs.ajnButtonLayoutDesktop || 'row'),
+                                buttonLayoutControl(props, 'ajnButtonLayoutTablet', 'Tablet layout', attrs.ajnButtonLayoutTablet || attrs.ajnButtonLayoutDesktop || 'row'),
+                                buttonLayoutControl(props, 'ajnButtonLayoutMobile', 'Mobile layout', attrs.ajnButtonLayoutMobile || attrs.ajnButtonLayoutTablet || attrs.ajnButtonLayoutDesktop || 'stack'),
+                                buttonGapControl(props, 'ajnButtonGapDesktop', 'Desktop gap', attrs.ajnButtonGapDesktop || 12),
+                                buttonGapControl(props, 'ajnButtonGapTablet', 'Tablet gap', attrs.ajnButtonGapTablet || attrs.ajnButtonGapDesktop || 12),
+                                buttonGapControl(props, 'ajnButtonGapMobile', 'Mobile gap', attrs.ajnButtonGapMobile || attrs.ajnButtonGapTablet || attrs.ajnButtonGapDesktop || 12)
+                            )
+                        )
+                    );
+                }
 
                 return createElement(
                     Fragment,
@@ -735,6 +889,11 @@
                     wrapperProps.style = Object.assign(existingStyle, getLayoutStyles(attrs));
                 }
 
+                if ('core/buttons' === props.name && hasButtonLayout(attrs)) {
+                    wrapperProps.className = getButtonLayoutClass(attrs, wrapperProps.className);
+                    wrapperProps.style = Object.assign(existingStyle, getButtonLayoutStyles(attrs));
+                }
+
                 return createElement(BlockListBlock, Object.assign({}, props, { wrapperProps: wrapperProps }));
             };
         }, 'withAjnLiveBlockLayoutPreview')
@@ -744,11 +903,20 @@
         attrs = attrs || {};
 
         if (!hasLayoutControls(blockType.name) || !hasLayout(attrs)) {
-            return extraProps;
+            if ('core/buttons' !== blockType.name || !hasButtonLayout(attrs)) {
+                return extraProps;
+            }
         }
 
-        extraProps.className = getLayoutClass(attrs, extraProps.className);
-        extraProps.style = Object.assign({}, extraProps.style || {}, getLayoutStyles(attrs));
+        if (hasLayoutControls(blockType.name) && hasLayout(attrs)) {
+            extraProps.className = getLayoutClass(attrs, extraProps.className);
+            extraProps.style = Object.assign({}, extraProps.style || {}, getLayoutStyles(attrs));
+        }
+
+        if ('core/buttons' === blockType.name && hasButtonLayout(attrs)) {
+            extraProps.className = getButtonLayoutClass(attrs, extraProps.className);
+            extraProps.style = Object.assign({}, extraProps.style || {}, getButtonLayoutStyles(attrs));
+        }
 
         return extraProps;
     });

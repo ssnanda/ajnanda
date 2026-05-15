@@ -963,6 +963,120 @@
         });
     }
 
+    function ajButtonsStyle(attrs) {
+        return Object.assign({}, blockStyle(attrs), {
+            '--aj-buttons-gap-desktop': (attrs.gapDesktop || attrs.gap || 12) + 'px',
+            '--aj-buttons-gap-tablet': (attrs.gapTablet || attrs.gapDesktop || attrs.gap || 12) + 'px',
+            '--aj-buttons-gap-mobile': (attrs.gapMobile || attrs.gapTablet || attrs.gapDesktop || attrs.gap || 12) + 'px'
+        });
+    }
+
+    function ajButtonsProps(attrs) {
+        return {
+            className: classNames(
+                'aj-block',
+                'aj-buttons',
+                'aj-buttons-desktop-' + (attrs.layoutDesktop || attrs.orientation || 'row'),
+                'aj-buttons-tablet-' + (attrs.layoutTablet || attrs.layoutDesktop || attrs.orientation || 'row'),
+                'aj-buttons-mobile-' + (attrs.layoutMobile || attrs.layoutTablet || attrs.layoutDesktop || attrs.orientation || 'stack'),
+                attrs && attrs.alignText ? 'has-text-align-' + attrs.alignText : '',
+                attrs && attrs.animation && attrs.animation !== 'none' ? 'aj-animate-' + attrs.animation : ''
+            ),
+            style: ajButtonsStyle(attrs)
+        };
+    }
+
+    function ajButtonsLayoutControl(props, device, label, fallback) {
+        var attr = 'layout' + device;
+        var value = props.attributes[attr] || fallback;
+
+        return el(SelectControl, {
+            label: label,
+            value: value,
+            options: [
+                { label: __('Horizontal row', 'ncllc-pro'), value: 'row' },
+                { label: __('Stacked', 'ncllc-pro'), value: 'stack' },
+                { label: __('Equal grid', 'ncllc-pro'), value: 'grid' },
+                { label: __('First wide, rest below', 'ncllc-pro'), value: 'featured' }
+            ],
+            onChange: function(nextValue) {
+                var update = {};
+                update[attr] = nextValue;
+                props.setAttributes(update);
+            }
+        });
+    }
+
+    function ajButtonsGapControl(props, device, label, fallback) {
+        var attr = 'gap' + device;
+        var value = props.attributes[attr] || fallback;
+
+        return el(RangeControl, {
+            label: label,
+            min: 0,
+            max: 60,
+            value: value,
+            onChange: function(nextValue) {
+                var update = {};
+                update[attr] = nextValue;
+                props.setAttributes(update);
+            }
+        });
+    }
+
+    function registerAJButtonsBlock() {
+        registerBlockType('ajnanda/buttons', {
+            title: __('AJ Buttons (Legacy)', 'ncllc-pro'),
+            description: __('Legacy AJ Buttons wrapper. Use the native AJ Buttons variation instead.', 'ncllc-pro'),
+            category: category,
+            icon: 'button',
+            inserter: false,
+            supports: { align: ['wide', 'full'], anchor: true },
+            attributes: withStyleAttributes({
+                layoutDesktop: { type: 'string', default: 'row' },
+                layoutTablet: { type: 'string', default: 'row' },
+                layoutMobile: { type: 'string', default: 'stack' },
+                gapDesktop: { type: 'number', default: 12 },
+                gapTablet: { type: 'number', default: 12 },
+                gapMobile: { type: 'number', default: 12 },
+                orientation: { type: 'string' },
+                gap: { type: 'number' }
+            }),
+            edit: function(props) {
+                var attrs = props.attributes;
+                var desktopLayout = attrs.layoutDesktop || attrs.orientation || 'row';
+                var tabletLayout = attrs.layoutTablet || desktopLayout;
+                var mobileLayout = attrs.layoutMobile || tabletLayout || 'stack';
+                var desktopGap = attrs.gapDesktop || attrs.gap || 12;
+                var tabletGap = attrs.gapTablet || desktopGap;
+                var mobileGap = attrs.gapMobile || tabletGap;
+
+                return el(Fragment, {},
+                    inspector([
+                        ajButtonsLayoutControl(props, 'Desktop', __('Desktop layout', 'ncllc-pro'), desktopLayout),
+                        ajButtonsLayoutControl(props, 'Tablet', __('Tablet layout', 'ncllc-pro'), tabletLayout),
+                        ajButtonsLayoutControl(props, 'Mobile', __('Mobile layout', 'ncllc-pro'), mobileLayout),
+                        ajButtonsGapControl(props, 'Desktop', __('Desktop gap', 'ncllc-pro'), desktopGap),
+                        ajButtonsGapControl(props, 'Tablet', __('Tablet gap', 'ncllc-pro'), tabletGap),
+                        ajButtonsGapControl(props, 'Mobile', __('Mobile gap', 'ncllc-pro'), mobileGap)
+                    ]),
+                    el('section', ajButtonsProps(attrs), el(InnerBlocks, {
+                        allowedBlocks: ['core/button'],
+                        template: [
+                            ['core/button', { text: __('Button', 'ncllc-pro') }],
+                            ['core/button', { text: __('Button', 'ncllc-pro') }],
+                            ['core/button', { text: __('Button', 'ncllc-pro') }]
+                        ],
+                        templateLock: false
+                    }))
+                );
+            },
+            save: function(props) {
+                return el('section', ajButtonsProps(props.attributes), el(InnerBlocks.Content));
+            }
+        });
+    }
+
     simpleCardBlock('ajnanda/info-box', __('AJ Info Box', 'ncllc-pro'), 'welcome-widgets-menus', 'aj-info-box', [['ajnanda/icon'], ['core/heading', { level: 3, content: 'Info Box' }], ['core/paragraph', { placeholder: 'Add supporting text.' }]], {
         attributes: { mediaPosition: { type: 'string', default: 'top' } },
         controls: function(props) {
@@ -977,13 +1091,7 @@
         },
         className: function(attrs) { return 'aj-cta--' + attrs.layout; }
     });
-    simpleCardBlock('ajnanda/buttons', __('AJ Buttons', 'ncllc-pro'), 'button', 'aj-buttons', [['core/buttons', {}, [['core/button', { text: 'Button' }], ['core/button', { text: 'Button' }]]]], {
-        attributes: { orientation: { type: 'string', default: 'horizontal' }, gap: { type: 'number', default: 12 } },
-        controls: function(props) {
-            return [el(SelectControl, { label: __('Orientation', 'ncllc-pro'), value: props.attributes.orientation || 'horizontal', options: [{ label: __('Horizontal', 'ncllc-pro'), value: 'horizontal' }, { label: __('Vertical', 'ncllc-pro'), value: 'vertical' }], onChange: function(value) { props.setAttributes({ orientation: value }); } }), el(RangeControl, { label: __('Button gap', 'ncllc-pro'), min: 0, max: 60, value: props.attributes.gap || 12, onChange: function(value) { props.setAttributes({ gap: value }); } })];
-        },
-        className: function(attrs) { return 'aj-buttons--' + attrs.orientation; }
-    });
+    registerAJButtonsBlock();
     simpleCardBlock('ajnanda/marketing-button', __('AJ Marketing Button', 'ncllc-pro'), 'external', 'aj-marketing-button', [['core/buttons', { layout: { type: 'flex', justifyContent: 'center' } }, [['core/button', { text: 'Marketing Button' }]]]], {
         attributes: { showIcon: { type: 'boolean', default: true }, iconPosition: { type: 'string', default: 'after' } },
         controls: function(props) {
