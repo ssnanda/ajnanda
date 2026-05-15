@@ -43,12 +43,21 @@ add_action('after_setup_theme', 'ncllc_pro_setup');
 /**
  * Enqueue scripts and styles
  */
+function ncllc_pro_asset_version($relative_path) {
+    $relative_path = ltrim((string) $relative_path, '/');
+    $path = 'style.css' === $relative_path
+        ? get_stylesheet_directory() . '/style.css'
+        : get_theme_file_path($relative_path);
+
+    return file_exists($path) ? (string) filemtime($path) : wp_get_theme()->get('Version');
+}
+
 function ncllc_pro_scripts() {
     // Enqueue main stylesheet
-    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), '1.1.11');
+    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), ncllc_pro_asset_version('style.css'));
     
     // Enqueue custom JavaScript
-    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), '1.1.11', true);
+    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), ncllc_pro_asset_version('js/main.js'), true);
     
     // Localize script
     wp_localize_script('ncllc-pro-script', 'ncllcData', array(
@@ -69,12 +78,12 @@ function ncllc_pro_block_editor_assets() {
         null
     );
 
-    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), '1.1.11');
+    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), ncllc_pro_asset_version('style.css'));
     wp_enqueue_script(
         'ncllc-pro-editor-controls',
         get_template_directory_uri() . '/js/editor-controls.js',
         array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-element', 'wp-hooks'),
-        '1.1.11',
+        ncllc_pro_asset_version('js/editor-controls.js'),
         true
     );
 }
@@ -1565,7 +1574,10 @@ add_filter('xmlrpc_enabled', '__return_false');
  * Remove query strings from static resources
  */
 function ncllc_pro_remove_query_strings($src, $handle = '') {
-    if (in_array($handle, array('ncllc-pro-style', 'ncllc-pro-script'), true)) {
+    $theme_uri = get_template_directory_uri();
+    $stylesheet_uri = get_stylesheet_directory_uri();
+
+    if (0 === strpos($src, $theme_uri) || 0 === strpos($src, $stylesheet_uri)) {
         return $src;
     }
 

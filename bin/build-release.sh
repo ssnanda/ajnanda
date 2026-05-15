@@ -6,6 +6,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RELEASES_DIR="$ROOT_DIR/releases"
 STYLE_FILE="$ROOT_DIR/style.css"
 FUNCTIONS_FILE="$ROOT_DIR/functions.php"
+BLOCK_LOADER_FILE="$ROOT_DIR/blocks/ajnanda-blocks/loader.php"
 
 GITHUB_REPO="ssnanda/ajnanda"
 TAG_PREFIX="v"
@@ -100,19 +101,39 @@ set_version() {
 
   perl -0pi -e "s/Version:\s*[0-9]+\.[0-9]+\.[0-9]+/Version: $version/" "$STYLE_FILE"
 
-  if grep -q "AJNANDA_THEME_VERSION" "$FUNCTIONS_FILE"; then
-    perl -0pi -e "s/define\(\s*'AJNANDA_THEME_VERSION'\s*,\s*'[^']+'\s*\);/define('AJNANDA_THEME_VERSION', '$version');/" "$FUNCTIONS_FILE"
-  fi
+  local file handle
+  for file in "$FUNCTIONS_FILE" "$BLOCK_LOADER_FILE"; do
+    [[ -f "$file" ]] || continue
 
-  perl -0pi -e "s/(wp_enqueue_style\(\s*'ncllc-pro-style'[^;]*,\s*)'[0-9]+\.[0-9]+\.[0-9]+'/\${1}'$version'/g" "$FUNCTIONS_FILE"
-  perl -0pi -e "s/(wp_enqueue_script\(\s*'ncllc-pro-script'[^;]*,\s*)'[0-9]+\.[0-9]+\.[0-9]+'/\${1}'$version'/g" "$FUNCTIONS_FILE"
-  perl -0pi -e "s/(wp_enqueue_style\(\s*'ncllc-pro-editor-style'[^;]*,\s*)'[0-9]+\.[0-9]+\.[0-9]+'/\${1}'$version'/g" "$FUNCTIONS_FILE"
-  perl -0pi -e "s/(wp_enqueue_script\(\s*'ncllc-pro-editor-controls'[^;]*,\s*)'[0-9]+\.[0-9]+\.[0-9]+'/\${1}'$version'/g" "$FUNCTIONS_FILE"
+    if grep -q "AJNANDA_THEME_VERSION" "$file"; then
+      perl -0pi -e "s/define\(\s*'AJNANDA_THEME_VERSION'\s*,\s*'[^']+'\s*\);/define('AJNANDA_THEME_VERSION', '$version');/" "$file"
+    fi
+  done
+
+  local theme_asset_handles=(
+    ncllc-pro-style
+    ncllc-pro-script
+    ncllc-pro-editor-style
+    ncllc-pro-editor-controls
+    ajnanda-blocks-style
+    ajnanda-blocks-editor-style
+    ajnanda-blocks-editor
+    ajnanda-blocks-frontend
+  )
+
+  for file in "$FUNCTIONS_FILE" "$BLOCK_LOADER_FILE"; do
+    [[ -f "$file" ]] || continue
+
+    for handle in "${theme_asset_handles[@]}"; do
+      perl -0pi -e "s/((?:wp_enqueue|wp_register)_(?:style|script)\(\s*'$handle'(?:(?!;).)*?,\s*)'[0-9]+\.[0-9]+\.[0-9]+'/\${1}'$version'/gs" "$file"
+    done
+  done
 }
 
 require_files() {
   [[ -f "$STYLE_FILE" ]] || { echo "Error: missing style.css at $STYLE_FILE" >&2; exit 1; }
   [[ -f "$FUNCTIONS_FILE" ]] || { echo "Error: missing functions.php at $FUNCTIONS_FILE" >&2; exit 1; }
+  [[ -f "$BLOCK_LOADER_FILE" ]] || { echo "Error: missing block loader at $BLOCK_LOADER_FILE" >&2; exit 1; }
   command -v zip >/dev/null 2>&1 || { echo "Error: zip command is required" >&2; exit 1; }
   command -v unzip >/dev/null 2>&1 || { echo "Error: unzip command is required" >&2; exit 1; }
   command -v rsync >/dev/null 2>&1 || { echo "Error: rsync command is required" >&2; exit 1; }
@@ -224,6 +245,19 @@ verify_zip() {
     unzip -l "$zip_file" | head >&2
     exit 1
   fi
+
+  local asset
+  for asset in \
+    "blocks/ajnanda-blocks/style.css" \
+    "blocks/ajnanda-blocks/editor.css" \
+    "blocks/ajnanda-blocks/index.js" \
+    "blocks/ajnanda-blocks/frontend.js"
+  do
+    if ! unzip -l "$zip_file" | awk '{print $4}' | grep -q "^$THEME_SLUG/$asset$"; then
+      echo "Error: zip is missing $THEME_SLUG/$asset" >&2
+      exit 1
+    fi
+  done
 }
 
 git_commit_release_files() {
@@ -304,6 +338,7 @@ while [[ $# -gt 0 ]]; do
       RELEASES_DIR="$ROOT_DIR/releases"
       STYLE_FILE="$ROOT_DIR/style.css"
       FUNCTIONS_FILE="$ROOT_DIR/functions.php"
+      BLOCK_LOADER_FILE="$ROOT_DIR/blocks/ajnanda-blocks/loader.php"
       shift 2
       ;;
     --repo) GITHUB_REPO="${2:-}"; shift 2 ;;
@@ -407,12 +442,17 @@ echo "Current version: $CURRENT_VERSION"
 echo "New version: $VERSION"
 echo "Updated: $STYLE_FILE"
 echo "Updated: $FUNCTIONS_FILE"
+echo "Updated: $BLOCK_LOADER_FILE"
 echo "Built: $VERSIONED_ZIP"
 echo "Built: $LATEST_ZIP"
 echo ""
 echo "Verified:"
 echo "  $THEME_SLUG/"
 echo "  $THEME_SLUG/style.css"
+echo "  $THEME_SLUG/blocks/ajnanda-blocks/style.css"
+echo "  $THEME_SLUG/blocks/ajnanda-blocks/editor.css"
+echo "  $THEME_SLUG/blocks/ajnanda-blocks/index.js"
+echo "  $THEME_SLUG/blocks/ajnanda-blocks/frontend.js"
 echo ""
 echo "Verify manually with:"
 echo "  unzip -l \"$VERSIONED_ZIP\" | head"
