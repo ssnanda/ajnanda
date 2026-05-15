@@ -17,11 +17,19 @@
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 
-<?php $header_layout = get_theme_mod('header_layout', 'logo-left-menu-right'); ?>
+<?php $header_layout = ncllc_pro_get_header_layout(); ?>
 <header class="site-header header-layout-<?php echo esc_attr($header_layout); ?>" id="masthead">
     <?php if ('builder' === $header_layout) : ?>
         <div class="header-builder-container container">
             <?php ncllc_pro_render_builder_layout('header'); ?>
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle" type="button" aria-label="<?php esc_attr_e('Toggle menu', 'ncllc-pro'); ?>" aria-controls="primary-menu" aria-expanded="false">
+                <span class="mobile-menu-icon" aria-hidden="true">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+                <span class="mobile-menu-label"><?php esc_html_e('Menu', 'ncllc-pro'); ?></span>
+            </button>
         </div>
     <?php else : ?>
         <div class="header-container container">
@@ -47,10 +55,13 @@
                 ?>
             </nav>
 
-            <button class="mobile-menu-toggle" id="mobile-menu-toggle" type="button" aria-label="Toggle menu" aria-controls="primary-menu" aria-expanded="false">
-                <span></span>
-                <span></span>
-                <span></span>
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle" type="button" aria-label="<?php esc_attr_e('Toggle menu', 'ncllc-pro'); ?>" aria-controls="primary-menu" aria-expanded="false">
+                <span class="mobile-menu-icon" aria-hidden="true">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+                <span class="mobile-menu-label"><?php esc_html_e('Menu', 'ncllc-pro'); ?></span>
             </button>
         </div>
     <?php endif; ?>
