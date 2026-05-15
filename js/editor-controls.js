@@ -394,6 +394,13 @@
             props.setAttributes({ className: callback((props.attributes && props.attributes.className) || '') });
         }
 
+        function updateHeroWidth(value) {
+            props.setAttributes({
+                align: value === 'full' ? 'full' : undefined,
+                className: setHeroWidthClass((props.attributes && props.attributes.className) || '', value)
+            });
+        }
+
         if (props.name !== 'core/group') {
             return null;
         }
@@ -451,9 +458,7 @@
                     { label: 'Wide content', value: 'wide' }
                 ],
                 onChange: function(value) {
-                    updateClassName(function(currentClassName) {
-                        return setHeroWidthClass(currentClassName, value);
-                    });
+                    updateHeroWidth(value);
                 }
             }) : null,
             preset === 'hero' ? createElement(SelectControl, {

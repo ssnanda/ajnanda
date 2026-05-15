@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: http://ncllc.ddev.site/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.1.5
+Version: 1.1.6
 License: GNU General Public License v2 or later
 Text Domain: ncllc-pro
 */
@@ -1442,6 +1442,14 @@ body.admin-bar .site-header {
     max-width: 760px;
 }
 
+:where(.builder-hero-section.hero-width-narrow) {
+    width: min(760px, calc(100vw - 3rem));
+    max-width: min(760px, calc(100vw - 3rem));
+    margin-left: 50%;
+    margin-right: 0;
+    transform: translateX(-50%);
+}
+
 :where(.builder-hero-section.hero-width-full) > .wp-block-group__inner-container {
     max-width: none;
 }
@@ -1451,10 +1459,27 @@ body.admin-bar .site-header {
     max-width: none;
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
+    transform: none;
+}
+
+:where(.builder-hero-section.hero-width-standard) {
+    width: min(950px, calc(100vw - 3rem));
+    max-width: min(950px, calc(100vw - 3rem));
+    margin-left: 50%;
+    margin-right: 0;
+    transform: translateX(-50%);
 }
 
 :where(.builder-hero-section.hero-width-standard) > .wp-block-group__inner-container {
     max-width: 950px;
+}
+
+:where(.builder-hero-section.hero-width-wide) {
+    width: min(1120px, calc(100vw - 3rem));
+    max-width: min(1120px, calc(100vw - 3rem));
+    margin-left: 50%;
+    margin-right: 0;
+    transform: translateX(-50%);
 }
 
 :where(.builder-hero-section.hero-width-wide) > .wp-block-group__inner-container {
@@ -3099,6 +3124,51 @@ body .site-main .builder-hero-section.hero-width-full > .wp-block-group__inner-c
     max-width: none !important;
 }
 
+body .site-main .entry-content > .builder-hero-section.hero-width-narrow,
+body .site-main .entry-content > .wp-block-group.builder-hero-section.hero-width-narrow,
+body .site-main .page-content-panel > .builder-hero-section.hero-width-narrow,
+body .site-main .page-content-panel > .wp-block-group.builder-hero-section.hero-width-narrow,
+body .site-main .builder-canvas-content > .builder-hero-section.hero-width-narrow,
+body .site-main .builder-canvas-content > .wp-block-group.builder-hero-section.hero-width-narrow,
+body .site-main .posts-page-content > .builder-hero-section.hero-width-narrow,
+body .site-main .posts-page-content > .wp-block-group.builder-hero-section.hero-width-narrow {
+    width: min(760px, calc(100vw - 3rem)) !important;
+    max-width: min(760px, calc(100vw - 3rem)) !important;
+    margin-left: 50% !important;
+    margin-right: 0 !important;
+    transform: translateX(-50%) !important;
+}
+
+body .site-main .entry-content > .builder-hero-section.hero-width-standard,
+body .site-main .entry-content > .wp-block-group.builder-hero-section.hero-width-standard,
+body .site-main .page-content-panel > .builder-hero-section.hero-width-standard,
+body .site-main .page-content-panel > .wp-block-group.builder-hero-section.hero-width-standard,
+body .site-main .builder-canvas-content > .builder-hero-section.hero-width-standard,
+body .site-main .builder-canvas-content > .wp-block-group.builder-hero-section.hero-width-standard,
+body .site-main .posts-page-content > .builder-hero-section.hero-width-standard,
+body .site-main .posts-page-content > .wp-block-group.builder-hero-section.hero-width-standard {
+    width: min(950px, calc(100vw - 3rem)) !important;
+    max-width: min(950px, calc(100vw - 3rem)) !important;
+    margin-left: 50% !important;
+    margin-right: 0 !important;
+    transform: translateX(-50%) !important;
+}
+
+body .site-main .entry-content > .builder-hero-section.hero-width-wide,
+body .site-main .entry-content > .wp-block-group.builder-hero-section.hero-width-wide,
+body .site-main .page-content-panel > .builder-hero-section.hero-width-wide,
+body .site-main .page-content-panel > .wp-block-group.builder-hero-section.hero-width-wide,
+body .site-main .builder-canvas-content > .builder-hero-section.hero-width-wide,
+body .site-main .builder-canvas-content > .wp-block-group.builder-hero-section.hero-width-wide,
+body .site-main .posts-page-content > .builder-hero-section.hero-width-wide,
+body .site-main .posts-page-content > .wp-block-group.builder-hero-section.hero-width-wide {
+    width: min(1120px, calc(100vw - 3rem)) !important;
+    max-width: min(1120px, calc(100vw - 3rem)) !important;
+    margin-left: 50% !important;
+    margin-right: 0 !important;
+    transform: translateX(-50%) !important;
+}
+
 body .site-main .entry-content > .builder-hero-section.hero-width-full,
 body .site-main .entry-content > .wp-block-group.builder-hero-section.hero-width-full,
 body .site-main .page-content-panel > .builder-hero-section.hero-width-full,
@@ -3111,6 +3181,7 @@ body .site-main .posts-page-content > .wp-block-group.builder-hero-section.hero-
     max-width: none !important;
     margin-left: calc(50% - 50vw) !important;
     margin-right: calc(50% - 50vw) !important;
+    transform: none !important;
 }
 
 body .site-main .builder-hero-section.hero-width-narrow > .wp-block-group__inner-container {
