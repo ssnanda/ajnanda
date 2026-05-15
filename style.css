@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: http://ncllc.ddev.site/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.1.4
+Version: 1.1.5
 License: GNU General Public License v2 or later
 Text Domain: ncllc-pro
 */
@@ -1386,6 +1386,7 @@ body.admin-bar .site-header {
 
 .builder-canvas-content .alignfull,
 .posts-page-content .alignfull,
+.entry-content .alignfull,
 .page-content-panel .alignfull {
     width: 100vw;
     max-width: none;
@@ -1443,6 +1444,13 @@ body.admin-bar .site-header {
 
 :where(.builder-hero-section.hero-width-full) > .wp-block-group__inner-container {
     max-width: none;
+}
+
+:where(.builder-hero-section.hero-width-full) {
+    width: 100vw;
+    max-width: none;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
 }
 
 :where(.builder-hero-section.hero-width-standard) > .wp-block-group__inner-container {
@@ -3089,6 +3097,20 @@ body .site-main .builder-hero-section :where(h1, h2, h3, h4, h5, h6, p, .wp-bloc
 
 body .site-main .builder-hero-section.hero-width-full > .wp-block-group__inner-container {
     max-width: none !important;
+}
+
+body .site-main .entry-content > .builder-hero-section.hero-width-full,
+body .site-main .entry-content > .wp-block-group.builder-hero-section.hero-width-full,
+body .site-main .page-content-panel > .builder-hero-section.hero-width-full,
+body .site-main .page-content-panel > .wp-block-group.builder-hero-section.hero-width-full,
+body .site-main .builder-canvas-content > .builder-hero-section.hero-width-full,
+body .site-main .builder-canvas-content > .wp-block-group.builder-hero-section.hero-width-full,
+body .site-main .posts-page-content > .builder-hero-section.hero-width-full,
+body .site-main .posts-page-content > .wp-block-group.builder-hero-section.hero-width-full {
+    width: 100vw !important;
+    max-width: none !important;
+    margin-left: calc(50% - 50vw) !important;
+    margin-right: calc(50% - 50vw) !important;
 }
 
 body .site-main .builder-hero-section.hero-width-narrow > .wp-block-group__inner-container {
