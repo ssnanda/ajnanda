@@ -12,7 +12,24 @@ get_header(); ?>
     while (have_posts()) :
         the_post();
         $content = get_the_content();
-        $has_builder_sections = false !== strpos($content, 'builder-section');
+        $builder_canvas_markers = array(
+            'builder-section',
+            'home-hero-section',
+            'home-registered-agent-section',
+            'home-features-section',
+            'home-reviews-section',
+            'home-faq-section',
+            'home-knowledge-section',
+            'home-cta-section',
+        );
+        $has_builder_sections = false;
+
+        foreach ($builder_canvas_markers as $builder_canvas_marker) {
+            if (false !== strpos($content, $builder_canvas_marker)) {
+                $has_builder_sections = true;
+                break;
+            }
+        }
         ?>
         <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
             <?php if ($has_builder_sections) : ?>

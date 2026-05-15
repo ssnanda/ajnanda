@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: http://ncllc.ddev.site/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.1.6
+Version: 1.1.7
 License: GNU General Public License v2 or later
 Text Domain: ncllc-pro
 */
@@ -2168,11 +2168,14 @@ body.admin-bar .site-header {
 .home-hero-section {
     position: relative;
     overflow: hidden;
-    min-height: 92vh;
+    min-height: var(--ajn-min-height-desktop, 50px);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 8rem 1.5rem 5rem;
+    padding-top: var(--ajn-padding-top-desktop, 3rem);
+    padding-right: var(--ajn-padding-right-desktop, 1.5rem);
+    padding-bottom: var(--ajn-padding-bottom-desktop, 3rem);
+    padding-left: var(--ajn-padding-left-desktop, 1.5rem);
     background:
         radial-gradient(circle at 14% 20%, rgba(255,255,255,0.16), transparent 24%),
         radial-gradient(circle at 84% 76%, rgba(255,255,255,0.12), transparent 28%),
@@ -2810,8 +2813,11 @@ body.admin-bar .site-header {
         padding: 1.5rem !important;
     }
     .home-hero-section {
-        min-height: 78vh;
-        padding: 6rem 1rem 4rem;
+        min-height: var(--ajn-min-height-mobile, var(--ajn-min-height-tablet, var(--ajn-min-height-desktop, 50px)));
+        padding-top: var(--ajn-padding-top-mobile, var(--ajn-padding-top-tablet, var(--ajn-padding-top-desktop, 2rem)));
+        padding-right: var(--ajn-padding-right-mobile, var(--ajn-padding-right-tablet, var(--ajn-padding-right-desktop, 1rem)));
+        padding-bottom: var(--ajn-padding-bottom-mobile, var(--ajn-padding-bottom-tablet, var(--ajn-padding-bottom-desktop, 2rem)));
+        padding-left: var(--ajn-padding-left-mobile, var(--ajn-padding-left-tablet, var(--ajn-padding-left-desktop, 1rem)));
     }
     .home-registered-agent-section,
     .home-features-section,
