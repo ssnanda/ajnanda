@@ -17,7 +17,7 @@
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 
-<?php $header_layout = get_theme_mod('header_layout', 'logo-left-menu-right'); ?>
+<?php $header_layout = ncllc_pro_get_header_layout(); ?>
 <header class="site-header header-layout-<?php echo esc_attr($header_layout); ?>" id="masthead">
     <?php if ('builder' === $header_layout) : ?>
         <div class="header-builder-container container">
