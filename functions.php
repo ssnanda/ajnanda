@@ -1140,6 +1140,10 @@ function ncllc_pro_footer_builder_button_1_active() {
     return ncllc_pro_builder_contains_element('footer', array('button', 'button-1'));
 }
 
+function ncllc_pro_header_builder_button_1_active() {
+    return ncllc_pro_builder_contains_element('header', array('button', 'button-1'));
+}
+
 function ncllc_pro_footer_builder_button_2_active() {
     return ncllc_pro_builder_contains_element('footer', 'button-2');
 }
@@ -1305,7 +1309,8 @@ function ncllc_pro_render_footer_builder_preview() {
 
 function ncllc_pro_register_builder_controls($wp_customize, $builder, $section, $label_prefix, $width_section = '') {
     $choices = ncllc_pro_builder_element_choices();
-    $width_section = $width_section ? $width_section : $section;
+    $show_width_controls = '' !== $width_section;
+    $width_section = $show_width_controls ? $width_section : $section;
     $device_labels = array(
         'desktop' => __('Desktop', 'ncllc-pro'),
         'tablet'  => __('Tablet', 'ncllc-pro'),
@@ -1379,23 +1384,25 @@ function ncllc_pro_register_builder_controls($wp_customize, $builder, $section, 
                     'transport'         => 'refresh',
                 ));
 
-                $wp_customize->add_control($width_setting_id, array(
-                    'label'       => sprintf(
-                        /* translators: 1: device label, 2: row number, 3: cell number. */
-                        __('%1$s Width - Row %2$d Cell %3$d', 'ncllc-pro'),
-                        $device_label,
-                        $row,
-                        $cell
-                    ),
-                    'description' => __('Relative width from 1 to 6. Larger numbers take more horizontal space.', 'ncllc-pro'),
-                    'section'     => $width_section,
-                    'type'        => 'number',
-                    'input_attrs' => array(
-                        'min'  => 1,
-                        'max'  => 6,
-                        'step' => 1,
-                    ),
-                ));
+                if ($show_width_controls) {
+                    $wp_customize->add_control($width_setting_id, array(
+                        'label'       => sprintf(
+                            /* translators: 1: device label, 2: row number, 3: cell number. */
+                            __('%1$s Width - Row %2$d Cell %3$d', 'ncllc-pro'),
+                            $device_label,
+                            $row,
+                            $cell
+                        ),
+                        'description' => __('Relative width from 1 to 6. Larger numbers take more horizontal space.', 'ncllc-pro'),
+                        'section'     => $width_section,
+                        'type'        => 'number',
+                        'input_attrs' => array(
+                            'min'  => 1,
+                            'max'  => 6,
+                            'step' => 1,
+                        ),
+                    ));
+                }
             }
         }
     }
@@ -1675,14 +1682,9 @@ function ncllc_pro_customize_register($wp_customize) {
 
     // Header Settings Section
     $wp_customize->add_section('ncllc_header', array(
-        'title'    => __('Header', 'ncllc-pro'),
-        'priority' => 25,
-    ));
-
-    $wp_customize->add_section('ncllc_header_builder_widths', array(
-        'title'       => __('Header Builder Widths', 'ncllc-pro'),
+        'title'       => __('Header', 'ncllc-pro'),
         'priority'    => 25,
-        'description' => __('Advanced responsive width controls for Header Builder slots.', 'ncllc-pro'),
+        'description' => __('Core header controls. Use Header Layout for the main arrangement; the builder preview is only needed for custom header elements.', 'ncllc-pro'),
     ));
 
     $wp_customize->add_setting('header_background_color', array(
@@ -1900,7 +1902,7 @@ function ncllc_pro_customize_register($wp_customize) {
         ));
     }
 
-    ncllc_pro_register_builder_controls($wp_customize, 'header', 'ncllc_header', __('Header', 'ncllc-pro'), 'ncllc_header_builder_widths');
+    ncllc_pro_register_builder_controls($wp_customize, 'header', 'ncllc_header', __('Header', 'ncllc-pro'));
 
     // Hero Defaults Section
     $wp_customize->add_section('ncllc_hero_defaults', array(
@@ -2116,9 +2118,11 @@ function ncllc_pro_customize_register($wp_customize) {
     ));
 
     $wp_customize->add_control('ajn_builder_button_text', array(
-        'label'   => __('Builder Button Text', 'ncllc-pro'),
-        'section' => 'ncllc_header',
-        'type'    => 'text',
+        'label'           => __('Header Button Text', 'ncllc-pro'),
+        'description'     => __('Shown only when Button 1 is added to the Header Builder.', 'ncllc-pro'),
+        'section'         => 'ncllc_header',
+        'type'            => 'text',
+        'active_callback' => 'ncllc_pro_header_builder_button_1_active',
     ));
 
     $wp_customize->add_setting('ajn_builder_button_url', array(
@@ -2128,9 +2132,11 @@ function ncllc_pro_customize_register($wp_customize) {
     ));
 
     $wp_customize->add_control('ajn_builder_button_url', array(
-        'label'   => __('Builder Button URL', 'ncllc-pro'),
-        'section' => 'ncllc_header',
-        'type'    => 'url',
+        'label'           => __('Header Button URL', 'ncllc-pro'),
+        'description'     => __('Shown only when Button 1 is added to the Header Builder.', 'ncllc-pro'),
+        'section'         => 'ncllc_header',
+        'type'            => 'url',
+        'active_callback' => 'ncllc_pro_header_builder_button_1_active',
     ));
 
     $wp_customize->add_setting('ajn_footer_builder_button_text', array(
