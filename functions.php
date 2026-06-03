@@ -477,6 +477,12 @@ function ncllc_pro_sanitize_font_weight($value) {
     return in_array((string) $value, $allowed, true) ? (string) $value : '500';
 }
 
+function ncllc_pro_sanitize_header_font_preset($value) {
+    $allowed = array('normal', 'bold', 'italic', 'bold-italic', 'underline', 'bold-underline');
+
+    return in_array($value, $allowed, true) ? $value : 'normal';
+}
+
 function ncllc_pro_sanitize_checkbox($value) {
     return (bool) $value;
 }
@@ -1654,6 +1660,59 @@ add_filter('wp_check_filetype_and_ext', 'ncllc_pro_sanitize_svg', 10, 4);
  * Customizer settings
  */
 function ncllc_pro_customize_register($wp_customize) {
+    if (class_exists('WP_Customize_Control') && !class_exists('NCLLC_Pro_Header_Font_Control')) {
+        class NCLLC_Pro_Header_Font_Control extends WP_Customize_Control {
+            public $type = 'ncllc_header_font';
+
+            public function render_content() {
+                $manager = $this->manager;
+                $family_setting = $manager->get_setting('header_font_family');
+                $size_setting = $manager->get_setting('header_font_size');
+                $color_setting = $manager->get_setting('header_text_color');
+                $preset_setting = $manager->get_setting('header_font_preset');
+
+                if (!$family_setting || !$size_setting || !$color_setting || !$preset_setting) {
+                    return;
+                }
+                ?>
+                <span class="customize-control-title"><?php echo esc_html($this->label); ?></span>
+                <div class="ncllc-header-font-control">
+                    <label>
+                        <span><?php esc_html_e('Font', 'ncllc-pro'); ?></span>
+                        <select data-customize-setting-link="header_font_family">
+                            <option value="inherit" <?php selected($family_setting->value(), 'inherit'); ?>><?php esc_html_e('Theme Default', 'ncllc-pro'); ?></option>
+                            <option value="Inter" <?php selected($family_setting->value(), 'Inter'); ?>><?php esc_html_e('Inter', 'ncllc-pro'); ?></option>
+                            <option value="Poppins" <?php selected($family_setting->value(), 'Poppins'); ?>><?php esc_html_e('Poppins', 'ncllc-pro'); ?></option>
+                            <option value="Arial" <?php selected($family_setting->value(), 'Arial'); ?>><?php esc_html_e('Arial', 'ncllc-pro'); ?></option>
+                            <option value="Georgia" <?php selected($family_setting->value(), 'Georgia'); ?>><?php esc_html_e('Georgia', 'ncllc-pro'); ?></option>
+                            <option value="system-ui" <?php selected($family_setting->value(), 'system-ui'); ?>><?php esc_html_e('System UI', 'ncllc-pro'); ?></option>
+                        </select>
+                    </label>
+                    <label>
+                        <span><?php esc_html_e('Size', 'ncllc-pro'); ?></span>
+                        <input type="text" data-customize-setting-link="header_font_size" value="<?php echo esc_attr($size_setting->value()); ?>" placeholder="16px">
+                    </label>
+                    <label>
+                        <span><?php esc_html_e('Color', 'ncllc-pro'); ?></span>
+                        <input type="color" data-customize-setting-link="header_text_color" value="<?php echo esc_attr($color_setting->value()); ?>">
+                    </label>
+                    <label>
+                        <span><?php esc_html_e('Style', 'ncllc-pro'); ?></span>
+                        <select data-customize-setting-link="header_font_preset">
+                            <option value="normal" <?php selected($preset_setting->value(), 'normal'); ?>><?php esc_html_e('Normal', 'ncllc-pro'); ?></option>
+                            <option value="bold" <?php selected($preset_setting->value(), 'bold'); ?>><?php esc_html_e('Bold', 'ncllc-pro'); ?></option>
+                            <option value="italic" <?php selected($preset_setting->value(), 'italic'); ?>><?php esc_html_e('Italic', 'ncllc-pro'); ?></option>
+                            <option value="bold-italic" <?php selected($preset_setting->value(), 'bold-italic'); ?>><?php esc_html_e('Bold Italic', 'ncllc-pro'); ?></option>
+                            <option value="underline" <?php selected($preset_setting->value(), 'underline'); ?>><?php esc_html_e('Underline', 'ncllc-pro'); ?></option>
+                            <option value="bold-underline" <?php selected($preset_setting->value(), 'bold-underline'); ?>><?php esc_html_e('Bold Underline', 'ncllc-pro'); ?></option>
+                        </select>
+                    </label>
+                </div>
+                <?php
+            }
+        }
+    }
+
     $theme_color_controls = array(
         'theme_primary_color'      => array('label' => __('Primary Color', 'ncllc-pro'), 'default' => '#2563eb'),
         'theme_primary_dark_color' => array('label' => __('Primary Hover Color', 'ncllc-pro'), 'default' => '#1e40af'),
@@ -1682,26 +1741,12 @@ function ncllc_pro_customize_register($wp_customize) {
 
     // Header Settings Section
     $wp_customize->add_section('ncllc_header', array(
-        'title'       => __('Header', 'ncllc-pro'),
-        'priority'    => 25,
-        'description' => __('Core header controls. Use Header Layout for the main arrangement; the builder preview is only needed for custom header elements.', 'ncllc-pro'),
+        'title'    => __('Header', 'ncllc-pro'),
+        'priority' => 25,
     ));
 
     $wp_customize->add_setting('header_background_color', array(
         'default'           => '#ffffff',
-        'sanitize_callback' => 'ncllc_pro_sanitize_css_background',
-        'transport'         => 'refresh',
-    ));
-
-    $wp_customize->add_control('header_background_color', array(
-        'label'       => __('Header Background', 'ncllc-pro'),
-        'description' => __('Use a color or gradient. Example: linear-gradient(90deg, #ffffff, #eef6ff).', 'ncllc-pro'),
-        'section'     => 'ncllc_header',
-        'type'        => 'text',
-    ));
-
-    $wp_customize->add_setting('header_text_color', array(
-        'default'           => '#1f2937',
         'sanitize_callback' => 'sanitize_hex_color',
         'transport'         => 'refresh',
     ));
@@ -1709,14 +1754,19 @@ function ncllc_pro_customize_register($wp_customize) {
     if (class_exists('WP_Customize_Color_Control')) {
         $wp_customize->add_control(new WP_Customize_Color_Control(
             $wp_customize,
-            'header_text_color',
+            'header_background_color',
             array(
-                'label'       => __('Header Text Color', 'ncllc-pro'),
-                'description' => __('Set the header logo text and top-level menu link color.', 'ncllc-pro'),
-                'section'     => 'ncllc_header',
+                'label'   => __('Header Background', 'ncllc-pro'),
+                'section' => 'ncllc_header',
             )
         ));
     }
+
+    $wp_customize->add_setting('header_text_color', array(
+        'default'           => '#1f2937',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ));
 
     $header_color_controls = array(
         'header_link_hover_color'        => array('label' => __('Header Link Hover Color', 'ncllc-pro'), 'default' => '#2563eb'),
@@ -1801,6 +1851,10 @@ function ncllc_pro_customize_register($wp_customize) {
             'transport'         => 'refresh',
         ));
 
+        if (in_array($setting_id, array('header_font_family', 'header_font_size', 'header_font_weight'), true)) {
+            continue;
+        }
+
         $args = array(
             'label'       => $control['label'],
             'section'     => 'ncllc_header',
@@ -1817,6 +1871,29 @@ function ncllc_pro_customize_register($wp_customize) {
         }
 
         $wp_customize->add_control($setting_id, $args);
+    }
+
+    $wp_customize->add_setting('header_font_preset', array(
+        'default'           => 'normal',
+        'sanitize_callback' => 'ncllc_pro_sanitize_header_font_preset',
+        'transport'         => 'refresh',
+    ));
+
+    if (class_exists('NCLLC_Pro_Header_Font_Control')) {
+        $wp_customize->add_control(new NCLLC_Pro_Header_Font_Control(
+            $wp_customize,
+            'header_font_compact',
+            array(
+                'label'    => __('Header Font', 'ncllc-pro'),
+                'section'  => 'ncllc_header',
+                'settings' => array(
+                    'header_font_family',
+                    'header_font_size',
+                    'header_text_color',
+                    'header_font_preset',
+                ),
+            )
+        ));
     }
 
     $wp_customize->add_setting('header_sticky', array(
@@ -2324,6 +2401,84 @@ function ncllc_pro_customize_register($wp_customize) {
 }
 add_action('customize_register', 'ncllc_pro_customize_register');
 
+/**
+ * Compact the Header Customizer controls so common design settings scan like a small table.
+ */
+function ncllc_pro_customizer_controls_css() {
+    ?>
+    <style type="text/css">
+        #sub-accordion-section-ncllc_header .customize-control {
+            margin-bottom: 10px;
+        }
+
+        #sub-accordion-section-ncllc_header .customize-control-description {
+            margin-top: 4px;
+            font-size: 12px;
+        }
+
+        #sub-accordion-section-ncllc_header .customize-control-color {
+            display: grid;
+            grid-template-columns: minmax(120px, 1fr) auto;
+            align-items: center;
+            column-gap: 12px;
+        }
+
+        #sub-accordion-section-ncllc_header .customize-control-color .customize-control-title {
+            margin: 0;
+            line-height: 1.25;
+        }
+
+        #sub-accordion-section-ncllc_header .customize-control-color .wp-picker-container {
+            justify-self: end;
+        }
+
+        #sub-accordion-section-ncllc_header .customize-control-color .wp-picker-holder {
+            grid-column: 1 / -1;
+        }
+
+        #sub-accordion-section-ncllc_header .wp-color-result.button {
+            min-height: 28px;
+            margin: 0;
+        }
+
+        #sub-accordion-section-ncllc_header .ncllc-header-font-control {
+            display: grid;
+            gap: 8px;
+            padding: 10px;
+            border: 1px solid #dcdcde;
+            background: #fff;
+        }
+
+        #sub-accordion-section-ncllc_header .ncllc-header-font-control label {
+            display: grid;
+            grid-template-columns: 76px minmax(0, 1fr);
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+        }
+
+        #sub-accordion-section-ncllc_header .ncllc-header-font-control span {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        #sub-accordion-section-ncllc_header .ncllc-header-font-control input,
+        #sub-accordion-section-ncllc_header .ncllc-header-font-control select {
+            width: 100%;
+            min-height: 30px;
+            margin: 0;
+        }
+
+        #sub-accordion-section-ncllc_header .ncllc-header-font-control input[type="color"] {
+            width: 56px;
+            padding: 0 2px;
+            justify-self: end;
+        }
+    </style>
+    <?php
+}
+add_action('customize_controls_print_styles', 'ncllc_pro_customizer_controls_css');
+
 function ncllc_pro_theme_mod_with_legacy_default($setting_id, $default, $legacy_defaults = array()) {
     $value = get_theme_mod($setting_id, $default);
 
@@ -2795,6 +2950,18 @@ function ncllc_pro_customizer_css() {
     $header_font_family = get_theme_mod('header_font_family', 'inherit');
     $header_font_size = get_theme_mod('header_font_size', '1rem');
     $header_font_weight = get_theme_mod('header_font_weight', '500');
+    $header_font_style = 'normal';
+    $header_text_decoration = 'none';
+    $header_font_preset = get_theme_mod('header_font_preset', 'normal');
+    if (in_array($header_font_preset, array('bold', 'bold-italic', 'bold-underline'), true)) {
+        $header_font_weight = '700';
+    }
+    if (in_array($header_font_preset, array('italic', 'bold-italic'), true)) {
+        $header_font_style = 'italic';
+    }
+    if (in_array($header_font_preset, array('underline', 'bold-underline'), true)) {
+        $header_text_decoration = 'underline';
+    }
     $header_menu_gap = get_theme_mod('header_menu_gap', '2rem');
     $header_container_width = get_theme_mod('header_container_width', '1400px');
     $header_shadow_opacity = get_theme_mod('header_shadow_opacity', '0.10');
@@ -2862,6 +3029,8 @@ function ncllc_pro_customizer_css() {
             --ajn-header-font-family: <?php echo esc_attr($header_font_family); ?>;
             --ajn-header-font-size: <?php echo esc_attr($header_font_size); ?>;
             --ajn-header-font-weight: <?php echo esc_attr($header_font_weight); ?>;
+            --ajn-header-font-style: <?php echo esc_attr($header_font_style); ?>;
+            --ajn-header-text-decoration: <?php echo esc_attr($header_text_decoration); ?>;
             --ajn-header-menu-gap: <?php echo esc_attr($header_menu_gap); ?>;
             --ajn-header-container-width: <?php echo esc_attr($header_container_width); ?>;
             --ajn-header-shadow-opacity: <?php echo esc_attr($header_shadow_opacity); ?>;
@@ -2918,8 +3087,13 @@ function ncllc_pro_customizer_css() {
         }
 
         .header-container {
+            max-width: var(--ajn-header-container-width) !important;
             padding-top: var(--ncllc-header-padding-desktop) !important;
             padding-bottom: var(--ncllc-header-padding-desktop) !important;
+        }
+
+        .header-builder-container {
+            max-width: var(--ajn-header-container-width) !important;
         }
 
         @media (max-width: 1024px) {
