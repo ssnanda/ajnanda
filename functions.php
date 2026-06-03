@@ -421,6 +421,16 @@ function ncllc_pro_sanitize_css_size($value) {
     return '';
 }
 
+function ncllc_pro_sanitize_css_size_or_auto($value) {
+    $value = trim((string) $value);
+
+    if ('auto' === strtolower($value)) {
+        return 'auto';
+    }
+
+    return ncllc_pro_sanitize_css_size($value);
+}
+
 /**
  * Sanitize CSS color values used by Customizer controls.
  */
@@ -1711,6 +1721,46 @@ function ncllc_pro_customize_register($wp_customize) {
                 <?php
             }
         }
+
+        class NCLLC_Pro_Header_Responsive_Value_Control extends WP_Customize_Control {
+            public $type = 'ncllc_header_responsive_value';
+            public $setting_ids = array();
+            public $device_labels = array();
+            public $value_suffix = '';
+            public $placeholder = '';
+
+            public function render_content() {
+                if (empty($this->setting_ids)) {
+                    return;
+                }
+                ?>
+                <span class="customize-control-title"><?php echo esc_html($this->label); ?></span>
+                <div class="ncllc-header-responsive-control" data-ncllc-responsive-control>
+                    <select class="ncllc-header-responsive-device" aria-label="<?php esc_attr_e('Device', 'ncllc-pro'); ?>">
+                        <?php foreach ($this->setting_ids as $device => $setting_id) : ?>
+                            <?php if ($this->manager->get_setting($setting_id)) : ?>
+                                <option value="<?php echo esc_attr($device); ?>"><?php echo esc_html(isset($this->device_labels[$device]) ? $this->device_labels[$device] : ucfirst($device)); ?></option>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </select>
+
+                    <div class="ncllc-header-responsive-values">
+                        <?php foreach ($this->setting_ids as $device => $setting_id) : ?>
+                            <?php $setting = $this->manager->get_setting($setting_id); ?>
+                            <?php if ($setting) : ?>
+                                <label class="ncllc-header-responsive-value" data-ncllc-responsive-value="<?php echo esc_attr($device); ?>">
+                                    <input type="text" data-customize-setting-link="<?php echo esc_attr($setting_id); ?>" value="<?php echo esc_attr($setting->value()); ?>" placeholder="<?php echo esc_attr($this->placeholder); ?>">
+                                    <?php if ($this->value_suffix) : ?>
+                                        <span><?php echo esc_html($this->value_suffix); ?></span>
+                                    <?php endif; ?>
+                                </label>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <?php
+            }
+        }
     }
 
     $theme_color_controls = array(
@@ -1915,11 +1965,10 @@ function ncllc_pro_customize_register($wp_customize) {
     ));
 
     $wp_customize->add_control('header_layout', array(
-        'label'       => __('Header Layout', 'ncllc-pro'),
-        'description' => __('Choose a simple header arrangement. Existing sites keep the current logo-left/menu-right layout.', 'ncllc-pro'),
-        'section'     => 'ncllc_header',
-        'type'        => 'select',
-        'choices'     => array(
+        'label'   => __('Header Layout', 'ncllc-pro'),
+        'section' => 'ncllc_header',
+        'type'    => 'select',
+        'choices' => array(
             'logo-left-menu-right' => __('Logo Left, Menu Right', 'ncllc-pro'),
             'centered-menu'        => __('Centered Menu Bar', 'ncllc-pro'),
             'stacked-center'       => __('Centered Logo, Menu Below', 'ncllc-pro'),
@@ -1943,18 +1992,6 @@ function ncllc_pro_customize_register($wp_customize) {
             'sanitize_callback' => 'ncllc_pro_sanitize_logo_height',
             'transport'         => 'postMessage',
         ));
-
-        $wp_customize->add_control($logo_setting, array(
-            'label'       => sprintf(__('Logo Height - %s (px)', 'ncllc-pro'), $label),
-            'description' => __('Adjust the height of your logo for this device size (20-100px).', 'ncllc-pro'),
-            'section'     => 'ncllc_header',
-            'type'        => 'number',
-            'input_attrs' => array(
-                'min'  => 20,
-                'max'  => 100,
-                'step' => 5,
-            ),
-        ));
     }
 
     foreach ($device_labels as $device => $label) {
@@ -1965,17 +2002,82 @@ function ncllc_pro_customize_register($wp_customize) {
             'sanitize_callback' => 'ncllc_pro_sanitize_header_padding',
             'transport'         => 'postMessage',
         ));
+    }
 
-        $wp_customize->add_control($padding_setting, array(
-            'label'       => sprintf(__('Header Padding - %s (rem)', 'ncllc-pro'), $label),
-            'description' => __('Adjust header top/bottom padding for this device size (0.5-2rem).', 'ncllc-pro'),
-            'section'     => 'ncllc_header',
-            'type'        => 'number',
-            'input_attrs' => array(
-                'min'  => 0.5,
-                'max'  => 2,
-                'step' => 0.25,
-            ),
+    foreach ($device_labels as $device => $label) {
+        $height_setting = 'header_height_' . $device;
+
+        $wp_customize->add_setting($height_setting, array(
+            'default'           => 'auto',
+            'sanitize_callback' => 'ncllc_pro_sanitize_css_size_or_auto',
+            'transport'         => 'postMessage',
+        ));
+    }
+
+    if (class_exists('NCLLC_Pro_Header_Responsive_Value_Control')) {
+        $wp_customize->add_control(new NCLLC_Pro_Header_Responsive_Value_Control(
+            $wp_customize,
+            'header_logo_height_compact',
+            array(
+                'label'         => __('Logo Height', 'ncllc-pro'),
+                'section'       => 'ncllc_header',
+                'settings'      => array('logo_height_desktop', 'logo_height_tablet', 'logo_height_mobile'),
+                'setting_ids'   => array(
+                    'desktop' => 'logo_height_desktop',
+                    'tablet'  => 'logo_height_tablet',
+                    'mobile'  => 'logo_height_mobile',
+                ),
+                'device_labels' => array(
+                    'desktop' => __('Logo Height - Desktop (px)', 'ncllc-pro'),
+                    'tablet'  => __('Logo Height - Tablet (px)', 'ncllc-pro'),
+                    'mobile'  => __('Logo Height - Mobile (px)', 'ncllc-pro'),
+                ),
+                'value_suffix'  => __('px', 'ncllc-pro'),
+                'placeholder'   => '50',
+            )
+        ));
+
+        $wp_customize->add_control(new NCLLC_Pro_Header_Responsive_Value_Control(
+            $wp_customize,
+            'header_padding_compact',
+            array(
+                'label'         => __('Header Padding', 'ncllc-pro'),
+                'section'       => 'ncllc_header',
+                'settings'      => array('header_padding_desktop', 'header_padding_tablet', 'header_padding_mobile'),
+                'setting_ids'   => array(
+                    'desktop' => 'header_padding_desktop',
+                    'tablet'  => 'header_padding_tablet',
+                    'mobile'  => 'header_padding_mobile',
+                ),
+                'device_labels' => array(
+                    'desktop' => __('Header Padding - Desktop (rem)', 'ncllc-pro'),
+                    'tablet'  => __('Header Padding - Tablet (rem)', 'ncllc-pro'),
+                    'mobile'  => __('Header Padding - Mobile (rem)', 'ncllc-pro'),
+                ),
+                'value_suffix'  => __('rem', 'ncllc-pro'),
+                'placeholder'   => '0.75',
+            )
+        ));
+
+        $wp_customize->add_control(new NCLLC_Pro_Header_Responsive_Value_Control(
+            $wp_customize,
+            'header_height_compact',
+            array(
+                'label'         => __('Header Height', 'ncllc-pro'),
+                'section'       => 'ncllc_header',
+                'settings'      => array('header_height_desktop', 'header_height_tablet', 'header_height_mobile'),
+                'setting_ids'   => array(
+                    'desktop' => 'header_height_desktop',
+                    'tablet'  => 'header_height_tablet',
+                    'mobile'  => 'header_height_mobile',
+                ),
+                'device_labels' => array(
+                    'desktop' => __('Header Height - Desktop', 'ncllc-pro'),
+                    'tablet'  => __('Header Height - Tablet', 'ncllc-pro'),
+                    'mobile'  => __('Header Height - Mobile', 'ncllc-pro'),
+                ),
+                'placeholder'   => 'auto, 80px, 5rem',
+            )
         ));
     }
 
@@ -2474,10 +2576,83 @@ function ncllc_pro_customizer_controls_css() {
             padding: 0 2px;
             justify-self: end;
         }
+
+        #sub-accordion-section-ncllc_header .ncllc-header-responsive-control {
+            display: grid;
+            grid-template-columns: minmax(128px, 1fr) minmax(0, 1fr);
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border: 1px solid #dcdcde;
+            background: #fff;
+        }
+
+        #sub-accordion-section-ncllc_header .ncllc-header-responsive-control select,
+        #sub-accordion-section-ncllc_header .ncllc-header-responsive-control input {
+            width: 100%;
+            min-height: 30px;
+            margin: 0;
+        }
+
+        #sub-accordion-section-ncllc_header .ncllc-header-responsive-value {
+            display: none;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 6px;
+            margin: 0;
+        }
+
+        #sub-accordion-section-ncllc_header .ncllc-header-responsive-value.is-active {
+            display: grid;
+        }
+
+        #sub-accordion-section-ncllc_header .ncllc-header-responsive-value span {
+            color: #646970;
+            font-size: 12px;
+            font-weight: 600;
+        }
     </style>
     <?php
 }
 add_action('customize_controls_print_styles', 'ncllc_pro_customizer_controls_css');
+
+function ncllc_pro_customizer_controls_js() {
+    ?>
+    <script type="text/javascript">
+    (function() {
+        function syncResponsiveControl(control) {
+            var select = control.querySelector('.ncllc-header-responsive-device');
+            var values = control.querySelectorAll('[data-ncllc-responsive-value]');
+            if (!select || !values.length) {
+                return;
+            }
+
+            values.forEach(function(value) {
+                value.classList.toggle('is-active', value.getAttribute('data-ncllc-responsive-value') === select.value);
+            });
+        }
+
+        function initResponsiveControls() {
+            document.querySelectorAll('[data-ncllc-responsive-control]').forEach(function(control) {
+                var select = control.querySelector('.ncllc-header-responsive-device');
+                syncResponsiveControl(control);
+
+                if (select && !select.dataset.ncllcResponsiveReady) {
+                    select.dataset.ncllcResponsiveReady = '1';
+                    select.addEventListener('change', function() {
+                        syncResponsiveControl(control);
+                    });
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', initResponsiveControls);
+        document.addEventListener('click', initResponsiveControls);
+    })();
+    </script>
+    <?php
+}
+add_action('customize_controls_print_footer_scripts', 'ncllc_pro_customizer_controls_js');
 
 function ncllc_pro_theme_mod_with_legacy_default($setting_id, $default, $legacy_defaults = array()) {
     $value = get_theme_mod($setting_id, $default);
@@ -2510,6 +2685,19 @@ function ncllc_pro_customizer_live_preview() {
             footer: document.querySelector('.ajn-customizer-footer-builder')
         };
 
+        function normalizeCssSize(value) {
+            value = (value || '').trim();
+            if (!value || 'auto' === value.toLowerCase()) {
+                return 'auto';
+            }
+
+            if (/^\d+(\.\d+)?$/.test(value)) {
+                return value + 'px';
+            }
+
+            return value;
+        }
+
         devices.forEach(function(device) {
             wp.customize('logo_height_' + device, function(value) {
                 value.bind(function(newval) {
@@ -2520,6 +2708,12 @@ function ncllc_pro_customizer_live_preview() {
             wp.customize('header_padding_' + device, function(value) {
                 value.bind(function(newval) {
                     document.documentElement.style.setProperty('--ncllc-header-padding-' + device, newval + 'rem');
+                });
+            });
+
+            wp.customize('header_height_' + device, function(value) {
+                value.bind(function(newval) {
+                    document.documentElement.style.setProperty('--ncllc-header-height-' + device, normalizeCssSize(newval));
                 });
             });
         });
@@ -2993,6 +3187,10 @@ function ncllc_pro_customizer_css() {
     $header_padding_tablet = get_theme_mod('header_padding_tablet', $old_header_padding);
     $header_padding_mobile = get_theme_mod('header_padding_mobile', $old_header_padding);
 
+    $header_height_desktop = get_theme_mod('header_height_desktop', 'auto');
+    $header_height_tablet = get_theme_mod('header_height_tablet', 'auto');
+    $header_height_mobile = get_theme_mod('header_height_mobile', 'auto');
+
     $hero_bg_1 = get_theme_mod('hero_bg_1', '#2563eb');
     $hero_bg_2 = get_theme_mod('hero_bg_2', '#7c3aed');
     $hero_heading_color = get_theme_mod('hero_heading_color', '#ffffff');
@@ -3061,6 +3259,9 @@ function ncllc_pro_customizer_css() {
             --ncllc-header-padding-desktop: <?php echo esc_attr($header_padding_desktop); ?>rem;
             --ncllc-header-padding-tablet: <?php echo esc_attr($header_padding_tablet); ?>rem;
             --ncllc-header-padding-mobile: <?php echo esc_attr($header_padding_mobile); ?>rem;
+            --ncllc-header-height-desktop: <?php echo esc_attr($header_height_desktop); ?>;
+            --ncllc-header-height-tablet: <?php echo esc_attr($header_height_tablet); ?>;
+            --ncllc-header-height-mobile: <?php echo esc_attr($header_height_mobile); ?>;
 
             --ajn-hero-bg-1: <?php echo esc_attr($hero_bg_1); ?>;
             --ajn-hero-bg-2: <?php echo esc_attr($hero_bg_2); ?>;
@@ -3088,12 +3289,14 @@ function ncllc_pro_customizer_css() {
 
         .header-container {
             max-width: var(--ajn-header-container-width) !important;
+            min-height: var(--ncllc-header-height-desktop) !important;
             padding-top: var(--ncllc-header-padding-desktop) !important;
             padding-bottom: var(--ncllc-header-padding-desktop) !important;
         }
 
         .header-builder-container {
             max-width: var(--ajn-header-container-width) !important;
+            min-height: var(--ncllc-header-height-desktop) !important;
         }
 
         @media (max-width: 1024px) {
@@ -3103,8 +3306,13 @@ function ncllc_pro_customizer_css() {
             }
 
             .header-container {
+                min-height: var(--ncllc-header-height-tablet) !important;
                 padding-top: var(--ncllc-header-padding-tablet) !important;
                 padding-bottom: var(--ncllc-header-padding-tablet) !important;
+            }
+
+            .header-builder-container {
+                min-height: var(--ncllc-header-height-tablet) !important;
             }
         }
 
@@ -3115,8 +3323,13 @@ function ncllc_pro_customizer_css() {
             }
 
             .header-container {
+                min-height: var(--ncllc-header-height-mobile) !important;
                 padding-top: var(--ncllc-header-padding-mobile) !important;
                 padding-bottom: var(--ncllc-header-padding-mobile) !important;
+            }
+
+            .header-builder-container {
+                min-height: var(--ncllc-header-height-mobile) !important;
             }
         }
     </style>

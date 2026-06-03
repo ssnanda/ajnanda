@@ -11,9 +11,9 @@ BLOCK_LOADER_FILE="$ROOT_DIR/blocks/ajnanda-blocks/loader.php"
 GITHUB_REPO="ssnanda/ajnanda"
 TAG_PREFIX="v"
 
-GITHUB_RELEASE="true"
+GITHUB_RELEASE="ask"
 GIT_COMMIT="ask"
-GIT_PUSH="true"
+GIT_PUSH="ask"
 
 usage() {
   cat <<'USAGE'
@@ -23,7 +23,9 @@ Usage:
 Interactive flow:
   1. Choose version bump
   2. Build releases/<slug>-<version>.zip
-  3. Ask once whether to commit, push, and publish the GitHub Release
+  3. Ask whether to commit to git
+  4. Ask whether to push to GitHub
+  5. Ask whether to create/upload GitHub Release asset
 
 Options are still supported:
   --version X.Y.Z
@@ -296,14 +298,11 @@ git_push_release() {
   require_git
   cd "$ROOT_DIR"
 
-  local current_branch tag
+  local current_branch
   current_branch="$(git rev-parse --abbrev-ref HEAD)"
-  tag="$TAG_PREFIX$VERSION"
 
-  git push --quiet origin "$current_branch"
-  git push --quiet origin "$tag"
-
-  echo "GitHub: pushed branch $current_branch and tag $tag"
+  git push origin "$current_branch"
+  git push origin "$TAG_PREFIX$VERSION"
 }
 
 publish_github_release() {
@@ -402,12 +401,10 @@ build_zip
 verify_zip "$VERSIONED_ZIP"
 
 if [[ "$GIT_COMMIT" == "ask" ]]; then
-  if ask_yes_no "Commit, push to GitHub, and publish release?" "y"; then
+  if ask_yes_no "Commit version changes to git?" "y"; then
     GIT_COMMIT="true"
   else
     GIT_COMMIT="false"
-    GIT_PUSH="false"
-    GITHUB_RELEASE="false"
   fi
 fi
 
@@ -415,23 +412,32 @@ if [[ "$GIT_COMMIT" == "true" ]]; then
   git_commit_release_files
 fi
 
-if [[ "$GIT_PUSH" == "true" || "$GITHUB_RELEASE" == "true" ]]; then
-  git_create_tag
+if [[ "$GIT_PUSH" == "ask" ]]; then
+  if ask_yes_no "Push branch and version tag to GitHub?" "y"; then
+    GIT_PUSH="true"
+  else
+    GIT_PUSH="false"
+  fi
 fi
 
 if [[ "$GIT_PUSH" == "true" ]]; then
+  git_create_tag
   git_push_release
 fi
 
+if [[ "$GITHUB_RELEASE" == "ask" ]]; then
+  if ask_yes_no "Create/update GitHub Release and upload zip?" "y"; then
+    GITHUB_RELEASE="true"
+  else
+    GITHUB_RELEASE="false"
+  fi
+fi
+
 if [[ "$GITHUB_RELEASE" == "true" ]]; then
+  git_create_tag
   publish_github_release
 fi
 
-echo ""
-echo "============================================================"
-printf "                 RELEASE COMPLETE: %s\n" "$TAG_PREFIX$VERSION"
-echo "============================================================"
-echo ""
 echo "Current version: $CURRENT_VERSION"
 echo "New version: $VERSION"
 echo "Updated: $STYLE_FILE"

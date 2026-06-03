@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: http://ncllc.ddev.site/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.1.15
+Version: 1.1.16
 License: GNU General Public License v2 or later
 Text Domain: ncllc-pro
 */
@@ -39,6 +39,9 @@ Text Domain: ncllc-pro
     --ajn-header-container-width: 1400px;
     --ajn-header-shadow-opacity: 0.10;
     --ajn-header-position: sticky;
+    --ncllc-header-height-desktop: auto;
+    --ncllc-header-height-tablet: auto;
+    --ncllc-header-height-mobile: auto;
     --ajn-footer-background: #111827;
     --ajn-footer-text-color: #f9fafb;
     --ajn-footer-link-hover-color: var(--accent);
