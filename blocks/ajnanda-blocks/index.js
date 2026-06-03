@@ -105,10 +105,10 @@
         }
         if (attrs.borderStyle && attrs.borderStyle !== 'none') {
             style.borderStyle = attrs.borderStyle;
-            style.borderWidth = (attrs.borderWidth || 1) + 'px';
+            style.borderWidth = ('number' === typeof attrs.borderWidth ? attrs.borderWidth : 1) + 'px';
         } else if (attrs.borderColor) {
             style.borderStyle = 'solid';
-            style.borderWidth = (attrs.borderWidth || 1) + 'px';
+            style.borderWidth = ('number' === typeof attrs.borderWidth && attrs.borderWidth > 0 ? attrs.borderWidth : 1) + 'px';
         }
         if (attrs.borderRadius) {
             style.borderRadius = attrs.borderRadius + 'px';
@@ -252,12 +252,142 @@
     function headingControls(props) {
         var attrs = props.attributes || {};
         var level = attrs.level || 2;
+        var headingSchemes = {
+            clean: {
+                textColor: '#111827',
+                backgroundColor: '',
+                borderColor: '',
+                borderStyle: 'none',
+                borderWidth: 0,
+                borderRadius: 0,
+                padding: 0,
+                fontFamily: 'Inter',
+                fontSize: '2rem',
+                fontWeight: '700',
+                fontStyle: '',
+                textDecoration: '',
+                animation: 'none'
+            },
+            hero: {
+                textColor: '#ffffff',
+                backgroundColor: '#2563eb',
+                borderColor: '#1d4ed8',
+                borderStyle: 'solid',
+                borderWidth: 1,
+                borderRadius: 16,
+                padding: 18,
+                fontFamily: 'Poppins',
+                fontSize: '2.75rem',
+                fontWeight: '700',
+                fontStyle: '',
+                textDecoration: '',
+                animation: 'slide-up'
+            },
+            dark: {
+                textColor: '#f8fafc',
+                backgroundColor: '#0f172a',
+                borderColor: '#334155',
+                borderStyle: 'solid',
+                borderWidth: 1,
+                borderRadius: 12,
+                padding: 16,
+                fontFamily: 'Inter',
+                fontSize: '2.25rem',
+                fontWeight: '700',
+                fontStyle: '',
+                textDecoration: '',
+                animation: 'fade-in'
+            },
+            outlined: {
+                textColor: '#1d4ed8',
+                backgroundColor: '#eff6ff',
+                borderColor: '#2563eb',
+                borderStyle: 'solid',
+                borderWidth: 2,
+                borderRadius: 8,
+                padding: 14,
+                fontFamily: 'Inter',
+                fontSize: '2rem',
+                fontWeight: '700',
+                fontStyle: '',
+                textDecoration: '',
+                animation: 'zoom-in'
+            },
+            dotted: {
+                textColor: '#581c87',
+                backgroundColor: '#faf5ff',
+                borderColor: '#a855f7',
+                borderStyle: 'dotted',
+                borderWidth: 3,
+                borderRadius: 16,
+                padding: 14,
+                fontFamily: 'Poppins',
+                fontSize: '2rem',
+                fontWeight: '700',
+                fontStyle: '',
+                textDecoration: '',
+                animation: 'pop'
+            },
+            editorial: {
+                textColor: '#111827',
+                backgroundColor: '#fffbeb',
+                borderColor: '#f59e0b',
+                borderStyle: 'solid',
+                borderWidth: 0,
+                borderRadius: 0,
+                padding: 8,
+                fontFamily: 'Georgia',
+                fontSize: '2.4rem',
+                fontWeight: '700',
+                fontStyle: 'italic',
+                textDecoration: '',
+                animation: 'blur-in'
+            },
+            underline: {
+                textColor: '#0f172a',
+                backgroundColor: '',
+                borderColor: '#2563eb',
+                borderStyle: 'solid',
+                borderWidth: 0,
+                borderRadius: 0,
+                padding: 0,
+                fontFamily: 'Inter',
+                fontSize: '2rem',
+                fontWeight: '700',
+                fontStyle: '',
+                textDecoration: 'underline',
+                animation: 'slide-right'
+            }
+        };
 
         function setBorderShape(value) {
             props.setAttributes({ borderRadius: parseInt(value, 10) || 0 });
         }
 
+        function applyHeadingScheme(value) {
+            if (!value || !headingSchemes[value]) {
+                return;
+            }
+
+            props.setAttributes(headingSchemes[value]);
+        }
+
         return [
+            el(SelectControl, {
+                label: __('Heading scheme', 'ncllc-pro'),
+                value: '',
+                options: [
+                    { label: __('Choose a prebuilt scheme...', 'ncllc-pro'), value: '' },
+                    { label: __('Clean', 'ncllc-pro'), value: 'clean' },
+                    { label: __('Hero Banner', 'ncllc-pro'), value: 'hero' },
+                    { label: __('Dark Header', 'ncllc-pro'), value: 'dark' },
+                    { label: __('Blue Outline', 'ncllc-pro'), value: 'outlined' },
+                    { label: __('Purple Dotted', 'ncllc-pro'), value: 'dotted' },
+                    { label: __('Editorial Serif', 'ncllc-pro'), value: 'editorial' },
+                    { label: __('Underlined Accent', 'ncllc-pro'), value: 'underline' }
+                ],
+                onChange: applyHeadingScheme
+            }),
             el(RangeControl, { label: __('Level', 'ncllc-pro'), min: 1, max: 6, value: level, onChange: function(value) { props.setAttributes({ level: value }); } }),
             el(SelectControl, {
                 label: __('Alignment', 'ncllc-pro'),
@@ -959,7 +1089,7 @@
         title: __('AJ Heading', 'ncllc-pro'),
         category: category,
         icon: 'heading',
-        attributes: withStyleAttributes({ content: { type: 'string', source: 'html', selector: 'h2' }, level: { type: 'number', default: 2 } }),
+        attributes: withStyleAttributes({ content: { type: 'string', source: 'html', selector: '.aj-heading' }, level: { type: 'number', default: 2 } }),
         edit: function(props) {
             var level = props.attributes.level || 2;
             return el(Fragment, {},
