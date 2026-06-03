@@ -86,6 +86,7 @@
             fontWeight: { type: 'string', default: '' },
             fontStyle: { type: 'string', default: '' },
             textDecoration: { type: 'string', default: '' },
+            headingScheme: { type: 'string', default: '' },
             animation: { type: 'string', default: 'none' }
         }, attrs || {});
     }
@@ -258,11 +259,8 @@
                 backgroundColor: '',
                 borderColor: '',
                 borderStyle: 'none',
-                borderWidth: 0,
                 borderRadius: 0,
-                padding: 0,
                 fontFamily: 'Inter',
-                fontSize: '2rem',
                 fontWeight: '700',
                 fontStyle: '',
                 textDecoration: '',
@@ -273,11 +271,8 @@
                 backgroundColor: '#2563eb',
                 borderColor: '#1d4ed8',
                 borderStyle: 'solid',
-                borderWidth: 1,
                 borderRadius: 16,
-                padding: 18,
                 fontFamily: 'Poppins',
-                fontSize: '2.75rem',
                 fontWeight: '700',
                 fontStyle: '',
                 textDecoration: '',
@@ -288,11 +283,8 @@
                 backgroundColor: '#0f172a',
                 borderColor: '#334155',
                 borderStyle: 'solid',
-                borderWidth: 1,
                 borderRadius: 12,
-                padding: 16,
                 fontFamily: 'Inter',
-                fontSize: '2.25rem',
                 fontWeight: '700',
                 fontStyle: '',
                 textDecoration: '',
@@ -303,11 +295,8 @@
                 backgroundColor: '#eff6ff',
                 borderColor: '#2563eb',
                 borderStyle: 'solid',
-                borderWidth: 2,
                 borderRadius: 8,
-                padding: 14,
                 fontFamily: 'Inter',
-                fontSize: '2rem',
                 fontWeight: '700',
                 fontStyle: '',
                 textDecoration: '',
@@ -318,11 +307,8 @@
                 backgroundColor: '#faf5ff',
                 borderColor: '#a855f7',
                 borderStyle: 'dotted',
-                borderWidth: 3,
                 borderRadius: 16,
-                padding: 14,
                 fontFamily: 'Poppins',
-                fontSize: '2rem',
                 fontWeight: '700',
                 fontStyle: '',
                 textDecoration: '',
@@ -333,11 +319,8 @@
                 backgroundColor: '#fffbeb',
                 borderColor: '#f59e0b',
                 borderStyle: 'solid',
-                borderWidth: 0,
                 borderRadius: 0,
-                padding: 8,
                 fontFamily: 'Georgia',
-                fontSize: '2.4rem',
                 fontWeight: '700',
                 fontStyle: 'italic',
                 textDecoration: '',
@@ -348,11 +331,8 @@
                 backgroundColor: '',
                 borderColor: '#2563eb',
                 borderStyle: 'solid',
-                borderWidth: 0,
                 borderRadius: 0,
-                padding: 0,
                 fontFamily: 'Inter',
-                fontSize: '2rem',
                 fontWeight: '700',
                 fontStyle: '',
                 textDecoration: 'underline',
@@ -369,13 +349,13 @@
                 return;
             }
 
-            props.setAttributes(headingSchemes[value]);
+            props.setAttributes(Object.assign({ headingScheme: value }, headingSchemes[value]));
         }
 
         return [
             el(SelectControl, {
                 label: __('Heading scheme', 'ncllc-pro'),
-                value: '',
+                value: attrs.headingScheme || '',
                 options: [
                     { label: __('Choose a prebuilt scheme...', 'ncllc-pro'), value: '' },
                     { label: __('Clean', 'ncllc-pro'), value: 'clean' },
