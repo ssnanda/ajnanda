@@ -1761,6 +1761,23 @@ function ncllc_pro_customize_register($wp_customize) {
                 <?php
             }
         }
+
+        class NCLLC_Pro_Header_Color_Schemes_Control extends WP_Customize_Control {
+            public $type = 'ncllc_header_color_schemes';
+
+            public function render_content() {
+                ?>
+                <span class="customize-control-title"><?php echo esc_html($this->label); ?></span>
+                <div class="ncllc-header-schemes" data-ncllc-header-schemes>
+                    <?php foreach (range('A', 'G') as $scheme) : ?>
+                        <button type="button" class="button ncllc-header-scheme-button" data-ncllc-header-scheme="<?php echo esc_attr($scheme); ?>">
+                            <?php echo esc_html(sprintf(__('Scheme %s', 'ncllc-pro'), $scheme)); ?>
+                        </button>
+                    <?php endforeach; ?>
+                </div>
+                <?php
+            }
+        }
     }
 
     $theme_color_controls = array(
@@ -1846,6 +1863,24 @@ function ncllc_pro_customize_register($wp_customize) {
         }
     }
 
+    $wp_customize->add_setting('header_color_scheme_picker', array(
+        'default'           => '',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'postMessage',
+    ));
+
+    if (class_exists('NCLLC_Pro_Header_Color_Schemes_Control')) {
+        $wp_customize->add_control(new NCLLC_Pro_Header_Color_Schemes_Control(
+            $wp_customize,
+            'header_color_scheme_picker',
+            array(
+                'label'    => __('Header Color Schemes', 'ncllc-pro'),
+                'section'  => 'ncllc_header',
+                'settings' => 'header_color_scheme_picker',
+            )
+        ));
+    }
+
     $header_typography_controls = array(
         'header_font_family' => array(
             'label'    => __('Header Font Family', 'ncllc-pro'),
@@ -1883,8 +1918,15 @@ function ncllc_pro_customize_register($wp_customize) {
         'header_container_width' => array(
             'label'    => __('Header Container Width', 'ncllc-pro'),
             'default'  => '1400px',
-            'type'     => 'text',
-            'sanitize' => 'ncllc_pro_sanitize_css_size',
+            'type'     => 'select',
+            'sanitize' => 'ncllc_pro_sanitize_choice',
+            'choices'  => array(
+                '1120px' => __('Compact', 'ncllc-pro'),
+                '1400px' => __('Auto', 'ncllc-pro'),
+                '1600px' => __('Wide', 'ncllc-pro'),
+                '100%'   => __('Full Width', 'ncllc-pro'),
+                '100vw'  => __('Full Screen', 'ncllc-pro'),
+            ),
         ),
         'header_shadow_opacity' => array(
             'label'    => __('Header Shadow Opacity', 'ncllc-pro'),
@@ -1902,6 +1944,10 @@ function ncllc_pro_customize_register($wp_customize) {
         ));
 
         if (in_array($setting_id, array('header_font_family', 'header_font_size', 'header_font_weight'), true)) {
+            continue;
+        }
+
+        if ('header_shadow_opacity' === $setting_id) {
             continue;
         }
 
@@ -2611,6 +2657,18 @@ function ncllc_pro_customizer_controls_css() {
             font-size: 12px;
             font-weight: 600;
         }
+
+        #sub-accordion-section-ncllc_header .ncllc-header-schemes {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 6px;
+        }
+
+        #sub-accordion-section-ncllc_header .ncllc-header-scheme-button {
+            min-height: 30px;
+            padding-inline: 6px;
+            text-align: center;
+        }
     </style>
     <?php
 }
@@ -2620,6 +2678,25 @@ function ncllc_pro_customizer_controls_js() {
     ?>
     <script type="text/javascript">
     (function() {
+        var headerSchemes = {
+            A: ['#EEF2FF', '#2563EB', '#DBEAFE', '#FFFFFF', '#0F172A', '#2563EB', '#EFF6FF'],
+            B: ['#E0E7FF', '#4F46E5', '#C7D2FE', '#FFFFFF', '#111827', '#4F46E5', '#EEF2FF'],
+            C: ['#EFF6FF', '#1D4ED8', '#DBEAFE', '#FFFFFF', '#0F172A', '#1D4ED8', '#F0F9FF'],
+            D: ['#F3E8FF', '#7C3AED', '#E9D5FF', '#FFFFFF', '#111827', '#7C3AED', '#FAF5FF'],
+            E: ['#F1F5FF', '#4338CA', '#E0E7FF', '#F8FAFC', '#0F172A', '#4338CA', '#EEF2FF'],
+            F: ['#EFF6FF', '#F59E0B', '#DBEAFE', '#FFFFFF', '#0F172A', '#F59E0B', '#FEF3C7'],
+            G: ['#F8FAFC', '#2563EB', '#E2E8F0', '#FFFFFF', '#0F172A', '#2563EB', '#EFF6FF']
+        };
+        var headerSchemeSettings = [
+            'header_background_color',
+            'header_link_hover_color',
+            'header_link_hover_background',
+            'header_submenu_background',
+            'header_submenu_text_color',
+            'header_submenu_hover_color',
+            'header_submenu_hover_background'
+        ];
+
         function syncResponsiveControl(control) {
             var select = control.querySelector('.ncllc-header-responsive-device');
             var values = control.querySelectorAll('[data-ncllc-responsive-value]');
@@ -2630,6 +2707,33 @@ function ncllc_pro_customizer_controls_js() {
             values.forEach(function(value) {
                 value.classList.toggle('is-active', value.getAttribute('data-ncllc-responsive-value') === select.value);
             });
+        }
+
+        function applyHeaderScheme(schemeId) {
+            var colors = headerSchemes[schemeId];
+            if (!colors || !window.wp || !wp.customize) {
+                return;
+            }
+
+            headerSchemeSettings.forEach(function(settingId, index) {
+                var color = colors[index];
+                var setting = wp.customize(settingId);
+                var control = wp.customize.control(settingId);
+
+                if (setting) {
+                    setting.set(color);
+                }
+
+                if (control && control.container) {
+                    control.container.find('.color-picker-hex, input.wp-color-picker').val(color).trigger('change');
+                    control.container.find('.wp-color-result').css('background-color', color);
+                }
+            });
+
+            var schemeSetting = wp.customize('header_color_scheme_picker');
+            if (schemeSetting) {
+                schemeSetting.set(schemeId);
+            }
         }
 
         function initResponsiveControls() {
@@ -2648,6 +2752,15 @@ function ncllc_pro_customizer_controls_js() {
 
         document.addEventListener('DOMContentLoaded', initResponsiveControls);
         document.addEventListener('click', initResponsiveControls);
+        document.addEventListener('click', function(event) {
+            var button = event.target.closest('[data-ncllc-header-scheme]');
+            if (!button) {
+                return;
+            }
+
+            event.preventDefault();
+            applyHeaderScheme(button.getAttribute('data-ncllc-header-scheme'));
+        });
     })();
     </script>
     <?php
