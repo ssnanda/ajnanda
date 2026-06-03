@@ -18,68 +18,27 @@ GIT_PUSH="true"
 usage() {
   cat <<'USAGE'
 Usage:
-  ./bin/build-release.sh [options]
-
-Examples:
   ./bin/build-release.sh
-      Interactive mode: choose release type, then confirm commit/push/release.
-
-  ./bin/build-release.sh --default
-      Patch bump, commit, push, create/update GitHub Release, and upload zip.
-
-  ./bin/build-release.sh --bump patch --yes
-      Same as --default.
-
-  ./bin/build-release.sh --bump minor --yes
-      Minor bump, commit, push, create/update GitHub Release, and upload zip.
-
-  ./bin/build-release.sh --version 1.2.3 --yes
-      Set exact version, commit, push, create/update GitHub Release, and upload zip.
-
-  ./bin/build-release.sh --no-bump --yes
-      Repackage current version, commit if needed, push, and publish release asset.
 
 Interactive flow:
   1. Choose version bump
   2. Build releases/<slug>-<version>.zip
   3. Ask once whether to commit, push, and publish the GitHub Release
 
-Options:
-  --default, -default
-      Same as --bump patch --yes.
-
-  --yes, -y
-      Non-interactive: commit, push, create/update GitHub Release, and upload zip.
-
+Options are still supported:
   --version X.Y.Z
-      Set an exact release version.
-
   --bump patch|minor|major
-      Bump the current version.
-
   --no-bump
-      Package the current version without changing it.
-
   --slug NAME
-      Override theme slug. Default: ajnanda.
-
   --root PATH
-      Override project root.
-
   --repo OWNER/REPO
-      Override GitHub repo. Default: ssnanda/ajnanda.
-
-  --github-release / --no-github-release
-      Enable or disable GitHub Release creation/upload.
-
-  --git-commit / --no-git-commit
-      Enable or disable git commit.
-
-  --push / --no-push
-      Enable or disable git push.
-
-  --help, -h
-      Show this help.
+  --github-release
+  --no-github-release
+  --git-commit
+  --no-git-commit
+  --push
+  --no-push
+  --help
 
 Creates:
   releases/<slug>-<version>.zip
@@ -368,28 +327,12 @@ publish_github_release() {
 VERSION_OVERRIDE=""
 BUMP_PART=""
 NO_BUMP="false"
-ASSUME_YES="false"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --version) VERSION_OVERRIDE="${2:-}"; shift 2 ;;
     --bump) BUMP_PART="${2:-}"; shift 2 ;;
     --no-bump) NO_BUMP="true"; shift ;;
-    --yes|-y)
-      ASSUME_YES="true"
-      GIT_COMMIT="true"
-      GIT_PUSH="true"
-      GITHUB_RELEASE="true"
-      shift
-      ;;
-    --default|-default)
-      BUMP_PART="patch"
-      ASSUME_YES="true"
-      GIT_COMMIT="true"
-      GIT_PUSH="true"
-      GITHUB_RELEASE="true"
-      shift
-      ;;
     --slug) THEME_SLUG="${2:-}"; shift 2 ;;
     --root)
       ROOT_DIR="$(cd "${2:-}" && pwd)"

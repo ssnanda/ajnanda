@@ -1766,15 +1766,30 @@ function ncllc_pro_customize_register($wp_customize) {
             public $type = 'ncllc_header_color_schemes';
 
             public function render_content() {
+                $schemes = array(
+                    'A' => __('Scheme A - Soft Blue', 'ncllc-pro'),
+                    'B' => __('Scheme B - Indigo Clean', 'ncllc-pro'),
+                    'C' => __('Scheme C - Clear Sky', 'ncllc-pro'),
+                    'D' => __('Scheme D - Purple Lift', 'ncllc-pro'),
+                    'E' => __('Scheme E - Slate Indigo', 'ncllc-pro'),
+                    'F' => __('Scheme F - Blue Gold', 'ncllc-pro'),
+                    'G' => __('Scheme G - Cool Gray', 'ncllc-pro'),
+                    'H' => __('Scheme H - Dark Navy', 'ncllc-pro'),
+                    'I' => __('Scheme I - Charcoal Cyan', 'ncllc-pro'),
+                    'J' => __('Scheme J - Forest Dark', 'ncllc-pro'),
+                    'K' => __('Scheme K - Editorial Black', 'ncllc-pro'),
+                    'L' => __('Scheme L - Warm Ivory', 'ncllc-pro'),
+                    'M' => __('Scheme M - Rose Graphite', 'ncllc-pro'),
+                    'N' => __('Scheme N - High Contrast', 'ncllc-pro'),
+                );
                 ?>
                 <span class="customize-control-title"><?php echo esc_html($this->label); ?></span>
-                <div class="ncllc-header-schemes" data-ncllc-header-schemes>
-                    <?php foreach (range('A', 'G') as $scheme) : ?>
-                        <button type="button" class="button ncllc-header-scheme-button" data-ncllc-header-scheme="<?php echo esc_attr($scheme); ?>">
-                            <?php echo esc_html(sprintf(__('Scheme %s', 'ncllc-pro'), $scheme)); ?>
-                        </button>
+                <select data-ncllc-header-scheme-select>
+                    <option value=""><?php esc_html_e('Choose a header scheme...', 'ncllc-pro'); ?></option>
+                    <?php foreach ($schemes as $scheme_id => $scheme_label) : ?>
+                        <option value="<?php echo esc_attr($scheme_id); ?>"><?php echo esc_html($scheme_label); ?></option>
                     <?php endforeach; ?>
-                </div>
+                </select>
                 <?php
             }
         }
@@ -2658,16 +2673,10 @@ function ncllc_pro_customizer_controls_css() {
             font-weight: 600;
         }
 
-        #sub-accordion-section-ncllc_header .ncllc-header-schemes {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 6px;
-        }
-
-        #sub-accordion-section-ncllc_header .ncllc-header-scheme-button {
-            min-height: 30px;
-            padding-inline: 6px;
-            text-align: center;
+        #sub-accordion-section-ncllc_header [data-ncllc-header-scheme-select] {
+            width: 100%;
+            min-height: 34px;
+            margin: 0;
         }
     </style>
     <?php
@@ -2679,13 +2688,20 @@ function ncllc_pro_customizer_controls_js() {
     <script type="text/javascript">
     (function() {
         var headerSchemes = {
-            A: ['#EEF2FF', '#2563EB', '#DBEAFE', '#FFFFFF', '#0F172A', '#2563EB', '#EFF6FF'],
-            B: ['#E0E7FF', '#4F46E5', '#C7D2FE', '#FFFFFF', '#111827', '#4F46E5', '#EEF2FF'],
-            C: ['#EFF6FF', '#1D4ED8', '#DBEAFE', '#FFFFFF', '#0F172A', '#1D4ED8', '#F0F9FF'],
-            D: ['#F3E8FF', '#7C3AED', '#E9D5FF', '#FFFFFF', '#111827', '#7C3AED', '#FAF5FF'],
-            E: ['#F1F5FF', '#4338CA', '#E0E7FF', '#F8FAFC', '#0F172A', '#4338CA', '#EEF2FF'],
-            F: ['#EFF6FF', '#F59E0B', '#DBEAFE', '#FFFFFF', '#0F172A', '#F59E0B', '#FEF3C7'],
-            G: ['#F8FAFC', '#2563EB', '#E2E8F0', '#FFFFFF', '#0F172A', '#2563EB', '#EFF6FF']
+            A: { colors: ['#EEF2FF', '#2563EB', '#DBEAFE', '#FFFFFF', '#0F172A', '#2563EB', '#EFF6FF'], font: ['#0F172A', 'Inter', '1rem', 'normal'] },
+            B: { colors: ['#E0E7FF', '#4F46E5', '#C7D2FE', '#FFFFFF', '#111827', '#4F46E5', '#EEF2FF'], font: ['#111827', 'Inter', '1rem', 'bold'] },
+            C: { colors: ['#EFF6FF', '#1D4ED8', '#DBEAFE', '#FFFFFF', '#0F172A', '#1D4ED8', '#F0F9FF'], font: ['#0F172A', 'system-ui', '1rem', 'normal'] },
+            D: { colors: ['#F3E8FF', '#7C3AED', '#E9D5FF', '#FFFFFF', '#111827', '#7C3AED', '#FAF5FF'], font: ['#111827', 'Poppins', '1rem', 'bold'] },
+            E: { colors: ['#F1F5FF', '#4338CA', '#E0E7FF', '#F8FAFC', '#0F172A', '#4338CA', '#EEF2FF'], font: ['#0F172A', 'Inter', '0.98rem', 'normal'] },
+            F: { colors: ['#EFF6FF', '#F59E0B', '#DBEAFE', '#FFFFFF', '#0F172A', '#F59E0B', '#FEF3C7'], font: ['#0F172A', 'Poppins', '1rem', 'bold'] },
+            G: { colors: ['#F8FAFC', '#2563EB', '#E2E8F0', '#FFFFFF', '#0F172A', '#2563EB', '#EFF6FF'], font: ['#0F172A', 'Inter', '1rem', 'normal'] },
+            H: { colors: ['#0F172A', '#93C5FD', '#1E293B', '#111827', '#F8FAFC', '#93C5FD', '#1E3A8A'], font: ['#F8FAFC', 'Inter', '1rem', 'bold'] },
+            I: { colors: ['#111827', '#22D3EE', '#164E63', '#0F172A', '#E5E7EB', '#67E8F9', '#083344'], font: ['#F9FAFB', 'system-ui', '1rem', 'normal'] },
+            J: { colors: ['#052E16', '#86EFAC', '#14532D', '#064E3B', '#ECFDF5', '#BBF7D0', '#166534'], font: ['#F0FDF4', 'Inter', '1rem', 'bold'] },
+            K: { colors: ['#030712', '#FACC15', '#27272A', '#18181B', '#FAFAFA', '#FDE047', '#3F3F46'], font: ['#FAFAFA', 'Georgia', '1.02rem', 'normal'] },
+            L: { colors: ['#FFFBEB', '#B45309', '#FEF3C7', '#FFFFFF', '#1F2937', '#92400E', '#FDE68A'], font: ['#1F2937', 'Georgia', '1.02rem', 'normal'] },
+            M: { colors: ['#FFF1F2', '#BE123C', '#FFE4E6', '#FFFFFF', '#111827', '#BE123C', '#FFE4E6'], font: ['#111827', 'Poppins', '1rem', 'bold'] },
+            N: { colors: ['#000000', '#FFFFFF', '#1F2937', '#000000', '#FFFFFF', '#FACC15', '#111827'], font: ['#FFFFFF', 'Arial', '1rem', 'bold-underline'] }
         };
         var headerSchemeSettings = [
             'header_background_color',
@@ -2710,13 +2726,13 @@ function ncllc_pro_customizer_controls_js() {
         }
 
         function applyHeaderScheme(schemeId) {
-            var colors = headerSchemes[schemeId];
-            if (!colors || !window.wp || !wp.customize) {
+            var scheme = headerSchemes[schemeId];
+            if (!scheme || !window.wp || !wp.customize) {
                 return;
             }
 
             headerSchemeSettings.forEach(function(settingId, index) {
-                var color = colors[index];
+                var color = scheme.colors[index];
                 var setting = wp.customize(settingId);
                 var control = wp.customize.control(settingId);
 
@@ -2728,6 +2744,26 @@ function ncllc_pro_customizer_controls_js() {
                     control.container.find('.color-picker-hex, input.wp-color-picker').val(color).trigger('change');
                     control.container.find('.wp-color-result').css('background-color', color);
                 }
+            });
+
+            [
+                ['header_text_color', scheme.font[0]],
+                ['header_font_family', scheme.font[1]],
+                ['header_font_size', scheme.font[2]],
+                ['header_font_preset', scheme.font[3]]
+            ].forEach(function(item) {
+                var settingId = item[0];
+                var value = item[1];
+                var setting = wp.customize(settingId);
+
+                if (setting) {
+                    setting.set(value);
+                }
+
+                document.querySelectorAll('[data-customize-setting-link="' + settingId + '"]').forEach(function(input) {
+                    input.value = value;
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                });
             });
 
             var schemeSetting = wp.customize('header_color_scheme_picker');
@@ -2752,14 +2788,13 @@ function ncllc_pro_customizer_controls_js() {
 
         document.addEventListener('DOMContentLoaded', initResponsiveControls);
         document.addEventListener('click', initResponsiveControls);
-        document.addEventListener('click', function(event) {
-            var button = event.target.closest('[data-ncllc-header-scheme]');
-            if (!button) {
+        document.addEventListener('change', function(event) {
+            var select = event.target.closest('[data-ncllc-header-scheme-select]');
+            if (!select || !select.value) {
                 return;
             }
 
-            event.preventDefault();
-            applyHeaderScheme(button.getAttribute('data-ncllc-header-scheme'));
+            applyHeaderScheme(select.value);
         });
     })();
     </script>
