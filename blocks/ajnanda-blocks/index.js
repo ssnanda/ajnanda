@@ -45,6 +45,26 @@
         return el(TextControl, { label: label, value: value || '', placeholder: placeholder || '', onChange: onChange });
     }
 
+    function colorField(label, value, onChange, fallback) {
+        var color = value || fallback || '#000000';
+
+        return el('div', { className: 'aj-color-control' },
+            el('span', { className: 'aj-control-label' }, label),
+            el('div', { className: 'aj-color-control__inputs' },
+                el('input', {
+                    type: 'color',
+                    value: /^#[0-9a-f]{6}$/i.test(color) ? color : fallback || '#000000',
+                    onChange: function(event) { onChange(event.target.value); }
+                }),
+                el(TextControl, {
+                    value: value || '',
+                    placeholder: fallback || '#000000',
+                    onChange: onChange
+                })
+            )
+        );
+    }
+
     function urlField(value, onChange) {
         return el('div', { className: 'aj-url-control' }, el('span', {}, __('Link', 'ncllc-pro')), el(URLInputButton, { url: value || '', onChange: onChange }));
     }
@@ -55,10 +75,17 @@
             backgroundColor: { type: 'string', default: '' },
             textColor: { type: 'string', default: '' },
             borderColor: { type: 'string', default: '' },
+            borderStyle: { type: 'string', default: 'none' },
+            borderWidth: { type: 'number', default: 0 },
             borderRadius: { type: 'number', default: 0 },
             padding: { type: 'number', default: 0 },
             marginTop: { type: 'number', default: 0 },
             marginBottom: { type: 'number', default: 0 },
+            fontFamily: { type: 'string', default: '' },
+            fontSize: { type: 'string', default: '' },
+            fontWeight: { type: 'string', default: '' },
+            fontStyle: { type: 'string', default: '' },
+            textDecoration: { type: 'string', default: '' },
             animation: { type: 'string', default: 'none' }
         }, attrs || {});
     }
@@ -75,11 +102,31 @@
         }
         if (attrs.borderColor) {
             style.borderColor = attrs.borderColor;
+        }
+        if (attrs.borderStyle && attrs.borderStyle !== 'none') {
+            style.borderStyle = attrs.borderStyle;
+            style.borderWidth = (attrs.borderWidth || 1) + 'px';
+        } else if (attrs.borderColor) {
             style.borderStyle = 'solid';
-            style.borderWidth = '1px';
+            style.borderWidth = (attrs.borderWidth || 1) + 'px';
         }
         if (attrs.borderRadius) {
             style.borderRadius = attrs.borderRadius + 'px';
+        }
+        if (attrs.fontFamily) {
+            style.fontFamily = attrs.fontFamily;
+        }
+        if (attrs.fontSize) {
+            style.fontSize = attrs.fontSize;
+        }
+        if (attrs.fontWeight) {
+            style.fontWeight = attrs.fontWeight;
+        }
+        if (attrs.fontStyle) {
+            style.fontStyle = attrs.fontStyle;
+        }
+        if (attrs.textDecoration) {
+            style.textDecoration = attrs.textDecoration;
         }
         if (attrs.padding) {
             style.padding = attrs.padding + 'px';
@@ -158,6 +205,19 @@
             field(__('Background color', 'ncllc-pro'), attrs.backgroundColor, function(value) { props.setAttributes({ backgroundColor: value }); }, '#ffffff'),
             field(__('Text color', 'ncllc-pro'), attrs.textColor, function(value) { props.setAttributes({ textColor: value }); }, '#111827'),
             field(__('Border color', 'ncllc-pro'), attrs.borderColor, function(value) { props.setAttributes({ borderColor: value }); }, '#e5e7eb'),
+            el(SelectControl, {
+                label: __('Border style', 'ncllc-pro'),
+                value: attrs.borderStyle || 'none',
+                options: [
+                    { label: __('None', 'ncllc-pro'), value: 'none' },
+                    { label: __('Solid', 'ncllc-pro'), value: 'solid' },
+                    { label: __('Dotted', 'ncllc-pro'), value: 'dotted' },
+                    { label: __('Dashed', 'ncllc-pro'), value: 'dashed' },
+                    { label: __('Double', 'ncllc-pro'), value: 'double' }
+                ],
+                onChange: function(value) { props.setAttributes({ borderStyle: value }); }
+            }),
+            el(RangeControl, { label: __('Border width', 'ncllc-pro'), min: 0, max: 12, value: attrs.borderWidth || 0, onChange: function(value) { props.setAttributes({ borderWidth: value }); } }),
             el(RangeControl, { label: __('Border radius', 'ncllc-pro'), min: 0, max: 80, value: attrs.borderRadius || 0, onChange: function(value) { props.setAttributes({ borderRadius: value }); } }),
             el(RangeControl, { label: __('Padding', 'ncllc-pro'), min: 0, max: 120, value: attrs.padding || 0, onChange: function(value) { props.setAttributes({ padding: value }); } }),
             el(RangeControl, { label: __('Margin top', 'ncllc-pro'), min: 0, max: 160, value: attrs.marginTop || 0, onChange: function(value) { props.setAttributes({ marginTop: value }); } }),
@@ -169,7 +229,15 @@
                     { label: __('None', 'ncllc-pro'), value: 'none' },
                     { label: __('Fade In', 'ncllc-pro'), value: 'fade-in' },
                     { label: __('Slide Up', 'ncllc-pro'), value: 'slide-up' },
-                    { label: __('Zoom In', 'ncllc-pro'), value: 'zoom-in' }
+                    { label: __('Slide Down', 'ncllc-pro'), value: 'slide-down' },
+                    { label: __('Slide Left', 'ncllc-pro'), value: 'slide-left' },
+                    { label: __('Slide Right', 'ncllc-pro'), value: 'slide-right' },
+                    { label: __('Zoom In', 'ncllc-pro'), value: 'zoom-in' },
+                    { label: __('Zoom Out', 'ncllc-pro'), value: 'zoom-out' },
+                    { label: __('Pop', 'ncllc-pro'), value: 'pop' },
+                    { label: __('Blur In', 'ncllc-pro'), value: 'blur-in' },
+                    { label: __('Rotate In', 'ncllc-pro'), value: 'rotate-in' },
+                    { label: __('Flip In', 'ncllc-pro'), value: 'flip-in' }
                 ],
                 onChange: function(value) { props.setAttributes({ animation: value }); }
             })
@@ -179,6 +247,128 @@
     function controlsWithCommon(props, controls) {
         controls = controls ? (Array.isArray(controls) ? controls : [controls]) : [];
         return controls.concat(commonControls(props));
+    }
+
+    function headingControls(props) {
+        var attrs = props.attributes || {};
+        var level = attrs.level || 2;
+
+        function setBorderShape(value) {
+            props.setAttributes({ borderRadius: parseInt(value, 10) || 0 });
+        }
+
+        return [
+            el(RangeControl, { label: __('Level', 'ncllc-pro'), min: 1, max: 6, value: level, onChange: function(value) { props.setAttributes({ level: value }); } }),
+            el(SelectControl, {
+                label: __('Alignment', 'ncllc-pro'),
+                value: attrs.alignText || '',
+                options: [
+                    { label: __('Default', 'ncllc-pro'), value: '' },
+                    { label: __('Left', 'ncllc-pro'), value: 'left' },
+                    { label: __('Center', 'ncllc-pro'), value: 'center' },
+                    { label: __('Right', 'ncllc-pro'), value: 'right' }
+                ],
+                onChange: function(value) { props.setAttributes({ alignText: value }); }
+            }),
+            el('div', { className: 'aj-heading-font-row' },
+                el('span', { className: 'aj-control-label' }, __('Font', 'ncllc-pro')),
+                el(DropdownMenu, {
+                    className: 'aj-heading-font-dropdown',
+                    icon: 'editor-textcolor',
+                    label: __('Font', 'ncllc-pro'),
+                    text: __('Font', 'ncllc-pro'),
+                    popoverProps: { placement: 'bottom-start' },
+                    controls: [
+                        {
+                            title: __('Inter', 'ncllc-pro'),
+                            onClick: function() { props.setAttributes({ fontFamily: 'Inter' }); }
+                        },
+                        {
+                            title: __('Poppins', 'ncllc-pro'),
+                            onClick: function() { props.setAttributes({ fontFamily: 'Poppins' }); }
+                        },
+                        {
+                            title: __('Arial', 'ncllc-pro'),
+                            onClick: function() { props.setAttributes({ fontFamily: 'Arial' }); }
+                        },
+                        {
+                            title: __('Georgia', 'ncllc-pro'),
+                            onClick: function() { props.setAttributes({ fontFamily: 'Georgia' }); }
+                        },
+                        {
+                            title: __('System UI', 'ncllc-pro'),
+                            onClick: function() { props.setAttributes({ fontFamily: 'system-ui' }); }
+                        },
+                        {
+                            title: __('Bold', 'ncllc-pro'),
+                            onClick: function() { props.setAttributes({ fontWeight: attrs.fontWeight === '700' ? '' : '700' }); }
+                        },
+                        {
+                            title: __('Italic', 'ncllc-pro'),
+                            onClick: function() { props.setAttributes({ fontStyle: attrs.fontStyle === 'italic' ? '' : 'italic' }); }
+                        },
+                        {
+                            title: __('Underline', 'ncllc-pro'),
+                            onClick: function() { props.setAttributes({ textDecoration: attrs.textDecoration === 'underline' ? '' : 'underline' }); }
+                        },
+                        {
+                            title: __('Reset font', 'ncllc-pro'),
+                            onClick: function() { props.setAttributes({ fontFamily: '', fontSize: '', fontWeight: '', fontStyle: '', textDecoration: '' }); }
+                        }
+                    ]
+                })
+            ),
+            field(__('Font size', 'ncllc-pro'), attrs.fontSize, function(value) { props.setAttributes({ fontSize: value }); }, '2rem'),
+            colorField(__('Font color', 'ncllc-pro'), attrs.textColor, function(value) { props.setAttributes({ textColor: value }); }, '#111827'),
+            colorField(__('Background color', 'ncllc-pro'), attrs.backgroundColor, function(value) { props.setAttributes({ backgroundColor: value }); }, '#ffffff'),
+            colorField(__('Border color', 'ncllc-pro'), attrs.borderColor, function(value) { props.setAttributes({ borderColor: value }); }, '#e5e7eb'),
+            el(SelectControl, {
+                label: __('Border shape', 'ncllc-pro'),
+                value: String(attrs.borderRadius || 0),
+                options: [
+                    { label: __('Rectangle', 'ncllc-pro'), value: '0' },
+                    { label: __('Slightly rounded', 'ncllc-pro'), value: '6' },
+                    { label: __('Curved edges', 'ncllc-pro'), value: '16' },
+                    { label: __('Pill', 'ncllc-pro'), value: '999' }
+                ],
+                onChange: setBorderShape
+            }),
+            el(SelectControl, {
+                label: __('Border line', 'ncllc-pro'),
+                value: attrs.borderStyle || 'none',
+                options: [
+                    { label: __('None', 'ncllc-pro'), value: 'none' },
+                    { label: __('Solid line', 'ncllc-pro'), value: 'solid' },
+                    { label: __('Dotted line', 'ncllc-pro'), value: 'dotted' },
+                    { label: __('Dashed line', 'ncllc-pro'), value: 'dashed' },
+                    { label: __('Double line', 'ncllc-pro'), value: 'double' }
+                ],
+                onChange: function(value) { props.setAttributes({ borderStyle: value }); }
+            }),
+            el(RangeControl, { label: __('Border width', 'ncllc-pro'), min: 0, max: 12, value: attrs.borderWidth || 0, onChange: function(value) { props.setAttributes({ borderWidth: value }); } }),
+            el(RangeControl, { label: __('Padding', 'ncllc-pro'), min: 0, max: 120, value: attrs.padding || 0, onChange: function(value) { props.setAttributes({ padding: value }); } }),
+            el(RangeControl, { label: __('Margin top', 'ncllc-pro'), min: 0, max: 160, value: attrs.marginTop || 0, onChange: function(value) { props.setAttributes({ marginTop: value }); } }),
+            el(RangeControl, { label: __('Margin bottom', 'ncllc-pro'), min: 0, max: 160, value: attrs.marginBottom || 0, onChange: function(value) { props.setAttributes({ marginBottom: value }); } }),
+            el(SelectControl, {
+                label: __('Animation', 'ncllc-pro'),
+                value: attrs.animation || 'none',
+                options: [
+                    { label: __('None', 'ncllc-pro'), value: 'none' },
+                    { label: __('Fade In', 'ncllc-pro'), value: 'fade-in' },
+                    { label: __('Slide Up', 'ncllc-pro'), value: 'slide-up' },
+                    { label: __('Slide Down', 'ncllc-pro'), value: 'slide-down' },
+                    { label: __('Slide Left', 'ncllc-pro'), value: 'slide-left' },
+                    { label: __('Slide Right', 'ncllc-pro'), value: 'slide-right' },
+                    { label: __('Zoom In', 'ncllc-pro'), value: 'zoom-in' },
+                    { label: __('Zoom Out', 'ncllc-pro'), value: 'zoom-out' },
+                    { label: __('Pop', 'ncllc-pro'), value: 'pop' },
+                    { label: __('Blur In', 'ncllc-pro'), value: 'blur-in' },
+                    { label: __('Rotate In', 'ncllc-pro'), value: 'rotate-in' },
+                    { label: __('Flip In', 'ncllc-pro'), value: 'flip-in' }
+                ],
+                onChange: function(value) { props.setAttributes({ animation: value }); }
+            })
+        ];
     }
 
     function extraControls(props, options) {
@@ -773,7 +963,7 @@
         edit: function(props) {
             var level = props.attributes.level || 2;
             return el(Fragment, {},
-                inspector(controlsWithCommon(props, el(RangeControl, { label: __('Level', 'ncllc-pro'), min: 1, max: 6, value: level, onChange: function(value) { props.setAttributes({ level: value }); } }))),
+                inspector(headingControls(props)),
                 el(RichText, Object.assign({ tagName: 'h' + level, value: props.attributes.content, placeholder: __('Heading', 'ncllc-pro'), onChange: function(value) { props.setAttributes({ content: value }); } }, styledProps('aj-heading', props.attributes)))
             );
         },

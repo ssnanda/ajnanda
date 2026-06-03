@@ -43,6 +43,44 @@
     text-transform: uppercase;
 }
 
+.aj-color-control,
+.aj-heading-font-row {
+    display: grid;
+    grid-template-columns: minmax(96px, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.aj-control-label {
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.4;
+    text-transform: uppercase;
+}
+
+.aj-color-control__inputs {
+    display: grid;
+    grid-template-columns: 36px minmax(92px, 1fr);
+    align-items: start;
+    gap: 8px;
+}
+
+.aj-color-control__inputs input[type="color"] {
+    width: 36px;
+    height: 36px;
+    padding: 2px;
+}
+
+.aj-color-control__inputs .components-base-control,
+.aj-color-control__inputs .components-base-control__field {
+    margin-bottom: 0;
+}
+
+.aj-heading-font-dropdown {
+    justify-self: end;
+}
+
 .editor-styles-wrapper .aj-embed {
     display: grid;
     place-items: center;
