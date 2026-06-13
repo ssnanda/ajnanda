@@ -403,7 +403,7 @@
                     submitBtn.html(originalText).css('background', '').prop('disabled', false);
                 }, 3000);
                 
-                alert('Thank you for contacting NC LLC Agents Inc! We will respond to your inquiry shortly.');
+                alert('Thank you for contacting University Place Office Suites! We will respond to your inquiry shortly.');
             }, 1000);
         });
 
