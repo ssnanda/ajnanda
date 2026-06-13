@@ -42,7 +42,7 @@ The homepage has been streamlined to focus on core messaging:
 6. Replace it with your actual form ID number
 7. Save the file
 
-#### 2. Services Page Template (`page-services.php`)
+#### 2. Services Page Template (`template-services.php`)
 **Features:**
 - Comprehensive services overview
 - "How It Works" process section

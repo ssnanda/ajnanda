@@ -27,7 +27,7 @@ fi
 
 # Create Services Page
 echo "📄 Creating Services page..."
-SERVICES_ID=$(wp post create --post_type=page --post_title='Services' --post_status=publish --post_name=services --page_template=page-services.php --porcelain)
+SERVICES_ID=$(wp post create --post_type=page --post_title='Services' --post_status=publish --post_name=services --page_template=template-services.php --porcelain)
 if [ $? -eq 0 ]; then
     echo "✅ Services page created (ID: $SERVICES_ID)"
 else

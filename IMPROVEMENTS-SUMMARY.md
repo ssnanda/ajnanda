@@ -65,7 +65,7 @@ This document summarizes all the improvements made to http://ncllc.ddev.site/ on
 ---
 
 ### 3. New Services Page Template ✅
-**File:** `wp-content/themes/ncllc-pro/page-services.php`
+**File:** `wp-content/themes/ncllc-pro/template-services.php`
 
 **Features:**
 - Comprehensive services overview with gradient header
@@ -141,7 +141,7 @@ This document summarizes all the improvements made to http://ncllc.ddev.site/ on
 
 ### Templates
 1. **page-contact.php** - Contact page template (197 lines)
-2. **page-services.php** - Services page template (237 lines)
+2. **template-services.php** - Services page template (237 lines)
 
 ### Documentation
 3. **SETUP-GUIDE.md** - Comprehensive setup instructions (234 lines)
@@ -310,7 +310,7 @@ Use this checklist to complete the setup:
 ### Key Files to Know
 - **front-page.php** - Homepage template
 - **page-contact.php** - Contact page template
-- **page-services.php** - Services page template
+- **template-services.php** - Services page template
 - **style.css** - All CSS styles
 - **functions.php** - Theme functionality
 - **header.php** - Site header
