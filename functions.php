@@ -1969,7 +1969,7 @@ function ajnanda_customize_register($wp_customize) {
                 $saved_footer_value  = $saved_footer_scheme ? $saved_footer_scheme->value() : '';
                 ?>
                 <span class="customize-control-title"><?php echo esc_html($this->label); ?></span>
-                <select data-ajnanda-footer-scheme-select data-customize-setting-link="footer_color_scheme_picker">
+                <select data-ajnanda-footer-scheme-select onchange="window.ajnandaApplyFooterScheme&&window.ajnandaApplyFooterScheme(this.value)">
                     <option value=""><?php esc_html_e('Choose a footer scheme...', 'ajnanda'); ?></option>
                     <?php foreach ($schemes as $scheme_id => $scheme_label) : ?>
                         <option value="<?php echo esc_attr($scheme_id); ?>" <?php selected($saved_footer_value, $scheme_id); ?>><?php echo esc_html($scheme_label); ?></option>
@@ -2452,29 +2452,32 @@ function ajnanda_customize_register($wp_customize) {
 
     // Footer Section
     $wp_customize->add_section('ajnanda_footer', array(
-        'title'       => __('Footer', 'ajnanda'),
-        'priority'    => 26,
-        'description' => __('Use the footer builder preview to add, remove, and arrange footer elements.', 'ajnanda'),
+        'title'    => __('Footer', 'ajnanda'),
+        'priority' => 26,
     ));
 
 
     $wp_customize->add_setting('footer_background_color', array(
         'default'           => '#111827',
-        'sanitize_callback' => 'ajnanda_sanitize_css_background',
-        'transport'         => 'refresh',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'postMessage',
     ));
 
-    $wp_customize->add_control('footer_background_color', array(
-        'label'       => __('Footer Background', 'ajnanda'),
-        'description' => __('Use a color or gradient. Example: linear-gradient(90deg, #111827, #1f2937).', 'ajnanda'),
-        'section'     => 'ajnanda_footer',
-        'type'        => 'text',
-    ));
+    if (class_exists('WP_Customize_Color_Control')) {
+        $wp_customize->add_control(new WP_Customize_Color_Control(
+            $wp_customize,
+            'footer_background_color',
+            array(
+                'label'   => __('Footer Background', 'ajnanda'),
+                'section' => 'ajnanda_footer',
+            )
+        ));
+    }
 
     $wp_customize->add_setting('footer_text_color', array(
         'default'           => '#f9fafb',
         'sanitize_callback' => 'sanitize_hex_color',
-        'transport'         => 'refresh',
+        'transport'         => 'postMessage',
     ));
 
     if (class_exists('WP_Customize_Color_Control')) {
@@ -2482,9 +2485,8 @@ function ajnanda_customize_register($wp_customize) {
             $wp_customize,
             'footer_text_color',
             array(
-                'label'       => __('Footer Text Color', 'ajnanda'),
-                'description' => __('Set the footer text and menu link color.', 'ajnanda'),
-                'section'     => 'ajnanda_footer',
+                'label'   => __('Footer Text Color', 'ajnanda'),
+                'section' => 'ajnanda_footer',
             )
         ));
     }
@@ -2502,7 +2504,7 @@ function ajnanda_customize_register($wp_customize) {
         $wp_customize->add_setting($setting_id, array(
             'default'           => $control['default'],
             'sanitize_callback' => 'sanitize_hex_color',
-            'transport'         => 'refresh',
+            'transport'         => 'postMessage',
         ));
 
         if (class_exists('WP_Customize_Color_Control')) {
@@ -2574,18 +2576,6 @@ function ajnanda_customize_register($wp_customize) {
             'type'     => 'text',
             'sanitize' => 'ajnanda_sanitize_css_size',
         ),
-        'footer_padding_top' => array(
-            'label'    => __('Footer Padding Top', 'ajnanda'),
-            'default'  => '4rem',
-            'type'     => 'text',
-            'sanitize' => 'ajnanda_sanitize_css_size',
-        ),
-        'footer_padding_bottom' => array(
-            'label'    => __('Footer Padding Bottom', 'ajnanda'),
-            'default'  => '2rem',
-            'type'     => 'text',
-            'sanitize' => 'ajnanda_sanitize_css_size',
-        ),
     );
 
     $footer_font_compact_keys = array('footer_font_family', 'footer_font_size', 'footer_font_weight');
@@ -2594,7 +2584,7 @@ function ajnanda_customize_register($wp_customize) {
         $wp_customize->add_setting($setting_id, array(
             'default'           => $control['default'],
             'sanitize_callback' => $control['sanitize'],
-            'transport'         => 'refresh',
+            'transport'         => in_array($setting_id, $footer_font_compact_keys, true) ? 'postMessage' : 'refresh',
         ));
 
         if (in_array($setting_id, $footer_font_compact_keys, true)) {
@@ -2623,6 +2613,68 @@ function ajnanda_customize_register($wp_customize) {
                 'label'    => __('Footer Font', 'ajnanda'),
                 'section'  => 'ajnanda_footer',
                 'settings' => 'footer_font_family',
+            )
+        ));
+    }
+
+    // Responsive footer padding
+    $footer_responsive_devices = array('desktop', 'tablet', 'mobile');
+    $footer_padding_top_defaults    = array('desktop' => '4rem', 'tablet' => '3rem',   'mobile' => '2.5rem');
+    $footer_padding_bottom_defaults = array('desktop' => '2rem', 'tablet' => '1.5rem', 'mobile' => '1.5rem');
+
+    foreach ($footer_responsive_devices as $device) {
+        $wp_customize->add_setting('footer_padding_top_' . $device, array(
+            'default'           => $footer_padding_top_defaults[$device],
+            'sanitize_callback' => 'ajnanda_sanitize_css_size',
+            'transport'         => 'postMessage',
+        ));
+        $wp_customize->add_setting('footer_padding_bottom_' . $device, array(
+            'default'           => $footer_padding_bottom_defaults[$device],
+            'sanitize_callback' => 'ajnanda_sanitize_css_size',
+            'transport'         => 'postMessage',
+        ));
+    }
+
+    if (class_exists('NCLLC_Pro_Header_Responsive_Value_Control')) {
+        $wp_customize->add_control(new NCLLC_Pro_Header_Responsive_Value_Control(
+            $wp_customize,
+            'footer_padding_top_compact',
+            array(
+                'label'         => __('Footer Padding Top', 'ajnanda'),
+                'section'       => 'ajnanda_footer',
+                'settings'      => array('footer_padding_top_desktop', 'footer_padding_top_tablet', 'footer_padding_top_mobile'),
+                'setting_ids'   => array(
+                    'desktop' => 'footer_padding_top_desktop',
+                    'tablet'  => 'footer_padding_top_tablet',
+                    'mobile'  => 'footer_padding_top_mobile',
+                ),
+                'device_labels' => array(
+                    'desktop' => __('Padding Top - Desktop', 'ajnanda'),
+                    'tablet'  => __('Padding Top - Tablet', 'ajnanda'),
+                    'mobile'  => __('Padding Top - Mobile', 'ajnanda'),
+                ),
+                'placeholder'   => '4rem, 3rem, 2.5rem',
+            )
+        ));
+
+        $wp_customize->add_control(new NCLLC_Pro_Header_Responsive_Value_Control(
+            $wp_customize,
+            'footer_padding_bottom_compact',
+            array(
+                'label'         => __('Footer Padding Bottom', 'ajnanda'),
+                'section'       => 'ajnanda_footer',
+                'settings'      => array('footer_padding_bottom_desktop', 'footer_padding_bottom_tablet', 'footer_padding_bottom_mobile'),
+                'setting_ids'   => array(
+                    'desktop' => 'footer_padding_bottom_desktop',
+                    'tablet'  => 'footer_padding_bottom_tablet',
+                    'mobile'  => 'footer_padding_bottom_mobile',
+                ),
+                'device_labels' => array(
+                    'desktop' => __('Padding Bottom - Desktop', 'ajnanda'),
+                    'tablet'  => __('Padding Bottom - Tablet', 'ajnanda'),
+                    'mobile'  => __('Padding Bottom - Mobile', 'ajnanda'),
+                ),
+                'placeholder'   => '2rem, 1.5rem, 1.5rem',
             )
         ));
     }
@@ -2759,7 +2811,7 @@ function ajnanda_customize_register($wp_customize) {
         'active_callback' => 'ajnanda_header_builder_social_active',
     ));
 
-    ajnanda_register_builder_controls($wp_customize, 'footer', 'ajnanda_footer', __('Footer', 'ajnanda'), 'ajnanda_footer');
+    ajnanda_register_builder_controls($wp_customize, 'footer', 'ajnanda_footer', __('Footer', 'ajnanda'));
 
     $footer_columns = ajnanda_get_footer_columns();
     foreach ($footer_columns as $index => $column) {
@@ -3030,6 +3082,42 @@ function ajnanda_customizer_controls_css() {
             min-height: 34px;
             margin: 0;
         }
+
+        /* Footer responsive controls — same layout as header */
+        #sub-accordion-section-ajnanda_footer .ajnanda-header-responsive-control {
+            display: grid;
+            grid-template-columns: minmax(128px, 1fr) minmax(0, 1fr);
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border: 1px solid #dcdcde;
+            background: #fff;
+        }
+
+        #sub-accordion-section-ajnanda_footer .ajnanda-header-responsive-control select,
+        #sub-accordion-section-ajnanda_footer .ajnanda-header-responsive-control input {
+            width: 100%;
+            min-height: 30px;
+            margin: 0;
+        }
+
+        #sub-accordion-section-ajnanda_footer .ajnanda-header-responsive-value {
+            display: none;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 6px;
+            margin: 0;
+        }
+
+        #sub-accordion-section-ajnanda_footer .ajnanda-header-responsive-value.is-active {
+            display: grid;
+        }
+
+        #sub-accordion-section-ajnanda_footer .ajnanda-header-responsive-value span {
+            color: #646970;
+            font-size: 12px;
+            font-weight: 600;
+        }
     </style>
     <?php
 }
@@ -3202,67 +3290,30 @@ function ajnanda_customizer_controls_js() {
                 return;
             }
 
-            // footer_background_color is a text control (supports gradients), not a color picker
-            var bgSetting = wp.customize('footer_background_color');
-            if (bgSetting) {
-                bgSetting.set(scheme.colors[0]);
-            }
-            document.querySelectorAll('#customize-control-footer_background_color input[type="text"], #customize-control-footer_background_color textarea').forEach(function(input) {
-                input.value = scheme.colors[0];
-                input.dispatchEvent(new Event('input', { bubbles: true }));
-                input.dispatchEvent(new Event('change', { bubbles: true }));
-            });
-
-            // Remaining 7 are color picker controls
-            footerSchemeColorSettings.slice(1).forEach(function(settingId, index) {
-                var color = scheme.colors[index + 1];
+            // Colors — all postMessage transport, preview updates instantly via CSS vars
+            footerSchemeColorSettings.forEach(function(settingId, index) {
                 var setting = wp.customize(settingId);
-                var control = wp.customize.control(settingId);
-
                 if (setting) {
-                    setting.set(color);
-                }
-
-                if (control && control.container) {
-                    control.container.find('.color-picker-hex, input.wp-color-picker').val(color).trigger('change');
-                    control.container.find('.wp-color-result').css('background-color', color);
+                    setting.set(scheme.colors[index]);
                 }
             });
 
-            // Font settings via compact control
+            // Font — also postMessage transport
             [
                 ['footer_font_family', scheme.font[0]],
                 ['footer_font_size',   scheme.font[1]],
                 ['footer_font_weight', scheme.font[2]]
             ].forEach(function(item) {
-                var settingId = item[0];
-                var value     = item[1];
-                var setting   = wp.customize(settingId);
-
+                var setting = wp.customize(item[0]);
                 if (setting) {
-                    setting.set(value);
+                    setting.set(item[1]);
                 }
-
-                document.querySelectorAll('[data-customize-setting-link="' + settingId + '"]').forEach(function(input) {
-                    input.value = value;
-                    input.dispatchEvent(new Event('change', { bubbles: true }));
-                });
             });
-
-            var schemeSetting = wp.customize('footer_color_scheme_picker');
-            if (schemeSetting) {
-                schemeSetting.set(schemeId);
-            }
         }
 
-        document.addEventListener('change', function(event) {
-            var select = event.target.closest('[data-ajnanda-footer-scheme-select]');
-            if (!select || !select.value) {
-                return;
-            }
-
-            applyFooterScheme(select.value);
-        });
+        // Expose globally so the select's onchange attribute can call it directly,
+        // bypassing any WP Customizer event-interception on the select element.
+        window.ajnandaApplyFooterScheme = applyFooterScheme;
     })();
     </script>
     <?php
@@ -3329,6 +3380,40 @@ function ajnanda_customizer_live_preview() {
             wp.customize('header_height_' + device, function(value) {
                 value.bind(function(newval) {
                     document.documentElement.style.setProperty('--ajnanda-header-height-' + device, normalizeCssSize(newval));
+                });
+            });
+
+            wp.customize('footer_padding_top_' + device, function(value) {
+                value.bind(function(newval) {
+                    document.documentElement.style.setProperty('--ajn-footer-padding-top-' + device, newval);
+                });
+            });
+
+            wp.customize('footer_padding_bottom_' + device, function(value) {
+                value.bind(function(newval) {
+                    document.documentElement.style.setProperty('--ajn-footer-padding-bottom-' + device, newval);
+                });
+            });
+        });
+
+        // Footer color and font settings — postMessage live preview via CSS vars
+        var footerCssVarMap = {
+            'footer_background_color':         '--ajn-footer-background',
+            'footer_text_color':               '--ajn-footer-text-color',
+            'footer_link_hover_color':         '--ajn-footer-link-hover-color',
+            'footer_divider_color':            '--ajn-footer-divider-color',
+            'footer_submenu_background':       '--ajn-footer-submenu-background',
+            'footer_submenu_text_color':       '--ajn-footer-submenu-text-color',
+            'footer_submenu_hover_color':      '--ajn-footer-submenu-hover-color',
+            'footer_submenu_hover_background': '--ajn-footer-submenu-hover-background',
+            'footer_font_family':              '--ajn-footer-font-family',
+            'footer_font_size':                '--ajn-footer-font-size',
+            'footer_font_weight':              '--ajn-footer-font-weight'
+        };
+        Object.keys(footerCssVarMap).forEach(function(settingId) {
+            wp.customize(settingId, function(value) {
+                value.bind(function(newval) {
+                    document.documentElement.style.setProperty(footerCssVarMap[settingId], newval);
                 });
             });
         });
@@ -3788,8 +3873,12 @@ function ajnanda_customizer_css() {
     $footer_font_weight = get_theme_mod('footer_font_weight', '400');
     $footer_menu_gap = get_theme_mod('footer_menu_gap', '1.4rem');
     $footer_container_width = get_theme_mod('footer_container_width', '1280px');
-    $footer_padding_top = get_theme_mod('footer_padding_top', '4rem');
-    $footer_padding_bottom = get_theme_mod('footer_padding_bottom', '2rem');
+    $footer_padding_top_desktop    = get_theme_mod('footer_padding_top_desktop',    '4rem');
+    $footer_padding_top_tablet     = get_theme_mod('footer_padding_top_tablet',     '3rem');
+    $footer_padding_top_mobile     = get_theme_mod('footer_padding_top_mobile',     '2.5rem');
+    $footer_padding_bottom_desktop = get_theme_mod('footer_padding_bottom_desktop', '2rem');
+    $footer_padding_bottom_tablet  = get_theme_mod('footer_padding_bottom_tablet',  '1.5rem');
+    $footer_padding_bottom_mobile  = get_theme_mod('footer_padding_bottom_mobile',  '1.5rem');
 
     $old_logo_height = get_theme_mod('logo_height', '50');
     $old_header_padding = get_theme_mod('header_padding', '0.75');
@@ -3861,8 +3950,14 @@ function ajnanda_customizer_css() {
             --ajn-footer-font-weight: <?php echo esc_attr($footer_font_weight); ?>;
             --ajn-footer-menu-gap: <?php echo esc_attr($footer_menu_gap); ?>;
             --ajn-footer-container-width: <?php echo esc_attr($footer_container_width); ?>;
-            --ajn-footer-padding-top: <?php echo esc_attr($footer_padding_top); ?>;
-            --ajn-footer-padding-bottom: <?php echo esc_attr($footer_padding_bottom); ?>;
+            --ajn-footer-padding-top-desktop: <?php echo esc_attr($footer_padding_top_desktop); ?>;
+            --ajn-footer-padding-top-tablet: <?php echo esc_attr($footer_padding_top_tablet); ?>;
+            --ajn-footer-padding-top-mobile: <?php echo esc_attr($footer_padding_top_mobile); ?>;
+            --ajn-footer-padding-bottom-desktop: <?php echo esc_attr($footer_padding_bottom_desktop); ?>;
+            --ajn-footer-padding-bottom-tablet: <?php echo esc_attr($footer_padding_bottom_tablet); ?>;
+            --ajn-footer-padding-bottom-mobile: <?php echo esc_attr($footer_padding_bottom_mobile); ?>;
+            --ajn-footer-padding-top: var(--ajn-footer-padding-top-desktop);
+            --ajn-footer-padding-bottom: var(--ajn-footer-padding-bottom-desktop);
             --ast-global-color-0: <?php echo esc_attr($theme_primary_color); ?>;
             --ast-global-color-1: <?php echo esc_attr($theme_primary_dark_color); ?>;
             --ast-global-color-2: <?php echo esc_attr($theme_secondary_color); ?>;
@@ -3929,6 +4024,11 @@ function ajnanda_customizer_css() {
             .header-builder-container {
                 min-height: var(--ajnanda-header-height-tablet) !important;
             }
+
+            :root {
+                --ajn-footer-padding-top: var(--ajn-footer-padding-top-tablet);
+                --ajn-footer-padding-bottom: var(--ajn-footer-padding-bottom-tablet);
+            }
         }
 
         @media (max-width: 768px) {
@@ -3945,6 +4045,11 @@ function ajnanda_customizer_css() {
 
             .header-builder-container {
                 min-height: var(--ajnanda-header-height-mobile) !important;
+            }
+
+            :root {
+                --ajn-footer-padding-top: var(--ajn-footer-padding-top-mobile);
+                --ajn-footer-padding-bottom: var(--ajn-footer-padding-bottom-mobile);
             }
         }
     </style>
