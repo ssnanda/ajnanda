@@ -13,26 +13,13 @@ get_header();
     <?php
     while (have_posts()) :
         the_post();
-        $content = trim(get_the_content());
         ?>
         <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
-            <?php if ($content) : ?>
-                <div class="entry-content builder-canvas-content contact-builder-content">
-                    <?php
-                    the_content();
-
-                    wp_link_pages(array(
-                        'before' => '<div class="page-links">' . esc_html__('Pages:', 'ncllc-pro'),
-                        'after'  => '</div>',
-                    ));
-                    ?>
-                </div>
-            <?php else : ?>
-            <section class="contact-editor-section">
+            <section class="page-content-section">
                 <div class="container">
-                    <div class="contact-form-panel contact-editor-content">
+                    <div class="entry-content page-content-panel">
                         <?php
-                        echo do_shortcode('[wp_formy id="1"]');
+                        the_content();
 
                         wp_link_pages(array(
                             'before' => '<div class="page-links">' . esc_html__('Pages:', 'ncllc-pro'),
@@ -42,7 +29,6 @@ get_header();
                     </div>
                 </div>
             </section>
-            <?php endif; ?>
         </article>
         <?php
     endwhile;
