@@ -2519,8 +2519,8 @@ function ajnanda_customize_register($wp_customize) {
 
     $wp_customize->add_setting('footer_color_scheme_picker', array(
         'default'           => '',
-        'sanitize_callback' => 'sanitize_key',
-        'transport'         => 'refresh',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'postMessage',
     ));
 
     if (class_exists('NCLLC_Pro_Footer_Color_Schemes_Control')) {
@@ -3204,13 +3204,14 @@ function ajnanda_customizer_controls_js() {
 
             // footer_background_color is a text control (supports gradients), not a color picker
             var bgSetting = wp.customize('footer_background_color');
-            var bgControl = wp.customize.control('footer_background_color');
             if (bgSetting) {
                 bgSetting.set(scheme.colors[0]);
             }
-            if (bgControl && bgControl.container) {
-                bgControl.container.find('input[type="text"], textarea').val(scheme.colors[0]).trigger('change');
-            }
+            document.querySelectorAll('#customize-control-footer_background_color input[type="text"], #customize-control-footer_background_color textarea').forEach(function(input) {
+                input.value = scheme.colors[0];
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            });
 
             // Remaining 7 are color picker controls
             footerSchemeColorSettings.slice(1).forEach(function(settingId, index) {
