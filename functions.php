@@ -12,7 +12,7 @@ if (!defined('ABSPATH')) {
 /**
  * Theme Setup
  */
-function ncllc_pro_setup() {
+function ajnanda_setup() {
     // Add theme support
     add_theme_support('title-tag');
     add_theme_support('post-thumbnails');
@@ -34,18 +34,36 @@ function ncllc_pro_setup() {
     
     // Register navigation menus — Primary and Footer always on
     // Optional panel menus (Left/Right Floater) are registered by site-level plugins
-    // that check the ncllc_left_panel_enabled / ncllc_right_panel_enabled theme mods
+    // that check the ajnanda_left_panel_enabled / ajnanda_right_panel_enabled theme mods
     register_nav_menus(array(
-        'primary' => __('Primary Menu', 'ncllc-pro'),
-        'footer'  => __('Footer Menu', 'ncllc-pro'),
+        'primary' => __('Primary Menu', 'ajnanda'),
+        'footer'  => __('Footer Menu', 'ajnanda'),
     ));
 }
-add_action('after_setup_theme', 'ncllc_pro_setup');
+add_action('after_setup_theme', 'ajnanda_setup');
+
+// One-time migration: copy ncllc_ theme mods to ajnanda_ keys
+add_action('after_setup_theme', function (): void {
+    $migrate = [
+        'ncllc_left_panel_enabled'  => 'ajnanda_left_panel_enabled',
+        'ncllc_left_panel_label'    => 'ajnanda_left_panel_label',
+        'ncllc_right_panel_enabled' => 'ajnanda_right_panel_enabled',
+        'ncllc_right_panel_label'   => 'ajnanda_right_panel_label',
+    ];
+    foreach ($migrate as $old => $new) {
+        if (get_theme_mod($new, '__unset__') === '__unset__') {
+            $old_val = get_theme_mod($old, '__unset__');
+            if ($old_val !== '__unset__') {
+                set_theme_mod($new, $old_val);
+            }
+        }
+    }
+}, 5);
 
 /**
  * Enqueue scripts and styles
  */
-function ncllc_pro_asset_version($relative_path) {
+function ajnanda_asset_version($relative_path) {
     $relative_path = ltrim((string) $relative_path, '/');
     $path = 'style.css' === $relative_path
         ? get_stylesheet_directory() . '/style.css'
@@ -54,52 +72,52 @@ function ncllc_pro_asset_version($relative_path) {
     return file_exists($path) ? (string) filemtime($path) : wp_get_theme()->get('Version');
 }
 
-function ncllc_pro_scripts() {
+function ajnanda_scripts() {
     // Enqueue main stylesheet
-    wp_enqueue_style('ncllc-pro-style', get_stylesheet_uri(), array(), ncllc_pro_asset_version('style.css'));
+    wp_enqueue_style('ajnanda-pro-style', get_stylesheet_uri(), array(), ajnanda_asset_version('style.css'));
     
     // Enqueue custom JavaScript
-    wp_enqueue_script('ncllc-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), ncllc_pro_asset_version('js/main.js'), true);
+    wp_enqueue_script('ajnanda-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), ajnanda_asset_version('js/main.js'), true);
     
     // Localize script
-    wp_localize_script('ncllc-pro-script', 'ncllcData', array(
+    wp_localize_script('ajnanda-pro-script', 'ajnandaData', array(
         'ajaxurl' => admin_url('admin-ajax.php'),
-        'nonce' => wp_create_nonce('ncllc-nonce')
+        'nonce' => wp_create_nonce('ajnanda-nonce')
     ));
 }
-add_action('wp_enqueue_scripts', 'ncllc_pro_scripts');
+add_action('wp_enqueue_scripts', 'ajnanda_scripts');
 
 
 /**
  * Load the same page-section styling inside the block editor.
  */
-function ncllc_pro_block_editor_assets() {
+function ajnanda_block_editor_assets() {
     wp_enqueue_style(
-        'ncllc-pro-editor-fonts',
+        'ajnanda-pro-editor-fonts',
         'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800;900&display=swap',
         array(),
         null
     );
 
-    wp_enqueue_style('ncllc-pro-editor-style', get_stylesheet_uri(), array(), ncllc_pro_asset_version('style.css'));
+    wp_enqueue_style('ajnanda-pro-editor-style', get_stylesheet_uri(), array(), ajnanda_asset_version('style.css'));
     wp_enqueue_script(
-        'ncllc-pro-editor-controls',
+        'ajnanda-pro-editor-controls',
         get_template_directory_uri() . '/js/editor-controls.js',
         array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-element', 'wp-hooks'),
-        ncllc_pro_asset_version('js/editor-controls.js'),
+        ajnanda_asset_version('js/editor-controls.js'),
         true
     );
 }
-add_action('enqueue_block_editor_assets', 'ncllc_pro_block_editor_assets');
+add_action('enqueue_block_editor_assets', 'ajnanda_block_editor_assets');
 
 /**
  * Register widget areas
  */
-function ncllc_pro_widgets_init() {
+function ajnanda_widgets_init() {
     register_sidebar(array(
-        'name'          => __('Sidebar', 'ncllc-pro'),
+        'name'          => __('Sidebar', 'ajnanda'),
         'id'            => 'sidebar-1',
-        'description'   => __('Add widgets here.', 'ncllc-pro'),
+        'description'   => __('Add widgets here.', 'ajnanda'),
         'before_widget' => '<section id="%1$s" class="widget %2$s">',
         'after_widget'  => '</section>',
         'before_title'  => '<h3 class="widget-title">',
@@ -108,9 +126,9 @@ function ncllc_pro_widgets_init() {
 
     for ($i = 1; $i <= 4; $i++) {
         register_sidebar(array(
-            'name'          => sprintf(__('Header Builder Widget %d', 'ncllc-pro'), $i),
+            'name'          => sprintf(__('Header Builder Widget %d', 'ajnanda'), $i),
             'id'            => 'header-builder-' . $i,
-            'description'   => __('Use this widget area inside AJNanda header builder slots.', 'ncllc-pro'),
+            'description'   => __('Use this widget area inside AJNanda header builder slots.', 'ajnanda'),
             'before_widget' => '<section id="%1$s" class="widget %2$s">',
             'after_widget'  => '</section>',
             'before_title'  => '<h3 class="widget-title">',
@@ -118,9 +136,9 @@ function ncllc_pro_widgets_init() {
         ));
 
         register_sidebar(array(
-            'name'          => sprintf(__('Footer Builder Widget %d', 'ncllc-pro'), $i),
+            'name'          => sprintf(__('Footer Builder Widget %d', 'ajnanda'), $i),
             'id'            => 'footer-builder-' . $i,
-            'description'   => __('Use this widget area inside AJNanda footer builder slots.', 'ncllc-pro'),
+            'description'   => __('Use this widget area inside AJNanda footer builder slots.', 'ajnanda'),
             'before_widget' => '<section id="%1$s" class="widget %2$s">',
             'after_widget'  => '</section>',
             'before_title'  => '<h3 class="widget-title">',
@@ -128,12 +146,12 @@ function ncllc_pro_widgets_init() {
         ));
     }
 }
-add_action('widgets_init', 'ncllc_pro_widgets_init');
+add_action('widgets_init', 'ajnanda_widgets_init');
 
 /**
  * Keep builder widget areas available while editing the Customizer.
  */
-function ncllc_pro_keep_builder_widget_sections_active($active, $section) {
+function ajnanda_keep_builder_widget_sections_active($active, $section) {
     if (empty($section->id)) {
         return $active;
     }
@@ -144,34 +162,34 @@ function ncllc_pro_keep_builder_widget_sections_active($active, $section) {
 
     return $active;
 }
-add_filter('customize_section_active', 'ncllc_pro_keep_builder_widget_sections_active', 10, 2);
+add_filter('customize_section_active', 'ajnanda_keep_builder_widget_sections_active', 10, 2);
 
 /**
  * Custom excerpt length
  */
-function ncllc_pro_excerpt_length($length) {
+function ajnanda_excerpt_length($length) {
     return 30;
 }
-add_filter('excerpt_length', 'ncllc_pro_excerpt_length', 999);
+add_filter('excerpt_length', 'ajnanda_excerpt_length', 999);
 
 /**
  * Custom excerpt more
  */
-function ncllc_pro_excerpt_more($more) {
+function ajnanda_excerpt_more($more) {
     return '...';
 }
-add_filter('excerpt_more', 'ncllc_pro_excerpt_more');
+add_filter('excerpt_more', 'ajnanda_excerpt_more');
 
 /**
  * Convert saved Spectra markup to native WordPress block markup when Spectra is inactive.
  */
-function ncllc_pro_convert_spectra_markup_to_core($content) {
-    if (false === strpos($content, 'wp-block-uagb-') || ncllc_pro_is_spectra_active()) {
+function ajnanda_convert_spectra_markup_to_core($content) {
+    if (false === strpos($content, 'wp-block-uagb-') || ajnanda_is_spectra_active()) {
         return $content;
     }
 
     if (!class_exists('DOMDocument')) {
-        return ncllc_pro_convert_spectra_markup_to_core_basic($content);
+        return ajnanda_convert_spectra_markup_to_core_basic($content);
     }
 
     $previous_errors = libxml_use_internal_errors(true);
@@ -184,23 +202,23 @@ function ncllc_pro_convert_spectra_markup_to_core($content) {
     $xpath = new DOMXPath($dom);
 
     foreach ($xpath->query('//*[contains(concat(" ", normalize-space(@class), " "), " wp-block-uagb-buttons ")]') as $node) {
-        ncllc_pro_replace_spectra_buttons_node($dom, $xpath, $node);
+        ajnanda_replace_spectra_buttons_node($dom, $xpath, $node);
     }
 
     foreach ($xpath->query('//*[contains(concat(" ", normalize-space(@class), " "), " wp-block-uagb-marketing-button ")]') as $node) {
-        ncllc_pro_replace_spectra_marketing_button_node($dom, $xpath, $node);
+        ajnanda_replace_spectra_marketing_button_node($dom, $xpath, $node);
     }
 
     foreach ($xpath->query('//*[contains(concat(" ", normalize-space(@class), " "), " wp-block-uagb-advanced-heading ")]') as $node) {
-        ncllc_pro_unwrap_spectra_node($dom, $node);
+        ajnanda_unwrap_spectra_node($dom, $node);
     }
 
     foreach ($xpath->query('//*[contains(concat(" ", normalize-space(@class), " "), " wp-block-uagb-image ")]') as $node) {
-        ncllc_pro_replace_spectra_image_node($dom, $xpath, $node);
+        ajnanda_replace_spectra_image_node($dom, $xpath, $node);
     }
 
     foreach ($xpath->query('//*[contains(concat(" ", normalize-space(@class), " "), " wp-block-uagb-container ")]') as $node) {
-        ncllc_pro_replace_spectra_container_node($dom, $node);
+        ajnanda_replace_spectra_container_node($dom, $node);
     }
 
     $body = $dom->getElementsByTagName('body')->item(0);
@@ -217,27 +235,27 @@ function ncllc_pro_convert_spectra_markup_to_core($content) {
 
     return $output ? $output : $content;
 }
-add_filter('the_content', 'ncllc_pro_convert_spectra_markup_to_core', 8);
+add_filter('the_content', 'ajnanda_convert_spectra_markup_to_core', 8);
 
-function ncllc_pro_is_spectra_active() {
+function ajnanda_is_spectra_active() {
     return defined('UAGB_VER') || defined('UAGB_FILE') || class_exists('UAGB_Loader') || class_exists('UAGB_Init');
 }
 
-function ncllc_pro_replace_spectra_buttons_node($dom, $xpath, $node) {
+function ajnanda_replace_spectra_buttons_node($dom, $xpath, $node) {
     $buttons = $dom->createElement('div');
     $buttons->setAttribute('class', 'wp-block-buttons is-content-justification-center is-layout-flex');
 
     foreach ($xpath->query('.//a[contains(concat(" ", normalize-space(@class), " "), " wp-block-button__link ")]', $node) as $link) {
         $button = $dom->createElement('div');
         $button->setAttribute('class', 'wp-block-button');
-        $button->appendChild(ncllc_pro_clone_anchor_as_core_button($dom, $xpath, $link, './/*[contains(concat(" ", normalize-space(@class), " "), " uagb-button__link ")]'));
+        $button->appendChild(ajnanda_clone_anchor_as_core_button($dom, $xpath, $link, './/*[contains(concat(" ", normalize-space(@class), " "), " uagb-button__link ")]'));
         $buttons->appendChild($button);
     }
 
     $node->parentNode->replaceChild($buttons, $node);
 }
 
-function ncllc_pro_replace_spectra_marketing_button_node($dom, $xpath, $node) {
+function ajnanda_replace_spectra_marketing_button_node($dom, $xpath, $node) {
     $buttons = $dom->createElement('div');
     $buttons->setAttribute('class', 'wp-block-buttons is-content-justification-center is-layout-flex');
     $link = $xpath->query('.//a[contains(concat(" ", normalize-space(@class), " "), " wp-block-button__link ")]', $node)->item(0);
@@ -245,14 +263,14 @@ function ncllc_pro_replace_spectra_marketing_button_node($dom, $xpath, $node) {
     if ($link) {
         $button = $dom->createElement('div');
         $button->setAttribute('class', 'wp-block-button');
-        $button->appendChild(ncllc_pro_clone_anchor_as_core_button($dom, $xpath, $link, './/*[contains(concat(" ", normalize-space(@class), " "), " uagb-marketing-btn__title ")]'));
+        $button->appendChild(ajnanda_clone_anchor_as_core_button($dom, $xpath, $link, './/*[contains(concat(" ", normalize-space(@class), " "), " uagb-marketing-btn__title ")]'));
         $buttons->appendChild($button);
     }
 
     $node->parentNode->replaceChild($buttons, $node);
 }
 
-function ncllc_pro_clone_anchor_as_core_button($dom, $xpath, $link, $label_selector) {
+function ajnanda_clone_anchor_as_core_button($dom, $xpath, $link, $label_selector) {
     $new_link = $dom->createElement('a');
     $label = trim($link->textContent);
     $label_node = $xpath->query($label_selector, $link)->item(0);
@@ -273,7 +291,7 @@ function ncllc_pro_clone_anchor_as_core_button($dom, $xpath, $link, $label_selec
     return $new_link;
 }
 
-function ncllc_pro_unwrap_spectra_node($dom, $node) {
+function ajnanda_unwrap_spectra_node($dom, $node) {
     $fragment = $dom->createDocumentFragment();
 
     while ($node->firstChild) {
@@ -283,11 +301,11 @@ function ncllc_pro_unwrap_spectra_node($dom, $node) {
     $node->parentNode->replaceChild($fragment, $node);
 }
 
-function ncllc_pro_replace_spectra_image_node($dom, $xpath, $node) {
+function ajnanda_replace_spectra_image_node($dom, $xpath, $node) {
     $figure = $xpath->query('.//figure', $node)->item(0);
 
     if (!$figure) {
-        ncllc_pro_unwrap_spectra_node($dom, $node);
+        ajnanda_unwrap_spectra_node($dom, $node);
         return;
     }
 
@@ -296,7 +314,7 @@ function ncllc_pro_replace_spectra_image_node($dom, $xpath, $node) {
     $node->parentNode->replaceChild($new_figure, $node);
 }
 
-function ncllc_pro_replace_spectra_container_node($dom, $node) {
+function ajnanda_replace_spectra_container_node($dom, $node) {
     $classes = $node->hasAttribute('class') ? $node->getAttribute('class') : '';
     $group = $dom->createElement('div');
     $group_classes = array('wp-block-group');
@@ -324,7 +342,7 @@ function ncllc_pro_replace_spectra_container_node($dom, $node) {
     $node->parentNode->replaceChild($group, $node);
 }
 
-function ncllc_pro_convert_spectra_markup_to_core_basic($content) {
+function ajnanda_convert_spectra_markup_to_core_basic($content) {
     $content = preg_replace('/wp-block-uagb-buttons[^\"]*/', 'wp-block-buttons is-content-justification-center is-layout-flex', $content);
     $content = preg_replace('/wp-block-uagb-buttons-child[^\"]*/', 'wp-block-button', $content);
     $content = preg_replace('/uagb-buttons-repeater wp-block-button__link/', 'wp-block-button__link wp-element-button', $content);
@@ -337,30 +355,30 @@ function ncllc_pro_convert_spectra_markup_to_core_basic($content) {
 /**
  * Add body classes
  */
-function ncllc_pro_body_classes($classes) {
+function ajnanda_body_classes($classes) {
     if (!is_singular()) {
         $classes[] = 'hfeed';
     }
     
     if (is_front_page()) {
-        $classes[] = 'ncllc-home';
+        $classes[] = 'ajnanda-home';
     }
     
     return $classes;
 }
-add_filter('body_class', 'ncllc_pro_body_classes');
+add_filter('body_class', 'ajnanda_body_classes');
 
 /**
  * Sanitize multiline Customizer text while preserving simple line breaks.
  */
-function ncllc_pro_sanitize_textarea($value) {
+function ajnanda_sanitize_textarea($value) {
     return implode("\n", array_map('sanitize_text_field', explode("\n", $value)));
 }
 
 /**
  * Sanitize responsive logo height values.
  */
-function ncllc_pro_sanitize_logo_height($value) {
+function ajnanda_sanitize_logo_height($value) {
     $value = absint($value);
 
     return min(100, max(20, $value));
@@ -369,7 +387,7 @@ function ncllc_pro_sanitize_logo_height($value) {
 /**
  * Sanitize responsive header padding values.
  */
-function ncllc_pro_sanitize_header_padding($value) {
+function ajnanda_sanitize_header_padding($value) {
     $value = (float) $value;
 
     return (string) min(2, max(0.5, $value));
@@ -378,26 +396,26 @@ function ncllc_pro_sanitize_header_padding($value) {
 /**
  * Sanitize Customizer select values.
  */
-function ncllc_pro_sanitize_choice($value, $setting) {
+function ajnanda_sanitize_choice($value, $setting) {
     $control = $setting->manager->get_control($setting->id);
     $choices = $control && isset($control->choices) ? $control->choices : array();
 
     return array_key_exists($value, $choices) ? $value : $setting->default;
 }
 
-function ncllc_pro_sanitize_builder_width($value) {
+function ajnanda_sanitize_builder_width($value) {
     $value = absint($value);
 
     return min(6, max(1, $value));
 }
 
-function ncllc_pro_sanitize_builder_count($value) {
+function ajnanda_sanitize_builder_count($value) {
     $value = absint($value);
 
     return min(4, max(1, $value));
 }
 
-function ncllc_pro_sanitize_builder_row_count($value) {
+function ajnanda_sanitize_builder_row_count($value) {
     $value = absint($value);
 
     return min(6, max(1, $value));
@@ -406,7 +424,7 @@ function ncllc_pro_sanitize_builder_row_count($value) {
 /**
  * Sanitize CSS size values used by Customizer controls.
  */
-function ncllc_pro_sanitize_css_size($value) {
+function ajnanda_sanitize_css_size($value) {
     $value = trim((string) $value);
 
     if ('' === $value) {
@@ -424,20 +442,20 @@ function ncllc_pro_sanitize_css_size($value) {
     return '';
 }
 
-function ncllc_pro_sanitize_css_size_or_auto($value) {
+function ajnanda_sanitize_css_size_or_auto($value) {
     $value = trim((string) $value);
 
     if ('auto' === strtolower($value)) {
         return 'auto';
     }
 
-    return ncllc_pro_sanitize_css_size($value);
+    return ajnanda_sanitize_css_size($value);
 }
 
 /**
  * Sanitize CSS color values used by Customizer controls.
  */
-function ncllc_pro_sanitize_css_color($value) {
+function ajnanda_sanitize_css_color($value) {
     $value = trim((string) $value);
 
     if ('' === $value) {
@@ -459,14 +477,14 @@ function ncllc_pro_sanitize_css_color($value) {
 /**
  * Sanitize CSS backgrounds used by Header/Footer controls.
  */
-function ncllc_pro_sanitize_css_background($value) {
+function ajnanda_sanitize_css_background($value) {
     $value = trim((string) $value);
 
     if ('' === $value) {
         return '';
     }
 
-    $color = ncllc_pro_sanitize_css_color($value);
+    $color = ajnanda_sanitize_css_color($value);
     if ($color) {
         return $color;
     }
@@ -478,29 +496,29 @@ function ncllc_pro_sanitize_css_background($value) {
     return '';
 }
 
-function ncllc_pro_sanitize_font_family($value) {
+function ajnanda_sanitize_font_family($value) {
     $allowed = array('inherit', 'Inter', 'Poppins', 'Arial', 'Georgia', 'system-ui');
 
     return in_array($value, $allowed, true) ? $value : 'inherit';
 }
 
-function ncllc_pro_sanitize_font_weight($value) {
+function ajnanda_sanitize_font_weight($value) {
     $allowed = array('400', '500', '600', '700', '800');
 
     return in_array((string) $value, $allowed, true) ? (string) $value : '500';
 }
 
-function ncllc_pro_sanitize_header_font_preset($value) {
+function ajnanda_sanitize_header_font_preset($value) {
     $allowed = array('normal', 'bold', 'italic', 'bold-italic', 'underline', 'bold-underline');
 
     return in_array($value, $allowed, true) ? $value : 'normal';
 }
 
-function ncllc_pro_sanitize_checkbox($value) {
+function ajnanda_sanitize_checkbox($value) {
     return (bool) $value;
 }
 
-function ncllc_pro_sanitize_opacity($value) {
+function ajnanda_sanitize_opacity($value) {
     $value = (float) $value;
 
     return (string) min(1, max(0, $value));
@@ -510,17 +528,17 @@ function ncllc_pro_sanitize_opacity($value) {
 /**
  * Keep the Builder Canvas template visible in the page editor template picker.
  */
-function ncllc_pro_register_page_templates($templates) {
-    $templates['page-builder.php'] = __('Builder Canvas', 'ncllc-pro');
+function ajnanda_register_page_templates($templates) {
+    $templates['page-builder.php'] = __('Builder Canvas', 'ajnanda');
 
     return $templates;
 }
-add_filter('theme_page_templates', 'ncllc_pro_register_page_templates');
+add_filter('theme_page_templates', 'ajnanda_register_page_templates');
 
 /**
  * Load the Builder Canvas file when it is selected for a page.
  */
-function ncllc_pro_load_page_template($template) {
+function ajnanda_load_page_template($template) {
     if (is_page() && 'page-builder.php' === get_page_template_slug()) {
         $builder_template = locate_template('page-builder.php');
 
@@ -531,12 +549,12 @@ function ncllc_pro_load_page_template($template) {
 
     return $template;
 }
-add_filter('template_include', 'ncllc_pro_load_page_template');
+add_filter('template_include', 'ajnanda_load_page_template');
 
 /**
  * Split an editable leading hero from the rest of a page's block content.
  */
-function ncllc_pro_split_leading_builder_hero($content) {
+function ajnanda_split_leading_builder_hero($content) {
     $result = array(
         'hero' => '',
         'rest' => $content,
@@ -569,7 +587,7 @@ function ncllc_pro_split_leading_builder_hero($content) {
 /**
  * Check whether a saved block layout attribute has a meaningful value.
  */
-function ncllc_pro_has_block_layout_value($block, $keys) {
+function ajnanda_has_block_layout_value($block, $keys) {
     if (empty($block['attrs']) || !is_array($block['attrs'])) {
         return false;
     }
@@ -587,7 +605,7 @@ function ncllc_pro_has_block_layout_value($block, $keys) {
  * Normalize size strings so old saved values like "450" and "450px" compare
  * the same way when detecting legacy defaults.
  */
-function ncllc_pro_normalize_css_size_value($value) {
+function ajnanda_normalize_css_size_value($value) {
     $value = strtolower(trim((string) $value));
 
     if ('' === $value) {
@@ -604,11 +622,11 @@ function ncllc_pro_normalize_css_size_value($value) {
 /**
  * Check whether a value is one of the old hard-coded hero defaults.
  */
-function ncllc_pro_is_legacy_css_size_value($value, $legacy_defaults = array()) {
-    $normalized_value = ncllc_pro_normalize_css_size_value($value);
+function ajnanda_is_legacy_css_size_value($value, $legacy_defaults = array()) {
+    $normalized_value = ajnanda_normalize_css_size_value($value);
 
     foreach ($legacy_defaults as $legacy_default) {
-        if ($normalized_value === ncllc_pro_normalize_css_size_value($legacy_default)) {
+        if ($normalized_value === ajnanda_normalize_css_size_value($legacy_default)) {
             return true;
         }
     }
@@ -620,7 +638,7 @@ function ncllc_pro_is_legacy_css_size_value($value, $legacy_defaults = array()) 
  * Old editor controls saved the former theme default height into some pages.
  * Treat those as theme defaults again so new compact Hero Defaults can win.
  */
-function ncllc_pro_has_legacy_saved_hero_height($block) {
+function ajnanda_has_legacy_saved_hero_height($block) {
     if (empty($block['attrs']) || !is_array($block['attrs'])) {
         return false;
     }
@@ -639,7 +657,7 @@ function ncllc_pro_has_legacy_saved_hero_height($block) {
 
     $has_legacy_desktop_height = false;
     foreach ($legacy_height_keys as $key) {
-        if (isset($attrs[$key]) && ncllc_pro_is_legacy_css_size_value($attrs[$key], array('450px'))) {
+        if (isset($attrs[$key]) && ajnanda_is_legacy_css_size_value($attrs[$key], array('450px'))) {
             $has_legacy_desktop_height = true;
             break;
         }
@@ -672,7 +690,7 @@ function ncllc_pro_has_legacy_saved_hero_height($block) {
  * state classes, so this keeps front-end behavior consistent without requiring
  * every page/post to be opened and saved again.
  */
-function ncllc_pro_add_hero_layout_state_classes($block_content, $block) {
+function ajnanda_add_hero_layout_state_classes($block_content, $block) {
     if ('' === $block_content || false === strpos($block_content, 'builder-hero-section')) {
         return $block_content;
     }
@@ -702,13 +720,13 @@ function ncllc_pro_add_hero_layout_state_classes($block_content, $block) {
     );
 
     $classes = array();
-    $has_legacy_saved_hero_height = ncllc_pro_has_legacy_saved_hero_height($block);
+    $has_legacy_saved_hero_height = ajnanda_has_legacy_saved_hero_height($block);
 
-    if (!$has_legacy_saved_hero_height && ncllc_pro_has_block_layout_value($block, $height_keys)) {
+    if (!$has_legacy_saved_hero_height && ajnanda_has_block_layout_value($block, $height_keys)) {
         $classes[] = 'ajn-has-height-override';
     }
 
-    if (ncllc_pro_has_block_layout_value($block, $padding_keys)) {
+    if (ajnanda_has_block_layout_value($block, $padding_keys)) {
         $classes[] = 'ajn-has-padding-override';
     }
 
@@ -755,47 +773,47 @@ function ncllc_pro_add_hero_layout_state_classes($block_content, $block) {
 
     return preg_replace('/(<[a-z0-9:-]+[^>]*class="[^"]*builder-hero-section[^"]*)(")/i', '$1 ' . esc_attr($class_string) . '$2', $block_content, 1);
 }
-add_filter('render_block', 'ncllc_pro_add_hero_layout_state_classes', 10, 2);
+add_filter('render_block', 'ajnanda_add_hero_layout_state_classes', 10, 2);
 
 /**
  * Footer column defaults and saved Customizer values.
  */
-function ncllc_pro_get_footer_defaults() {
+function ajnanda_get_footer_defaults() {
     $site_name = get_bloginfo('name');
     $site_description = get_bloginfo('description');
 
     return array(
         1 => array(
-            'title' => $site_name ? $site_name : __('Your Site Name', 'ncllc-pro'),
-            'text'  => $site_description ? $site_description : __('Add a short description for this website in the Customizer footer settings.', 'ncllc-pro'),
+            'title' => $site_name ? $site_name : __('Your Site Name', 'ajnanda'),
+            'text'  => $site_description ? $site_description : __('Add a short description for this website in the Customizer footer settings.', 'ajnanda'),
         ),
         2 => array(
-            'title' => __('Quick Links', 'ncllc-pro'),
+            'title' => __('Quick Links', 'ajnanda'),
             'text'  => "Home|/\nAbout|/about/\nContact|/contact/",
         ),
         3 => array(
-            'title' => __('Resources', 'ncllc-pro'),
-            'text'  => __('Add useful links, services, or resource names here.', 'ncllc-pro'),
+            'title' => __('Resources', 'ajnanda'),
+            'text'  => __('Add useful links, services, or resource names here.', 'ajnanda'),
         ),
         4 => array(
-            'title' => __('Contact', 'ncllc-pro'),
-            'text'  => __('Add location, hours, phone, email, or other contact details here.', 'ncllc-pro'),
+            'title' => __('Contact', 'ajnanda'),
+            'text'  => __('Add location, hours, phone, email, or other contact details here.', 'ajnanda'),
         ),
     );
 }
 
-function ncllc_pro_get_footer_bottom_default() {
+function ajnanda_get_footer_bottom_default() {
     $site_name = get_bloginfo('name');
 
     return sprintf(
         /* translators: %s: Site name. */
-        __('%s. All rights reserved.', 'ncllc-pro'),
-        $site_name ? $site_name : __('Your Site Name', 'ncllc-pro')
+        __('%s. All rights reserved.', 'ajnanda'),
+        $site_name ? $site_name : __('Your Site Name', 'ajnanda')
     );
 }
 
-function ncllc_pro_get_footer_columns() {
-    $defaults = ncllc_pro_get_footer_defaults();
+function ajnanda_get_footer_columns() {
+    $defaults = ajnanda_get_footer_defaults();
 
     $columns = array();
     foreach ($defaults as $index => $default) {
@@ -811,7 +829,7 @@ function ncllc_pro_get_footer_columns() {
 /**
  * Render footer textarea lines. Use "Label|URL" to make a line a link.
  */
-function ncllc_pro_render_footer_lines($text) {
+function ajnanda_render_footer_lines($text) {
     $lines = array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', $text)));
 
     if (empty($lines)) {
@@ -835,7 +853,7 @@ function ncllc_pro_render_footer_lines($text) {
     echo '</ul>';
 }
 
-function ncllc_pro_render_builder_site_identity() {
+function ajnanda_render_builder_site_identity() {
     if (has_custom_logo()) {
         the_custom_logo();
         return;
@@ -844,7 +862,7 @@ function ncllc_pro_render_builder_site_identity() {
     echo '<a href="' . esc_url(home_url('/')) . '" class="site-logo" rel="home">' . esc_html(get_bloginfo('name')) . '</a>';
 }
 
-function ncllc_pro_render_builder_menu($location, $class_name) {
+function ajnanda_render_builder_menu($location, $class_name) {
     $menu_id = 'primary' === $location ? 'primary-menu' : 'footer-menu';
 
     wp_nav_menu(array(
@@ -857,7 +875,7 @@ function ncllc_pro_render_builder_menu($location, $class_name) {
     ));
 }
 
-function ncllc_pro_social_icon_svg($url) {
+function ajnanda_social_icon_svg($url) {
     $host = strtolower(wp_parse_url($url, PHP_URL_HOST) ?? '');
     if (str_contains($host, 'facebook')) {
         return '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>';
@@ -877,16 +895,16 @@ function ncllc_pro_social_icon_svg($url) {
     return '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>';
 }
 
-function ncllc_pro_render_builder_element($builder, $element) {
+function ajnanda_render_builder_element($builder, $element) {
     switch ($element) {
         case 'site-logo':
-            ncllc_pro_render_builder_site_identity();
+            ajnanda_render_builder_site_identity();
             break;
         case 'primary-menu':
-            ncllc_pro_render_builder_menu('primary', 'nav-menu');
+            ajnanda_render_builder_menu('primary', 'nav-menu');
             break;
         case 'footer-menu':
-            ncllc_pro_render_builder_menu('footer', 'footer-menu');
+            ajnanda_render_builder_menu('footer', 'footer-menu');
             break;
         case 'search':
             get_search_form();
@@ -895,13 +913,13 @@ function ncllc_pro_render_builder_element($builder, $element) {
         case 'button-1':
             $button_text_setting = 'footer' === $builder ? 'ajn_footer_builder_button_text' : 'ajn_builder_button_text';
             $button_url_setting = 'footer' === $builder ? 'ajn_footer_builder_button_url' : 'ajn_builder_button_url';
-            echo '<a class="btn btn-primary ajn-builder-button" href="' . esc_url(get_theme_mod($button_url_setting, home_url('/contact/'))) . '">' . esc_html(get_theme_mod($button_text_setting, __('Contact Us', 'ncllc-pro'))) . '</a>';
+            echo '<a class="btn btn-primary ajn-builder-button" href="' . esc_url(get_theme_mod($button_url_setting, home_url('/contact/'))) . '">' . esc_html(get_theme_mod($button_text_setting, __('Contact Us', 'ajnanda'))) . '</a>';
             break;
         case 'button-2':
-            echo '<a class="btn btn-secondary ajn-builder-button ajn-builder-button-secondary" href="' . esc_url(get_theme_mod('ajn_builder_button_2_url', home_url('/contact/'))) . '">' . esc_html(get_theme_mod('ajn_builder_button_2_text', __('Learn More', 'ncllc-pro'))) . '</a>';
+            echo '<a class="btn btn-secondary ajn-builder-button ajn-builder-button-secondary" href="' . esc_url(get_theme_mod('ajn_builder_button_2_url', home_url('/contact/'))) . '">' . esc_html(get_theme_mod('ajn_builder_button_2_text', __('Learn More', 'ajnanda'))) . '</a>';
             break;
         case 'copyright':
-            echo '<div class="ajn-builder-copyright">&copy; ' . esc_html(date('Y')) . ' ' . esc_html(get_theme_mod('footer_bottom_text', ncllc_pro_get_footer_bottom_default())) . '</div>';
+            echo '<div class="ajn-builder-copyright">&copy; ' . esc_html(date('Y')) . ' ' . esc_html(get_theme_mod('footer_bottom_text', ajnanda_get_footer_bottom_default())) . '</div>';
             break;
         case 'divider-1':
         case 'divider-2':
@@ -916,10 +934,10 @@ function ncllc_pro_render_builder_element($builder, $element) {
             break;
         case 'social':
             $social_url   = get_theme_mod('ajn_builder_social_1_url', '#');
-            $social_label = get_theme_mod('ajn_builder_social_1_label', __('Social', 'ncllc-pro'));
+            $social_label = get_theme_mod('ajn_builder_social_1_label', __('Social', 'ajnanda'));
             echo '<div class="ajn-builder-social">';
             echo '<a href="' . esc_url($social_url) . '" aria-label="' . esc_attr($social_label) . '" target="_blank" rel="noopener noreferrer">';
-            echo ncllc_pro_social_icon_svg($social_url);
+            echo ajnanda_social_icon_svg($social_url);
             echo '<span class="ajn-social-label">' . esc_html($social_label) . '</span>';
             echo '</a>';
             echo '</div>';
@@ -929,7 +947,7 @@ function ncllc_pro_render_builder_element($builder, $element) {
                 $cart_count = WC()->cart->get_cart_contents_count();
                 $cart_url   = function_exists('wc_get_cart_url') ? wc_get_cart_url() : home_url('/cart/');
                 /* translators: %d: number of items in cart */
-                $label = sprintf(_n('%d item in cart', '%d items in cart', $cart_count, 'ncllc-pro'), $cart_count);
+                $label = sprintf(_n('%d item in cart', '%d items in cart', $cart_count, 'ajnanda'), $cart_count);
                 echo '<a class="ajn-builder-cart" href="' . esc_url($cart_url) . '" aria-label="' . esc_attr($label) . '">';
                 echo '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>';
                 echo '<span class="ajn-cart-count">' . esc_html($cart_count) . '</span>';
@@ -946,31 +964,31 @@ function ncllc_pro_render_builder_element($builder, $element) {
     }
 }
 
-function ncllc_pro_render_builder_layout($builder, $start_row = 1, $end_row = null) {
-    $row_count = ncllc_pro_get_builder_row_count($builder);
+function ajnanda_render_builder_layout($builder, $start_row = 1, $end_row = null) {
+    $row_count = ajnanda_get_builder_row_count($builder);
     $end_row   = null !== $end_row ? min($end_row, $row_count) : $row_count;
 
     for ($row = $start_row; $row <= $end_row; $row++) {
         $row_output = '';
-        $column_count = ncllc_pro_get_builder_row_columns($builder, $row);
+        $column_count = ajnanda_get_builder_row_columns($builder, $row);
 
         ob_start();
         for ($cell = 1; $cell <= $column_count; $cell++) {
-            $element = ncllc_pro_get_builder_value($builder, $row, $cell);
+            $element = ajnanda_get_builder_value($builder, $row, $cell);
 
             if ('none' === $element) {
                 continue;
             }
 
-            $width_desktop = ncllc_pro_get_builder_width($builder, $row, $cell, 'desktop');
-            $width_tablet = ncllc_pro_get_builder_width($builder, $row, $cell, 'tablet');
-            $width_mobile = ncllc_pro_get_builder_width($builder, $row, $cell, 'mobile');
+            $width_desktop = ajnanda_get_builder_width($builder, $row, $cell, 'desktop');
+            $width_tablet = ajnanda_get_builder_width($builder, $row, $cell, 'tablet');
+            $width_mobile = ajnanda_get_builder_width($builder, $row, $cell, 'mobile');
             ?>
             <div
                 class="ajn-builder-cell ajn-builder-cell-<?php echo esc_attr($element); ?>"
                 style="--ajn-builder-width-desktop: <?php echo esc_attr($width_desktop); ?>; --ajn-builder-width-tablet: <?php echo esc_attr($width_tablet); ?>; --ajn-builder-width-mobile: <?php echo esc_attr($width_mobile); ?>;"
             >
-                <?php ncllc_pro_render_builder_element($builder, $element); ?>
+                <?php ajnanda_render_builder_element($builder, $element); ?>
             </div>
             <?php
         }
@@ -985,13 +1003,13 @@ function ncllc_pro_render_builder_layout($builder, $start_row = 1, $end_row = nu
 /**
  * Render the editable site footer.
  */
-function ncllc_pro_render_site_footer() {
+function ajnanda_render_site_footer() {
     ob_start();
     ?>
     <footer class="site-footer footer-layout-builder">
         <div class="container">
             <div class="footer-builder-container">
-                <?php ncllc_pro_render_builder_layout('footer'); ?>
+                <?php ajnanda_render_builder_layout('footer'); ?>
             </div>
         </div>
     </footer>
@@ -1002,32 +1020,32 @@ function ncllc_pro_render_site_footer() {
 /**
  * Render a lightweight Astra-style builder map in the Customizer preview.
  */
-function ncllc_pro_builder_element_choices() {
+function ajnanda_builder_element_choices() {
     return array(
-        'none'        => __('Empty', 'ncllc-pro'),
-        'site-logo'   => __('Site Title & Logo', 'ncllc-pro'),
-        'primary-menu'=> __('Primary Menu', 'ncllc-pro'),
-        'footer-menu' => __('Footer Menu', 'ncllc-pro'),
-        'search'      => __('Search', 'ncllc-pro'),
-        'button'      => __('Button 1', 'ncllc-pro'),
-        'button-1'    => __('Button 1', 'ncllc-pro'),
-        'button-2'    => __('Button 2', 'ncllc-pro'),
-        'copyright'   => __('Copyright', 'ncllc-pro'),
-        'divider-1'   => __('Divider 1', 'ncllc-pro'),
-        'divider-2'   => __('Divider 2', 'ncllc-pro'),
-        'divider-3'   => __('Divider 3', 'ncllc-pro'),
-        'html-1'      => __('HTML 1', 'ncllc-pro'),
-        'html-2'      => __('HTML 2', 'ncllc-pro'),
-        'social'      => __('Social', 'ncllc-pro'),
-        'woo-cart'    => __('WooCommerce Cart', 'ncllc-pro'),
-        'widget-1'    => __('Widget 1', 'ncllc-pro'),
-        'widget-2'    => __('Widget 2', 'ncllc-pro'),
-        'widget-3'    => __('Widget 3', 'ncllc-pro'),
-        'widget-4'    => __('Widget 4', 'ncllc-pro'),
+        'none'        => __('Empty', 'ajnanda'),
+        'site-logo'   => __('Site Title & Logo', 'ajnanda'),
+        'primary-menu'=> __('Primary Menu', 'ajnanda'),
+        'footer-menu' => __('Footer Menu', 'ajnanda'),
+        'search'      => __('Search', 'ajnanda'),
+        'button'      => __('Button 1', 'ajnanda'),
+        'button-1'    => __('Button 1', 'ajnanda'),
+        'button-2'    => __('Button 2', 'ajnanda'),
+        'copyright'   => __('Copyright', 'ajnanda'),
+        'divider-1'   => __('Divider 1', 'ajnanda'),
+        'divider-2'   => __('Divider 2', 'ajnanda'),
+        'divider-3'   => __('Divider 3', 'ajnanda'),
+        'html-1'      => __('HTML 1', 'ajnanda'),
+        'html-2'      => __('HTML 2', 'ajnanda'),
+        'social'      => __('Social', 'ajnanda'),
+        'woo-cart'    => __('WooCommerce Cart', 'ajnanda'),
+        'widget-1'    => __('Widget 1', 'ajnanda'),
+        'widget-2'    => __('Widget 2', 'ajnanda'),
+        'widget-3'    => __('Widget 3', 'ajnanda'),
+        'widget-4'    => __('Widget 4', 'ajnanda'),
     );
 }
 
-function ncllc_pro_builder_default($builder, $row, $cell) {
+function ajnanda_builder_default($builder, $row, $cell) {
     $defaults = array(
         'header' => array(
             1 => array(1 => 'site-logo', 2 => 'widget-1', 3 => 'primary-menu', 4 => 'none'),
@@ -1044,19 +1062,19 @@ function ncllc_pro_builder_default($builder, $row, $cell) {
     return isset($defaults[$builder][$row][$cell]) ? $defaults[$builder][$row][$cell] : 'none';
 }
 
-function ncllc_pro_builder_row_count_setting_id($builder) {
+function ajnanda_builder_row_count_setting_id($builder) {
     return 'ajn_' . $builder . '_builder_row_count';
 }
 
-function ncllc_pro_builder_row_columns_setting_id($builder, $row) {
+function ajnanda_builder_row_columns_setting_id($builder, $row) {
     return 'ajn_' . $builder . '_builder_row_' . $row . '_columns';
 }
 
-function ncllc_pro_builder_row_count_default($builder) {
+function ajnanda_builder_row_count_default($builder) {
     return 1;
 }
 
-function ncllc_pro_builder_row_columns_default($builder, $row) {
+function ajnanda_builder_row_columns_default($builder, $row) {
     if ('header' === $builder && 1 === (int) $row) {
         return 3;
     }
@@ -1064,15 +1082,15 @@ function ncllc_pro_builder_row_columns_default($builder, $row) {
     return 1;
 }
 
-function ncllc_pro_builder_setting_id($builder, $row, $cell) {
+function ajnanda_builder_setting_id($builder, $row, $cell) {
     return 'ajn_' . $builder . '_builder_' . $row . '_' . $cell;
 }
 
-function ncllc_pro_builder_width_setting_id($builder, $row, $cell, $device) {
+function ajnanda_builder_width_setting_id($builder, $row, $cell, $device) {
     return 'ajn_' . $builder . '_builder_' . $row . '_' . $cell . '_width_' . $device;
 }
 
-function ncllc_pro_builder_width_default($builder, $row, $cell) {
+function ajnanda_builder_width_default($builder, $row, $cell) {
     if ('header' === $builder && 1 === (int) $row && 3 === (int) $cell) {
         return 4;
     }
@@ -1084,23 +1102,23 @@ function ncllc_pro_builder_width_default($builder, $row, $cell) {
     return 2;
 }
 
-function ncllc_pro_get_builder_value($builder, $row, $cell) {
-    return get_theme_mod(ncllc_pro_builder_setting_id($builder, $row, $cell), ncllc_pro_builder_default($builder, $row, $cell));
+function ajnanda_get_builder_value($builder, $row, $cell) {
+    return get_theme_mod(ajnanda_builder_setting_id($builder, $row, $cell), ajnanda_builder_default($builder, $row, $cell));
 }
 
-function ncllc_pro_get_builder_row_count($builder) {
-    return ncllc_pro_sanitize_builder_row_count(get_theme_mod(ncllc_pro_builder_row_count_setting_id($builder), ncllc_pro_builder_row_count_default($builder)));
+function ajnanda_get_builder_row_count($builder) {
+    return ajnanda_sanitize_builder_row_count(get_theme_mod(ajnanda_builder_row_count_setting_id($builder), ajnanda_builder_row_count_default($builder)));
 }
 
-function ncllc_pro_get_builder_row_columns($builder, $row) {
-    return ncllc_pro_sanitize_builder_count(get_theme_mod(ncllc_pro_builder_row_columns_setting_id($builder, $row), ncllc_pro_builder_row_columns_default($builder, $row)));
+function ajnanda_get_builder_row_columns($builder, $row) {
+    return ajnanda_sanitize_builder_count(get_theme_mod(ajnanda_builder_row_columns_setting_id($builder, $row), ajnanda_builder_row_columns_default($builder, $row)));
 }
 
-function ncllc_pro_get_builder_width($builder, $row, $cell, $device) {
-    return absint(get_theme_mod(ncllc_pro_builder_width_setting_id($builder, $row, $cell, $device), ncllc_pro_builder_width_default($builder, $row, $cell)));
+function ajnanda_get_builder_width($builder, $row, $cell, $device) {
+    return absint(get_theme_mod(ajnanda_builder_width_setting_id($builder, $row, $cell, $device), ajnanda_builder_width_default($builder, $row, $cell)));
 }
 
-function ncllc_pro_builder_has_saved_layout($builder) {
+function ajnanda_builder_has_saved_layout($builder) {
     $theme_mods = get_theme_mods();
     $prefix = 'ajn_' . $builder . '_builder_';
 
@@ -1117,21 +1135,21 @@ function ncllc_pro_builder_has_saved_layout($builder) {
     return false;
 }
 
-function ncllc_pro_get_header_layout() {
+function ajnanda_get_header_layout() {
     $header_layout = get_theme_mod('header_layout', 'logo-left-menu-right');
 
     if (empty($header_layout)) {
         $header_layout = 'logo-left-menu-right';
     }
 
-    if ('builder' !== $header_layout && ncllc_pro_builder_has_saved_layout('header')) {
+    if ('builder' !== $header_layout && ajnanda_builder_has_saved_layout('header')) {
         return 'builder';
     }
 
     return $header_layout;
 }
 
-function ncllc_pro_builder_focus_control($builder, $element, $fallback_setting_id) {
+function ajnanda_builder_focus_control($builder, $element, $fallback_setting_id) {
     if ('site-logo' === $element) {
         return 'custom_logo';
     }
@@ -1180,12 +1198,12 @@ function ncllc_pro_builder_focus_control($builder, $element, $fallback_setting_i
     return $fallback_setting_id;
 }
 
-function ncllc_pro_builder_contains_element($builder, $elements) {
+function ajnanda_builder_contains_element($builder, $elements) {
     $elements = (array) $elements;
 
     for ($row = 1; $row <= 6; $row++) {
         for ($cell = 1; $cell <= 4; $cell++) {
-            if (in_array(ncllc_pro_get_builder_value($builder, $row, $cell), $elements, true)) {
+            if (in_array(ajnanda_get_builder_value($builder, $row, $cell), $elements, true)) {
                 return true;
             }
         }
@@ -1194,40 +1212,40 @@ function ncllc_pro_builder_contains_element($builder, $elements) {
     return false;
 }
 
-function ncllc_pro_footer_builder_button_1_active() {
-    return ncllc_pro_builder_contains_element('footer', array('button', 'button-1'));
+function ajnanda_footer_builder_button_1_active() {
+    return ajnanda_builder_contains_element('footer', array('button', 'button-1'));
 }
 
-function ncllc_pro_header_builder_button_1_active() {
-    return ncllc_pro_builder_contains_element('header', array('button', 'button-1'));
+function ajnanda_header_builder_button_1_active() {
+    return ajnanda_builder_contains_element('header', array('button', 'button-1'));
 }
 
-function ncllc_pro_footer_builder_button_2_active() {
-    return ncllc_pro_builder_contains_element('footer', 'button-2');
+function ajnanda_footer_builder_button_2_active() {
+    return ajnanda_builder_contains_element('footer', 'button-2');
 }
 
-function ncllc_pro_footer_builder_html_2_active() {
-    return ncllc_pro_builder_contains_element('footer', 'html-2');
+function ajnanda_footer_builder_html_2_active() {
+    return ajnanda_builder_contains_element('footer', 'html-2');
 }
 
-function ncllc_pro_footer_builder_social_active() {
-    return ncllc_pro_builder_contains_element('footer', 'social');
+function ajnanda_footer_builder_social_active() {
+    return ajnanda_builder_contains_element('footer', 'social');
 }
 
-function ncllc_pro_header_builder_social_active() {
-    return ncllc_pro_builder_contains_element('header', 'social');
+function ajnanda_header_builder_social_active() {
+    return ajnanda_builder_contains_element('header', 'social');
 }
 
-function ncllc_pro_header_builder_html_1_active() {
-    return ncllc_pro_builder_contains_element('header', 'html-1');
+function ajnanda_header_builder_html_1_active() {
+    return ajnanda_builder_contains_element('header', 'html-1');
 }
 
-function ncllc_pro_footer_builder_copyright_active() {
-    return ncllc_pro_builder_contains_element('footer', 'copyright');
+function ajnanda_footer_builder_copyright_active() {
+    return ajnanda_builder_contains_element('footer', 'copyright');
 }
 
-function ncllc_pro_builder_insert_choices($builder = '') {
-    $choices = ncllc_pro_builder_element_choices();
+function ajnanda_builder_insert_choices($builder = '') {
+    $choices = ajnanda_builder_element_choices();
     unset($choices['none'], $choices['button']);
 
     if ('footer' === $builder) {
@@ -1237,7 +1255,7 @@ function ncllc_pro_builder_insert_choices($builder = '') {
     return $choices;
 }
 
-function ncllc_pro_render_customizer_builder_chip($label, $setting_id, $focus_control_id) {
+function ajnanda_render_customizer_builder_chip($label, $setting_id, $focus_control_id) {
     ?>
     <button type="button" class="ajn-customizer-builder-chip" data-ajn-focus-control="<?php echo esc_attr($focus_control_id); ?>">
         <?php echo esc_html($label); ?>
@@ -1246,15 +1264,15 @@ function ncllc_pro_render_customizer_builder_chip($label, $setting_id, $focus_co
     <?php
 }
 
-function ncllc_pro_render_customizer_builder_row($builder, $row) {
-    $choices = ncllc_pro_builder_element_choices();
-    $column_count = ncllc_pro_get_builder_row_columns($builder, $row);
-    $columns_setting_id = ncllc_pro_builder_row_columns_setting_id($builder, $row);
+function ajnanda_render_customizer_builder_row($builder, $row) {
+    $choices = ajnanda_builder_element_choices();
+    $column_count = ajnanda_get_builder_row_columns($builder, $row);
+    $columns_setting_id = ajnanda_builder_row_columns_setting_id($builder, $row);
     ?>
     <div class="ajn-customizer-builder-row">
         <div class="ajn-customizer-builder-row-handle">
             <span aria-hidden="true" class="ajn-customizer-builder-gear">⚙</span>
-            <span class="ajn-customizer-builder-split" aria-label="<?php esc_attr_e('Split row into columns', 'ncllc-pro'); ?>">
+            <span class="ajn-customizer-builder-split" aria-label="<?php esc_attr_e('Split row into columns', 'ajnanda'); ?>">
                 <?php foreach (array(1, 2, 4) as $columns) : ?>
                     <button
                         type="button"
@@ -1267,20 +1285,20 @@ function ncllc_pro_render_customizer_builder_row($builder, $row) {
         </div>
         <?php for ($cell = 1; $cell <= $column_count; $cell++) : ?>
             <?php
-            $setting_id = ncllc_pro_builder_setting_id($builder, $row, $cell);
-            $value = ncllc_pro_get_builder_value($builder, $row, $cell);
+            $setting_id = ajnanda_builder_setting_id($builder, $row, $cell);
+            $value = ajnanda_get_builder_value($builder, $row, $cell);
             $label = isset($choices[$value]) ? $choices[$value] : $choices['none'];
-            $width_desktop = ncllc_pro_get_builder_width($builder, $row, $cell, 'desktop');
-            $width_tablet = ncllc_pro_get_builder_width($builder, $row, $cell, 'tablet');
-            $width_mobile = ncllc_pro_get_builder_width($builder, $row, $cell, 'mobile');
-            $focus_control_id = ncllc_pro_builder_focus_control($builder, $value, $setting_id);
+            $width_desktop = ajnanda_get_builder_width($builder, $row, $cell, 'desktop');
+            $width_tablet = ajnanda_get_builder_width($builder, $row, $cell, 'tablet');
+            $width_mobile = ajnanda_get_builder_width($builder, $row, $cell, 'mobile');
+            $focus_control_id = ajnanda_builder_focus_control($builder, $value, $setting_id);
             ?>
             <div
                 class="ajn-customizer-builder-cell"
                 style="--ajn-builder-width-desktop: <?php echo esc_attr($width_desktop); ?>; --ajn-builder-width-tablet: <?php echo esc_attr($width_tablet); ?>; --ajn-builder-width-mobile: <?php echo esc_attr($width_mobile); ?>;"
             >
                 <?php if ('none' !== $value) : ?>
-                    <?php ncllc_pro_render_customizer_builder_chip($label, $setting_id, $focus_control_id); ?>
+                    <?php ajnanda_render_customizer_builder_chip($label, $setting_id, $focus_control_id); ?>
                 <?php else : ?>
                     <button
                         type="button"
@@ -1295,7 +1313,7 @@ function ncllc_pro_render_customizer_builder_row($builder, $row) {
     <?php
 }
 
-function ncllc_pro_render_customizer_builder_add_row($row_count_setting_id, $next_count) {
+function ajnanda_render_customizer_builder_add_row($row_count_setting_id, $next_count) {
     if ($next_count > 6) {
         return;
     }
@@ -1305,12 +1323,12 @@ function ncllc_pro_render_customizer_builder_add_row($row_count_setting_id, $nex
         class="ajn-customizer-builder-add-row"
         data-ajn-set-control="<?php echo esc_attr($row_count_setting_id); ?>"
         data-ajn-set-value="<?php echo esc_attr($next_count); ?>"
-        aria-label="<?php esc_attr_e('Add row', 'ncllc-pro'); ?>"
+        aria-label="<?php esc_attr_e('Add row', 'ajnanda'); ?>"
     >+</button>
     <?php
 }
 
-function ncllc_pro_render_customizer_builder_remove_row($row_count_setting_id, $previous_count) {
+function ajnanda_render_customizer_builder_remove_row($row_count_setting_id, $previous_count) {
     if ($previous_count < 1) {
         return;
     }
@@ -1320,28 +1338,28 @@ function ncllc_pro_render_customizer_builder_remove_row($row_count_setting_id, $
         class="ajn-customizer-builder-remove-row"
         data-ajn-set-control="<?php echo esc_attr($row_count_setting_id); ?>"
         data-ajn-set-value="<?php echo esc_attr($previous_count); ?>"
-        aria-label="<?php esc_attr_e('Remove last row', 'ncllc-pro'); ?>"
+        aria-label="<?php esc_attr_e('Remove last row', 'ajnanda'); ?>"
     >&minus;</button>
     <?php
 }
 
-function ncllc_pro_render_header_builder_preview() {
+function ajnanda_render_header_builder_preview() {
     if (!is_customize_preview()) {
         return;
     }
-    $row_count = ncllc_pro_get_builder_row_count('header');
-    $row_count_setting_id = ncllc_pro_builder_row_count_setting_id('header');
+    $row_count = ajnanda_get_builder_row_count('header');
+    $row_count_setting_id = ajnanda_builder_row_count_setting_id('header');
     ?>
-    <div class="ajn-customizer-builder-preview ajn-customizer-header-builder" aria-label="<?php esc_attr_e('Header Builder Preview', 'ncllc-pro'); ?>">
-        <span class="ajn-customizer-builder-tooltip"><?php esc_html_e('Header Builder Preview', 'ncllc-pro'); ?></span>
+    <div class="ajn-customizer-builder-preview ajn-customizer-header-builder" aria-label="<?php esc_attr_e('Header Builder Preview', 'ajnanda'); ?>">
+        <span class="ajn-customizer-builder-tooltip"><?php esc_html_e('Header Builder Preview', 'ajnanda'); ?></span>
         <?php
         for ($row = 1; $row <= $row_count; $row++) {
-            ncllc_pro_render_customizer_builder_row('header', $row);
+            ajnanda_render_customizer_builder_row('header', $row);
             if ($row === $row_count && $row_count > 1) {
-                ncllc_pro_render_customizer_builder_remove_row($row_count_setting_id, $row_count - 1);
+                ajnanda_render_customizer_builder_remove_row($row_count_setting_id, $row_count - 1);
             }
             if ($row === $row_count) {
-                ncllc_pro_render_customizer_builder_add_row($row_count_setting_id, $row_count + 1);
+                ajnanda_render_customizer_builder_add_row($row_count_setting_id, $row_count + 1);
             }
         }
         ?>
@@ -1349,23 +1367,23 @@ function ncllc_pro_render_header_builder_preview() {
     <?php
 }
 
-function ncllc_pro_render_footer_builder_preview() {
+function ajnanda_render_footer_builder_preview() {
     if (!is_customize_preview()) {
         return;
     }
-    $row_count = ncllc_pro_get_builder_row_count('footer');
-    $row_count_setting_id = ncllc_pro_builder_row_count_setting_id('footer');
+    $row_count = ajnanda_get_builder_row_count('footer');
+    $row_count_setting_id = ajnanda_builder_row_count_setting_id('footer');
     ?>
-    <div class="ajn-customizer-builder-preview ajn-customizer-footer-builder" aria-label="<?php esc_attr_e('Footer Builder Preview', 'ncllc-pro'); ?>">
-        <span class="ajn-customizer-builder-tooltip"><?php esc_html_e('Footer Builder Preview', 'ncllc-pro'); ?></span>
+    <div class="ajn-customizer-builder-preview ajn-customizer-footer-builder" aria-label="<?php esc_attr_e('Footer Builder Preview', 'ajnanda'); ?>">
+        <span class="ajn-customizer-builder-tooltip"><?php esc_html_e('Footer Builder Preview', 'ajnanda'); ?></span>
         <?php
         for ($row = 1; $row <= $row_count; $row++) {
-            ncllc_pro_render_customizer_builder_row('footer', $row);
+            ajnanda_render_customizer_builder_row('footer', $row);
             if ($row === $row_count && $row_count > 1) {
-                ncllc_pro_render_customizer_builder_remove_row($row_count_setting_id, $row_count - 1);
+                ajnanda_render_customizer_builder_remove_row($row_count_setting_id, $row_count - 1);
             }
             if ($row === $row_count) {
-                ncllc_pro_render_customizer_builder_add_row($row_count_setting_id, $row_count + 1);
+                ajnanda_render_customizer_builder_add_row($row_count_setting_id, $row_count + 1);
             }
         }
         ?>
@@ -1373,43 +1391,43 @@ function ncllc_pro_render_footer_builder_preview() {
     <?php
 }
 
-function ncllc_pro_register_builder_controls($wp_customize, $builder, $section, $label_prefix, $width_section = '') {
-    $choices = ncllc_pro_builder_element_choices();
+function ajnanda_register_builder_controls($wp_customize, $builder, $section, $label_prefix, $width_section = '') {
+    $choices = ajnanda_builder_element_choices();
     $show_width_controls = '' !== $width_section;
     $width_section = $show_width_controls ? $width_section : $section;
     $device_labels = array(
-        'desktop' => __('Desktop', 'ncllc-pro'),
-        'tablet'  => __('Tablet', 'ncllc-pro'),
-        'mobile'  => __('Mobile', 'ncllc-pro'),
+        'desktop' => __('Desktop', 'ajnanda'),
+        'tablet'  => __('Tablet', 'ajnanda'),
+        'mobile'  => __('Mobile', 'ajnanda'),
     );
-    $row_count_setting_id = ncllc_pro_builder_row_count_setting_id($builder);
+    $row_count_setting_id = ajnanda_builder_row_count_setting_id($builder);
 
     $wp_customize->add_setting($row_count_setting_id, array(
-        'default'           => ncllc_pro_builder_row_count_default($builder),
-        'sanitize_callback' => 'ncllc_pro_sanitize_builder_row_count',
+        'default'           => ajnanda_builder_row_count_default($builder),
+        'sanitize_callback' => 'ajnanda_sanitize_builder_row_count',
         'transport'         => 'refresh',
     ));
 
     $wp_customize->add_control($row_count_setting_id, array(
-        'label'           => sprintf(__('%s Row Count', 'ncllc-pro'), $label_prefix),
+        'label'           => sprintf(__('%s Row Count', 'ajnanda'), $label_prefix),
         'section'         => $section,
         'type'            => 'number',
         'active_callback' => '__return_false',
     ));
 
     for ($row = 1; $row <= 6; $row++) {
-        $row_columns_setting_id = ncllc_pro_builder_row_columns_setting_id($builder, $row);
+        $row_columns_setting_id = ajnanda_builder_row_columns_setting_id($builder, $row);
 
         $wp_customize->add_setting($row_columns_setting_id, array(
-            'default'           => ncllc_pro_builder_row_columns_default($builder, $row),
-            'sanitize_callback' => 'ncllc_pro_sanitize_builder_count',
+            'default'           => ajnanda_builder_row_columns_default($builder, $row),
+            'sanitize_callback' => 'ajnanda_sanitize_builder_count',
             'transport'         => 'refresh',
         ));
 
         $wp_customize->add_control($row_columns_setting_id, array(
             'label'           => sprintf(
                 /* translators: 1: builder label, 2: row number. */
-                __('%1$s Row %2$d Columns', 'ncllc-pro'),
+                __('%1$s Row %2$d Columns', 'ajnanda'),
                 $label_prefix,
                 $row
             ),
@@ -1419,18 +1437,18 @@ function ncllc_pro_register_builder_controls($wp_customize, $builder, $section, 
         ));
 
         for ($cell = 1; $cell <= 4; $cell++) {
-            $setting_id = ncllc_pro_builder_setting_id($builder, $row, $cell);
+            $setting_id = ajnanda_builder_setting_id($builder, $row, $cell);
 
             $wp_customize->add_setting($setting_id, array(
-                'default'           => ncllc_pro_builder_default($builder, $row, $cell),
-                'sanitize_callback' => 'ncllc_pro_sanitize_choice',
+                'default'           => ajnanda_builder_default($builder, $row, $cell),
+                'sanitize_callback' => 'ajnanda_sanitize_choice',
                 'transport'         => 'postMessage',
             ));
 
             $wp_customize->add_control($setting_id, array(
                 'label'       => sprintf(
                     /* translators: 1: builder label, 2: row number, 3: cell number. */
-                    __('%1$s Row %2$d Cell %3$d Element', 'ncllc-pro'),
+                    __('%1$s Row %2$d Cell %3$d Element', 'ajnanda'),
                     $label_prefix,
                     $row,
                     $cell
@@ -1442,11 +1460,11 @@ function ncllc_pro_register_builder_controls($wp_customize, $builder, $section, 
             ));
 
             foreach ($device_labels as $device => $device_label) {
-                $width_setting_id = ncllc_pro_builder_width_setting_id($builder, $row, $cell, $device);
+                $width_setting_id = ajnanda_builder_width_setting_id($builder, $row, $cell, $device);
 
                 $wp_customize->add_setting($width_setting_id, array(
-                    'default'           => ncllc_pro_builder_width_default($builder, $row, $cell),
-                    'sanitize_callback' => 'ncllc_pro_sanitize_builder_width',
+                    'default'           => ajnanda_builder_width_default($builder, $row, $cell),
+                    'sanitize_callback' => 'ajnanda_sanitize_builder_width',
                     'transport'         => 'refresh',
                 ));
 
@@ -1454,12 +1472,12 @@ function ncllc_pro_register_builder_controls($wp_customize, $builder, $section, 
                     $wp_customize->add_control($width_setting_id, array(
                         'label'       => sprintf(
                             /* translators: 1: device label, 2: row number, 3: cell number. */
-                            __('%1$s Width - Row %2$d Cell %3$d', 'ncllc-pro'),
+                            __('%1$s Width - Row %2$d Cell %3$d', 'ajnanda'),
                             $device_label,
                             $row,
                             $cell
                         ),
-                        'description' => __('Relative width from 1 to 6. Larger numbers take more horizontal space.', 'ncllc-pro'),
+                        'description' => __('Relative width from 1 to 6. Larger numbers take more horizontal space.', 'ajnanda'),
                         'section'     => $width_section,
                         'type'        => 'number',
                         'input_attrs' => array(
@@ -1481,7 +1499,7 @@ function ncllc_pro_register_builder_controls($wp_customize, $builder, $section, 
  * define('NCLLC_GOOGLE_PLACES_API_KEY', 'your-api-key');
  * define('NCLLC_GOOGLE_PLACE_ID', 'your-place-id');
  */
-function ncllc_pro_get_google_reviews() {
+function ajnanda_get_google_reviews() {
     $api_key = defined('NCLLC_GOOGLE_PLACES_API_KEY') ? NCLLC_GOOGLE_PLACES_API_KEY : '';
     $place_id = defined('NCLLC_GOOGLE_PLACE_ID') ? NCLLC_GOOGLE_PLACE_ID : '';
     $profile_url = 'https://www.google.com/search?q=NC+LLC+Agents+Inc+Charlotte+NC+reviews#mpd=~9888847900513167101/customers/reviews';
@@ -1498,7 +1516,7 @@ function ncllc_pro_get_google_reviews() {
         );
     }
 
-    $cache_key = 'ncllc_google_reviews_' . md5($place_id);
+    $cache_key = 'ajnanda_google_reviews_' . md5($place_id);
     $cached = get_transient($cache_key);
 
     if (false !== $cached) {
@@ -1559,8 +1577,8 @@ function ncllc_pro_get_google_reviews() {
 /**
  * Render an editable Google reviews section.
  */
-function ncllc_pro_google_reviews_shortcode() {
-    $data = ncllc_pro_get_google_reviews();
+function ajnanda_google_reviews_shortcode() {
+    $data = ajnanda_get_google_reviews();
     $profile_url = !empty($data['url']) ? $data['url'] : 'https://www.google.com/search?q=NC+LLC+Agents+Inc+Charlotte+NC+reviews#mpd=~9888847900513167101/customers/reviews';
     $write_review_url = !empty($data['write_review_url']) ? $data['write_review_url'] : 'https://g.page/r/Cej2Nr9egmkYEAE/review';
 
@@ -1606,12 +1624,12 @@ function ncllc_pro_google_reviews_shortcode() {
 
     return ob_get_clean();
 }
-add_shortcode('ncllc_google_reviews', 'ncllc_pro_google_reviews_shortcode');
+add_shortcode('ajnanda_google_reviews', 'ajnanda_google_reviews_shortcode');
 
 /**
  * Performance optimizations
  */
-function ncllc_pro_optimize() {
+function ajnanda_optimize() {
     // Remove emoji scripts
     remove_action('wp_head', 'print_emoji_detection_script', 7);
     remove_action('wp_print_styles', 'print_emoji_styles');
@@ -1636,7 +1654,7 @@ function ncllc_pro_optimize() {
     // Remove oEmbed discovery links
     remove_action('wp_head', 'wp_oembed_add_discovery_links');
 }
-add_action('init', 'ncllc_pro_optimize');
+add_action('init', 'ajnanda_optimize');
 
 /**
  * Disable XML-RPC
@@ -1646,7 +1664,7 @@ add_filter('xmlrpc_enabled', '__return_false');
 /**
  * Keep the builder cart count fresh via WooCommerce fragment system.
  */
-function ncllc_pro_cart_fragment($fragments) {
+function ajnanda_cart_fragment($fragments) {
     if (!function_exists('WC') || !WC()->cart) {
         return $fragments;
     }
@@ -1656,12 +1674,12 @@ function ncllc_pro_cart_fragment($fragments) {
 
     return $fragments;
 }
-add_filter('woocommerce_add_to_cart_fragments', 'ncllc_pro_cart_fragment');
+add_filter('woocommerce_add_to_cart_fragments', 'ajnanda_cart_fragment');
 
 /**
  * Remove query strings from static resources
  */
-function ncllc_pro_remove_query_strings($src, $handle = '') {
+function ajnanda_remove_query_strings($src, $handle = '') {
     $theme_uri = get_template_directory_uri();
     $stylesheet_uri = get_stylesheet_directory_uri();
 
@@ -1675,14 +1693,14 @@ function ncllc_pro_remove_query_strings($src, $handle = '') {
 
     return $src;
 }
-add_filter('style_loader_src', 'ncllc_pro_remove_query_strings', 10, 2);
-add_filter('script_loader_src', 'ncllc_pro_remove_query_strings', 10, 2);
+add_filter('style_loader_src', 'ajnanda_remove_query_strings', 10, 2);
+add_filter('script_loader_src', 'ajnanda_remove_query_strings', 10, 2);
 
 /**
  * Add async/defer to scripts
  */
-function ncllc_pro_add_async_defer($tag, $handle) {
-    $async_scripts = array('ncllc-pro-script');
+function ajnanda_add_async_defer($tag, $handle) {
+    $async_scripts = array('ajnanda-pro-script');
     
     if (in_array($handle, $async_scripts)) {
         return str_replace(' src', ' defer src', $tag);
@@ -1690,54 +1708,54 @@ function ncllc_pro_add_async_defer($tag, $handle) {
     
     return $tag;
 }
-add_filter('script_loader_tag', 'ncllc_pro_add_async_defer', 10, 2);
+add_filter('script_loader_tag', 'ajnanda_add_async_defer', 10, 2);
 
 /**
  * Security headers
  */
-function ncllc_pro_security_headers() {
+function ajnanda_security_headers() {
     header('X-Content-Type-Options: nosniff');
     header('X-Frame-Options: SAMEORIGIN');
     header('X-XSS-Protection: 1; mode=block');
     header('Referrer-Policy: strict-origin-when-cross-origin');
 }
-add_action('send_headers', 'ncllc_pro_security_headers');
+add_action('send_headers', 'ajnanda_security_headers');
 
 /**
  * Custom image sizes
  */
-add_image_size('ncllc-featured', 1200, 600, true);
-add_image_size('ncllc-thumbnail', 400, 300, true);
-add_image_size('ncllc-square', 600, 600, true);
+add_image_size('ajnanda-featured', 1200, 600, true);
+add_image_size('ajnanda-thumbnail', 400, 300, true);
+add_image_size('ajnanda-square', 600, 600, true);
 
 /**
  * Enable SVG uploads
  */
-function ncllc_pro_mime_types($mimes) {
+function ajnanda_mime_types($mimes) {
     $mimes['svg'] = 'image/svg+xml';
     return $mimes;
 }
-add_filter('upload_mimes', 'ncllc_pro_mime_types');
+add_filter('upload_mimes', 'ajnanda_mime_types');
 
 /**
  * Sanitize SVG uploads
  */
-function ncllc_pro_sanitize_svg($file) {
+function ajnanda_sanitize_svg($file) {
     if ($file['type'] === 'image/svg+xml') {
         $file['ext'] = 'svg';
         $file['type'] = 'image/svg+xml';
     }
     return $file;
 }
-add_filter('wp_check_filetype_and_ext', 'ncllc_pro_sanitize_svg', 10, 4);
+add_filter('wp_check_filetype_and_ext', 'ajnanda_sanitize_svg', 10, 4);
 
 /**
  * Customizer settings
  */
-function ncllc_pro_customize_register($wp_customize) {
+function ajnanda_customize_register($wp_customize) {
     if (class_exists('WP_Customize_Control') && !class_exists('NCLLC_Pro_Header_Font_Control')) {
         class NCLLC_Pro_Header_Font_Control extends WP_Customize_Control {
-            public $type = 'ncllc_header_font';
+            public $type = 'ajnanda_header_font';
 
             public function render_content() {
                 $manager = $this->manager;
@@ -1751,35 +1769,35 @@ function ncllc_pro_customize_register($wp_customize) {
                 }
                 ?>
                 <span class="customize-control-title"><?php echo esc_html($this->label); ?></span>
-                <div class="ncllc-header-font-control">
+                <div class="ajnanda-header-font-control">
                     <label>
-                        <span><?php esc_html_e('Font', 'ncllc-pro'); ?></span>
+                        <span><?php esc_html_e('Font', 'ajnanda'); ?></span>
                         <select data-customize-setting-link="header_font_family">
-                            <option value="inherit" <?php selected($family_setting->value(), 'inherit'); ?>><?php esc_html_e('Theme Default', 'ncllc-pro'); ?></option>
-                            <option value="Inter" <?php selected($family_setting->value(), 'Inter'); ?>><?php esc_html_e('Inter', 'ncllc-pro'); ?></option>
-                            <option value="Poppins" <?php selected($family_setting->value(), 'Poppins'); ?>><?php esc_html_e('Poppins', 'ncllc-pro'); ?></option>
-                            <option value="Arial" <?php selected($family_setting->value(), 'Arial'); ?>><?php esc_html_e('Arial', 'ncllc-pro'); ?></option>
-                            <option value="Georgia" <?php selected($family_setting->value(), 'Georgia'); ?>><?php esc_html_e('Georgia', 'ncllc-pro'); ?></option>
-                            <option value="system-ui" <?php selected($family_setting->value(), 'system-ui'); ?>><?php esc_html_e('System UI', 'ncllc-pro'); ?></option>
+                            <option value="inherit" <?php selected($family_setting->value(), 'inherit'); ?>><?php esc_html_e('Theme Default', 'ajnanda'); ?></option>
+                            <option value="Inter" <?php selected($family_setting->value(), 'Inter'); ?>><?php esc_html_e('Inter', 'ajnanda'); ?></option>
+                            <option value="Poppins" <?php selected($family_setting->value(), 'Poppins'); ?>><?php esc_html_e('Poppins', 'ajnanda'); ?></option>
+                            <option value="Arial" <?php selected($family_setting->value(), 'Arial'); ?>><?php esc_html_e('Arial', 'ajnanda'); ?></option>
+                            <option value="Georgia" <?php selected($family_setting->value(), 'Georgia'); ?>><?php esc_html_e('Georgia', 'ajnanda'); ?></option>
+                            <option value="system-ui" <?php selected($family_setting->value(), 'system-ui'); ?>><?php esc_html_e('System UI', 'ajnanda'); ?></option>
                         </select>
                     </label>
                     <label>
-                        <span><?php esc_html_e('Size', 'ncllc-pro'); ?></span>
+                        <span><?php esc_html_e('Size', 'ajnanda'); ?></span>
                         <input type="text" data-customize-setting-link="header_font_size" value="<?php echo esc_attr($size_setting->value()); ?>" placeholder="16px">
                     </label>
                     <label>
-                        <span><?php esc_html_e('Color', 'ncllc-pro'); ?></span>
+                        <span><?php esc_html_e('Color', 'ajnanda'); ?></span>
                         <input type="color" data-customize-setting-link="header_text_color" value="<?php echo esc_attr($color_setting->value()); ?>">
                     </label>
                     <label>
-                        <span><?php esc_html_e('Style', 'ncllc-pro'); ?></span>
+                        <span><?php esc_html_e('Style', 'ajnanda'); ?></span>
                         <select data-customize-setting-link="header_font_preset">
-                            <option value="normal" <?php selected($preset_setting->value(), 'normal'); ?>><?php esc_html_e('Normal', 'ncllc-pro'); ?></option>
-                            <option value="bold" <?php selected($preset_setting->value(), 'bold'); ?>><?php esc_html_e('Bold', 'ncllc-pro'); ?></option>
-                            <option value="italic" <?php selected($preset_setting->value(), 'italic'); ?>><?php esc_html_e('Italic', 'ncllc-pro'); ?></option>
-                            <option value="bold-italic" <?php selected($preset_setting->value(), 'bold-italic'); ?>><?php esc_html_e('Bold Italic', 'ncllc-pro'); ?></option>
-                            <option value="underline" <?php selected($preset_setting->value(), 'underline'); ?>><?php esc_html_e('Underline', 'ncllc-pro'); ?></option>
-                            <option value="bold-underline" <?php selected($preset_setting->value(), 'bold-underline'); ?>><?php esc_html_e('Bold Underline', 'ncllc-pro'); ?></option>
+                            <option value="normal" <?php selected($preset_setting->value(), 'normal'); ?>><?php esc_html_e('Normal', 'ajnanda'); ?></option>
+                            <option value="bold" <?php selected($preset_setting->value(), 'bold'); ?>><?php esc_html_e('Bold', 'ajnanda'); ?></option>
+                            <option value="italic" <?php selected($preset_setting->value(), 'italic'); ?>><?php esc_html_e('Italic', 'ajnanda'); ?></option>
+                            <option value="bold-italic" <?php selected($preset_setting->value(), 'bold-italic'); ?>><?php esc_html_e('Bold Italic', 'ajnanda'); ?></option>
+                            <option value="underline" <?php selected($preset_setting->value(), 'underline'); ?>><?php esc_html_e('Underline', 'ajnanda'); ?></option>
+                            <option value="bold-underline" <?php selected($preset_setting->value(), 'bold-underline'); ?>><?php esc_html_e('Bold Underline', 'ajnanda'); ?></option>
                         </select>
                     </label>
                 </div>
@@ -1788,7 +1806,7 @@ function ncllc_pro_customize_register($wp_customize) {
         }
 
         class NCLLC_Pro_Header_Responsive_Value_Control extends WP_Customize_Control {
-            public $type = 'ncllc_header_responsive_value';
+            public $type = 'ajnanda_header_responsive_value';
             public $setting_ids = array();
             public $device_labels = array();
             public $value_suffix = '';
@@ -1800,8 +1818,8 @@ function ncllc_pro_customize_register($wp_customize) {
                 }
                 ?>
                 <span class="customize-control-title"><?php echo esc_html($this->label); ?></span>
-                <div class="ncllc-header-responsive-control" data-ncllc-responsive-control>
-                    <select class="ncllc-header-responsive-device" aria-label="<?php esc_attr_e('Device', 'ncllc-pro'); ?>">
+                <div class="ajnanda-header-responsive-control" data-ajnanda-responsive-control>
+                    <select class="ajnanda-header-responsive-device" aria-label="<?php esc_attr_e('Device', 'ajnanda'); ?>">
                         <?php foreach ($this->setting_ids as $device => $setting_id) : ?>
                             <?php if ($this->manager->get_setting($setting_id)) : ?>
                                 <option value="<?php echo esc_attr($device); ?>"><?php echo esc_html(isset($this->device_labels[$device]) ? $this->device_labels[$device] : ucfirst($device)); ?></option>
@@ -1809,11 +1827,11 @@ function ncllc_pro_customize_register($wp_customize) {
                         <?php endforeach; ?>
                     </select>
 
-                    <div class="ncllc-header-responsive-values">
+                    <div class="ajnanda-header-responsive-values">
                         <?php foreach ($this->setting_ids as $device => $setting_id) : ?>
                             <?php $setting = $this->manager->get_setting($setting_id); ?>
                             <?php if ($setting) : ?>
-                                <label class="ncllc-header-responsive-value" data-ncllc-responsive-value="<?php echo esc_attr($device); ?>">
+                                <label class="ajnanda-header-responsive-value" data-ajnanda-responsive-value="<?php echo esc_attr($device); ?>">
                                     <input type="text" data-customize-setting-link="<?php echo esc_attr($setting_id); ?>" value="<?php echo esc_attr($setting->value()); ?>" placeholder="<?php echo esc_attr($this->placeholder); ?>">
                                     <?php if ($this->value_suffix) : ?>
                                         <span><?php echo esc_html($this->value_suffix); ?></span>
@@ -1828,24 +1846,30 @@ function ncllc_pro_customize_register($wp_customize) {
         }
 
         class NCLLC_Pro_Header_Color_Schemes_Control extends WP_Customize_Control {
-            public $type = 'ncllc_header_color_schemes';
+            public $type = 'ajnanda_header_color_schemes';
 
             public function render_content() {
                 $schemes = array(
-                    'A' => __('Scheme A - Soft Blue', 'ncllc-pro'),
-                    'B' => __('Scheme B - Indigo Clean', 'ncllc-pro'),
-                    'C' => __('Scheme C - Clear Sky', 'ncllc-pro'),
-                    'D' => __('Scheme D - Purple Lift', 'ncllc-pro'),
-                    'E' => __('Scheme E - Slate Indigo', 'ncllc-pro'),
-                    'F' => __('Scheme F - Blue Gold', 'ncllc-pro'),
-                    'G' => __('Scheme G - Cool Gray', 'ncllc-pro'),
-                    'H' => __('Scheme H - Dark Navy', 'ncllc-pro'),
-                    'I' => __('Scheme I - Charcoal Cyan', 'ncllc-pro'),
-                    'J' => __('Scheme J - Forest Dark', 'ncllc-pro'),
-                    'K' => __('Scheme K - Editorial Black', 'ncllc-pro'),
-                    'L' => __('Scheme L - Warm Ivory', 'ncllc-pro'),
-                    'M' => __('Scheme M - Rose Graphite', 'ncllc-pro'),
-                    'N' => __('Scheme N - High Contrast', 'ncllc-pro'),
+                    'A' => __('A - Midnight Navy', 'ajnanda'),
+                    'B' => __('B - Deep Slate', 'ajnanda'),
+                    'C' => __('C - Clear Sky', 'ajnanda'),
+                    'D' => __('D - Purple Lift', 'ajnanda'),
+                    'E' => __('E - Slate Indigo', 'ajnanda'),
+                    'F' => __('F - Blue & Gold', 'ajnanda'),
+                    'G' => __('G - Cool Gray', 'ajnanda'),
+                    'H' => __('H - Dark Navy', 'ajnanda'),
+                    'I' => __('I - Charcoal Cyan', 'ajnanda'),
+                    'J' => __('J - Forest Dark', 'ajnanda'),
+                    'K' => __('K - Editorial Black', 'ajnanda'),
+                    'L' => __('L - Warm Ivory', 'ajnanda'),
+                    'M' => __('M - Rose Graphite', 'ajnanda'),
+                    'N' => __('N - High Contrast', 'ajnanda'),
+                    'O' => __('O - Ocean Teal', 'ajnanda'),
+                    'P' => __('P - Sky Light', 'ajnanda'),
+                    'Q' => __('Q - Emerald Pro', 'ajnanda'),
+                    'R' => __('R - Soft Mint', 'ajnanda'),
+                    'S' => __('S - Royal Blue', 'ajnanda'),
+                    'T' => __('T - Executive Gray', 'ajnanda'),
                 );
                 ?>
                 <?php
@@ -1853,8 +1877,8 @@ function ncllc_pro_customize_register($wp_customize) {
                 $saved_header_value  = $saved_header_scheme ? $saved_header_scheme->value() : '';
                 ?>
                 <span class="customize-control-title"><?php echo esc_html($this->label); ?></span>
-                <select data-ncllc-header-scheme-select data-customize-setting-link="header_color_scheme_picker">
-                    <option value=""><?php esc_html_e('Choose a header scheme...', 'ncllc-pro'); ?></option>
+                <select data-ajnanda-header-scheme-select data-customize-setting-link="header_color_scheme_picker">
+                    <option value=""><?php esc_html_e('Choose a header scheme...', 'ajnanda'); ?></option>
                     <?php foreach ($schemes as $scheme_id => $scheme_label) : ?>
                         <option value="<?php echo esc_attr($scheme_id); ?>" <?php selected($saved_header_value, $scheme_id); ?>><?php echo esc_html($scheme_label); ?></option>
                     <?php endforeach; ?>
@@ -1864,7 +1888,7 @@ function ncllc_pro_customize_register($wp_customize) {
         }
 
         class NCLLC_Pro_Footer_Font_Control extends WP_Customize_Control {
-            public $type = 'ncllc_footer_font';
+            public $type = 'ajnanda_footer_font';
 
             public function render_content() {
                 $manager        = $this->manager;
@@ -1878,34 +1902,34 @@ function ncllc_pro_customize_register($wp_customize) {
                 }
                 ?>
                 <span class="customize-control-title"><?php echo esc_html($this->label); ?></span>
-                <div class="ncllc-footer-font-control">
+                <div class="ajnanda-footer-font-control">
                     <label>
-                        <span><?php esc_html_e('Font', 'ncllc-pro'); ?></span>
+                        <span><?php esc_html_e('Font', 'ajnanda'); ?></span>
                         <select data-customize-setting-link="footer_font_family">
-                            <option value="inherit" <?php selected($family_setting->value(), 'inherit'); ?>><?php esc_html_e('Theme Default', 'ncllc-pro'); ?></option>
-                            <option value="Inter" <?php selected($family_setting->value(), 'Inter'); ?>><?php esc_html_e('Inter', 'ncllc-pro'); ?></option>
-                            <option value="Poppins" <?php selected($family_setting->value(), 'Poppins'); ?>><?php esc_html_e('Poppins', 'ncllc-pro'); ?></option>
-                            <option value="Arial" <?php selected($family_setting->value(), 'Arial'); ?>><?php esc_html_e('Arial', 'ncllc-pro'); ?></option>
-                            <option value="Georgia" <?php selected($family_setting->value(), 'Georgia'); ?>><?php esc_html_e('Georgia', 'ncllc-pro'); ?></option>
-                            <option value="system-ui" <?php selected($family_setting->value(), 'system-ui'); ?>><?php esc_html_e('System UI', 'ncllc-pro'); ?></option>
+                            <option value="inherit" <?php selected($family_setting->value(), 'inherit'); ?>><?php esc_html_e('Theme Default', 'ajnanda'); ?></option>
+                            <option value="Inter" <?php selected($family_setting->value(), 'Inter'); ?>><?php esc_html_e('Inter', 'ajnanda'); ?></option>
+                            <option value="Poppins" <?php selected($family_setting->value(), 'Poppins'); ?>><?php esc_html_e('Poppins', 'ajnanda'); ?></option>
+                            <option value="Arial" <?php selected($family_setting->value(), 'Arial'); ?>><?php esc_html_e('Arial', 'ajnanda'); ?></option>
+                            <option value="Georgia" <?php selected($family_setting->value(), 'Georgia'); ?>><?php esc_html_e('Georgia', 'ajnanda'); ?></option>
+                            <option value="system-ui" <?php selected($family_setting->value(), 'system-ui'); ?>><?php esc_html_e('System UI', 'ajnanda'); ?></option>
                         </select>
                     </label>
                     <label>
-                        <span><?php esc_html_e('Size', 'ncllc-pro'); ?></span>
+                        <span><?php esc_html_e('Size', 'ajnanda'); ?></span>
                         <input type="text" data-customize-setting-link="footer_font_size" value="<?php echo esc_attr($size_setting->value()); ?>" placeholder="1rem">
                     </label>
                     <label>
-                        <span><?php esc_html_e('Color', 'ncllc-pro'); ?></span>
+                        <span><?php esc_html_e('Color', 'ajnanda'); ?></span>
                         <input type="color" data-customize-setting-link="footer_text_color" value="<?php echo esc_attr($color_setting->value()); ?>">
                     </label>
                     <label>
-                        <span><?php esc_html_e('Weight', 'ncllc-pro'); ?></span>
+                        <span><?php esc_html_e('Weight', 'ajnanda'); ?></span>
                         <select data-customize-setting-link="footer_font_weight">
-                            <option value="400" <?php selected($weight_setting->value(), '400'); ?>><?php esc_html_e('400 Normal', 'ncllc-pro'); ?></option>
-                            <option value="500" <?php selected($weight_setting->value(), '500'); ?>><?php esc_html_e('500 Medium', 'ncllc-pro'); ?></option>
-                            <option value="600" <?php selected($weight_setting->value(), '600'); ?>><?php esc_html_e('600 Semibold', 'ncllc-pro'); ?></option>
-                            <option value="700" <?php selected($weight_setting->value(), '700'); ?>><?php esc_html_e('700 Bold', 'ncllc-pro'); ?></option>
-                            <option value="800" <?php selected($weight_setting->value(), '800'); ?>><?php esc_html_e('800 Extrabold', 'ncllc-pro'); ?></option>
+                            <option value="400" <?php selected($weight_setting->value(), '400'); ?>><?php esc_html_e('400 Normal', 'ajnanda'); ?></option>
+                            <option value="500" <?php selected($weight_setting->value(), '500'); ?>><?php esc_html_e('500 Medium', 'ajnanda'); ?></option>
+                            <option value="600" <?php selected($weight_setting->value(), '600'); ?>><?php esc_html_e('600 Semibold', 'ajnanda'); ?></option>
+                            <option value="700" <?php selected($weight_setting->value(), '700'); ?>><?php esc_html_e('700 Bold', 'ajnanda'); ?></option>
+                            <option value="800" <?php selected($weight_setting->value(), '800'); ?>><?php esc_html_e('800 Extrabold', 'ajnanda'); ?></option>
                         </select>
                     </label>
                 </div>
@@ -1914,24 +1938,30 @@ function ncllc_pro_customize_register($wp_customize) {
         }
 
         class NCLLC_Pro_Footer_Color_Schemes_Control extends WP_Customize_Control {
-            public $type = 'ncllc_footer_color_schemes';
+            public $type = 'ajnanda_footer_color_schemes';
 
             public function render_content() {
                 $schemes = array(
-                    'A' => __('Scheme A - Midnight Navy', 'ncllc-pro'),
-                    'B' => __('Scheme B - Deep Slate', 'ncllc-pro'),
-                    'C' => __('Scheme C - Forest Dark', 'ncllc-pro'),
-                    'D' => __('Scheme D - Carbon Black', 'ncllc-pro'),
-                    'E' => __('Scheme E - Ocean Depth', 'ncllc-pro'),
-                    'F' => __('Scheme F - Indigo Night', 'ncllc-pro'),
-                    'G' => __('Scheme G - Midnight Blue', 'ncllc-pro'),
-                    'H' => __('Scheme H - Warm Cocoa', 'ncllc-pro'),
-                    'I' => __('Scheme I - Emerald Dark', 'ncllc-pro'),
-                    'J' => __('Scheme J - Pure Black', 'ncllc-pro'),
-                    'K' => __('Scheme K - Clean White', 'ncllc-pro'),
-                    'L' => __('Scheme L - Soft Gray', 'ncllc-pro'),
-                    'M' => __('Scheme M - Warm Ivory', 'ncllc-pro'),
-                    'N' => __('Scheme N - High Contrast', 'ncllc-pro'),
+                    'A' => __('A - Midnight Navy', 'ajnanda'),
+                    'B' => __('B - Deep Slate', 'ajnanda'),
+                    'C' => __('C - Clear Sky', 'ajnanda'),
+                    'D' => __('D - Purple Lift', 'ajnanda'),
+                    'E' => __('E - Slate Indigo', 'ajnanda'),
+                    'F' => __('F - Blue & Gold', 'ajnanda'),
+                    'G' => __('G - Cool Gray', 'ajnanda'),
+                    'H' => __('H - Dark Navy', 'ajnanda'),
+                    'I' => __('I - Charcoal Cyan', 'ajnanda'),
+                    'J' => __('J - Forest Dark', 'ajnanda'),
+                    'K' => __('K - Editorial Black', 'ajnanda'),
+                    'L' => __('L - Warm Ivory', 'ajnanda'),
+                    'M' => __('M - Rose Graphite', 'ajnanda'),
+                    'N' => __('N - High Contrast', 'ajnanda'),
+                    'O' => __('O - Ocean Teal', 'ajnanda'),
+                    'P' => __('P - Sky Light', 'ajnanda'),
+                    'Q' => __('Q - Emerald Pro', 'ajnanda'),
+                    'R' => __('R - Soft Mint', 'ajnanda'),
+                    'S' => __('S - Royal Blue', 'ajnanda'),
+                    'T' => __('T - Executive Gray', 'ajnanda'),
                 );
                 ?>
                 <?php
@@ -1939,8 +1969,8 @@ function ncllc_pro_customize_register($wp_customize) {
                 $saved_footer_value  = $saved_footer_scheme ? $saved_footer_scheme->value() : '';
                 ?>
                 <span class="customize-control-title"><?php echo esc_html($this->label); ?></span>
-                <select data-ncllc-footer-scheme-select data-customize-setting-link="footer_color_scheme_picker">
-                    <option value=""><?php esc_html_e('Choose a footer scheme...', 'ncllc-pro'); ?></option>
+                <select data-ajnanda-footer-scheme-select data-customize-setting-link="footer_color_scheme_picker">
+                    <option value=""><?php esc_html_e('Choose a footer scheme...', 'ajnanda'); ?></option>
                     <?php foreach ($schemes as $scheme_id => $scheme_label) : ?>
                         <option value="<?php echo esc_attr($scheme_id); ?>" <?php selected($saved_footer_value, $scheme_id); ?>><?php echo esc_html($scheme_label); ?></option>
                     <?php endforeach; ?>
@@ -1951,10 +1981,10 @@ function ncllc_pro_customize_register($wp_customize) {
     }
 
     $theme_color_controls = array(
-        'theme_primary_color'      => array('label' => __('Primary Color', 'ncllc-pro'), 'default' => '#2563eb'),
-        'theme_primary_dark_color' => array('label' => __('Primary Hover Color', 'ncllc-pro'), 'default' => '#1e40af'),
-        'theme_secondary_color'    => array('label' => __('Secondary Color', 'ncllc-pro'), 'default' => '#7c3aed'),
-        'theme_accent_color'       => array('label' => __('Accent Color', 'ncllc-pro'), 'default' => '#f59e0b'),
+        'theme_primary_color'      => array('label' => __('Primary Color', 'ajnanda'), 'default' => '#2563eb'),
+        'theme_primary_dark_color' => array('label' => __('Primary Hover Color', 'ajnanda'), 'default' => '#1e40af'),
+        'theme_secondary_color'    => array('label' => __('Secondary Color', 'ajnanda'), 'default' => '#7c3aed'),
+        'theme_accent_color'       => array('label' => __('Accent Color', 'ajnanda'), 'default' => '#f59e0b'),
     );
 
     foreach ($theme_color_controls as $setting_id => $control) {
@@ -1977,8 +2007,8 @@ function ncllc_pro_customize_register($wp_customize) {
     }
 
     // Header Settings Section
-    $wp_customize->add_section('ncllc_header', array(
-        'title'    => __('Header', 'ncllc-pro'),
+    $wp_customize->add_section('ajnanda_header', array(
+        'title'    => __('Header', 'ajnanda'),
         'priority' => 25,
     ));
 
@@ -1993,8 +2023,8 @@ function ncllc_pro_customize_register($wp_customize) {
             $wp_customize,
             'header_background_color',
             array(
-                'label'   => __('Header Background', 'ncllc-pro'),
-                'section' => 'ncllc_header',
+                'label'   => __('Header Background', 'ajnanda'),
+                'section' => 'ajnanda_header',
             )
         ));
     }
@@ -2006,12 +2036,12 @@ function ncllc_pro_customize_register($wp_customize) {
     ));
 
     $header_color_controls = array(
-        'header_link_hover_color'        => array('label' => __('Header Link Hover Color', 'ncllc-pro'), 'default' => '#2563eb'),
-        'header_link_hover_background'   => array('label' => __('Header Link Hover Background', 'ncllc-pro'), 'default' => '#f9fafb'),
-        'header_submenu_background'      => array('label' => __('Header Submenu Background', 'ncllc-pro'), 'default' => '#ffffff'),
-        'header_submenu_text_color'      => array('label' => __('Header Submenu Text Color', 'ncllc-pro'), 'default' => '#1f2937'),
-        'header_submenu_hover_color'     => array('label' => __('Header Submenu Hover Text Color', 'ncllc-pro'), 'default' => '#2563eb'),
-        'header_submenu_hover_background'=> array('label' => __('Header Submenu Hover Background', 'ncllc-pro'), 'default' => '#f9fafb'),
+        'header_link_hover_color'        => array('label' => __('Header Link Hover Color', 'ajnanda'), 'default' => '#2563eb'),
+        'header_link_hover_background'   => array('label' => __('Header Link Hover Background', 'ajnanda'), 'default' => '#f9fafb'),
+        'header_submenu_background'      => array('label' => __('Header Submenu Background', 'ajnanda'), 'default' => '#ffffff'),
+        'header_submenu_text_color'      => array('label' => __('Header Submenu Text Color', 'ajnanda'), 'default' => '#1f2937'),
+        'header_submenu_hover_color'     => array('label' => __('Header Submenu Hover Text Color', 'ajnanda'), 'default' => '#2563eb'),
+        'header_submenu_hover_background'=> array('label' => __('Header Submenu Hover Background', 'ajnanda'), 'default' => '#f9fafb'),
     );
 
     foreach ($header_color_controls as $setting_id => $control) {
@@ -2027,7 +2057,7 @@ function ncllc_pro_customize_register($wp_customize) {
                 $setting_id,
                 array(
                     'label'   => $control['label'],
-                    'section' => 'ncllc_header',
+                    'section' => 'ajnanda_header',
                 )
             ));
         }
@@ -2044,8 +2074,8 @@ function ncllc_pro_customize_register($wp_customize) {
             $wp_customize,
             'header_color_scheme_picker',
             array(
-                'label'    => __('Header Color Schemes', 'ncllc-pro'),
-                'section'  => 'ncllc_header',
+                'label'    => __('Header Color Schemes', 'ajnanda'),
+                'section'  => 'ajnanda_header',
                 'settings' => 'header_color_scheme_picker',
             )
         ));
@@ -2053,56 +2083,56 @@ function ncllc_pro_customize_register($wp_customize) {
 
     $header_typography_controls = array(
         'header_font_family' => array(
-            'label'    => __('Header Font Family', 'ncllc-pro'),
+            'label'    => __('Header Font Family', 'ajnanda'),
             'default'  => 'inherit',
             'type'     => 'select',
-            'sanitize' => 'ncllc_pro_sanitize_font_family',
+            'sanitize' => 'ajnanda_sanitize_font_family',
             'choices'  => array(
-                'inherit'   => __('Theme Default', 'ncllc-pro'),
-                'Inter'     => __('Inter', 'ncllc-pro'),
-                'Poppins'   => __('Poppins', 'ncllc-pro'),
-                'Arial'     => __('Arial', 'ncllc-pro'),
-                'Georgia'   => __('Georgia', 'ncllc-pro'),
-                'system-ui' => __('System UI', 'ncllc-pro'),
+                'inherit'   => __('Theme Default', 'ajnanda'),
+                'Inter'     => __('Inter', 'ajnanda'),
+                'Poppins'   => __('Poppins', 'ajnanda'),
+                'Arial'     => __('Arial', 'ajnanda'),
+                'Georgia'   => __('Georgia', 'ajnanda'),
+                'system-ui' => __('System UI', 'ajnanda'),
             ),
         ),
         'header_font_size' => array(
-            'label'    => __('Header Text Size', 'ncllc-pro'),
+            'label'    => __('Header Text Size', 'ajnanda'),
             'default'  => '1rem',
             'type'     => 'text',
-            'sanitize' => 'ncllc_pro_sanitize_css_size',
+            'sanitize' => 'ajnanda_sanitize_css_size',
         ),
         'header_font_weight' => array(
-            'label'    => __('Header Font Weight', 'ncllc-pro'),
+            'label'    => __('Header Font Weight', 'ajnanda'),
             'default'  => '500',
             'type'     => 'select',
-            'sanitize' => 'ncllc_pro_sanitize_font_weight',
+            'sanitize' => 'ajnanda_sanitize_font_weight',
             'choices'  => array('400' => '400', '500' => '500', '600' => '600', '700' => '700', '800' => '800'),
         ),
         'header_menu_gap' => array(
-            'label'    => __('Header Menu Gap', 'ncllc-pro'),
+            'label'    => __('Header Menu Gap', 'ajnanda'),
             'default'  => '2rem',
             'type'     => 'text',
-            'sanitize' => 'ncllc_pro_sanitize_css_size',
+            'sanitize' => 'ajnanda_sanitize_css_size',
         ),
         'header_container_width' => array(
-            'label'    => __('Header Container Width', 'ncllc-pro'),
+            'label'    => __('Header Container Width', 'ajnanda'),
             'default'  => '1400px',
             'type'     => 'select',
-            'sanitize' => 'ncllc_pro_sanitize_choice',
+            'sanitize' => 'ajnanda_sanitize_choice',
             'choices'  => array(
-                '1120px' => __('Compact', 'ncllc-pro'),
-                '1400px' => __('Auto', 'ncllc-pro'),
-                '1600px' => __('Wide', 'ncllc-pro'),
-                '100%'   => __('Full Width', 'ncllc-pro'),
-                '100vw'  => __('Full Screen', 'ncllc-pro'),
+                '1120px' => __('Compact', 'ajnanda'),
+                '1400px' => __('Auto', 'ajnanda'),
+                '1600px' => __('Wide', 'ajnanda'),
+                '100%'   => __('Full Width', 'ajnanda'),
+                '100vw'  => __('Full Screen', 'ajnanda'),
             ),
         ),
         'header_shadow_opacity' => array(
-            'label'    => __('Header Shadow Opacity', 'ncllc-pro'),
+            'label'    => __('Header Shadow Opacity', 'ajnanda'),
             'default'  => '0.10',
             'type'     => 'number',
-            'sanitize' => 'ncllc_pro_sanitize_opacity',
+            'sanitize' => 'ajnanda_sanitize_opacity',
         ),
     );
 
@@ -2123,9 +2153,9 @@ function ncllc_pro_customize_register($wp_customize) {
 
         $args = array(
             'label'       => $control['label'],
-            'section'     => 'ncllc_header',
+            'section'     => 'ajnanda_header',
             'type'        => $control['type'],
-            'description' => 'text' === $control['type'] ? __('Examples: 1rem, 16px, 2rem.', 'ncllc-pro') : '',
+            'description' => 'text' === $control['type'] ? __('Examples: 1rem, 16px, 2rem.', 'ajnanda') : '',
         );
 
         if (!empty($control['choices'])) {
@@ -2141,7 +2171,7 @@ function ncllc_pro_customize_register($wp_customize) {
 
     $wp_customize->add_setting('header_font_preset', array(
         'default'           => 'normal',
-        'sanitize_callback' => 'ncllc_pro_sanitize_header_font_preset',
+        'sanitize_callback' => 'ajnanda_sanitize_header_font_preset',
         'transport'         => 'refresh',
     ));
 
@@ -2150,8 +2180,8 @@ function ncllc_pro_customize_register($wp_customize) {
             $wp_customize,
             'header_font_compact',
             array(
-                'label'    => __('Header Font', 'ncllc-pro'),
-                'section'  => 'ncllc_header',
+                'label'    => __('Header Font', 'ajnanda'),
+                'section'  => 'ajnanda_header',
                 'settings' => array(
                     'header_font_family',
                     'header_font_size',
@@ -2164,40 +2194,40 @@ function ncllc_pro_customize_register($wp_customize) {
 
     $wp_customize->add_setting('header_sticky', array(
         'default'           => true,
-        'sanitize_callback' => 'ncllc_pro_sanitize_checkbox',
+        'sanitize_callback' => 'ajnanda_sanitize_checkbox',
         'transport'         => 'refresh',
     ));
 
     $wp_customize->add_control('header_sticky', array(
-        'label'   => __('Sticky Header', 'ncllc-pro'),
-        'section' => 'ncllc_header',
+        'label'   => __('Sticky Header', 'ajnanda'),
+        'section' => 'ajnanda_header',
         'type'    => 'checkbox',
     ));
 
     $wp_customize->add_setting('header_layout', array(
         'default'           => 'logo-left-menu-right',
-        'sanitize_callback' => 'ncllc_pro_sanitize_choice',
+        'sanitize_callback' => 'ajnanda_sanitize_choice',
         'transport'         => 'refresh',
     ));
 
     $wp_customize->add_control('header_layout', array(
-        'label'   => __('Header Layout', 'ncllc-pro'),
-        'section' => 'ncllc_header',
+        'label'   => __('Header Layout', 'ajnanda'),
+        'section' => 'ajnanda_header',
         'type'    => 'select',
         'choices' => array(
-            'logo-left-menu-right' => __('Logo Left, Menu Right', 'ncllc-pro'),
-            'centered-menu'        => __('Centered Menu Bar', 'ncllc-pro'),
-            'stacked-center'       => __('Centered Logo, Menu Below', 'ncllc-pro'),
-            'builder'              => __('Builder', 'ncllc-pro'),
+            'logo-left-menu-right' => __('Logo Left, Menu Right', 'ajnanda'),
+            'centered-menu'        => __('Centered Menu Bar', 'ajnanda'),
+            'stacked-center'       => __('Centered Logo, Menu Below', 'ajnanda'),
+            'builder'              => __('Builder', 'ajnanda'),
         ),
     ));
 
     $old_logo_height = get_theme_mod('logo_height', '50');
     $old_header_padding = get_theme_mod('header_padding', '0.75');
     $device_labels = array(
-        'desktop' => __('Desktop', 'ncllc-pro'),
-        'tablet'  => __('Tablet', 'ncllc-pro'),
-        'mobile'  => __('Mobile', 'ncllc-pro'),
+        'desktop' => __('Desktop', 'ajnanda'),
+        'tablet'  => __('Tablet', 'ajnanda'),
+        'mobile'  => __('Mobile', 'ajnanda'),
     );
 
     foreach ($device_labels as $device => $label) {
@@ -2205,7 +2235,7 @@ function ncllc_pro_customize_register($wp_customize) {
 
         $wp_customize->add_setting($logo_setting, array(
             'default'           => $old_logo_height,
-            'sanitize_callback' => 'ncllc_pro_sanitize_logo_height',
+            'sanitize_callback' => 'ajnanda_sanitize_logo_height',
             'transport'         => 'postMessage',
         ));
     }
@@ -2215,7 +2245,7 @@ function ncllc_pro_customize_register($wp_customize) {
 
         $wp_customize->add_setting($padding_setting, array(
             'default'           => $old_header_padding,
-            'sanitize_callback' => 'ncllc_pro_sanitize_header_padding',
+            'sanitize_callback' => 'ajnanda_sanitize_header_padding',
             'transport'         => 'postMessage',
         ));
     }
@@ -2225,7 +2255,7 @@ function ncllc_pro_customize_register($wp_customize) {
 
         $wp_customize->add_setting($height_setting, array(
             'default'           => 'auto',
-            'sanitize_callback' => 'ncllc_pro_sanitize_css_size_or_auto',
+            'sanitize_callback' => 'ajnanda_sanitize_css_size_or_auto',
             'transport'         => 'postMessage',
         ));
     }
@@ -2235,8 +2265,8 @@ function ncllc_pro_customize_register($wp_customize) {
             $wp_customize,
             'header_logo_height_compact',
             array(
-                'label'         => __('Logo Height', 'ncllc-pro'),
-                'section'       => 'ncllc_header',
+                'label'         => __('Logo Height', 'ajnanda'),
+                'section'       => 'ajnanda_header',
                 'settings'      => array('logo_height_desktop', 'logo_height_tablet', 'logo_height_mobile'),
                 'setting_ids'   => array(
                     'desktop' => 'logo_height_desktop',
@@ -2244,11 +2274,11 @@ function ncllc_pro_customize_register($wp_customize) {
                     'mobile'  => 'logo_height_mobile',
                 ),
                 'device_labels' => array(
-                    'desktop' => __('Logo Height - Desktop (px)', 'ncllc-pro'),
-                    'tablet'  => __('Logo Height - Tablet (px)', 'ncllc-pro'),
-                    'mobile'  => __('Logo Height - Mobile (px)', 'ncllc-pro'),
+                    'desktop' => __('Logo Height - Desktop (px)', 'ajnanda'),
+                    'tablet'  => __('Logo Height - Tablet (px)', 'ajnanda'),
+                    'mobile'  => __('Logo Height - Mobile (px)', 'ajnanda'),
                 ),
-                'value_suffix'  => __('px', 'ncllc-pro'),
+                'value_suffix'  => __('px', 'ajnanda'),
                 'placeholder'   => '50',
             )
         ));
@@ -2257,8 +2287,8 @@ function ncllc_pro_customize_register($wp_customize) {
             $wp_customize,
             'header_padding_compact',
             array(
-                'label'         => __('Header Padding', 'ncllc-pro'),
-                'section'       => 'ncllc_header',
+                'label'         => __('Header Padding', 'ajnanda'),
+                'section'       => 'ajnanda_header',
                 'settings'      => array('header_padding_desktop', 'header_padding_tablet', 'header_padding_mobile'),
                 'setting_ids'   => array(
                     'desktop' => 'header_padding_desktop',
@@ -2266,11 +2296,11 @@ function ncllc_pro_customize_register($wp_customize) {
                     'mobile'  => 'header_padding_mobile',
                 ),
                 'device_labels' => array(
-                    'desktop' => __('Header Padding - Desktop (rem)', 'ncllc-pro'),
-                    'tablet'  => __('Header Padding - Tablet (rem)', 'ncllc-pro'),
-                    'mobile'  => __('Header Padding - Mobile (rem)', 'ncllc-pro'),
+                    'desktop' => __('Header Padding - Desktop (rem)', 'ajnanda'),
+                    'tablet'  => __('Header Padding - Tablet (rem)', 'ajnanda'),
+                    'mobile'  => __('Header Padding - Mobile (rem)', 'ajnanda'),
                 ),
-                'value_suffix'  => __('rem', 'ncllc-pro'),
+                'value_suffix'  => __('rem', 'ajnanda'),
                 'placeholder'   => '0.75',
             )
         ));
@@ -2279,8 +2309,8 @@ function ncllc_pro_customize_register($wp_customize) {
             $wp_customize,
             'header_height_compact',
             array(
-                'label'         => __('Header Height', 'ncllc-pro'),
-                'section'       => 'ncllc_header',
+                'label'         => __('Header Height', 'ajnanda'),
+                'section'       => 'ajnanda_header',
                 'settings'      => array('header_height_desktop', 'header_height_tablet', 'header_height_mobile'),
                 'setting_ids'   => array(
                     'desktop' => 'header_height_desktop',
@@ -2288,156 +2318,156 @@ function ncllc_pro_customize_register($wp_customize) {
                     'mobile'  => 'header_height_mobile',
                 ),
                 'device_labels' => array(
-                    'desktop' => __('Header Height - Desktop', 'ncllc-pro'),
-                    'tablet'  => __('Header Height - Tablet', 'ncllc-pro'),
-                    'mobile'  => __('Header Height - Mobile', 'ncllc-pro'),
+                    'desktop' => __('Header Height - Desktop', 'ajnanda'),
+                    'tablet'  => __('Header Height - Tablet', 'ajnanda'),
+                    'mobile'  => __('Header Height - Mobile', 'ajnanda'),
                 ),
                 'placeholder'   => 'auto, 80px, 5rem',
             )
         ));
     }
 
-    ncllc_pro_register_builder_controls($wp_customize, 'header', 'ncllc_header', __('Header', 'ncllc-pro'));
+    ajnanda_register_builder_controls($wp_customize, 'header', 'ajnanda_header', __('Header', 'ajnanda'));
 
     // Navigation Panels Section
-    $wp_customize->add_section('ncllc_nav_panels', array(
-        'title'       => __('Navigation Panels', 'ncllc-pro'),
+    $wp_customize->add_section('ajnanda_nav_panels', array(
+        'title'       => __('Navigation Panels', 'ajnanda'),
         'priority'    => 26,
-        'description' => __('Enable optional floating side-panel menus. Once enabled, assign a menu in Appearance → Menus → Manage Locations.', 'ncllc-pro'),
+        'description' => __('Enable optional floating side-panel menus. Once enabled, assign a menu in Appearance → Menus → Manage Locations.', 'ajnanda'),
     ));
 
-    $wp_customize->add_setting('ncllc_left_panel_enabled', array(
+    $wp_customize->add_setting('ajnanda_left_panel_enabled', array(
         'default'           => false,
         'sanitize_callback' => 'rest_sanitize_boolean',
         'transport'         => 'refresh',
     ));
-    $wp_customize->add_control('ncllc_left_panel_enabled', array(
-        'label'       => __('Enable Left Panel Menu', 'ncllc-pro'),
-        'description' => __('Registers a Left Floater Panel menu location in Appearance → Menus.', 'ncllc-pro'),
-        'section'     => 'ncllc_nav_panels',
+    $wp_customize->add_control('ajnanda_left_panel_enabled', array(
+        'label'       => __('Enable Left Panel Menu', 'ajnanda'),
+        'description' => __('Registers a Left Floater Panel menu location in Appearance → Menus.', 'ajnanda'),
+        'section'     => 'ajnanda_nav_panels',
         'type'        => 'checkbox',
     ));
 
-    $wp_customize->add_setting('ncllc_left_panel_label', array(
-        'default'           => __('Left Floater Panel', 'ncllc-pro'),
+    $wp_customize->add_setting('ajnanda_left_panel_label', array(
+        'default'           => __('Left Floater Panel', 'ajnanda'),
         'sanitize_callback' => 'sanitize_text_field',
         'transport'         => 'refresh',
     ));
-    $wp_customize->add_control('ncllc_left_panel_label', array(
-        'label'           => __('Left Panel Label', 'ncllc-pro'),
-        'description'     => __('How the location is named in Appearance → Menus.', 'ncllc-pro'),
-        'section'         => 'ncllc_nav_panels',
+    $wp_customize->add_control('ajnanda_left_panel_label', array(
+        'label'           => __('Left Panel Label', 'ajnanda'),
+        'description'     => __('How the location is named in Appearance → Menus.', 'ajnanda'),
+        'section'         => 'ajnanda_nav_panels',
         'type'            => 'text',
         'active_callback' => function() {
-            return (bool) get_theme_mod('ncllc_left_panel_enabled', false);
+            return (bool) get_theme_mod('ajnanda_left_panel_enabled', false);
         },
     ));
 
-    $wp_customize->add_setting('ncllc_right_panel_enabled', array(
+    $wp_customize->add_setting('ajnanda_right_panel_enabled', array(
         'default'           => false,
         'sanitize_callback' => 'rest_sanitize_boolean',
         'transport'         => 'refresh',
     ));
-    $wp_customize->add_control('ncllc_right_panel_enabled', array(
-        'label'       => __('Enable Right Panel Menu', 'ncllc-pro'),
-        'description' => __('Registers a Right Floater Panel menu location in Appearance → Menus.', 'ncllc-pro'),
-        'section'     => 'ncllc_nav_panels',
+    $wp_customize->add_control('ajnanda_right_panel_enabled', array(
+        'label'       => __('Enable Right Panel Menu', 'ajnanda'),
+        'description' => __('Registers a Right Floater Panel menu location in Appearance → Menus.', 'ajnanda'),
+        'section'     => 'ajnanda_nav_panels',
         'type'        => 'checkbox',
     ));
 
-    $wp_customize->add_setting('ncllc_right_panel_label', array(
-        'default'           => __('Right Floater Panel', 'ncllc-pro'),
+    $wp_customize->add_setting('ajnanda_right_panel_label', array(
+        'default'           => __('Right Floater Panel', 'ajnanda'),
         'sanitize_callback' => 'sanitize_text_field',
         'transport'         => 'refresh',
     ));
-    $wp_customize->add_control('ncllc_right_panel_label', array(
-        'label'           => __('Right Panel Label', 'ncllc-pro'),
-        'description'     => __('How the location is named in Appearance → Menus.', 'ncllc-pro'),
-        'section'         => 'ncllc_nav_panels',
+    $wp_customize->add_control('ajnanda_right_panel_label', array(
+        'label'           => __('Right Panel Label', 'ajnanda'),
+        'description'     => __('How the location is named in Appearance → Menus.', 'ajnanda'),
+        'section'         => 'ajnanda_nav_panels',
         'type'            => 'text',
         'active_callback' => function() {
-            return (bool) get_theme_mod('ncllc_right_panel_enabled', false);
+            return (bool) get_theme_mod('ajnanda_right_panel_enabled', false);
         },
     ));
 
     // Hero Defaults Section
-    $wp_customize->add_section('ncllc_hero_defaults', array(
-        'title'       => __('Hero Defaults', 'ncllc-pro'),
+    $wp_customize->add_section('ajnanda_hero_defaults', array(
+        'title'       => __('Hero Defaults', 'ajnanda'),
         'priority'    => 26,
-        'description' => __('Default hero design for editable page/post hero blocks.', 'ncllc-pro'),
+        'description' => __('Default hero design for editable page/post hero blocks.', 'ajnanda'),
     ));
 
     $hero_color_controls = array(
-        'hero_bg_1' => array('label' => __('Hero Background Color 1', 'ncllc-pro'), 'default' => '#2563eb'),
-        'hero_bg_2' => array('label' => __('Hero Background Color 2', 'ncllc-pro'), 'default' => '#7c3aed'),
-        'hero_heading_color' => array('label' => __('Hero Heading Color', 'ncllc-pro'), 'default' => '#ffffff'),
-        'hero_subtitle_color' => array('label' => __('Hero Subtitle Color', 'ncllc-pro'), 'default' => 'rgba(255,255,255,0.94)'),
-        'hero_badge_bg' => array('label' => __('Hero Badge Background', 'ncllc-pro'), 'default' => 'rgba(255,255,255,0.16)'),
-        'hero_badge_text_color' => array('label' => __('Hero Badge Text Color', 'ncllc-pro'), 'default' => '#ffffff'),
-        'hero_button_bg' => array('label' => __('Hero Primary Button Background', 'ncllc-pro'), 'default' => '#ffffff'),
-        'hero_button_text_color' => array('label' => __('Hero Primary Button Text Color', 'ncllc-pro'), 'default' => '#2563eb'),
+        'hero_bg_1' => array('label' => __('Hero Background Color 1', 'ajnanda'), 'default' => '#2563eb'),
+        'hero_bg_2' => array('label' => __('Hero Background Color 2', 'ajnanda'), 'default' => '#7c3aed'),
+        'hero_heading_color' => array('label' => __('Hero Heading Color', 'ajnanda'), 'default' => '#ffffff'),
+        'hero_subtitle_color' => array('label' => __('Hero Subtitle Color', 'ajnanda'), 'default' => 'rgba(255,255,255,0.94)'),
+        'hero_badge_bg' => array('label' => __('Hero Badge Background', 'ajnanda'), 'default' => 'rgba(255,255,255,0.16)'),
+        'hero_badge_text_color' => array('label' => __('Hero Badge Text Color', 'ajnanda'), 'default' => '#ffffff'),
+        'hero_button_bg' => array('label' => __('Hero Primary Button Background', 'ajnanda'), 'default' => '#ffffff'),
+        'hero_button_text_color' => array('label' => __('Hero Primary Button Text Color', 'ajnanda'), 'default' => '#2563eb'),
     );
 
     foreach ($hero_color_controls as $setting_id => $control) {
         $wp_customize->add_setting($setting_id, array(
             'default'           => $control['default'],
-            'sanitize_callback' => 'ncllc_pro_sanitize_css_color',
+            'sanitize_callback' => 'ajnanda_sanitize_css_color',
             'transport'         => 'refresh',
         ));
 
         $wp_customize->add_control($setting_id, array(
             'label'       => $control['label'],
-            'section'     => 'ncllc_hero_defaults',
+            'section'     => 'ajnanda_hero_defaults',
             'type'        => 'text',
-            'description' => __('Use #2563eb or rgba(255,255,255,0.94).', 'ncllc-pro'),
+            'description' => __('Use #2563eb or rgba(255,255,255,0.94).', 'ajnanda'),
         ));
     }
 
     $hero_size_controls = array(
-        'hero_min_height_desktop' => array('label' => __('Hero Minimum Height - Desktop', 'ncllc-pro'), 'default' => '50px'),
-        'hero_min_height_tablet' => array('label' => __('Hero Minimum Height - Tablet', 'ncllc-pro'), 'default' => '50px'),
-        'hero_min_height_mobile' => array('label' => __('Hero Minimum Height - Mobile', 'ncllc-pro'), 'default' => '50px'),
-        'hero_padding_top_desktop' => array('label' => __('Hero Padding Top - Desktop', 'ncllc-pro'), 'default' => '1rem'),
-        'hero_padding_bottom_desktop' => array('label' => __('Hero Padding Bottom - Desktop', 'ncllc-pro'), 'default' => '1rem'),
-        'hero_padding_top_tablet' => array('label' => __('Hero Padding Top - Tablet', 'ncllc-pro'), 'default' => '1rem'),
-        'hero_padding_bottom_tablet' => array('label' => __('Hero Padding Bottom - Tablet', 'ncllc-pro'), 'default' => '1rem'),
-        'hero_padding_top_mobile' => array('label' => __('Hero Padding Top - Mobile', 'ncllc-pro'), 'default' => '1rem'),
-        'hero_padding_bottom_mobile' => array('label' => __('Hero Padding Bottom - Mobile', 'ncllc-pro'), 'default' => '1rem'),
+        'hero_min_height_desktop' => array('label' => __('Hero Minimum Height - Desktop', 'ajnanda'), 'default' => '50px'),
+        'hero_min_height_tablet' => array('label' => __('Hero Minimum Height - Tablet', 'ajnanda'), 'default' => '50px'),
+        'hero_min_height_mobile' => array('label' => __('Hero Minimum Height - Mobile', 'ajnanda'), 'default' => '50px'),
+        'hero_padding_top_desktop' => array('label' => __('Hero Padding Top - Desktop', 'ajnanda'), 'default' => '1rem'),
+        'hero_padding_bottom_desktop' => array('label' => __('Hero Padding Bottom - Desktop', 'ajnanda'), 'default' => '1rem'),
+        'hero_padding_top_tablet' => array('label' => __('Hero Padding Top - Tablet', 'ajnanda'), 'default' => '1rem'),
+        'hero_padding_bottom_tablet' => array('label' => __('Hero Padding Bottom - Tablet', 'ajnanda'), 'default' => '1rem'),
+        'hero_padding_top_mobile' => array('label' => __('Hero Padding Top - Mobile', 'ajnanda'), 'default' => '1rem'),
+        'hero_padding_bottom_mobile' => array('label' => __('Hero Padding Bottom - Mobile', 'ajnanda'), 'default' => '1rem'),
     );
 
     foreach ($hero_size_controls as $setting_id => $control) {
         $wp_customize->add_setting($setting_id, array(
             'default'           => $control['default'],
-            'sanitize_callback' => 'ncllc_pro_sanitize_css_size',
+            'sanitize_callback' => 'ajnanda_sanitize_css_size',
             'transport'         => 'refresh',
         ));
 
         $wp_customize->add_control($setting_id, array(
             'label'       => $control['label'],
-            'section'     => 'ncllc_hero_defaults',
+            'section'     => 'ajnanda_hero_defaults',
             'type'        => 'text',
-            'description' => __('Examples: 50px, 1rem, 60vh. Plain numbers save as px.', 'ncllc-pro'),
+            'description' => __('Examples: 50px, 1rem, 60vh. Plain numbers save as px.', 'ajnanda'),
         ));
     }
 
     // Footer Section
-    $wp_customize->add_section('ncllc_footer', array(
-        'title'       => __('Footer', 'ncllc-pro'),
+    $wp_customize->add_section('ajnanda_footer', array(
+        'title'       => __('Footer', 'ajnanda'),
         'priority'    => 26,
-        'description' => __('Use the footer builder preview to add, remove, and arrange footer elements.', 'ncllc-pro'),
+        'description' => __('Use the footer builder preview to add, remove, and arrange footer elements.', 'ajnanda'),
     ));
 
 
     $wp_customize->add_setting('footer_background_color', array(
         'default'           => '#111827',
-        'sanitize_callback' => 'ncllc_pro_sanitize_css_background',
+        'sanitize_callback' => 'ajnanda_sanitize_css_background',
         'transport'         => 'refresh',
     ));
 
     $wp_customize->add_control('footer_background_color', array(
-        'label'       => __('Footer Background', 'ncllc-pro'),
-        'description' => __('Use a color or gradient. Example: linear-gradient(90deg, #111827, #1f2937).', 'ncllc-pro'),
-        'section'     => 'ncllc_footer',
+        'label'       => __('Footer Background', 'ajnanda'),
+        'description' => __('Use a color or gradient. Example: linear-gradient(90deg, #111827, #1f2937).', 'ajnanda'),
+        'section'     => 'ajnanda_footer',
         'type'        => 'text',
     ));
 
@@ -2452,20 +2482,20 @@ function ncllc_pro_customize_register($wp_customize) {
             $wp_customize,
             'footer_text_color',
             array(
-                'label'       => __('Footer Text Color', 'ncllc-pro'),
-                'description' => __('Set the footer text and menu link color.', 'ncllc-pro'),
-                'section'     => 'ncllc_footer',
+                'label'       => __('Footer Text Color', 'ajnanda'),
+                'description' => __('Set the footer text and menu link color.', 'ajnanda'),
+                'section'     => 'ajnanda_footer',
             )
         ));
     }
 
     $footer_color_controls = array(
-        'footer_link_hover_color'         => array('label' => __('Footer Link Hover Color', 'ncllc-pro'), 'default' => '#f59e0b'),
-        'footer_divider_color'            => array('label' => __('Footer Divider Color', 'ncllc-pro'), 'default' => '#374151'),
-        'footer_submenu_background'       => array('label' => __('Footer Submenu Background', 'ncllc-pro'), 'default' => '#ffffff'),
-        'footer_submenu_text_color'       => array('label' => __('Footer Submenu Text Color', 'ncllc-pro'), 'default' => '#1f2937'),
-        'footer_submenu_hover_color'      => array('label' => __('Footer Submenu Hover Text Color', 'ncllc-pro'), 'default' => '#2563eb'),
-        'footer_submenu_hover_background' => array('label' => __('Footer Submenu Hover Background', 'ncllc-pro'), 'default' => '#f9fafb'),
+        'footer_link_hover_color'         => array('label' => __('Footer Link Hover Color', 'ajnanda'), 'default' => '#f59e0b'),
+        'footer_divider_color'            => array('label' => __('Footer Divider Color', 'ajnanda'), 'default' => '#374151'),
+        'footer_submenu_background'       => array('label' => __('Footer Submenu Background', 'ajnanda'), 'default' => '#ffffff'),
+        'footer_submenu_text_color'       => array('label' => __('Footer Submenu Text Color', 'ajnanda'), 'default' => '#1f2937'),
+        'footer_submenu_hover_color'      => array('label' => __('Footer Submenu Hover Text Color', 'ajnanda'), 'default' => '#2563eb'),
+        'footer_submenu_hover_background' => array('label' => __('Footer Submenu Hover Background', 'ajnanda'), 'default' => '#f9fafb'),
     );
 
     foreach ($footer_color_controls as $setting_id => $control) {
@@ -2481,7 +2511,7 @@ function ncllc_pro_customize_register($wp_customize) {
                 $setting_id,
                 array(
                     'label'   => $control['label'],
-                    'section' => 'ncllc_footer',
+                    'section' => 'ajnanda_footer',
                 )
             ));
         }
@@ -2498,63 +2528,63 @@ function ncllc_pro_customize_register($wp_customize) {
             $wp_customize,
             'footer_color_scheme_picker',
             array(
-                'label'   => __('Footer Color Schemes', 'ncllc-pro'),
-                'section' => 'ncllc_footer',
+                'label'   => __('Footer Color Schemes', 'ajnanda'),
+                'section' => 'ajnanda_footer',
             )
         ));
     }
 
     $footer_typography_controls = array(
         'footer_font_family' => array(
-            'label'    => __('Footer Font Family', 'ncllc-pro'),
+            'label'    => __('Footer Font Family', 'ajnanda'),
             'default'  => 'inherit',
             'type'     => 'select',
-            'sanitize' => 'ncllc_pro_sanitize_font_family',
+            'sanitize' => 'ajnanda_sanitize_font_family',
             'choices'  => array(
-                'inherit'   => __('Theme Default', 'ncllc-pro'),
-                'Inter'     => __('Inter', 'ncllc-pro'),
-                'Poppins'   => __('Poppins', 'ncllc-pro'),
-                'Arial'     => __('Arial', 'ncllc-pro'),
-                'Georgia'   => __('Georgia', 'ncllc-pro'),
-                'system-ui' => __('System UI', 'ncllc-pro'),
+                'inherit'   => __('Theme Default', 'ajnanda'),
+                'Inter'     => __('Inter', 'ajnanda'),
+                'Poppins'   => __('Poppins', 'ajnanda'),
+                'Arial'     => __('Arial', 'ajnanda'),
+                'Georgia'   => __('Georgia', 'ajnanda'),
+                'system-ui' => __('System UI', 'ajnanda'),
             ),
         ),
         'footer_font_size' => array(
-            'label'    => __('Footer Text Size', 'ncllc-pro'),
+            'label'    => __('Footer Text Size', 'ajnanda'),
             'default'  => '1rem',
             'type'     => 'text',
-            'sanitize' => 'ncllc_pro_sanitize_css_size',
+            'sanitize' => 'ajnanda_sanitize_css_size',
         ),
         'footer_font_weight' => array(
-            'label'    => __('Footer Font Weight', 'ncllc-pro'),
+            'label'    => __('Footer Font Weight', 'ajnanda'),
             'default'  => '400',
             'type'     => 'select',
-            'sanitize' => 'ncllc_pro_sanitize_font_weight',
+            'sanitize' => 'ajnanda_sanitize_font_weight',
             'choices'  => array('400' => '400', '500' => '500', '600' => '600', '700' => '700', '800' => '800'),
         ),
         'footer_menu_gap' => array(
-            'label'    => __('Footer Menu Gap', 'ncllc-pro'),
+            'label'    => __('Footer Menu Gap', 'ajnanda'),
             'default'  => '1.4rem',
             'type'     => 'text',
-            'sanitize' => 'ncllc_pro_sanitize_css_size',
+            'sanitize' => 'ajnanda_sanitize_css_size',
         ),
         'footer_container_width' => array(
-            'label'    => __('Footer Container Width', 'ncllc-pro'),
+            'label'    => __('Footer Container Width', 'ajnanda'),
             'default'  => '1280px',
             'type'     => 'text',
-            'sanitize' => 'ncllc_pro_sanitize_css_size',
+            'sanitize' => 'ajnanda_sanitize_css_size',
         ),
         'footer_padding_top' => array(
-            'label'    => __('Footer Padding Top', 'ncllc-pro'),
+            'label'    => __('Footer Padding Top', 'ajnanda'),
             'default'  => '4rem',
             'type'     => 'text',
-            'sanitize' => 'ncllc_pro_sanitize_css_size',
+            'sanitize' => 'ajnanda_sanitize_css_size',
         ),
         'footer_padding_bottom' => array(
-            'label'    => __('Footer Padding Bottom', 'ncllc-pro'),
+            'label'    => __('Footer Padding Bottom', 'ajnanda'),
             'default'  => '2rem',
             'type'     => 'text',
-            'sanitize' => 'ncllc_pro_sanitize_css_size',
+            'sanitize' => 'ajnanda_sanitize_css_size',
         ),
     );
 
@@ -2573,9 +2603,9 @@ function ncllc_pro_customize_register($wp_customize) {
 
         $args = array(
             'label'       => $control['label'],
-            'section'     => 'ncllc_footer',
+            'section'     => 'ajnanda_footer',
             'type'        => $control['type'],
-            'description' => 'text' === $control['type'] ? __('Examples: 1rem, 16px, 2rem.', 'ncllc-pro') : '',
+            'description' => 'text' === $control['type'] ? __('Examples: 1rem, 16px, 2rem.', 'ajnanda') : '',
         );
 
         if (!empty($control['choices'])) {
@@ -2590,25 +2620,25 @@ function ncllc_pro_customize_register($wp_customize) {
             $wp_customize,
             'footer_font_family',
             array(
-                'label'    => __('Footer Font', 'ncllc-pro'),
-                'section'  => 'ncllc_footer',
+                'label'    => __('Footer Font', 'ajnanda'),
+                'section'  => 'ajnanda_footer',
                 'settings' => 'footer_font_family',
             )
         ));
     }
 
     $wp_customize->add_setting('ajn_builder_button_text', array(
-        'default'           => __('Contact Us', 'ncllc-pro'),
+        'default'           => __('Contact Us', 'ajnanda'),
         'sanitize_callback' => 'sanitize_text_field',
         'transport'         => 'refresh',
     ));
 
     $wp_customize->add_control('ajn_builder_button_text', array(
-        'label'           => __('Header Button Text', 'ncllc-pro'),
-        'description'     => __('Shown only when Button 1 is added to the Header Builder.', 'ncllc-pro'),
-        'section'         => 'ncllc_header',
+        'label'           => __('Header Button Text', 'ajnanda'),
+        'description'     => __('Shown only when Button 1 is added to the Header Builder.', 'ajnanda'),
+        'section'         => 'ajnanda_header',
         'type'            => 'text',
-        'active_callback' => 'ncllc_pro_header_builder_button_1_active',
+        'active_callback' => 'ajnanda_header_builder_button_1_active',
     ));
 
     $wp_customize->add_setting('ajn_builder_button_url', array(
@@ -2618,24 +2648,24 @@ function ncllc_pro_customize_register($wp_customize) {
     ));
 
     $wp_customize->add_control('ajn_builder_button_url', array(
-        'label'           => __('Header Button URL', 'ncllc-pro'),
-        'description'     => __('Shown only when Button 1 is added to the Header Builder.', 'ncllc-pro'),
-        'section'         => 'ncllc_header',
+        'label'           => __('Header Button URL', 'ajnanda'),
+        'description'     => __('Shown only when Button 1 is added to the Header Builder.', 'ajnanda'),
+        'section'         => 'ajnanda_header',
         'type'            => 'url',
-        'active_callback' => 'ncllc_pro_header_builder_button_1_active',
+        'active_callback' => 'ajnanda_header_builder_button_1_active',
     ));
 
     $wp_customize->add_setting('ajn_footer_builder_button_text', array(
-        'default'           => __('Contact Us', 'ncllc-pro'),
+        'default'           => __('Contact Us', 'ajnanda'),
         'sanitize_callback' => 'sanitize_text_field',
         'transport'         => 'refresh',
     ));
 
     $wp_customize->add_control('ajn_footer_builder_button_text', array(
-        'label'           => __('Button 1 Text', 'ncllc-pro'),
-        'section'         => 'ncllc_footer',
+        'label'           => __('Button 1 Text', 'ajnanda'),
+        'section'         => 'ajnanda_footer',
         'type'            => 'text',
-        'active_callback' => 'ncllc_pro_footer_builder_button_1_active',
+        'active_callback' => 'ajnanda_footer_builder_button_1_active',
     ));
 
     $wp_customize->add_setting('ajn_footer_builder_button_url', array(
@@ -2645,23 +2675,23 @@ function ncllc_pro_customize_register($wp_customize) {
     ));
 
     $wp_customize->add_control('ajn_footer_builder_button_url', array(
-        'label'           => __('Button 1 URL', 'ncllc-pro'),
-        'section'         => 'ncllc_footer',
+        'label'           => __('Button 1 URL', 'ajnanda'),
+        'section'         => 'ajnanda_footer',
         'type'            => 'url',
-        'active_callback' => 'ncllc_pro_footer_builder_button_1_active',
+        'active_callback' => 'ajnanda_footer_builder_button_1_active',
     ));
 
     $wp_customize->add_setting('ajn_builder_button_2_text', array(
-        'default'           => __('Learn More', 'ncllc-pro'),
+        'default'           => __('Learn More', 'ajnanda'),
         'sanitize_callback' => 'sanitize_text_field',
         'transport'         => 'refresh',
     ));
 
     $wp_customize->add_control('ajn_builder_button_2_text', array(
-        'label'           => __('Button 2 Text', 'ncllc-pro'),
-        'section'         => 'ncllc_footer',
+        'label'           => __('Button 2 Text', 'ajnanda'),
+        'section'         => 'ajnanda_footer',
         'type'            => 'text',
-        'active_callback' => 'ncllc_pro_footer_builder_button_2_active',
+        'active_callback' => 'ajnanda_footer_builder_button_2_active',
     ));
 
     $wp_customize->add_setting('ajn_builder_button_2_url', array(
@@ -2671,10 +2701,10 @@ function ncllc_pro_customize_register($wp_customize) {
     ));
 
     $wp_customize->add_control('ajn_builder_button_2_url', array(
-        'label'           => __('Button 2 URL', 'ncllc-pro'),
-        'section'         => 'ncllc_footer',
+        'label'           => __('Button 2 URL', 'ajnanda'),
+        'section'         => 'ajnanda_footer',
         'type'            => 'url',
-        'active_callback' => 'ncllc_pro_footer_builder_button_2_active',
+        'active_callback' => 'ajnanda_footer_builder_button_2_active',
     ));
 
     $wp_customize->add_setting('ajn_builder_html_1', array(
@@ -2684,10 +2714,10 @@ function ncllc_pro_customize_register($wp_customize) {
     ));
 
     $wp_customize->add_control('ajn_builder_html_1', array(
-        'label'           => __('Builder HTML 1', 'ncllc-pro'),
-        'section'         => 'ncllc_header',
+        'label'           => __('Builder HTML 1', 'ajnanda'),
+        'section'         => 'ajnanda_header',
         'type'            => 'textarea',
-        'active_callback' => 'ncllc_pro_header_builder_html_1_active',
+        'active_callback' => 'ajnanda_header_builder_html_1_active',
     ));
 
     $wp_customize->add_setting('ajn_builder_html_2', array(
@@ -2697,23 +2727,23 @@ function ncllc_pro_customize_register($wp_customize) {
     ));
 
     $wp_customize->add_control('ajn_builder_html_2', array(
-        'label'           => __('HTML 2', 'ncllc-pro'),
-        'section'         => 'ncllc_footer',
+        'label'           => __('HTML 2', 'ajnanda'),
+        'section'         => 'ajnanda_footer',
         'type'            => 'textarea',
-        'active_callback' => 'ncllc_pro_footer_builder_html_2_active',
+        'active_callback' => 'ajnanda_footer_builder_html_2_active',
     ));
 
     $wp_customize->add_setting('ajn_builder_social_1_label', array(
-        'default'           => __('Social', 'ncllc-pro'),
+        'default'           => __('Social', 'ajnanda'),
         'sanitize_callback' => 'sanitize_text_field',
         'transport'         => 'refresh',
     ));
 
     $wp_customize->add_control('ajn_builder_social_1_label', array(
-        'label'           => __('Social Label', 'ncllc-pro'),
-        'section'         => 'ncllc_header',
+        'label'           => __('Social Label', 'ajnanda'),
+        'section'         => 'ajnanda_header',
         'type'            => 'text',
-        'active_callback' => 'ncllc_pro_header_builder_social_active',
+        'active_callback' => 'ajnanda_header_builder_social_active',
     ));
 
     $wp_customize->add_setting('ajn_builder_social_1_url', array(
@@ -2723,15 +2753,15 @@ function ncllc_pro_customize_register($wp_customize) {
     ));
 
     $wp_customize->add_control('ajn_builder_social_1_url', array(
-        'label'           => __('Social URL', 'ncllc-pro'),
-        'section'         => 'ncllc_header',
+        'label'           => __('Social URL', 'ajnanda'),
+        'section'         => 'ajnanda_header',
         'type'            => 'url',
-        'active_callback' => 'ncllc_pro_header_builder_social_active',
+        'active_callback' => 'ajnanda_header_builder_social_active',
     ));
 
-    ncllc_pro_register_builder_controls($wp_customize, 'footer', 'ncllc_footer', __('Footer', 'ncllc-pro'), 'ncllc_footer');
+    ajnanda_register_builder_controls($wp_customize, 'footer', 'ajnanda_footer', __('Footer', 'ajnanda'), 'ajnanda_footer');
 
-    $footer_columns = ncllc_pro_get_footer_columns();
+    $footer_columns = ajnanda_get_footer_columns();
     foreach ($footer_columns as $index => $column) {
         $wp_customize->add_setting('footer_column_' . $index . '_title', array(
             'default'           => $column['title'],
@@ -2740,38 +2770,38 @@ function ncllc_pro_customize_register($wp_customize) {
         ));
 
         $wp_customize->add_control('footer_column_' . $index . '_title', array(
-            'label'   => sprintf(__('Footer Column %d Title', 'ncllc-pro'), $index),
-            'section' => 'ncllc_footer',
+            'label'   => sprintf(__('Footer Column %d Title', 'ajnanda'), $index),
+            'section' => 'ajnanda_footer',
             'type'    => 'text',
             'active_callback' => '__return_false',
         ));
 
         $wp_customize->add_setting('footer_column_' . $index . '_text', array(
             'default'           => $column['text'],
-            'sanitize_callback' => 'ncllc_pro_sanitize_textarea',
+            'sanitize_callback' => 'ajnanda_sanitize_textarea',
             'transport'         => 'refresh',
         ));
 
         $wp_customize->add_control('footer_column_' . $index . '_text', array(
-            'label'       => sprintf(__('Footer Column %d Text', 'ncllc-pro'), $index),
-            'description' => __('One item per line. Use Label|URL for links.', 'ncllc-pro'),
-            'section'     => 'ncllc_footer',
+            'label'       => sprintf(__('Footer Column %d Text', 'ajnanda'), $index),
+            'description' => __('One item per line. Use Label|URL for links.', 'ajnanda'),
+            'section'     => 'ajnanda_footer',
             'type'        => 'textarea',
             'active_callback' => '__return_false',
         ));
     }
 
     $wp_customize->add_setting('footer_bottom_text', array(
-        'default'           => ncllc_pro_get_footer_bottom_default(),
+        'default'           => ajnanda_get_footer_bottom_default(),
         'sanitize_callback' => 'sanitize_text_field',
         'transport'         => 'refresh',
     ));
 
     $wp_customize->add_control('footer_bottom_text', array(
-        'label'           => __('Copyright Text', 'ncllc-pro'),
-        'section'         => 'ncllc_footer',
+        'label'           => __('Copyright Text', 'ajnanda'),
+        'section'         => 'ajnanda_footer',
         'type'            => 'text',
-        'active_callback' => 'ncllc_pro_footer_builder_copyright_active',
+        'active_callback' => 'ajnanda_footer_builder_copyright_active',
     ));
 
     if (isset($wp_customize->selective_refresh)) {
@@ -2784,74 +2814,74 @@ function ncllc_pro_customize_register($wp_customize) {
             'ajn_builder_html_2',
             'ajn_builder_social_1_label',
             'ajn_builder_social_1_url',
-            ncllc_pro_builder_row_count_setting_id('footer'),
+            ajnanda_builder_row_count_setting_id('footer'),
         );
         for ($i = 1; $i <= 4; $i++) {
             $footer_settings[] = 'footer_column_' . $i . '_title';
             $footer_settings[] = 'footer_column_' . $i . '_text';
         }
         for ($row = 1; $row <= 6; $row++) {
-            $footer_settings[] = ncllc_pro_builder_row_columns_setting_id('footer', $row);
+            $footer_settings[] = ajnanda_builder_row_columns_setting_id('footer', $row);
             for ($cell = 1; $cell <= 4; $cell++) {
-                $footer_settings[] = ncllc_pro_builder_setting_id('footer', $row, $cell);
+                $footer_settings[] = ajnanda_builder_setting_id('footer', $row, $cell);
             }
         }
 
-        $wp_customize->selective_refresh->add_partial('ncllc_footer_partial', array(
+        $wp_customize->selective_refresh->add_partial('ajnanda_footer_partial', array(
             'selector'        => '.site-footer',
             'settings'        => $footer_settings,
-            'render_callback' => 'ncllc_pro_render_site_footer',
+            'render_callback' => 'ajnanda_render_site_footer',
         ));
     }
     
     // Add live preview JavaScript
     if ($wp_customize->is_preview()) {
-        add_action('wp_footer', 'ncllc_pro_customizer_live_preview', 21);
+        add_action('wp_footer', 'ajnanda_customizer_live_preview', 21);
     }
 }
-add_action('customize_register', 'ncllc_pro_customize_register');
+add_action('customize_register', 'ajnanda_customize_register');
 
 /**
  * Compact the Header Customizer controls so common design settings scan like a small table.
  */
-function ncllc_pro_customizer_controls_css() {
+function ajnanda_customizer_controls_css() {
     ?>
     <style type="text/css">
-        #sub-accordion-section-ncllc_header .customize-control {
+        #sub-accordion-section-ajnanda_header .customize-control {
             margin-bottom: 10px;
         }
 
-        #sub-accordion-section-ncllc_header .customize-control-description {
+        #sub-accordion-section-ajnanda_header .customize-control-description {
             margin-top: 4px;
             font-size: 12px;
         }
 
-        #sub-accordion-section-ncllc_header .customize-control-color {
+        #sub-accordion-section-ajnanda_header .customize-control-color {
             display: grid;
             grid-template-columns: minmax(120px, 1fr) auto;
             align-items: center;
             column-gap: 12px;
         }
 
-        #sub-accordion-section-ncllc_header .customize-control-color .customize-control-title {
+        #sub-accordion-section-ajnanda_header .customize-control-color .customize-control-title {
             margin: 0;
             line-height: 1.25;
         }
 
-        #sub-accordion-section-ncllc_header .customize-control-color .wp-picker-container {
+        #sub-accordion-section-ajnanda_header .customize-control-color .wp-picker-container {
             justify-self: end;
         }
 
-        #sub-accordion-section-ncllc_header .customize-control-color .wp-picker-holder {
+        #sub-accordion-section-ajnanda_header .customize-control-color .wp-picker-holder {
             grid-column: 1 / -1;
         }
 
-        #sub-accordion-section-ncllc_header .wp-color-result.button {
+        #sub-accordion-section-ajnanda_header .wp-color-result.button {
             min-height: 28px;
             margin: 0;
         }
 
-        #sub-accordion-section-ncllc_header .ncllc-header-font-control {
+        #sub-accordion-section-ajnanda_header .ajnanda-header-font-control {
             display: grid;
             gap: 8px;
             padding: 10px;
@@ -2859,7 +2889,7 @@ function ncllc_pro_customizer_controls_css() {
             background: #fff;
         }
 
-        #sub-accordion-section-ncllc_header .ncllc-header-font-control label {
+        #sub-accordion-section-ajnanda_header .ajnanda-header-font-control label {
             display: grid;
             grid-template-columns: 76px minmax(0, 1fr);
             align-items: center;
@@ -2867,25 +2897,25 @@ function ncllc_pro_customizer_controls_css() {
             margin: 0;
         }
 
-        #sub-accordion-section-ncllc_header .ncllc-header-font-control span {
+        #sub-accordion-section-ajnanda_header .ajnanda-header-font-control span {
             font-size: 12px;
             font-weight: 600;
         }
 
-        #sub-accordion-section-ncllc_header .ncllc-header-font-control input,
-        #sub-accordion-section-ncllc_header .ncllc-header-font-control select {
+        #sub-accordion-section-ajnanda_header .ajnanda-header-font-control input,
+        #sub-accordion-section-ajnanda_header .ajnanda-header-font-control select {
             width: 100%;
             min-height: 30px;
             margin: 0;
         }
 
-        #sub-accordion-section-ncllc_header .ncllc-header-font-control input[type="color"] {
+        #sub-accordion-section-ajnanda_header .ajnanda-header-font-control input[type="color"] {
             width: 56px;
             padding: 0 2px;
             justify-self: end;
         }
 
-        #sub-accordion-section-ncllc_header .ncllc-header-responsive-control {
+        #sub-accordion-section-ajnanda_header .ajnanda-header-responsive-control {
             display: grid;
             grid-template-columns: minmax(128px, 1fr) minmax(0, 1fr);
             align-items: center;
@@ -2895,14 +2925,14 @@ function ncllc_pro_customizer_controls_css() {
             background: #fff;
         }
 
-        #sub-accordion-section-ncllc_header .ncllc-header-responsive-control select,
-        #sub-accordion-section-ncllc_header .ncllc-header-responsive-control input {
+        #sub-accordion-section-ajnanda_header .ajnanda-header-responsive-control select,
+        #sub-accordion-section-ajnanda_header .ajnanda-header-responsive-control input {
             width: 100%;
             min-height: 30px;
             margin: 0;
         }
 
-        #sub-accordion-section-ncllc_header .ncllc-header-responsive-value {
+        #sub-accordion-section-ajnanda_header .ajnanda-header-responsive-value {
             display: none;
             grid-template-columns: minmax(0, 1fr) auto;
             align-items: center;
@@ -2910,58 +2940,58 @@ function ncllc_pro_customizer_controls_css() {
             margin: 0;
         }
 
-        #sub-accordion-section-ncllc_header .ncllc-header-responsive-value.is-active {
+        #sub-accordion-section-ajnanda_header .ajnanda-header-responsive-value.is-active {
             display: grid;
         }
 
-        #sub-accordion-section-ncllc_header .ncllc-header-responsive-value span {
+        #sub-accordion-section-ajnanda_header .ajnanda-header-responsive-value span {
             color: #646970;
             font-size: 12px;
             font-weight: 600;
         }
 
-        #sub-accordion-section-ncllc_header [data-ncllc-header-scheme-select] {
+        #sub-accordion-section-ajnanda_header [data-ajnanda-header-scheme-select] {
             width: 100%;
             min-height: 34px;
             margin: 0;
         }
 
         /* Footer Section compact layout */
-        #sub-accordion-section-ncllc_footer .customize-control {
+        #sub-accordion-section-ajnanda_footer .customize-control {
             margin-bottom: 10px;
         }
 
-        #sub-accordion-section-ncllc_footer .customize-control-description {
+        #sub-accordion-section-ajnanda_footer .customize-control-description {
             margin-top: 4px;
             font-size: 12px;
         }
 
-        #sub-accordion-section-ncllc_footer .customize-control-color {
+        #sub-accordion-section-ajnanda_footer .customize-control-color {
             display: grid;
             grid-template-columns: minmax(120px, 1fr) auto;
             align-items: center;
             column-gap: 12px;
         }
 
-        #sub-accordion-section-ncllc_footer .customize-control-color .customize-control-title {
+        #sub-accordion-section-ajnanda_footer .customize-control-color .customize-control-title {
             margin: 0;
             line-height: 1.25;
         }
 
-        #sub-accordion-section-ncllc_footer .customize-control-color .wp-picker-container {
+        #sub-accordion-section-ajnanda_footer .customize-control-color .wp-picker-container {
             justify-self: end;
         }
 
-        #sub-accordion-section-ncllc_footer .customize-control-color .wp-picker-holder {
+        #sub-accordion-section-ajnanda_footer .customize-control-color .wp-picker-holder {
             grid-column: 1 / -1;
         }
 
-        #sub-accordion-section-ncllc_footer .wp-color-result.button {
+        #sub-accordion-section-ajnanda_footer .wp-color-result.button {
             min-height: 28px;
             margin: 0;
         }
 
-        #sub-accordion-section-ncllc_footer .ncllc-footer-font-control {
+        #sub-accordion-section-ajnanda_footer .ajnanda-footer-font-control {
             display: grid;
             gap: 8px;
             padding: 10px;
@@ -2969,7 +2999,7 @@ function ncllc_pro_customizer_controls_css() {
             background: #fff;
         }
 
-        #sub-accordion-section-ncllc_footer .ncllc-footer-font-control label {
+        #sub-accordion-section-ajnanda_footer .ajnanda-footer-font-control label {
             display: grid;
             grid-template-columns: 76px minmax(0, 1fr);
             align-items: center;
@@ -2977,25 +3007,25 @@ function ncllc_pro_customizer_controls_css() {
             margin: 0;
         }
 
-        #sub-accordion-section-ncllc_footer .ncllc-footer-font-control span {
+        #sub-accordion-section-ajnanda_footer .ajnanda-footer-font-control span {
             font-size: 12px;
             font-weight: 600;
         }
 
-        #sub-accordion-section-ncllc_footer .ncllc-footer-font-control input,
-        #sub-accordion-section-ncllc_footer .ncllc-footer-font-control select {
+        #sub-accordion-section-ajnanda_footer .ajnanda-footer-font-control input,
+        #sub-accordion-section-ajnanda_footer .ajnanda-footer-font-control select {
             width: 100%;
             min-height: 30px;
             margin: 0;
         }
 
-        #sub-accordion-section-ncllc_footer .ncllc-footer-font-control input[type="color"] {
+        #sub-accordion-section-ajnanda_footer .ajnanda-footer-font-control input[type="color"] {
             width: 56px;
             padding: 0 2px;
             justify-self: end;
         }
 
-        #sub-accordion-section-ncllc_footer [data-ncllc-footer-scheme-select] {
+        #sub-accordion-section-ajnanda_footer [data-ajnanda-footer-scheme-select] {
             width: 100%;
             min-height: 34px;
             margin: 0;
@@ -3003,27 +3033,35 @@ function ncllc_pro_customizer_controls_css() {
     </style>
     <?php
 }
-add_action('customize_controls_print_styles', 'ncllc_pro_customizer_controls_css');
+add_action('customize_controls_print_styles', 'ajnanda_customizer_controls_css');
 
-function ncllc_pro_customizer_controls_js() {
+function ajnanda_customizer_controls_js() {
     ?>
     <script type="text/javascript">
     (function() {
+        // Header schemes — colors: [bg, linkHoverColor, linkHoverBg, submenuBg, submenuText, submenuHoverColor, submenuHoverBg]
+        // font: [textColor, fontFamily, fontSize, fontPreset]
         var headerSchemes = {
-            A: { colors: ['#EEF2FF', '#2563EB', '#DBEAFE', '#FFFFFF', '#0F172A', '#2563EB', '#EFF6FF'], font: ['#0F172A', 'Inter', '1rem', 'normal'] },
-            B: { colors: ['#E0E7FF', '#4F46E5', '#C7D2FE', '#FFFFFF', '#111827', '#4F46E5', '#EEF2FF'], font: ['#111827', 'Inter', '1rem', 'bold'] },
-            C: { colors: ['#EFF6FF', '#1D4ED8', '#DBEAFE', '#FFFFFF', '#0F172A', '#1D4ED8', '#F0F9FF'], font: ['#0F172A', 'system-ui', '1rem', 'normal'] },
-            D: { colors: ['#F3E8FF', '#7C3AED', '#E9D5FF', '#FFFFFF', '#111827', '#7C3AED', '#FAF5FF'], font: ['#111827', 'Poppins', '1rem', 'bold'] },
-            E: { colors: ['#F1F5FF', '#4338CA', '#E0E7FF', '#F8FAFC', '#0F172A', '#4338CA', '#EEF2FF'], font: ['#0F172A', 'Inter', '0.98rem', 'normal'] },
-            F: { colors: ['#EFF6FF', '#F59E0B', '#DBEAFE', '#FFFFFF', '#0F172A', '#F59E0B', '#FEF3C7'], font: ['#0F172A', 'Poppins', '1rem', 'bold'] },
-            G: { colors: ['#F8FAFC', '#2563EB', '#E2E8F0', '#FFFFFF', '#0F172A', '#2563EB', '#EFF6FF'], font: ['#0F172A', 'Inter', '1rem', 'normal'] },
-            H: { colors: ['#0F172A', '#93C5FD', '#1E293B', '#111827', '#F8FAFC', '#93C5FD', '#1E3A8A'], font: ['#F8FAFC', 'Inter', '1rem', 'bold'] },
-            I: { colors: ['#111827', '#22D3EE', '#164E63', '#0F172A', '#E5E7EB', '#67E8F9', '#083344'], font: ['#F9FAFB', 'system-ui', '1rem', 'normal'] },
-            J: { colors: ['#052E16', '#86EFAC', '#14532D', '#064E3B', '#ECFDF5', '#BBF7D0', '#166534'], font: ['#F0FDF4', 'Inter', '1rem', 'bold'] },
-            K: { colors: ['#030712', '#FACC15', '#27272A', '#18181B', '#FAFAFA', '#FDE047', '#3F3F46'], font: ['#FAFAFA', 'Georgia', '1.02rem', 'normal'] },
-            L: { colors: ['#FFFBEB', '#B45309', '#FEF3C7', '#FFFFFF', '#1F2937', '#92400E', '#FDE68A'], font: ['#1F2937', 'Georgia', '1.02rem', 'normal'] },
-            M: { colors: ['#FFF1F2', '#BE123C', '#FFE4E6', '#FFFFFF', '#111827', '#BE123C', '#FFE4E6'], font: ['#111827', 'Poppins', '1rem', 'bold'] },
-            N: { colors: ['#000000', '#FFFFFF', '#1F2937', '#000000', '#FFFFFF', '#FACC15', '#111827'], font: ['#FFFFFF', 'Arial', '1rem', 'bold-underline'] }
+            A: { colors: ['#111827','#60A5FA','#1F2937','#0F172A','#F1F5F9','#93C5FD','#1E3A8A'], font: ['#F9FAFB','inherit','1rem','normal'] },
+            B: { colors: ['#E0E7FF','#4F46E5','#C7D2FE','#FFFFFF','#111827','#4F46E5','#EEF2FF'], font: ['#111827','Inter','1rem','bold'] },
+            C: { colors: ['#EFF6FF','#1D4ED8','#DBEAFE','#FFFFFF','#0F172A','#1D4ED8','#F0F9FF'], font: ['#0F172A','system-ui','1rem','normal'] },
+            D: { colors: ['#F3E8FF','#7C3AED','#E9D5FF','#FFFFFF','#111827','#7C3AED','#FAF5FF'], font: ['#111827','Poppins','1rem','bold'] },
+            E: { colors: ['#EEF2FF','#4338CA','#E0E7FF','#F8FAFC','#0F172A','#4338CA','#EEF2FF'], font: ['#0F172A','Inter','1rem','normal'] },
+            F: { colors: ['#EFF6FF','#F59E0B','#DBEAFE','#FFFFFF','#0F172A','#F59E0B','#FEF3C7'], font: ['#0F172A','Poppins','1rem','bold'] },
+            G: { colors: ['#F8FAFC','#2563EB','#E2E8F0','#FFFFFF','#0F172A','#2563EB','#EFF6FF'], font: ['#0F172A','Inter','1rem','normal'] },
+            H: { colors: ['#0F172A','#93C5FD','#1E293B','#F8FAFC','#93C5FD','#93C5FD','#1E3A8A'], font: ['#F8FAFC','Inter','1rem','bold'] },
+            I: { colors: ['#111827','#22D3EE','#164E63','#0F172A','#E5E7EB','#67E8F9','#083344'], font: ['#F9FAFB','system-ui','1rem','normal'] },
+            J: { colors: ['#052E16','#86EFAC','#14532D','#ECFDF5','#BBF7D0','#BBF7D0','#166534'], font: ['#F0FDF4','Inter','1rem','bold'] },
+            K: { colors: ['#030712','#FACC15','#27272A','#FAFAFA','#FDE047','#FDE047','#3F3F46'], font: ['#FAFAFA','Georgia','1.02rem','normal'] },
+            L: { colors: ['#FFFBEB','#B45309','#FEF3C7','#FFFFFF','#1F2937','#92400E','#FDE68A'], font: ['#1F2937','Georgia','1.02rem','normal'] },
+            M: { colors: ['#FFF1F2','#BE123C','#FFE4E6','#FFFFFF','#111827','#BE123C','#FFE4E6'], font: ['#111827','Poppins','1rem','bold'] },
+            N: { colors: ['#000000','#FFFFFF','#1F2937','#FFFFFF','#FACC15','#FACC15','#111827'], font: ['#FFFFFF','Arial','1rem','bold-underline'] },
+            O: { colors: ['#F0FDFA','#0D9488','#CCFBF1','#FFFFFF','#134E4A','#0F766E','#F0FDFA'], font: ['#134E4A','Inter','1rem','normal'] },
+            P: { colors: ['#F0F9FF','#0284C7','#E0F2FE','#FFFFFF','#0C4A6E','#0369A1','#F0F9FF'], font: ['#0C4A6E','Inter','1rem','normal'] },
+            Q: { colors: ['#ECFDF5','#059669','#D1FAE5','#FFFFFF','#065F46','#047857','#D1FAE5'], font: ['#065F46','Inter','1rem','normal'] },
+            R: { colors: ['#F0FDF4','#16A34A','#DCFCE7','#FFFFFF','#14532D','#15803D','#DCFCE7'], font: ['#14532D','Inter','1rem','normal'] },
+            S: { colors: ['#1D4ED8','#FBBF24','#1E40AF','#FFFFFF','#1D4ED8','#1E40AF','#EFF6FF'], font: ['#FFFFFF','Inter','1rem','bold'] },
+            T: { colors: ['#374151','#60A5FA','#4B5563','#FFFFFF','#374151','#2563EB','#EFF6FF'], font: ['#F9FAFB','Inter','1rem','normal'] }
         };
         var headerSchemeSettings = [
             'header_background_color',
@@ -3036,14 +3074,14 @@ function ncllc_pro_customizer_controls_js() {
         ];
 
         function syncResponsiveControl(control) {
-            var select = control.querySelector('.ncllc-header-responsive-device');
-            var values = control.querySelectorAll('[data-ncllc-responsive-value]');
+            var select = control.querySelector('.ajnanda-header-responsive-device');
+            var values = control.querySelectorAll('[data-ajnanda-responsive-value]');
             if (!select || !values.length) {
                 return;
             }
 
             values.forEach(function(value) {
-                value.classList.toggle('is-active', value.getAttribute('data-ncllc-responsive-value') === select.value);
+                value.classList.toggle('is-active', value.getAttribute('data-ajnanda-responsive-value') === select.value);
             });
         }
 
@@ -3095,12 +3133,12 @@ function ncllc_pro_customizer_controls_js() {
         }
 
         function initResponsiveControls() {
-            document.querySelectorAll('[data-ncllc-responsive-control]').forEach(function(control) {
-                var select = control.querySelector('.ncllc-header-responsive-device');
+            document.querySelectorAll('[data-ajnanda-responsive-control]').forEach(function(control) {
+                var select = control.querySelector('.ajnanda-header-responsive-device');
                 syncResponsiveControl(control);
 
-                if (select && !select.dataset.ncllcResponsiveReady) {
-                    select.dataset.ncllcResponsiveReady = '1';
+                if (select && !select.dataset.ajnandaResponsiveReady) {
+                    select.dataset.ajnandaResponsiveReady = '1';
                     select.addEventListener('change', function() {
                         syncResponsiveControl(control);
                     });
@@ -3111,7 +3149,7 @@ function ncllc_pro_customizer_controls_js() {
         document.addEventListener('DOMContentLoaded', initResponsiveControls);
         document.addEventListener('click', initResponsiveControls);
         document.addEventListener('change', function(event) {
-            var select = event.target.closest('[data-ncllc-header-scheme-select]');
+            var select = event.target.closest('[data-ajnanda-header-scheme-select]');
             if (!select || !select.value) {
                 return;
             }
@@ -3122,21 +3160,29 @@ function ncllc_pro_customizer_controls_js() {
         // Footer Color Schemes
         // colors: [bg, text, linkHover, divider, submenuBg, submenuText, submenuHover, submenuHoverBg]
         // font:   [family, size, weight]
+        // Footer schemes — colors: [bg, text, linkHover, divider, submenuBg, submenuText, submenuHoverColor, submenuHoverBg]
+        // font: [fontFamily, fontSize, fontWeight]
         var footerSchemes = {
-            A: { colors: ['#111827', '#f9fafb', '#f59e0b', '#374151', '#ffffff', '#1f2937', '#2563eb', '#f9fafb'],   font: ['inherit',   '1rem',    '400'] },
-            B: { colors: ['#1e293b', '#e2e8f0', '#818cf8', '#334155', '#ffffff', '#0f172a', '#6366f1', '#eef2ff'],   font: ['Inter',     '1rem',    '400'] },
-            C: { colors: ['#052e16', '#dcfce7', '#86efac', '#166534', '#f0fdf4', '#052e16', '#16a34a', '#dcfce7'],   font: ['Inter',     '1rem',    '500'] },
-            D: { colors: ['#18181b', '#f4f4f5', '#facc15', '#3f3f46', '#27272a', '#fafafa', '#fde047', '#3f3f46'],   font: ['system-ui', '1rem',    '400'] },
-            E: { colors: ['#0f2c36', '#f0fdfa', '#2dd4bf', '#134e4a', '#ffffff', '#134e4a', '#14b8a6', '#f0fdfa'],   font: ['Inter',     '1rem',    '400'] },
-            F: { colors: ['#1e1b4b', '#e0e7ff', '#a5b4fc', '#3730a3', '#ffffff', '#1e1b4b', '#818cf8', '#eef2ff'],   font: ['Poppins',   '1rem',    '500'] },
-            G: { colors: ['#0f172a', '#f1f5f9', '#22d3ee', '#1e293b', '#0f172a', '#e2e8f0', '#67e8f9', '#083344'],   font: ['Inter',     '1rem',    '400'] },
-            H: { colors: ['#1c1412', '#fef3c7', '#fbbf24', '#44403c', '#ffffff', '#1c1412', '#d97706', '#fef3c7'],   font: ['Georgia',   '1.02rem', '400'] },
-            I: { colors: ['#134e4a', '#ecfdf5', '#34d399', '#065f46', '#f0fdf4', '#052e16', '#10b981', '#d1fae5'],   font: ['Inter',     '1rem',    '500'] },
-            J: { colors: ['#000000', '#ffffff', '#facc15', '#27272a', '#18181b', '#fafafa', '#fde047', '#27272a'],   font: ['Arial',     '1rem',    '700'] },
-            K: { colors: ['#ffffff', '#111827', '#2563eb', '#e5e7eb', '#ffffff', '#111827', '#2563eb', '#eff6ff'],   font: ['Inter',     '1rem',    '400'] },
-            L: { colors: ['#f3f4f6', '#1f2937', '#2563eb', '#d1d5db', '#ffffff', '#1f2937', '#2563eb', '#eff6ff'],   font: ['Inter',     '1rem',    '400'] },
-            M: { colors: ['#fefce8', '#1c1917', '#ca8a04', '#fde68a', '#ffffff', '#1c1917', '#b45309', '#fef3c7'],   font: ['Georgia',   '1.02rem', '400'] },
-            N: { colors: ['#000000', '#ffffff', '#ffffff', '#ffffff', '#ffffff', '#000000', '#000000', '#ffffff'],   font: ['Arial',     '1rem',    '700'] }
+            A: { colors: ['#111827','#F9FAFB','#F59E0B','#374151','#FFFFFF','#1F2937','#2563EB','#F9FAFB'], font: ['inherit','1rem','400'] },
+            B: { colors: ['#1E293B','#E2E8F0','#818CF8','#334155','#FFFFFF','#0F172A','#6366F1','#EEF2FF'], font: ['Inter','1rem','400'] },
+            C: { colors: ['#1E3A5F','#F0F7FF','#60A5FA','#1E40AF','#FFFFFF','#1E3A5F','#3B82F6','#EFF6FF'], font: ['Inter','1rem','400'] },
+            D: { colors: ['#2E1065','#F3E8FF','#D8B4FE','#4C1D95','#FFFFFF','#2E1065','#C084FC','#FAF5FF'], font: ['Poppins','1rem','400'] },
+            E: { colors: ['#1E1B4B','#E0E7FF','#A5B4FC','#3730A3','#FFFFFF','#1E1B4B','#818CF8','#EEF2FF'], font: ['Poppins','1rem','500'] },
+            F: { colors: ['#1C1412','#FEF3C7','#FBBF24','#44403C','#FFFFFF','#1C1412','#D97706','#FEF3C7'], font: ['Georgia','1.02rem','400'] },
+            G: { colors: ['#1F2937','#F9FAFB','#60A5FA','#374151','#FFFFFF','#1F2937','#3B82F6','#EFF6FF'], font: ['Inter','1rem','400'] },
+            H: { colors: ['#0F172A','#F1F5F9','#22D3EE','#1E293B','#0F172A','#E2E8F0','#67E8F9','#083344'], font: ['Inter','1rem','400'] },
+            I: { colors: ['#0F2C36','#F0FDFA','#2DD4BF','#134E4A','#FFFFFF','#134E4A','#14B8A6','#F0FDFA'], font: ['Inter','1rem','400'] },
+            J: { colors: ['#052E16','#DCFCE7','#86EFAC','#166534','#F0FDF4','#052E16','#16A34A','#DCFCE7'], font: ['Inter','1rem','500'] },
+            K: { colors: ['#000000','#FFFFFF','#FACC15','#27272A','#18181B','#FAFAFA','#FDE047','#3F3F46'], font: ['Arial','1rem','700'] },
+            L: { colors: ['#FEFCE8','#1C1917','#CA8A04','#FDE68A','#FFFFFF','#1C1917','#B45309','#FEF3C7'], font: ['Georgia','1.02rem','400'] },
+            M: { colors: ['#4A1942','#FCE7F3','#F9A8D4','#831843','#FFFFFF','#4A1942','#EC4899','#FCE7F3'], font: ['Georgia','1rem','400'] },
+            N: { colors: ['#000000','#FFFFFF','#FFFFFF','#FFFFFF','#FFFFFF','#000000','#000000','#FFFFFF'], font: ['Arial','1rem','700'] },
+            O: { colors: ['#0F766E','#F0FDFA','#CCFBF1','#0D9488','#FFFFFF','#0F766E','#14B8A6','#F0FDFA'], font: ['Inter','1rem','400'] },
+            P: { colors: ['#0C4A6E','#E0F2FE','#38BDF8','#0369A1','#FFFFFF','#0C4A6E','#0EA5E9','#F0F9FF'], font: ['Inter','1rem','400'] },
+            Q: { colors: ['#134E4A','#ECFDF5','#34D399','#065F46','#F0FDF4','#052E16','#10B981','#D1FAE5'], font: ['Inter','1rem','500'] },
+            R: { colors: ['#F0FDF4','#14532D','#16A34A','#BBF7D0','#FFFFFF','#14532D','#15803D','#DCFCE7'], font: ['Inter','1rem','400'] },
+            S: { colors: ['#1D4ED8','#FFFFFF','#FBBF24','#3B82F6','#FFFFFF','#1D4ED8','#1E40AF','#EFF6FF'], font: ['Inter','1rem','700'] },
+            T: { colors: ['#374151','#F9FAFB','#60A5FA','#4B5563','#FFFFFF','#374151','#3B82F6','#EFF6FF'], font: ['Inter','1rem','400'] }
         };
 
         var footerSchemeColorSettings = [
@@ -3209,7 +3255,7 @@ function ncllc_pro_customizer_controls_js() {
         }
 
         document.addEventListener('change', function(event) {
-            var select = event.target.closest('[data-ncllc-footer-scheme-select]');
+            var select = event.target.closest('[data-ajnanda-footer-scheme-select]');
             if (!select || !select.value) {
                 return;
             }
@@ -3220,12 +3266,12 @@ function ncllc_pro_customizer_controls_js() {
     </script>
     <?php
 }
-add_action('customize_controls_print_footer_scripts', 'ncllc_pro_customizer_controls_js');
+add_action('customize_controls_print_footer_scripts', 'ajnanda_customizer_controls_js');
 
-function ncllc_pro_theme_mod_with_legacy_default($setting_id, $default, $legacy_defaults = array()) {
+function ajnanda_theme_mod_with_legacy_default($setting_id, $default, $legacy_defaults = array()) {
     $value = get_theme_mod($setting_id, $default);
 
-    if (ncllc_pro_is_legacy_css_size_value($value, $legacy_defaults)) {
+    if (ajnanda_is_legacy_css_size_value($value, $legacy_defaults)) {
         return $default;
     }
 
@@ -3235,10 +3281,10 @@ function ncllc_pro_theme_mod_with_legacy_default($setting_id, $default, $legacy_
 /**
  * Live preview JavaScript for customizer
  */
-function ncllc_pro_customizer_live_preview() {
+function ajnanda_customizer_live_preview() {
     $builder_insert_choices = array(
-        'header' => ncllc_pro_builder_insert_choices('header'),
-        'footer' => ncllc_pro_builder_insert_choices('footer'),
+        'header' => ajnanda_builder_insert_choices('header'),
+        'footer' => ajnanda_builder_insert_choices('footer'),
     );
     ?>
     <script type="text/javascript">
@@ -3269,19 +3315,19 @@ function ncllc_pro_customizer_live_preview() {
         devices.forEach(function(device) {
             wp.customize('logo_height_' + device, function(value) {
                 value.bind(function(newval) {
-                    document.documentElement.style.setProperty('--ncllc-logo-height-' + device, newval + 'px');
+                    document.documentElement.style.setProperty('--ajnanda-logo-height-' + device, newval + 'px');
                 });
             });
 
             wp.customize('header_padding_' + device, function(value) {
                 value.bind(function(newval) {
-                    document.documentElement.style.setProperty('--ncllc-header-padding-' + device, newval + 'rem');
+                    document.documentElement.style.setProperty('--ajnanda-header-padding-' + device, newval + 'rem');
                 });
             });
 
             wp.customize('header_height_' + device, function(value) {
                 value.bind(function(newval) {
-                    document.documentElement.style.setProperty('--ncllc-header-height-' + device, normalizeCssSize(newval));
+                    document.documentElement.style.setProperty('--ajnanda-header-height-' + device, normalizeCssSize(newval));
                 });
             });
         });
@@ -3696,7 +3742,7 @@ function ncllc_pro_customizer_live_preview() {
 /**
  * Output custom CSS for customizer settings
  */
-function ncllc_pro_customizer_css() {
+function ajnanda_customizer_css() {
     $theme_primary_color = get_theme_mod('theme_primary_color', '#2563eb');
     $theme_primary_dark_color = get_theme_mod('theme_primary_dark_color', '#1e40af');
     $theme_secondary_color = get_theme_mod('theme_secondary_color', '#7c3aed');
@@ -3768,15 +3814,15 @@ function ncllc_pro_customizer_css() {
     $hero_button_bg = get_theme_mod('hero_button_bg', '#ffffff');
     $hero_button_text_color = get_theme_mod('hero_button_text_color', '#2563eb');
 
-    $hero_min_height_desktop = ncllc_pro_theme_mod_with_legacy_default('hero_min_height_desktop', '50px', array('450px'));
-    $hero_min_height_tablet = ncllc_pro_theme_mod_with_legacy_default('hero_min_height_tablet', '50px', array('400px'));
-    $hero_min_height_mobile = ncllc_pro_theme_mod_with_legacy_default('hero_min_height_mobile', '50px', array('340px'));
-    $hero_padding_top_desktop = ncllc_pro_theme_mod_with_legacy_default('hero_padding_top_desktop', '1rem', array('7rem', '8rem'));
-    $hero_padding_bottom_desktop = ncllc_pro_theme_mod_with_legacy_default('hero_padding_bottom_desktop', '1rem', array('4rem'));
-    $hero_padding_top_tablet = ncllc_pro_theme_mod_with_legacy_default('hero_padding_top_tablet', '1rem', array('6rem', '7rem'));
-    $hero_padding_bottom_tablet = ncllc_pro_theme_mod_with_legacy_default('hero_padding_bottom_tablet', '1rem', array('3.5rem'));
-    $hero_padding_top_mobile = ncllc_pro_theme_mod_with_legacy_default('hero_padding_top_mobile', '1rem', array('5rem', '6rem'));
-    $hero_padding_bottom_mobile = ncllc_pro_theme_mod_with_legacy_default('hero_padding_bottom_mobile', '1rem', array('3rem'));
+    $hero_min_height_desktop = ajnanda_theme_mod_with_legacy_default('hero_min_height_desktop', '50px', array('450px'));
+    $hero_min_height_tablet = ajnanda_theme_mod_with_legacy_default('hero_min_height_tablet', '50px', array('400px'));
+    $hero_min_height_mobile = ajnanda_theme_mod_with_legacy_default('hero_min_height_mobile', '50px', array('340px'));
+    $hero_padding_top_desktop = ajnanda_theme_mod_with_legacy_default('hero_padding_top_desktop', '1rem', array('7rem', '8rem'));
+    $hero_padding_bottom_desktop = ajnanda_theme_mod_with_legacy_default('hero_padding_bottom_desktop', '1rem', array('4rem'));
+    $hero_padding_top_tablet = ajnanda_theme_mod_with_legacy_default('hero_padding_top_tablet', '1rem', array('6rem', '7rem'));
+    $hero_padding_bottom_tablet = ajnanda_theme_mod_with_legacy_default('hero_padding_bottom_tablet', '1rem', array('3.5rem'));
+    $hero_padding_top_mobile = ajnanda_theme_mod_with_legacy_default('hero_padding_top_mobile', '1rem', array('5rem', '6rem'));
+    $hero_padding_bottom_mobile = ajnanda_theme_mod_with_legacy_default('hero_padding_bottom_mobile', '1rem', array('3rem'));
     ?>
     <style type="text/css">
         :root {
@@ -3821,15 +3867,15 @@ function ncllc_pro_customizer_css() {
             --ast-global-color-2: <?php echo esc_attr($theme_secondary_color); ?>;
             --ast-global-color-7: <?php echo esc_attr($theme_accent_color); ?>;
 
-            --ncllc-logo-height-desktop: <?php echo esc_attr($logo_height_desktop); ?>px;
-            --ncllc-logo-height-tablet: <?php echo esc_attr($logo_height_tablet); ?>px;
-            --ncllc-logo-height-mobile: <?php echo esc_attr($logo_height_mobile); ?>px;
-            --ncllc-header-padding-desktop: <?php echo esc_attr($header_padding_desktop); ?>rem;
-            --ncllc-header-padding-tablet: <?php echo esc_attr($header_padding_tablet); ?>rem;
-            --ncllc-header-padding-mobile: <?php echo esc_attr($header_padding_mobile); ?>rem;
-            --ncllc-header-height-desktop: <?php echo esc_attr($header_height_desktop); ?>;
-            --ncllc-header-height-tablet: <?php echo esc_attr($header_height_tablet); ?>;
-            --ncllc-header-height-mobile: <?php echo esc_attr($header_height_mobile); ?>;
+            --ajnanda-logo-height-desktop: <?php echo esc_attr($logo_height_desktop); ?>px;
+            --ajnanda-logo-height-tablet: <?php echo esc_attr($logo_height_tablet); ?>px;
+            --ajnanda-logo-height-mobile: <?php echo esc_attr($logo_height_mobile); ?>px;
+            --ajnanda-header-padding-desktop: <?php echo esc_attr($header_padding_desktop); ?>rem;
+            --ajnanda-header-padding-tablet: <?php echo esc_attr($header_padding_tablet); ?>rem;
+            --ajnanda-header-padding-mobile: <?php echo esc_attr($header_padding_mobile); ?>rem;
+            --ajnanda-header-height-desktop: <?php echo esc_attr($header_height_desktop); ?>;
+            --ajnanda-header-height-tablet: <?php echo esc_attr($header_height_tablet); ?>;
+            --ajnanda-header-height-mobile: <?php echo esc_attr($header_height_mobile); ?>;
 
             --ajn-hero-bg-1: <?php echo esc_attr($hero_bg_1); ?>;
             --ajn-hero-bg-2: <?php echo esc_attr($hero_bg_2); ?>;
@@ -3852,63 +3898,63 @@ function ncllc_pro_customizer_css() {
 
         .site-branding img,
         .custom-logo-link img {
-            max-height: var(--ncllc-logo-height-desktop) !important;
+            max-height: var(--ajnanda-logo-height-desktop) !important;
         }
 
         .header-container {
             max-width: var(--ajn-header-container-width) !important;
-            min-height: var(--ncllc-header-height-desktop) !important;
-            padding-top: var(--ncllc-header-padding-desktop) !important;
-            padding-bottom: var(--ncllc-header-padding-desktop) !important;
+            min-height: var(--ajnanda-header-height-desktop) !important;
+            padding-top: var(--ajnanda-header-padding-desktop) !important;
+            padding-bottom: var(--ajnanda-header-padding-desktop) !important;
         }
 
         .header-builder-container {
             max-width: var(--ajn-header-container-width) !important;
-            min-height: var(--ncllc-header-height-desktop) !important;
+            min-height: var(--ajnanda-header-height-desktop) !important;
         }
 
         @media (max-width: 1024px) {
             .site-branding img,
             .custom-logo-link img {
-                max-height: var(--ncllc-logo-height-tablet) !important;
+                max-height: var(--ajnanda-logo-height-tablet) !important;
             }
 
             .header-container {
-                min-height: var(--ncllc-header-height-tablet) !important;
-                padding-top: var(--ncllc-header-padding-tablet) !important;
-                padding-bottom: var(--ncllc-header-padding-tablet) !important;
+                min-height: var(--ajnanda-header-height-tablet) !important;
+                padding-top: var(--ajnanda-header-padding-tablet) !important;
+                padding-bottom: var(--ajnanda-header-padding-tablet) !important;
             }
 
             .header-builder-container {
-                min-height: var(--ncllc-header-height-tablet) !important;
+                min-height: var(--ajnanda-header-height-tablet) !important;
             }
         }
 
         @media (max-width: 768px) {
             .site-branding img,
             .custom-logo-link img {
-                max-height: var(--ncllc-logo-height-mobile) !important;
+                max-height: var(--ajnanda-logo-height-mobile) !important;
             }
 
             .header-container {
-                min-height: var(--ncllc-header-height-mobile) !important;
-                padding-top: var(--ncllc-header-padding-mobile) !important;
-                padding-bottom: var(--ncllc-header-padding-mobile) !important;
+                min-height: var(--ajnanda-header-height-mobile) !important;
+                padding-top: var(--ajnanda-header-padding-mobile) !important;
+                padding-bottom: var(--ajnanda-header-padding-mobile) !important;
             }
 
             .header-builder-container {
-                min-height: var(--ncllc-header-height-mobile) !important;
+                min-height: var(--ajnanda-header-height-mobile) !important;
             }
         }
     </style>
     <?php
 }
-add_action('wp_head', 'ncllc_pro_customizer_css');
+add_action('wp_head', 'ajnanda_customizer_css');
 
 /**
  * Add theme support for Gutenberg
  */
-function ncllc_pro_gutenberg_support() {
+function ajnanda_gutenberg_support() {
     add_theme_support('align-wide');
     add_theme_support('appearance-tools');
     add_theme_support('responsive-embeds');
@@ -3918,80 +3964,80 @@ function ncllc_pro_gutenberg_support() {
     add_theme_support('custom-units', array('px', 'rem', 'em', '%', 'vh', 'vw'));
     add_theme_support('editor-color-palette', array(
         array(
-            'name'  => __('Primary Blue', 'ncllc-pro'),
+            'name'  => __('Primary Blue', 'ajnanda'),
             'slug'  => 'primary-blue',
             'color' => '#2563eb',
         ),
         array(
-            'name'  => __('Deep Blue', 'ncllc-pro'),
+            'name'  => __('Deep Blue', 'ajnanda'),
             'slug'  => 'deep-blue',
             'color' => '#1e40af',
         ),
         array(
-            'name'  => __('Purple', 'ncllc-pro'),
+            'name'  => __('Purple', 'ajnanda'),
             'slug'  => 'purple',
             'color' => '#7c3aed',
         ),
         array(
-            'name'  => __('Gold', 'ncllc-pro'),
+            'name'  => __('Gold', 'ajnanda'),
             'slug'  => 'gold',
             'color' => '#f59e0b',
         ),
         array(
-            'name'  => __('Ink', 'ncllc-pro'),
+            'name'  => __('Ink', 'ajnanda'),
             'slug'  => 'ink',
             'color' => '#111827',
         ),
         array(
-            'name'  => __('Soft Gray', 'ncllc-pro'),
+            'name'  => __('Soft Gray', 'ajnanda'),
             'slug'  => 'soft-gray',
             'color' => '#f3f4f6',
         ),
         array(
-            'name'  => __('White', 'ncllc-pro'),
+            'name'  => __('White', 'ajnanda'),
             'slug'  => 'white',
             'color' => '#ffffff',
         ),
     ));
     add_editor_style('style.css');
 }
-add_action('after_setup_theme', 'ncllc_pro_gutenberg_support');
+add_action('after_setup_theme', 'ajnanda_gutenberg_support');
 
 /**
  * Add editor patterns for lightweight page-builder workflows.
  */
-function ncllc_pro_register_block_patterns() {
+function ajnanda_register_block_patterns() {
     if (!function_exists('register_block_pattern')) {
         return;
     }
 
-    register_block_pattern_category('ncllc-builder', array(
-        'label' => __('NCLLC Builder Sections', 'ncllc-pro'),
+    register_block_pattern_category('ajnanda-builder', array(
+        'label' => __('NCLLC Builder Sections', 'ajnanda'),
     ));
 
-    register_block_pattern('ncllc-pro/editable-hero', array(
-        'title'       => __('Theme Hero', 'ncllc-pro'),
-        'description' => __('A full-width page or post hero that uses the theme hero defaults until you override it on the block.', 'ncllc-pro'),
-        'categories'  => array('ncllc-builder'),
-        'keywords'    => array(__('hero', 'ncllc-pro'), __('page header', 'ncllc-pro'), __('post header', 'ncllc-pro')),
+    register_block_pattern('ajnanda-pro/editable-hero', array(
+        'title'       => __('Theme Hero', 'ajnanda'),
+        'description' => __('A full-width page or post hero that uses the theme hero defaults until you override it on the block.', 'ajnanda'),
+        'categories'  => array('ajnanda-builder'),
+        'keywords'    => array(__('hero', 'ajnanda'), __('page header', 'ajnanda'), __('post header', 'ajnanda')),
         'content'     => '<!-- wp:group {"align":"full","className":"builder-hero-section hero-width-full","layout":{"type":"flex","orientation":"vertical","justifyContent":"center","verticalAlignment":"center","flexWrap":"nowrap"}} --><div class="wp-block-group alignfull builder-hero-section hero-width-full"><!-- wp:heading {"textAlign":"center","level":1} --><h1 class="wp-block-heading has-text-align-center">Page Hero</h1><!-- /wp:heading --></div><!-- /wp:group -->',
     ));
 
-    register_block_pattern('ncllc-pro/three-feature-cards', array(
-        'title'       => __('Three Feature Cards', 'ncllc-pro'),
-        'description' => __('A three-column card section for service highlights.', 'ncllc-pro'),
-        'categories'  => array('ncllc-builder'),
+    register_block_pattern('ajnanda-pro/three-feature-cards', array(
+        'title'       => __('Three Feature Cards', 'ajnanda'),
+        'description' => __('A three-column card section for service highlights.', 'ajnanda'),
+        'categories'  => array('ajnanda-builder'),
         'content'     => '<!-- wp:group {"align":"full","className":"builder-section builder-section-soft","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull builder-section builder-section-soft"><!-- wp:heading {"textAlign":"center"} --><h2 class="wp-block-heading has-text-align-center">What You Can Edit</h2><!-- /wp:heading --><!-- wp:paragraph {"align":"center","className":"builder-section-intro"} --><p class="has-text-align-center builder-section-intro">Use columns, cards, buttons, images, lists, forms, and reusable sections without touching code.</p><!-- /wp:paragraph --><!-- wp:columns {"className":"builder-card-grid"} --><div class="wp-block-columns builder-card-grid"><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"builder-card","layout":{"type":"constrained"}} --><div class="wp-block-group builder-card"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">Service Detail</h3><!-- /wp:heading --><!-- wp:paragraph --><p>Add or change service descriptions, calls to action, and supporting copy directly on the page.</p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column --><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"builder-card","layout":{"type":"constrained"}} --><div class="wp-block-group builder-card"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">Trust Builder</h3><!-- /wp:heading --><!-- wp:paragraph --><p>Use this card for testimonials, compliance details, process steps, or proof points.</p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column --><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"builder-card","layout":{"type":"constrained"}} --><div class="wp-block-group builder-card"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">Fast CTA</h3><!-- /wp:heading --><!-- wp:paragraph --><p>Point visitors to your contact page, phone number, quote form, or service comparison.</p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column --></div><!-- /wp:columns --></div><!-- /wp:group -->',
     ));
 
-    register_block_pattern('ncllc-pro/split-content-cta', array(
-        'title'       => __('Split Content CTA', 'ncllc-pro'),
-        'description' => __('A two-column section with copy and a call to action.', 'ncllc-pro'),
-        'categories'  => array('ncllc-builder'),
+    register_block_pattern('ajnanda-pro/split-content-cta', array(
+        'title'       => __('Split Content CTA', 'ajnanda'),
+        'description' => __('A two-column section with copy and a call to action.', 'ajnanda'),
+        'categories'  => array('ajnanda-builder'),
         'content'     => '<!-- wp:group {"align":"full","className":"builder-section","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull builder-section"><!-- wp:columns {"verticalAlignment":"center","className":"builder-split"} --><div class="wp-block-columns are-vertically-aligned-center builder-split"><!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center"><!-- wp:heading --><h2 class="wp-block-heading">Build Pages Visually</h2><!-- /wp:heading --><!-- wp:paragraph --><p>Select this section, duplicate it, drag it above or below other sections, and edit the text/buttons in place.</p><!-- /wp:paragraph --></div><!-- /wp:column --><!-- wp:column {"verticalAlignment":"center","className":"builder-cta-panel"} --><div class="wp-block-column is-vertically-aligned-center builder-cta-panel"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">Need a registered agent?</h3><!-- /wp:heading --><!-- wp:paragraph --><p>Keep your North Carolina LLC compliant with a reliable local registered agent.</p><!-- /wp:paragraph --><!-- wp:buttons --><div class="wp-block-buttons"><!-- wp:button --><div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="/contact/">Contact Us</a></div><!-- /wp:button --></div><!-- /wp:buttons --></div><!-- /wp:column --></div><!-- /wp:columns --></div><!-- /wp:group -->',
     ));
 }
-add_action('init', 'ncllc_pro_register_block_patterns');
+add_action('init', 'ajnanda_register_block_patterns');
 require_once get_template_directory() . '/inc/github-theme-updater.php';
 require_once get_template_directory() . '/inc/duplicate-content.php';
 require_once get_template_directory() . '/blocks/ajnanda-blocks/loader.php';
@@ -4002,9 +4048,9 @@ require_once get_template_directory() . '/blocks/ajnanda-blocks/loader.php';
 // Settings appear in Appearance → Menus → Manage Locations tab.
 // =============================================================================
 
-define('NCLLC_PRO_MENU_TOGGLES_OPTION', 'ncllc_menu_toggles');
+define('AJNANDA_MENU_TOGGLES_OPTION', 'ajnanda_menu_toggles');
 
-function ncllc_pro_menu_toggle_defaults(): array {
+function ajnanda_menu_toggle_defaults(): array {
     return [
         'top_navigation'                 => 1,
         'top_navigation_desktop'         => 1,
@@ -4036,53 +4082,60 @@ function ncllc_pro_menu_toggle_defaults(): array {
     ];
 }
 
-function ncllc_pro_get_menu_toggles(): array {
-    $saved = get_option(NCLLC_PRO_MENU_TOGGLES_OPTION, []);
+function ajnanda_get_menu_toggles(): array {
+    $saved = get_option(AJNANDA_MENU_TOGGLES_OPTION, []);
     if (!is_array($saved)) {
         $saved = [];
     }
-    // One-time migration from previous upos_menu_toggles option
+    // One-time migration from ncllc_menu_toggles (renamed to ajnanda_menu_toggles)
+    if (empty($saved)) {
+        $legacy = get_option('ncllc_menu_toggles', []);
+        if (!empty($legacy) && is_array($legacy)) {
+            $saved = $legacy;
+        }
+    }
+    // One-time migration from original upos_menu_toggles option
     if (empty($saved)) {
         $legacy = get_option('upos_menu_toggles', []);
         if (!empty($legacy) && is_array($legacy)) {
             $saved = $legacy;
         }
     }
-    return wp_parse_args($saved, ncllc_pro_menu_toggle_defaults());
+    return wp_parse_args($saved, ajnanda_menu_toggle_defaults());
 }
 
-function ncllc_pro_menu_toggle_enabled(string $key): bool {
-    return !empty(ncllc_pro_get_menu_toggles()[$key]);
+function ajnanda_menu_toggle_enabled(string $key): bool {
+    return !empty(ajnanda_get_menu_toggles()[$key]);
 }
 
-function ncllc_pro_menu_toggle_mode(string $key): string {
-    $mode = ncllc_pro_get_menu_toggles()[$key] ?? 'floating';
+function ajnanda_menu_toggle_mode(string $key): string {
+    $mode = ajnanda_get_menu_toggles()[$key] ?? 'floating';
     return in_array($mode, ['floating', 'inline'], true) ? $mode : 'floating';
 }
 
-function ncllc_pro_menu_toggle_visible_on_device(string $prefix, string $device): bool {
-    return !empty(ncllc_pro_get_menu_toggles()["{$prefix}_{$device}"]);
+function ajnanda_menu_toggle_visible_on_device(string $prefix, string $device): bool {
+    return !empty(ajnanda_get_menu_toggles()["{$prefix}_{$device}"]);
 }
 
-function ncllc_pro_menu_toggle_visibility_classes(string $prefix): string {
+function ajnanda_menu_toggle_visibility_classes(string $prefix): string {
     $classes = [];
     foreach (['desktop', 'tablet', 'mobile'] as $device) {
-        if (ncllc_pro_menu_toggle_visible_on_device($prefix, $device)) {
+        if (ajnanda_menu_toggle_visible_on_device($prefix, $device)) {
             $classes[] = "upos-show-{$device}";
         }
     }
     return implode(' ', $classes);
 }
 
-function ncllc_pro_render_menu_device_checkboxes(string $prefix, array $settings): void {
-    $option = NCLLC_PRO_MENU_TOGGLES_OPTION;
+function ajnanda_render_menu_device_checkboxes(string $prefix, array $settings): void {
+    $option = AJNANDA_MENU_TOGGLES_OPTION;
     $labels = [
-        'desktop' => __('Computer', 'ncllc-pro'),
-        'tablet'  => __('Tablet', 'ncllc-pro'),
-        'mobile'  => __('Phone', 'ncllc-pro'),
+        'desktop' => __('Computer', 'ajnanda'),
+        'tablet'  => __('Tablet', 'ajnanda'),
+        'mobile'  => __('Phone', 'ajnanda'),
     ];
     ?>
-    <p style="margin:10px 0 0;"><strong><?php esc_html_e('Display on:', 'ncllc-pro'); ?></strong></p>
+    <p style="margin:10px 0 0;"><strong><?php esc_html_e('Display on:', 'ajnanda'); ?></strong></p>
     <p style="margin-top:8px;">
         <?php foreach ($labels as $device => $label) : ?>
             <label style="display:inline-block;margin:0 18px 8px 0;">
@@ -4099,13 +4152,13 @@ function ncllc_pro_render_menu_device_checkboxes(string $prefix, array $settings
 
 add_action('admin_init', function (): void {
     register_setting(
-        'ncllc_pro_menu_toggles',
-        NCLLC_PRO_MENU_TOGGLES_OPTION,
+        'ajnanda_menu_toggles',
+        AJNANDA_MENU_TOGGLES_OPTION,
         [
             'type'              => 'array',
             'sanitize_callback' => static function ($value): array {
                 $value     = is_array($value) ? $value : [];
-                $defaults  = ncllc_pro_menu_toggle_defaults();
+                $defaults  = ajnanda_menu_toggle_defaults();
                 $sanitized = [];
                 foreach (array_keys($defaults) as $key) {
                     if (str_ends_with($key, '_mode')) {
@@ -4122,7 +4175,7 @@ add_action('admin_init', function (): void {
                 }
                 return $sanitized;
             },
-            'default' => ncllc_pro_menu_toggle_defaults(),
+            'default' => ajnanda_menu_toggle_defaults(),
         ]
     );
 });
@@ -4134,7 +4187,7 @@ add_action('admin_notices', function (): void {
     }
     if (!empty($_GET['settings-updated'])) {
         echo '<div class="notice notice-success is-dismissible"><p>'
-            . esc_html__('Menu visibility settings saved.', 'ncllc-pro')
+            . esc_html__('Menu visibility settings saved.', 'ajnanda')
             . '</p></div>';
     }
 });
@@ -4144,79 +4197,79 @@ add_action('admin_footer-nav-menus.php', function (): void {
         return;
     }
 
-    $settings    = ncllc_pro_get_menu_toggles();
-    $option      = NCLLC_PRO_MENU_TOGGLES_OPTION;
-    $group       = 'ncllc_pro_menu_toggles';
-    $left_label  = get_theme_mod('ncllc_left_panel_label', __('Left Floater Panel', 'ncllc-pro'));
-    $right_label = get_theme_mod('ncllc_right_panel_label', __('Right Floater Panel', 'ncllc-pro'));
+    $settings    = ajnanda_get_menu_toggles();
+    $option      = AJNANDA_MENU_TOGGLES_OPTION;
+    $group       = 'ajnanda_menu_toggles';
+    $left_label  = get_theme_mod('ajnanda_left_panel_label', __('Left Floater Panel', 'ajnanda'));
+    $right_label = get_theme_mod('ajnanda_right_panel_label', __('Right Floater Panel', 'ajnanda'));
     $positions   = [
-        'top_left'     => __('Top Left', 'ncllc-pro'),
-        'top_right'    => __('Top Right', 'ncllc-pro'),
-        'bottom_left'  => __('Bottom Left', 'ncllc-pro'),
-        'bottom_right' => __('Bottom Right', 'ncllc-pro'),
+        'top_left'     => __('Top Left', 'ajnanda'),
+        'top_right'    => __('Top Right', 'ajnanda'),
+        'bottom_left'  => __('Bottom Left', 'ajnanda'),
+        'bottom_right' => __('Bottom Right', 'ajnanda'),
     ];
     ?>
-    <div id="ncllc-menu-toggles-panel" style="display:none;">
+    <div id="ajnanda-menu-toggles-panel" style="display:none;">
         <hr style="margin:28px 0 18px;border-top:1px solid #ddd;">
-        <h3 style="margin:0 0 6px;color:#1d2327;font-size:14px;"><?php esc_html_e('Menu Visibility &amp; Behaviour', 'ncllc-pro'); ?></h3>
-        <p style="margin:0 0 16px;color:#646970;"><?php esc_html_e('Control which menus appear and how they behave on different devices.', 'ncllc-pro'); ?></p>
+        <h3 style="margin:0 0 6px;color:#1d2327;font-size:14px;"><?php esc_html_e('Menu Visibility &amp; Behaviour', 'ajnanda'); ?></h3>
+        <p style="margin:0 0 16px;color:#646970;"><?php esc_html_e('Control which menus appear and how they behave on different devices.', 'ajnanda'); ?></p>
         <form method="post" action="options.php">
             <?php settings_fields($group); ?>
             <table class="form-table" role="presentation">
                 <tbody>
                     <tr>
-                        <th scope="row"><strong><?php esc_html_e('Top Navigation', 'ncllc-pro'); ?></strong></th>
+                        <th scope="row"><strong><?php esc_html_e('Top Navigation', 'ajnanda'); ?></strong></th>
                         <td>
-                            <label><input type="checkbox" name="<?php echo esc_attr($option); ?>[top_navigation]" value="1" <?php checked(!empty($settings['top_navigation'])); ?>> <?php esc_html_e('Show the main top menu', 'ncllc-pro'); ?></label>
-                            <?php ncllc_pro_render_menu_device_checkboxes('top_navigation', $settings); ?>
-                            <p style="margin-top:8px;"><label><input type="checkbox" name="<?php echo esc_attr($option); ?>[top_navigation_sticky]" value="1" <?php checked(!empty($settings['top_navigation_sticky'])); ?>> <?php esc_html_e('Keep the top navigation sticky while scrolling', 'ncllc-pro'); ?></label></p>
+                            <label><input type="checkbox" name="<?php echo esc_attr($option); ?>[top_navigation]" value="1" <?php checked(!empty($settings['top_navigation'])); ?>> <?php esc_html_e('Show the main top menu', 'ajnanda'); ?></label>
+                            <?php ajnanda_render_menu_device_checkboxes('top_navigation', $settings); ?>
+                            <p style="margin-top:8px;"><label><input type="checkbox" name="<?php echo esc_attr($option); ?>[top_navigation_sticky]" value="1" <?php checked(!empty($settings['top_navigation_sticky'])); ?>> <?php esc_html_e('Keep the top navigation sticky while scrolling', 'ajnanda'); ?></label></p>
                         </td>
                     </tr>
-                    <?php if (get_theme_mod('ncllc_left_panel_enabled', false)) : ?>
+                    <?php if (get_theme_mod('ajnanda_left_panel_enabled', false)) : ?>
                     <tr>
                         <th scope="row"><strong><?php echo esc_html(strtoupper($left_label)); ?></strong></th>
                         <td>
-                            <label><input type="checkbox" name="<?php echo esc_attr($option); ?>[office_shortcuts]" value="1" <?php checked(!empty($settings['office_shortcuts'])); ?>> <?php esc_html_e('Show the left floating shortcuts menu', 'ncllc-pro'); ?></label>
-                            <?php ncllc_pro_render_menu_device_checkboxes('office_shortcuts', $settings); ?>
+                            <label><input type="checkbox" name="<?php echo esc_attr($option); ?>[office_shortcuts]" value="1" <?php checked(!empty($settings['office_shortcuts'])); ?>> <?php esc_html_e('Show the left floating shortcuts menu', 'ajnanda'); ?></label>
+                            <?php ajnanda_render_menu_device_checkboxes('office_shortcuts', $settings); ?>
                             <p style="margin-top:8px;">
-                                <label style="margin-right:16px;"><input type="radio" name="<?php echo esc_attr($option); ?>[office_shortcuts_mode]" value="floating" <?php checked(($settings['office_shortcuts_mode'] ?? 'floating') === 'floating'); ?>> <?php esc_html_e('Floating', 'ncllc-pro'); ?></label>
-                                <label><input type="radio" name="<?php echo esc_attr($option); ?>[office_shortcuts_mode]" value="inline" <?php checked(($settings['office_shortcuts_mode'] ?? 'floating') === 'inline'); ?>> <?php esc_html_e('Inline / non-floating', 'ncllc-pro'); ?></label>
+                                <label style="margin-right:16px;"><input type="radio" name="<?php echo esc_attr($option); ?>[office_shortcuts_mode]" value="floating" <?php checked(($settings['office_shortcuts_mode'] ?? 'floating') === 'floating'); ?>> <?php esc_html_e('Floating', 'ajnanda'); ?></label>
+                                <label><input type="radio" name="<?php echo esc_attr($option); ?>[office_shortcuts_mode]" value="inline" <?php checked(($settings['office_shortcuts_mode'] ?? 'floating') === 'inline'); ?>> <?php esc_html_e('Inline / non-floating', 'ajnanda'); ?></label>
                             </p>
                         </td>
                     </tr>
                     <?php endif; ?>
-                    <?php if (get_theme_mod('ncllc_right_panel_enabled', false)) : ?>
+                    <?php if (get_theme_mod('ajnanda_right_panel_enabled', false)) : ?>
                     <tr>
                         <th scope="row"><strong><?php echo esc_html(strtoupper($right_label)); ?></strong></th>
                         <td>
-                            <label><input type="checkbox" name="<?php echo esc_attr($option); ?>[store_shortcuts]" value="1" <?php checked(!empty($settings['store_shortcuts'])); ?>> <?php esc_html_e('Show the right floating shortcuts menu', 'ncllc-pro'); ?></label>
-                            <?php ncllc_pro_render_menu_device_checkboxes('store_shortcuts', $settings); ?>
+                            <label><input type="checkbox" name="<?php echo esc_attr($option); ?>[store_shortcuts]" value="1" <?php checked(!empty($settings['store_shortcuts'])); ?>> <?php esc_html_e('Show the right floating shortcuts menu', 'ajnanda'); ?></label>
+                            <?php ajnanda_render_menu_device_checkboxes('store_shortcuts', $settings); ?>
                             <p style="margin-top:8px;">
-                                <label style="margin-right:16px;"><input type="radio" name="<?php echo esc_attr($option); ?>[store_shortcuts_mode]" value="floating" <?php checked(($settings['store_shortcuts_mode'] ?? 'floating') === 'floating'); ?>> <?php esc_html_e('Floating', 'ncllc-pro'); ?></label>
-                                <label><input type="radio" name="<?php echo esc_attr($option); ?>[store_shortcuts_mode]" value="inline" <?php checked(($settings['store_shortcuts_mode'] ?? 'floating') === 'inline'); ?>> <?php esc_html_e('Inline / non-floating', 'ncllc-pro'); ?></label>
+                                <label style="margin-right:16px;"><input type="radio" name="<?php echo esc_attr($option); ?>[store_shortcuts_mode]" value="floating" <?php checked(($settings['store_shortcuts_mode'] ?? 'floating') === 'floating'); ?>> <?php esc_html_e('Floating', 'ajnanda'); ?></label>
+                                <label><input type="radio" name="<?php echo esc_attr($option); ?>[store_shortcuts_mode]" value="inline" <?php checked(($settings['store_shortcuts_mode'] ?? 'floating') === 'inline'); ?>> <?php esc_html_e('Inline / non-floating', 'ajnanda'); ?></label>
                             </p>
                         </td>
                     </tr>
                     <?php endif; ?>
                     <tr>
-                        <th scope="row"><strong><?php esc_html_e('Bottom Navigation', 'ncllc-pro'); ?></strong></th>
+                        <th scope="row"><strong><?php esc_html_e('Bottom Navigation', 'ajnanda'); ?></strong></th>
                         <td>
-                            <label><input type="checkbox" name="<?php echo esc_attr($option); ?>[bottom_navigation]" value="1" <?php checked(!empty($settings['bottom_navigation'])); ?>> <?php esc_html_e('Show the footer menu', 'ncllc-pro'); ?></label>
-                            <?php ncllc_pro_render_menu_device_checkboxes('bottom_navigation', $settings); ?>
-                            <p style="margin-top:8px;"><label><input type="checkbox" name="<?php echo esc_attr($option); ?>[bottom_navigation_sticky]" value="1" <?php checked(!empty($settings['bottom_navigation_sticky'])); ?>> <?php esc_html_e('Keep the footer menu visible at the bottom of the screen', 'ncllc-pro'); ?></label></p>
+                            <label><input type="checkbox" name="<?php echo esc_attr($option); ?>[bottom_navigation]" value="1" <?php checked(!empty($settings['bottom_navigation'])); ?>> <?php esc_html_e('Show the footer menu', 'ajnanda'); ?></label>
+                            <?php ajnanda_render_menu_device_checkboxes('bottom_navigation', $settings); ?>
+                            <p style="margin-top:8px;"><label><input type="checkbox" name="<?php echo esc_attr($option); ?>[bottom_navigation_sticky]" value="1" <?php checked(!empty($settings['bottom_navigation_sticky'])); ?>> <?php esc_html_e('Keep the footer menu visible at the bottom of the screen', 'ajnanda'); ?></label></p>
                         </td>
                     </tr>
                     <tr>
-                        <th scope="row"><strong><?php esc_html_e('Dark Theme Toggle', 'ncllc-pro'); ?></strong></th>
+                        <th scope="row"><strong><?php esc_html_e('Dark Theme Toggle', 'ajnanda'); ?></strong></th>
                         <td>
-                            <label><input type="checkbox" name="<?php echo esc_attr($option); ?>[theme_toggle]" value="1" <?php checked(!empty($settings['theme_toggle'])); ?>> <?php esc_html_e('Show the dark theme toggle', 'ncllc-pro'); ?></label>
-                            <?php ncllc_pro_render_menu_device_checkboxes('theme_toggle', $settings); ?>
+                            <label><input type="checkbox" name="<?php echo esc_attr($option); ?>[theme_toggle]" value="1" <?php checked(!empty($settings['theme_toggle'])); ?>> <?php esc_html_e('Show the dark theme toggle', 'ajnanda'); ?></label>
+                            <?php ajnanda_render_menu_device_checkboxes('theme_toggle', $settings); ?>
                             <p style="margin-top:8px;">
-                                <label style="margin-right:16px;"><input type="radio" name="<?php echo esc_attr($option); ?>[theme_toggle_mode]" value="floating" <?php checked(($settings['theme_toggle_mode'] ?? 'floating') === 'floating'); ?>> <?php esc_html_e('Floating (fixed on scroll)', 'ncllc-pro'); ?></label>
-                                <label><input type="radio" name="<?php echo esc_attr($option); ?>[theme_toggle_mode]" value="inline" <?php checked(($settings['theme_toggle_mode'] ?? 'floating') === 'inline'); ?>> <?php esc_html_e('Inline / non-floating', 'ncllc-pro'); ?></label>
+                                <label style="margin-right:16px;"><input type="radio" name="<?php echo esc_attr($option); ?>[theme_toggle_mode]" value="floating" <?php checked(($settings['theme_toggle_mode'] ?? 'floating') === 'floating'); ?>> <?php esc_html_e('Floating (fixed on scroll)', 'ajnanda'); ?></label>
+                                <label><input type="radio" name="<?php echo esc_attr($option); ?>[theme_toggle_mode]" value="inline" <?php checked(($settings['theme_toggle_mode'] ?? 'floating') === 'inline'); ?>> <?php esc_html_e('Inline / non-floating', 'ajnanda'); ?></label>
                             </p>
                             <p style="margin-top:10px;">
-                                <label style="margin-right:10px;"><?php esc_html_e('Floating position', 'ncllc-pro'); ?></label>
+                                <label style="margin-right:10px;"><?php esc_html_e('Floating position', 'ajnanda'); ?></label>
                                 <select name="<?php echo esc_attr($option); ?>[theme_toggle_floating_position]">
                                     <?php foreach ($positions as $val => $lbl) : ?>
                                         <option value="<?php echo esc_attr($val); ?>" <?php selected($settings['theme_toggle_floating_position'] ?? 'bottom_right', $val); ?>><?php echo esc_html($lbl); ?></option>
@@ -4224,24 +4277,24 @@ add_action('admin_footer-nav-menus.php', function (): void {
                                 </select>
                             </p>
                             <p style="margin-top:8px;">
-                                <label style="margin-right:10px;"><?php esc_html_e('Inline position', 'ncllc-pro'); ?></label>
+                                <label style="margin-right:10px;"><?php esc_html_e('Inline position', 'ajnanda'); ?></label>
                                 <select name="<?php echo esc_attr($option); ?>[theme_toggle_inline_position]">
                                     <?php foreach ($positions as $val => $lbl) : ?>
                                         <option value="<?php echo esc_attr($val); ?>" <?php selected($settings['theme_toggle_inline_position'] ?? 'bottom_right', $val); ?>><?php echo esc_html($lbl); ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </p>
-                            <p style="margin-top:4px;color:#646970;font-size:12px;"><?php esc_html_e('Choose floating and inline positions separately.', 'ncllc-pro'); ?></p>
+                            <p style="margin-top:4px;color:#646970;font-size:12px;"><?php esc_html_e('Choose floating and inline positions separately.', 'ajnanda'); ?></p>
                         </td>
                     </tr>
                 </tbody>
             </table>
-            <?php submit_button(__('Save Visibility Settings', 'ncllc-pro')); ?>
+            <?php submit_button(__('Save Visibility Settings', 'ajnanda')); ?>
         </form>
     </div>
     <script>
     jQuery(function ($) {
-        var $panel  = $('#ncllc-menu-toggles-panel');
+        var $panel  = $('#ajnanda-menu-toggles-panel');
         var $target = $('#menu-locations-wrap, #manage-locations, form[action*="action=locations"]').first();
         if ($target.length) {
             $target.after($panel.show());
@@ -4258,59 +4311,59 @@ add_action('wp_head', function (): void {
     $foot = '.ajn-builder-cell-footer-menu, .site-footer .nav-menu';
     $css  = '';
 
-    if (!ncllc_pro_menu_toggle_enabled('top_navigation')) {
+    if (!ajnanda_menu_toggle_enabled('top_navigation')) {
         $css .= "$nav { display:none !important; }\n";
     } else {
-        if (!ncllc_pro_menu_toggle_visible_on_device('top_navigation', 'desktop')) {
+        if (!ajnanda_menu_toggle_visible_on_device('top_navigation', 'desktop')) {
             $css .= "@media (min-width:922px) { $nav { display:none !important; } }\n";
         }
-        if (!ncllc_pro_menu_toggle_visible_on_device('top_navigation', 'tablet')) {
+        if (!ajnanda_menu_toggle_visible_on_device('top_navigation', 'tablet')) {
             $css .= "@media (min-width:768px) and (max-width:921px) { $nav { display:none !important; } }\n";
         }
-        if (!ncllc_pro_menu_toggle_visible_on_device('top_navigation', 'mobile')) {
+        if (!ajnanda_menu_toggle_visible_on_device('top_navigation', 'mobile')) {
             $css .= "@media (max-width:767px) { $nav { display:none !important; } }\n";
         }
     }
 
-    if (ncllc_pro_menu_toggle_enabled('top_navigation_sticky')) {
+    if (ajnanda_menu_toggle_enabled('top_navigation_sticky')) {
         $css .= "header.site-header { position:sticky; top:0; z-index:150; }\n";
         $css .= "body.admin-bar header.site-header { top:32px; }\n";
         $css .= "@media (max-width:782px) { body.admin-bar header.site-header { top:46px; } }\n";
     }
 
-    if (!ncllc_pro_menu_toggle_enabled('bottom_navigation')) {
+    if (!ajnanda_menu_toggle_enabled('bottom_navigation')) {
         $css .= "$foot { display:none !important; }\n";
     } else {
-        if (!ncllc_pro_menu_toggle_visible_on_device('bottom_navigation', 'desktop')) {
+        if (!ajnanda_menu_toggle_visible_on_device('bottom_navigation', 'desktop')) {
             $css .= "@media (min-width:922px) { $foot { display:none !important; } }\n";
         }
-        if (!ncllc_pro_menu_toggle_visible_on_device('bottom_navigation', 'tablet')) {
+        if (!ajnanda_menu_toggle_visible_on_device('bottom_navigation', 'tablet')) {
             $css .= "@media (min-width:768px) and (max-width:921px) { $foot { display:none !important; } }\n";
         }
-        if (!ncllc_pro_menu_toggle_visible_on_device('bottom_navigation', 'mobile')) {
+        if (!ajnanda_menu_toggle_visible_on_device('bottom_navigation', 'mobile')) {
             $css .= "@media (max-width:767px) { $foot { display:none !important; } }\n";
         }
     }
 
-    if (ncllc_pro_menu_toggle_enabled('bottom_navigation_sticky')) {
+    if (ajnanda_menu_toggle_enabled('bottom_navigation_sticky')) {
         $css .= ".ajn-builder-cell-footer-menu { position:fixed; left:50%; bottom:16px; transform:translateX(-50%); z-index:140; padding:10px 18px; border-radius:999px; background:rgba(36,45,48,0.92); border:1px solid rgba(220,230,226,0.1); box-shadow:0 18px 34px rgba(3,19,22,0.28); backdrop-filter:blur(12px); }\n";
     }
 
-    if (!ncllc_pro_menu_toggle_enabled('theme_toggle')) {
+    if (!ajnanda_menu_toggle_enabled('theme_toggle')) {
         $css .= ".upos-theme-toggle { display:none !important; }\n";
     } else {
-        if (!ncllc_pro_menu_toggle_visible_on_device('theme_toggle', 'desktop')) {
+        if (!ajnanda_menu_toggle_visible_on_device('theme_toggle', 'desktop')) {
             $css .= "@media (min-width:922px) { .upos-theme-toggle { display:none !important; } }\n";
         }
-        if (!ncllc_pro_menu_toggle_visible_on_device('theme_toggle', 'tablet')) {
+        if (!ajnanda_menu_toggle_visible_on_device('theme_toggle', 'tablet')) {
             $css .= "@media (min-width:768px) and (max-width:921px) { .upos-theme-toggle { display:none !important; } }\n";
         }
-        if (!ncllc_pro_menu_toggle_visible_on_device('theme_toggle', 'mobile')) {
+        if (!ajnanda_menu_toggle_visible_on_device('theme_toggle', 'mobile')) {
             $css .= "@media (max-width:767px) { .upos-theme-toggle { display:none !important; } }\n";
         }
     }
 
     if ($css) {
-        echo '<style id="ncllc-menu-toggles-css">' . $css . '</style>' . "\n";
+        echo '<style id="ajnanda-menu-toggles-css">' . $css . '</style>' . "\n";
     }
 }, 99);

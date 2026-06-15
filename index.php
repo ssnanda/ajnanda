@@ -49,7 +49,7 @@ $page_intro = strip_tags($page_intro);
                         <article id="post-<?php the_ID(); ?>" <?php post_class('blog-card animate-on-scroll'); ?>>
                             <?php if (has_post_thumbnail()) : ?>
                                 <a class="blog-card-image" href="<?php the_permalink(); ?>" aria-label="<?php the_title_attribute(); ?>">
-                                    <?php the_post_thumbnail('ncllc-thumbnail'); ?>
+                                    <?php the_post_thumbnail('ajnanda-thumbnail'); ?>
                                 </a>
                             <?php endif; ?>
 
@@ -58,26 +58,26 @@ $page_intro = strip_tags($page_intro);
                                 <?php the_title('<h2 class="blog-card-title"><a href="' . esc_url(get_permalink()) . '">', '</a></h2>'); ?>
                                 <p><?php echo esc_html(wp_trim_words(get_the_excerpt(), 24)); ?></p>
                                 <a class="blog-card-link" href="<?php the_permalink(); ?>">
-                                    <?php esc_html_e('Read More', 'ncllc-pro'); ?>
+                                    <?php esc_html_e('Read More', 'ajnanda'); ?>
                                 </a>
                             </div>
                         </article>
                     <?php endwhile; ?>
                 </div>
 
-                <nav class="blog-pagination" aria-label="<?php esc_attr_e('Posts navigation', 'ncllc-pro'); ?>">
+                <nav class="blog-pagination" aria-label="<?php esc_attr_e('Posts navigation', 'ajnanda'); ?>">
                     <?php
                     the_posts_pagination(array(
                         'mid_size'  => 2,
-                        'prev_text' => __('Previous', 'ncllc-pro'),
-                        'next_text' => __('Next', 'ncllc-pro'),
+                        'prev_text' => __('Previous', 'ajnanda'),
+                        'next_text' => __('Next', 'ajnanda'),
                     ));
                     ?>
                 </nav>
             <?php else : ?>
                 <div class="blog-empty">
-                    <h2><?php esc_html_e('No articles yet', 'ncllc-pro'); ?></h2>
-                    <p><?php esc_html_e('Check back soon for expert insights on North Carolina business compliance.', 'ncllc-pro'); ?></p>
+                    <h2><?php esc_html_e('No articles yet', 'ajnanda'); ?></h2>
+                    <p><?php esc_html_e('Check back soon for expert insights on North Carolina business compliance.', 'ajnanda'); ?></p>
                 </div>
             <?php endif; ?>
         </div>

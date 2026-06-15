@@ -24,7 +24,7 @@ get_header(); ?>
                             <?php
                             printf(
                                 /* translators: %s: author link */
-                                esc_html__('By %s', 'ncllc-pro'),
+                                esc_html__('By %s', 'ajnanda'),
                                 '<a href="' . esc_url(get_author_posts_url(get_the_author_meta('ID'))) . '">' . esc_html(get_the_author()) . '</a>'
                             );
                             ?>
@@ -35,7 +35,7 @@ get_header(); ?>
                         printf(
                             '<span class="entry-read-time">' . esc_html(
                                 /* translators: %d: minutes */
-                                _n('%d min read', '%d min read', $read_time, 'ncllc-pro')
+                                _n('%d min read', '%d min read', $read_time, 'ajnanda')
                             ) . '</span>',
                             $read_time
                         );
@@ -54,7 +54,7 @@ get_header(); ?>
                     the_content();
 
                     wp_link_pages(array(
-                        'before' => '<div class="page-links">' . esc_html__('Pages:', 'ncllc-pro'),
+                        'before' => '<div class="page-links">' . esc_html__('Pages:', 'ajnanda'),
                         'after'  => '</div>',
                     ));
                     ?>
@@ -65,7 +65,7 @@ get_header(); ?>
                     $categories_list = get_the_category_list(', ');
                     if ($categories_list) {
                         printf(
-                            '<span class="cat-links"><span class="entry-footer-label">' . esc_html__('Categories:', 'ncllc-pro') . '</span> %s</span>',
+                            '<span class="cat-links"><span class="entry-footer-label">' . esc_html__('Categories:', 'ajnanda') . '</span> %s</span>',
                             $categories_list
                         );
                     }
@@ -73,7 +73,7 @@ get_header(); ?>
                     $tags_list = get_the_tag_list('', ', ');
                     if ($tags_list) {
                         printf(
-                            '<span class="tags-links"><span class="entry-footer-label">' . esc_html__('Tags:', 'ncllc-pro') . '</span> %s</span>',
+                            '<span class="tags-links"><span class="entry-footer-label">' . esc_html__('Tags:', 'ajnanda') . '</span> %s</span>',
                             $tags_list
                         );
                     }
@@ -112,13 +112,13 @@ get_header(); ?>
                 if ($related->have_posts()) :
                 ?>
                 <div class="related-posts">
-                    <h3 class="related-posts-title"><?php esc_html_e('Related Articles', 'ncllc-pro'); ?></h3>
+                    <h3 class="related-posts-title"><?php esc_html_e('Related Articles', 'ajnanda'); ?></h3>
                     <div class="related-posts-grid">
                         <?php while ($related->have_posts()) : $related->the_post(); ?>
                         <a class="related-post-card" href="<?php the_permalink(); ?>">
                             <div class="related-post-thumb">
                                 <?php if (has_post_thumbnail()) : ?>
-                                    <?php the_post_thumbnail('ncllc-thumbnail', array('alt' => the_title_attribute(array('echo' => false)))); ?>
+                                    <?php the_post_thumbnail('ajnanda-thumbnail', array('alt' => the_title_attribute(array('echo' => false)))); ?>
                                 <?php else : ?>
                                     <div class="related-post-thumb-placeholder"></div>
                                 <?php endif; ?>

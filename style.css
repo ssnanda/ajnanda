@@ -1,11 +1,11 @@
 /*
 Theme Name: AJNanda
-Theme URI: http://ncllc.ddev.site/
+Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.1.27
+Version: 1.1.28
 License: GNU General Public License v2 or later
-Text Domain: ncllc-pro
+Text Domain: ajnanda
 */
 
 :root {
@@ -40,9 +40,9 @@ Text Domain: ncllc-pro
     --ajn-header-container-width: 1400px;
     --ajn-header-shadow-opacity: 0.10;
     --ajn-header-position: sticky;
-    --ncllc-header-height-desktop: auto;
-    --ncllc-header-height-tablet: auto;
-    --ncllc-header-height-mobile: auto;
+    --ajnanda-header-height-desktop: auto;
+    --ajnanda-header-height-tablet: auto;
+    --ajnanda-header-height-mobile: auto;
     --ajn-footer-background: #111827;
     --ajn-footer-text-color: #f9fafb;
     --ajn-footer-link-hover-color: var(--accent);
@@ -1725,22 +1725,22 @@ body.admin-bar .site-header {
     object-fit: cover !important;
 }
 
-.ncllc-fit-cover img,
-.wp-block-image.ncllc-fit-cover img {
+.ajnanda-fit-cover img,
+.wp-block-image.ajnanda-fit-cover img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.ncllc-fit-contain img,
-.wp-block-image.ncllc-fit-contain img {
+.ajnanda-fit-contain img,
+.wp-block-image.ajnanda-fit-contain img {
     width: 100%;
     height: 100%;
     object-fit: contain;
 }
 
-.ncllc-fit-fill img,
-.wp-block-image.ncllc-fit-fill img {
+.ajnanda-fit-fill img,
+.wp-block-image.ajnanda-fit-fill img {
     width: 100%;
     height: 100%;
     object-fit: fill;

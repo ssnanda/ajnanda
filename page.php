@@ -38,7 +38,7 @@ get_header(); ?>
                     echo apply_filters('the_content', $content);
 
                     wp_link_pages(array(
-                        'before' => '<div class="page-links">' . esc_html__('Pages:', 'ncllc-pro'),
+                        'before' => '<div class="page-links">' . esc_html__('Pages:', 'ajnanda'),
                         'after'  => '</div>',
                     ));
                     ?>
@@ -51,7 +51,7 @@ get_header(); ?>
                     echo apply_filters('the_content', $content);
 
                     wp_link_pages(array(
-                        'before' => '<div class="page-links">' . esc_html__('Pages:', 'ncllc-pro'),
+                        'before' => '<div class="page-links">' . esc_html__('Pages:', 'ajnanda'),
                         'after'  => '</div>',
                     ));
                     ?>

@@ -16,20 +16,20 @@
 
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
-<a class="skip-link screen-reader-text" href="#main-content"><?php esc_html_e('Skip to content', 'ncllc-pro'); ?></a>
+<a class="skip-link screen-reader-text" href="#main-content"><?php esc_html_e('Skip to content', 'ajnanda'); ?></a>
 
-<?php $header_layout = ncllc_pro_get_header_layout(); ?>
+<?php $header_layout = ajnanda_get_header_layout(); ?>
 <header class="site-header header-layout-<?php echo esc_attr($header_layout); ?>" id="masthead">
     <?php if ('builder' === $header_layout) : ?>
         <div class="header-builder-container container">
-            <?php ncllc_pro_render_builder_layout('header'); ?>
-            <button class="mobile-menu-toggle" id="mobile-menu-toggle" type="button" aria-label="<?php esc_attr_e('Toggle menu', 'ncllc-pro'); ?>" aria-controls="primary-menu" aria-expanded="false">
+            <?php ajnanda_render_builder_layout('header'); ?>
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle" type="button" aria-label="<?php esc_attr_e('Toggle menu', 'ajnanda'); ?>" aria-controls="primary-menu" aria-expanded="false">
                 <span class="mobile-menu-icon" aria-hidden="true">
                     <span></span>
                     <span></span>
                     <span></span>
                 </span>
-                <span class="mobile-menu-label"><?php esc_html_e('Menu', 'ncllc-pro'); ?></span>
+                <span class="mobile-menu-label"><?php esc_html_e('Menu', 'ajnanda'); ?></span>
             </button>
         </div>
     <?php else : ?>
@@ -56,15 +56,15 @@
                 ?>
             </nav>
 
-            <button class="mobile-menu-toggle" id="mobile-menu-toggle" type="button" aria-label="<?php esc_attr_e('Toggle menu', 'ncllc-pro'); ?>" aria-controls="primary-menu" aria-expanded="false">
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle" type="button" aria-label="<?php esc_attr_e('Toggle menu', 'ajnanda'); ?>" aria-controls="primary-menu" aria-expanded="false">
                 <span class="mobile-menu-icon" aria-hidden="true">
                     <span></span>
                     <span></span>
                     <span></span>
                 </span>
-                <span class="mobile-menu-label"><?php esc_html_e('Menu', 'ncllc-pro'); ?></span>
+                <span class="mobile-menu-label"><?php esc_html_e('Menu', 'ajnanda'); ?></span>
             </button>
         </div>
     <?php endif; ?>
 </header>
-<?php ncllc_pro_render_header_builder_preview(); ?>
+<?php ajnanda_render_header_builder_preview(); ?>

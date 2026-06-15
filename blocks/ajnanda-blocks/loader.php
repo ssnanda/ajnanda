@@ -24,7 +24,7 @@ function ajnanda_blocks_register_category($categories) {
 
     array_unshift($categories, array(
         'slug'  => 'ajnanda-blocks',
-        'title' => __('AJNanda Blocks', 'ncllc-pro'),
+        'title' => __('AJNanda Blocks', 'ajnanda'),
         'icon'  => null,
     ));
 
@@ -109,7 +109,7 @@ function ajnanda_blocks_render_posts($attrs) {
         'count' => 3,
         'showExcerpt' => true,
         'showImage' => true,
-        'buttonText' => __('Read More', 'ncllc-pro'),
+        'buttonText' => __('Read More', 'ajnanda'),
         'order' => 'desc',
         'orderBy' => 'date',
         'columns' => 3,
@@ -118,7 +118,7 @@ function ajnanda_blocks_render_posts($attrs) {
     $query = new WP_Query(ajnanda_blocks_post_query_args($attrs));
 
     if (!$query->have_posts()) {
-        return '<div class="aj-block aj-posts"><p>' . esc_html__('No posts found.', 'ncllc-pro') . '</p></div>';
+        return '<div class="aj-block aj-posts"><p>' . esc_html__('No posts found.', 'ajnanda') . '</p></div>';
     }
 
     ob_start();
@@ -152,7 +152,7 @@ function ajnanda_blocks_render_posts_variant($attrs, $variant = 'grid') {
         'count' => 6,
         'showExcerpt' => true,
         'showImage' => true,
-        'buttonText' => __('Read More', 'ncllc-pro'),
+        'buttonText' => __('Read More', 'ajnanda'),
         'order' => 'desc',
         'orderBy' => 'date',
         'columns' => 3,
@@ -162,7 +162,7 @@ function ajnanda_blocks_render_posts_variant($attrs, $variant = 'grid') {
     $query = new WP_Query(ajnanda_blocks_post_query_args($attrs));
 
     if (!$query->have_posts()) {
-        return '<div class="aj-block aj-posts aj-posts--' . esc_attr($variant) . '"><p>' . esc_html__('No posts found.', 'ncllc-pro') . '</p></div>';
+        return '<div class="aj-block aj-posts aj-posts--' . esc_attr($variant) . '"><p>' . esc_html__('No posts found.', 'ajnanda') . '</p></div>';
     }
 
     ob_start();
@@ -223,7 +223,7 @@ function ajnanda_blocks_render_taxonomy_list($attrs) {
     ));
 
     if (is_wp_error($terms) || empty($terms)) {
-        return '<nav class="aj-block aj-taxonomy-list"><p>' . esc_html__('No terms found.', 'ncllc-pro') . '</p></nav>';
+        return '<nav class="aj-block aj-taxonomy-list"><p>' . esc_html__('No terms found.', 'ajnanda') . '</p></nav>';
     }
 
     $items = array();
@@ -247,8 +247,8 @@ function ajnanda_blocks_render_taxonomy_list($attrs) {
 
 function ajnanda_blocks_render_search($attrs) {
     $attrs = ajnanda_blocks_attrs($attrs, array(
-        'placeholder' => __('Search...', 'ncllc-pro'),
-        'buttonText' => __('Search', 'ncllc-pro'),
+        'placeholder' => __('Search...', 'ajnanda'),
+        'buttonText' => __('Search', 'ajnanda'),
         'layout' => 'inline',
         'buttonPosition' => 'right',
     ));
@@ -258,7 +258,7 @@ function ajnanda_blocks_render_search($attrs) {
     ob_start();
     ?>
     <form class="aj-block aj-search aj-search--<?php echo esc_attr($layout); ?> aj-search--button-<?php echo esc_attr($button_position); ?>" role="search" method="get" action="<?php echo esc_url(home_url('/')); ?>">
-        <label class="screen-reader-text" for="aj-search-field"><?php esc_html_e('Search for:', 'ncllc-pro'); ?></label>
+        <label class="screen-reader-text" for="aj-search-field"><?php esc_html_e('Search for:', 'ajnanda'); ?></label>
         <input id="aj-search-field" type="search" name="s" value="<?php echo esc_attr(get_search_query()); ?>" placeholder="<?php echo esc_attr($attrs['placeholder']); ?>">
         <button type="submit"><?php echo esc_html($attrs['buttonText']); ?></button>
     </form>
@@ -291,7 +291,7 @@ function ajnanda_blocks_render_menu($attrs) {
     $output = ob_get_clean();
 
     if (!$output) {
-        return '<nav class="aj-block aj-nav-menu"><p>' . esc_html__('Assign a menu to this location first.', 'ncllc-pro') . '</p></nav>';
+        return '<nav class="aj-block aj-nav-menu"><p>' . esc_html__('Assign a menu to this location first.', 'ajnanda') . '</p></nav>';
     }
 
     return $output;
@@ -299,7 +299,7 @@ function ajnanda_blocks_render_menu($attrs) {
 
 function ajnanda_blocks_render_toc($attrs, $content, $block) {
     $attrs = ajnanda_blocks_attrs($attrs, array(
-        'title' => __('On this page', 'ncllc-pro'),
+        'title' => __('On this page', 'ajnanda'),
         'minLevel' => 2,
         'maxLevel' => 3,
         'ordered' => true,
@@ -316,7 +316,7 @@ function ajnanda_blocks_render_toc($attrs, $content, $block) {
     preg_match_all('/<h([1-6])[^>]*>(.*?)<\/h[1-6]>/i', $post->post_content, $matches, PREG_SET_ORDER);
 
     if (!$matches) {
-        return '<nav class="aj-block aj-toc"><p>' . esc_html__('Add headings to generate a table of contents.', 'ncllc-pro') . '</p></nav>';
+        return '<nav class="aj-block aj-toc"><p>' . esc_html__('Add headings to generate a table of contents.', 'ajnanda') . '</p></nav>';
     }
 
     $items = array();
@@ -384,15 +384,15 @@ add_filter('render_block', 'ajnanda_blocks_add_heading_anchor', 10, 2);
 
 function ajnanda_blocks_render_login_placeholder($attrs) {
     $attrs = ajnanda_blocks_attrs($attrs, array(
-        'loggedOutText' => __('Login area placeholder.', 'ncllc-pro'),
-        'loginText' => __('Log In', 'ncllc-pro'),
-        'logoutText' => __('Log Out', 'ncllc-pro'),
+        'loggedOutText' => __('Login area placeholder.', 'ajnanda'),
+        'loginText' => __('Log In', 'ajnanda'),
+        'logoutText' => __('Log Out', 'ajnanda'),
     ));
 
     if (is_user_logged_in()) {
         $current_user = wp_get_current_user();
 
-        return '<div class="aj-block aj-login-placeholder"><p>' . esc_html(sprintf(__('Signed in as %s.', 'ncllc-pro'), $current_user->display_name)) . '</p><a class="aj-button" href="' . esc_url(wp_logout_url()) . '">' . esc_html($attrs['logoutText']) . '</a></div>';
+        return '<div class="aj-block aj-login-placeholder"><p>' . esc_html(sprintf(__('Signed in as %s.', 'ajnanda'), $current_user->display_name)) . '</p><a class="aj-button" href="' . esc_url(wp_logout_url()) . '">' . esc_html($attrs['logoutText']) . '</a></div>';
     }
 
     return '<div class="aj-block aj-login-placeholder"><p>' . esc_html($attrs['loggedOutText']) . '</p><a class="aj-button" href="' . esc_url(wp_login_url()) . '">' . esc_html($attrs['loginText']) . '</a></div>';
@@ -506,7 +506,7 @@ function ajnanda_blocks_register_dynamic_blocks() {
         'count' => array('type' => 'number', 'default' => 6),
         'showExcerpt' => array('type' => 'boolean', 'default' => true),
         'showImage' => array('type' => 'boolean', 'default' => true),
-        'buttonText' => array('type' => 'string', 'default' => __('Read More', 'ncllc-pro')),
+        'buttonText' => array('type' => 'string', 'default' => __('Read More', 'ajnanda')),
         'order' => array('type' => 'string', 'default' => 'desc'),
         'orderBy' => array('type' => 'string', 'default' => 'date'),
         'columns' => array('type' => 'number', 'default' => 3),
@@ -542,8 +542,8 @@ function ajnanda_blocks_register_dynamic_blocks() {
         'ajnanda/search' => array(
             'callback' => 'ajnanda_blocks_render_search',
             'attributes' => array(
-                'placeholder' => array('type' => 'string', 'default' => __('Search...', 'ncllc-pro')),
-                'buttonText' => array('type' => 'string', 'default' => __('Search', 'ncllc-pro')),
+                'placeholder' => array('type' => 'string', 'default' => __('Search...', 'ajnanda')),
+                'buttonText' => array('type' => 'string', 'default' => __('Search', 'ajnanda')),
                 'layout' => array('type' => 'string', 'default' => 'inline'),
                 'buttonPosition' => array('type' => 'string', 'default' => 'right'),
             ),
@@ -560,7 +560,7 @@ function ajnanda_blocks_register_dynamic_blocks() {
         'ajnanda/table-of-contents' => array(
             'callback' => 'ajnanda_blocks_render_toc',
             'attributes' => array(
-                'title' => array('type' => 'string', 'default' => __('On this page', 'ncllc-pro')),
+                'title' => array('type' => 'string', 'default' => __('On this page', 'ajnanda')),
                 'minLevel' => array('type' => 'number', 'default' => 2),
                 'maxLevel' => array('type' => 'number', 'default' => 3),
                 'ordered' => array('type' => 'boolean', 'default' => true),
@@ -579,9 +579,9 @@ function ajnanda_blocks_register_dynamic_blocks() {
         'ajnanda/login-placeholder' => array(
             'callback' => 'ajnanda_blocks_render_login_placeholder',
             'attributes' => array(
-                'loggedOutText' => array('type' => 'string', 'default' => __('Login area placeholder.', 'ncllc-pro')),
-                'loginText' => array('type' => 'string', 'default' => __('Log In', 'ncllc-pro')),
-                'logoutText' => array('type' => 'string', 'default' => __('Log Out', 'ncllc-pro')),
+                'loggedOutText' => array('type' => 'string', 'default' => __('Login area placeholder.', 'ajnanda')),
+                'loginText' => array('type' => 'string', 'default' => __('Log In', 'ajnanda')),
+                'logoutText' => array('type' => 'string', 'default' => __('Log Out', 'ajnanda')),
             ),
         ),
         'ajnanda/slide' => array(
