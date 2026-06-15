@@ -1969,7 +1969,7 @@ function ajnanda_customize_register($wp_customize) {
                 $saved_footer_value  = $saved_footer_scheme ? $saved_footer_scheme->value() : '';
                 ?>
                 <span class="customize-control-title"><?php echo esc_html($this->label); ?></span>
-                <select data-ajnanda-footer-scheme-select onchange="window.ajnandaApplyFooterScheme&&window.ajnandaApplyFooterScheme(this.value)">
+                <select data-ajnanda-footer-scheme-select data-customize-setting-link="footer_color_scheme_picker">
                     <option value=""><?php esc_html_e('Choose a footer scheme...', 'ajnanda'); ?></option>
                     <?php foreach ($schemes as $scheme_id => $scheme_label) : ?>
                         <option value="<?php echo esc_attr($scheme_id); ?>" <?php selected($saved_footer_value, $scheme_id); ?>><?php echo esc_html($scheme_label); ?></option>
@@ -3173,6 +3173,26 @@ function ajnanda_customizer_controls_js() {
             });
         }
 
+        function setCustomizerValue(settingId, value) {
+            var setting = wp.customize(settingId);
+            var control = wp.customize.control(settingId);
+
+            if (setting && setting.get() !== value) {
+                setting.set(value);
+            }
+
+            if (control && control.container) {
+                control.container.find('.color-picker-hex, input.wp-color-picker').val(value);
+                control.container.find('.wp-color-result').css('background-color', value);
+            }
+
+            document.querySelectorAll('[data-customize-setting-link="' + settingId + '"]').forEach(function(input) {
+                if (input.value !== value) {
+                    input.value = value;
+                }
+            });
+        }
+
         function applyHeaderScheme(schemeId) {
             var scheme = headerSchemes[schemeId];
             if (!scheme || !window.wp || !wp.customize) {
@@ -3180,18 +3200,7 @@ function ajnanda_customizer_controls_js() {
             }
 
             headerSchemeSettings.forEach(function(settingId, index) {
-                var color = scheme.colors[index];
-                var setting = wp.customize(settingId);
-                var control = wp.customize.control(settingId);
-
-                if (setting) {
-                    setting.set(color);
-                }
-
-                if (control && control.container) {
-                    control.container.find('.color-picker-hex, input.wp-color-picker').val(color).trigger('change');
-                    control.container.find('.wp-color-result').css('background-color', color);
-                }
+                setCustomizerValue(settingId, scheme.colors[index]);
             });
 
             [
@@ -3202,20 +3211,11 @@ function ajnanda_customizer_controls_js() {
             ].forEach(function(item) {
                 var settingId = item[0];
                 var value = item[1];
-                var setting = wp.customize(settingId);
-
-                if (setting) {
-                    setting.set(value);
-                }
-
-                document.querySelectorAll('[data-customize-setting-link="' + settingId + '"]').forEach(function(input) {
-                    input.value = value;
-                    input.dispatchEvent(new Event('change', { bubbles: true }));
-                });
+                setCustomizerValue(settingId, value);
             });
 
             var schemeSetting = wp.customize('header_color_scheme_picker');
-            if (schemeSetting) {
+            if (schemeSetting && schemeSetting.get() !== schemeId) {
                 schemeSetting.set(schemeId);
             }
         }
@@ -3291,18 +3291,7 @@ function ajnanda_customizer_controls_js() {
             }
 
             footerSchemeColorSettings.forEach(function(settingId, index) {
-                var color = scheme.colors[index];
-                var setting = wp.customize(settingId);
-                var control = wp.customize.control(settingId);
-
-                if (setting) {
-                    setting.set(color);
-                }
-
-                if (control && control.container) {
-                    control.container.find('.color-picker-hex, input.wp-color-picker').val(color).trigger('change');
-                    control.container.find('.wp-color-result').css('background-color', color);
-                }
+                setCustomizerValue(settingId, scheme.colors[index]);
             });
 
             [
@@ -3312,25 +3301,23 @@ function ajnanda_customizer_controls_js() {
             ].forEach(function(item) {
                 var settingId = item[0];
                 var value = item[1];
-                var setting = wp.customize(settingId);
-
-                if (setting) {
-                    setting.set(value);
-                }
-
-                document.querySelectorAll('[data-customize-setting-link="' + settingId + '"]').forEach(function(input) {
-                    input.value = value;
-                    input.dispatchEvent(new Event('change', { bubbles: true }));
-                });
+                setCustomizerValue(settingId, value);
             });
 
             var schemeSetting = wp.customize('footer_color_scheme_picker');
-            if (schemeSetting) {
+            if (schemeSetting && schemeSetting.get() !== schemeId) {
                 schemeSetting.set(schemeId);
             }
         }
 
-        window.ajnandaApplyFooterScheme = applyFooterScheme;
+        document.addEventListener('change', function(event) {
+            var select = event.target.closest('[data-ajnanda-footer-scheme-select]');
+            if (!select || !select.value) {
+                return;
+            }
+
+            applyFooterScheme(select.value);
+        });
     })();
     </script>
     <?php
