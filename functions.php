@@ -3290,29 +3290,46 @@ function ajnanda_customizer_controls_js() {
                 return;
             }
 
-            // Colors — all postMessage transport, preview updates instantly via CSS vars
             footerSchemeColorSettings.forEach(function(settingId, index) {
+                var color = scheme.colors[index];
                 var setting = wp.customize(settingId);
+                var control = wp.customize.control(settingId);
+
                 if (setting) {
-                    setting.set(scheme.colors[index]);
+                    setting.set(color);
+                }
+
+                if (control && control.container) {
+                    control.container.find('.color-picker-hex, input.wp-color-picker').val(color).trigger('change');
+                    control.container.find('.wp-color-result').css('background-color', color);
                 }
             });
 
-            // Font — also postMessage transport
             [
                 ['footer_font_family', scheme.font[0]],
                 ['footer_font_size',   scheme.font[1]],
                 ['footer_font_weight', scheme.font[2]]
             ].forEach(function(item) {
-                var setting = wp.customize(item[0]);
+                var settingId = item[0];
+                var value = item[1];
+                var setting = wp.customize(settingId);
+
                 if (setting) {
-                    setting.set(item[1]);
+                    setting.set(value);
                 }
+
+                document.querySelectorAll('[data-customize-setting-link="' + settingId + '"]').forEach(function(input) {
+                    input.value = value;
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                });
             });
+
+            var schemeSetting = wp.customize('footer_color_scheme_picker');
+            if (schemeSetting) {
+                schemeSetting.set(schemeId);
+            }
         }
 
-        // Expose globally so the select's onchange attribute can call it directly,
-        // bypassing any WP Customizer event-interception on the select element.
         window.ajnandaApplyFooterScheme = applyFooterScheme;
     })();
     </script>
