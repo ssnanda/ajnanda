@@ -1848,11 +1848,15 @@ function ncllc_pro_customize_register($wp_customize) {
                     'N' => __('Scheme N - High Contrast', 'ncllc-pro'),
                 );
                 ?>
+                <?php
+                $saved_header_scheme = $this->manager->get_setting('header_color_scheme_picker');
+                $saved_header_value  = $saved_header_scheme ? $saved_header_scheme->value() : '';
+                ?>
                 <span class="customize-control-title"><?php echo esc_html($this->label); ?></span>
-                <select data-ncllc-header-scheme-select>
+                <select data-ncllc-header-scheme-select data-customize-setting-link="header_color_scheme_picker">
                     <option value=""><?php esc_html_e('Choose a header scheme...', 'ncllc-pro'); ?></option>
                     <?php foreach ($schemes as $scheme_id => $scheme_label) : ?>
-                        <option value="<?php echo esc_attr($scheme_id); ?>"><?php echo esc_html($scheme_label); ?></option>
+                        <option value="<?php echo esc_attr($scheme_id); ?>" <?php selected($saved_header_value, $scheme_id); ?>><?php echo esc_html($scheme_label); ?></option>
                     <?php endforeach; ?>
                 </select>
                 <?php
@@ -1930,11 +1934,15 @@ function ncllc_pro_customize_register($wp_customize) {
                     'N' => __('Scheme N - High Contrast', 'ncllc-pro'),
                 );
                 ?>
+                <?php
+                $saved_footer_scheme = $this->manager->get_setting('footer_color_scheme_picker');
+                $saved_footer_value  = $saved_footer_scheme ? $saved_footer_scheme->value() : '';
+                ?>
                 <span class="customize-control-title"><?php echo esc_html($this->label); ?></span>
-                <select data-ncllc-footer-scheme-select>
+                <select data-ncllc-footer-scheme-select data-customize-setting-link="footer_color_scheme_picker">
                     <option value=""><?php esc_html_e('Choose a footer scheme...', 'ncllc-pro'); ?></option>
                     <?php foreach ($schemes as $scheme_id => $scheme_label) : ?>
-                        <option value="<?php echo esc_attr($scheme_id); ?>"><?php echo esc_html($scheme_label); ?></option>
+                        <option value="<?php echo esc_attr($scheme_id); ?>" <?php selected($saved_footer_value, $scheme_id); ?>><?php echo esc_html($scheme_label); ?></option>
                     <?php endforeach; ?>
                 </select>
                 <?php
@@ -3150,13 +3158,13 @@ function ncllc_pro_customizer_controls_js() {
 
             // footer_background_color is a text control (supports gradients), not a color picker
             var bgSetting = wp.customize('footer_background_color');
+            var bgControl = wp.customize.control('footer_background_color');
             if (bgSetting) {
                 bgSetting.set(scheme.colors[0]);
             }
-            document.querySelectorAll('[data-customize-setting-link="footer_background_color"]').forEach(function(input) {
-                input.value = scheme.colors[0];
-                input.dispatchEvent(new Event('change', { bubbles: true }));
-            });
+            if (bgControl && bgControl.container) {
+                bgControl.container.find('input[type="text"], textarea').val(scheme.colors[0]).trigger('change');
+            }
 
             // Remaining 7 are color picker controls
             footerSchemeColorSettings.slice(1).forEach(function(settingId, index) {
@@ -4233,7 +4241,13 @@ add_action('admin_footer-nav-menus.php', function (): void {
     </div>
     <script>
     jQuery(function ($) {
-        $('#ncllc-menu-toggles-panel').appendTo('#manage-locations').show();
+        var $panel  = $('#ncllc-menu-toggles-panel');
+        var $target = $('#menu-locations-wrap, #manage-locations, form[action*="action=locations"]').first();
+        if ($target.length) {
+            $target.after($panel.show());
+        } else {
+            $('#wpbody-content .wrap').append($panel.show());
+        }
     });
     </script>
     <?php
