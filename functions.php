@@ -32,7 +32,9 @@ function ncllc_pro_setup() {
     add_theme_support('custom-background');
     add_theme_support('customize-selective-refresh-widgets');
     
-    // Register navigation menus
+    // Register navigation menus — Primary and Footer always on
+    // Optional panel menus (Left/Right Floater) are registered by site-level plugins
+    // that check the ncllc_left_panel_enabled / ncllc_right_panel_enabled theme mods
     register_nav_menus(array(
         'primary' => __('Primary Menu', 'ncllc-pro'),
         'footer'  => __('Footer Menu', 'ncllc-pro'),
@@ -1856,6 +1858,88 @@ function ncllc_pro_customize_register($wp_customize) {
                 <?php
             }
         }
+
+        class NCLLC_Pro_Footer_Font_Control extends WP_Customize_Control {
+            public $type = 'ncllc_footer_font';
+
+            public function render_content() {
+                $manager        = $this->manager;
+                $family_setting = $manager->get_setting('footer_font_family');
+                $size_setting   = $manager->get_setting('footer_font_size');
+                $color_setting  = $manager->get_setting('footer_text_color');
+                $weight_setting = $manager->get_setting('footer_font_weight');
+
+                if (!$family_setting || !$size_setting || !$color_setting || !$weight_setting) {
+                    return;
+                }
+                ?>
+                <span class="customize-control-title"><?php echo esc_html($this->label); ?></span>
+                <div class="ncllc-footer-font-control">
+                    <label>
+                        <span><?php esc_html_e('Font', 'ncllc-pro'); ?></span>
+                        <select data-customize-setting-link="footer_font_family">
+                            <option value="inherit" <?php selected($family_setting->value(), 'inherit'); ?>><?php esc_html_e('Theme Default', 'ncllc-pro'); ?></option>
+                            <option value="Inter" <?php selected($family_setting->value(), 'Inter'); ?>><?php esc_html_e('Inter', 'ncllc-pro'); ?></option>
+                            <option value="Poppins" <?php selected($family_setting->value(), 'Poppins'); ?>><?php esc_html_e('Poppins', 'ncllc-pro'); ?></option>
+                            <option value="Arial" <?php selected($family_setting->value(), 'Arial'); ?>><?php esc_html_e('Arial', 'ncllc-pro'); ?></option>
+                            <option value="Georgia" <?php selected($family_setting->value(), 'Georgia'); ?>><?php esc_html_e('Georgia', 'ncllc-pro'); ?></option>
+                            <option value="system-ui" <?php selected($family_setting->value(), 'system-ui'); ?>><?php esc_html_e('System UI', 'ncllc-pro'); ?></option>
+                        </select>
+                    </label>
+                    <label>
+                        <span><?php esc_html_e('Size', 'ncllc-pro'); ?></span>
+                        <input type="text" data-customize-setting-link="footer_font_size" value="<?php echo esc_attr($size_setting->value()); ?>" placeholder="1rem">
+                    </label>
+                    <label>
+                        <span><?php esc_html_e('Color', 'ncllc-pro'); ?></span>
+                        <input type="color" data-customize-setting-link="footer_text_color" value="<?php echo esc_attr($color_setting->value()); ?>">
+                    </label>
+                    <label>
+                        <span><?php esc_html_e('Weight', 'ncllc-pro'); ?></span>
+                        <select data-customize-setting-link="footer_font_weight">
+                            <option value="400" <?php selected($weight_setting->value(), '400'); ?>><?php esc_html_e('400 Normal', 'ncllc-pro'); ?></option>
+                            <option value="500" <?php selected($weight_setting->value(), '500'); ?>><?php esc_html_e('500 Medium', 'ncllc-pro'); ?></option>
+                            <option value="600" <?php selected($weight_setting->value(), '600'); ?>><?php esc_html_e('600 Semibold', 'ncllc-pro'); ?></option>
+                            <option value="700" <?php selected($weight_setting->value(), '700'); ?>><?php esc_html_e('700 Bold', 'ncllc-pro'); ?></option>
+                            <option value="800" <?php selected($weight_setting->value(), '800'); ?>><?php esc_html_e('800 Extrabold', 'ncllc-pro'); ?></option>
+                        </select>
+                    </label>
+                </div>
+                <?php
+            }
+        }
+
+        class NCLLC_Pro_Footer_Color_Schemes_Control extends WP_Customize_Control {
+            public $type = 'ncllc_footer_color_schemes';
+
+            public function render_content() {
+                $schemes = array(
+                    'A' => __('Scheme A - Midnight Navy', 'ncllc-pro'),
+                    'B' => __('Scheme B - Deep Slate', 'ncllc-pro'),
+                    'C' => __('Scheme C - Forest Dark', 'ncllc-pro'),
+                    'D' => __('Scheme D - Carbon Black', 'ncllc-pro'),
+                    'E' => __('Scheme E - Ocean Depth', 'ncllc-pro'),
+                    'F' => __('Scheme F - Indigo Night', 'ncllc-pro'),
+                    'G' => __('Scheme G - Midnight Blue', 'ncllc-pro'),
+                    'H' => __('Scheme H - Warm Cocoa', 'ncllc-pro'),
+                    'I' => __('Scheme I - Emerald Dark', 'ncllc-pro'),
+                    'J' => __('Scheme J - Pure Black', 'ncllc-pro'),
+                    'K' => __('Scheme K - Clean White', 'ncllc-pro'),
+                    'L' => __('Scheme L - Soft Gray', 'ncllc-pro'),
+                    'M' => __('Scheme M - Warm Ivory', 'ncllc-pro'),
+                    'N' => __('Scheme N - High Contrast', 'ncllc-pro'),
+                );
+                ?>
+                <span class="customize-control-title"><?php echo esc_html($this->label); ?></span>
+                <select data-ncllc-footer-scheme-select>
+                    <option value=""><?php esc_html_e('Choose a footer scheme...', 'ncllc-pro'); ?></option>
+                    <?php foreach ($schemes as $scheme_id => $scheme_label) : ?>
+                        <option value="<?php echo esc_attr($scheme_id); ?>"><?php echo esc_html($scheme_label); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <?php
+            }
+        }
     }
 
     $theme_color_controls = array(
@@ -2207,6 +2291,67 @@ function ncllc_pro_customize_register($wp_customize) {
 
     ncllc_pro_register_builder_controls($wp_customize, 'header', 'ncllc_header', __('Header', 'ncllc-pro'));
 
+    // Navigation Panels Section
+    $wp_customize->add_section('ncllc_nav_panels', array(
+        'title'       => __('Navigation Panels', 'ncllc-pro'),
+        'priority'    => 26,
+        'description' => __('Enable optional floating side-panel menus. Once enabled, assign a menu in Appearance → Menus → Manage Locations.', 'ncllc-pro'),
+    ));
+
+    $wp_customize->add_setting('ncllc_left_panel_enabled', array(
+        'default'           => false,
+        'sanitize_callback' => 'rest_sanitize_boolean',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ncllc_left_panel_enabled', array(
+        'label'       => __('Enable Left Panel Menu', 'ncllc-pro'),
+        'description' => __('Registers a Left Floater Panel menu location in Appearance → Menus.', 'ncllc-pro'),
+        'section'     => 'ncllc_nav_panels',
+        'type'        => 'checkbox',
+    ));
+
+    $wp_customize->add_setting('ncllc_left_panel_label', array(
+        'default'           => __('Left Floater Panel', 'ncllc-pro'),
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ncllc_left_panel_label', array(
+        'label'           => __('Left Panel Label', 'ncllc-pro'),
+        'description'     => __('How the location is named in Appearance → Menus.', 'ncllc-pro'),
+        'section'         => 'ncllc_nav_panels',
+        'type'            => 'text',
+        'active_callback' => function() {
+            return (bool) get_theme_mod('ncllc_left_panel_enabled', false);
+        },
+    ));
+
+    $wp_customize->add_setting('ncllc_right_panel_enabled', array(
+        'default'           => false,
+        'sanitize_callback' => 'rest_sanitize_boolean',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ncllc_right_panel_enabled', array(
+        'label'       => __('Enable Right Panel Menu', 'ncllc-pro'),
+        'description' => __('Registers a Right Floater Panel menu location in Appearance → Menus.', 'ncllc-pro'),
+        'section'     => 'ncllc_nav_panels',
+        'type'        => 'checkbox',
+    ));
+
+    $wp_customize->add_setting('ncllc_right_panel_label', array(
+        'default'           => __('Right Floater Panel', 'ncllc-pro'),
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ncllc_right_panel_label', array(
+        'label'           => __('Right Panel Label', 'ncllc-pro'),
+        'description'     => __('How the location is named in Appearance → Menus.', 'ncllc-pro'),
+        'section'         => 'ncllc_nav_panels',
+        'type'            => 'text',
+        'active_callback' => function() {
+            return (bool) get_theme_mod('ncllc_right_panel_enabled', false);
+        },
+    ));
+
     // Hero Defaults Section
     $wp_customize->add_section('ncllc_hero_defaults', array(
         'title'       => __('Hero Defaults', 'ncllc-pro'),
@@ -2274,11 +2419,6 @@ function ncllc_pro_customize_register($wp_customize) {
         'description' => __('Use the footer builder preview to add, remove, and arrange footer elements.', 'ncllc-pro'),
     ));
 
-    $wp_customize->add_section('ncllc_footer_builder_widths', array(
-        'title'       => __('Footer Builder Widths', 'ncllc-pro'),
-        'priority'    => 27,
-        'description' => __('Advanced responsive width controls for Footer Builder slots.', 'ncllc-pro'),
-    ));
 
     $wp_customize->add_setting('footer_background_color', array(
         'default'           => '#111827',
@@ -2339,6 +2479,23 @@ function ncllc_pro_customize_register($wp_customize) {
         }
     }
 
+    $wp_customize->add_setting('footer_color_scheme_picker', array(
+        'default'           => '',
+        'sanitize_callback' => 'sanitize_key',
+        'transport'         => 'refresh',
+    ));
+
+    if (class_exists('NCLLC_Pro_Footer_Color_Schemes_Control')) {
+        $wp_customize->add_control(new NCLLC_Pro_Footer_Color_Schemes_Control(
+            $wp_customize,
+            'footer_color_scheme_picker',
+            array(
+                'label'   => __('Footer Color Schemes', 'ncllc-pro'),
+                'section' => 'ncllc_footer',
+            )
+        ));
+    }
+
     $footer_typography_controls = array(
         'footer_font_family' => array(
             'label'    => __('Footer Font Family', 'ncllc-pro'),
@@ -2393,12 +2550,18 @@ function ncllc_pro_customize_register($wp_customize) {
         ),
     );
 
+    $footer_font_compact_keys = array('footer_font_family', 'footer_font_size', 'footer_font_weight');
+
     foreach ($footer_typography_controls as $setting_id => $control) {
         $wp_customize->add_setting($setting_id, array(
             'default'           => $control['default'],
             'sanitize_callback' => $control['sanitize'],
             'transport'         => 'refresh',
         ));
+
+        if (in_array($setting_id, $footer_font_compact_keys, true)) {
+            continue;
+        }
 
         $args = array(
             'label'       => $control['label'],
@@ -2412,6 +2575,18 @@ function ncllc_pro_customize_register($wp_customize) {
         }
 
         $wp_customize->add_control($setting_id, $args);
+    }
+
+    if (class_exists('NCLLC_Pro_Footer_Font_Control')) {
+        $wp_customize->add_control(new NCLLC_Pro_Footer_Font_Control(
+            $wp_customize,
+            'footer_font_family',
+            array(
+                'label'    => __('Footer Font', 'ncllc-pro'),
+                'section'  => 'ncllc_footer',
+                'settings' => 'footer_font_family',
+            )
+        ));
     }
 
     $wp_customize->add_setting('ajn_builder_button_text', array(
@@ -2546,7 +2721,7 @@ function ncllc_pro_customize_register($wp_customize) {
         'active_callback' => 'ncllc_pro_header_builder_social_active',
     ));
 
-    ncllc_pro_register_builder_controls($wp_customize, 'footer', 'ncllc_footer', __('Footer', 'ncllc-pro'), 'ncllc_footer_builder_widths');
+    ncllc_pro_register_builder_controls($wp_customize, 'footer', 'ncllc_footer', __('Footer', 'ncllc-pro'), 'ncllc_footer');
 
     $footer_columns = ncllc_pro_get_footer_columns();
     foreach ($footer_columns as $index => $column) {
@@ -2742,6 +2917,81 @@ function ncllc_pro_customizer_controls_css() {
             min-height: 34px;
             margin: 0;
         }
+
+        /* Footer Section compact layout */
+        #sub-accordion-section-ncllc_footer .customize-control {
+            margin-bottom: 10px;
+        }
+
+        #sub-accordion-section-ncllc_footer .customize-control-description {
+            margin-top: 4px;
+            font-size: 12px;
+        }
+
+        #sub-accordion-section-ncllc_footer .customize-control-color {
+            display: grid;
+            grid-template-columns: minmax(120px, 1fr) auto;
+            align-items: center;
+            column-gap: 12px;
+        }
+
+        #sub-accordion-section-ncllc_footer .customize-control-color .customize-control-title {
+            margin: 0;
+            line-height: 1.25;
+        }
+
+        #sub-accordion-section-ncllc_footer .customize-control-color .wp-picker-container {
+            justify-self: end;
+        }
+
+        #sub-accordion-section-ncllc_footer .customize-control-color .wp-picker-holder {
+            grid-column: 1 / -1;
+        }
+
+        #sub-accordion-section-ncllc_footer .wp-color-result.button {
+            min-height: 28px;
+            margin: 0;
+        }
+
+        #sub-accordion-section-ncllc_footer .ncllc-footer-font-control {
+            display: grid;
+            gap: 8px;
+            padding: 10px;
+            border: 1px solid #dcdcde;
+            background: #fff;
+        }
+
+        #sub-accordion-section-ncllc_footer .ncllc-footer-font-control label {
+            display: grid;
+            grid-template-columns: 76px minmax(0, 1fr);
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+        }
+
+        #sub-accordion-section-ncllc_footer .ncllc-footer-font-control span {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        #sub-accordion-section-ncllc_footer .ncllc-footer-font-control input,
+        #sub-accordion-section-ncllc_footer .ncllc-footer-font-control select {
+            width: 100%;
+            min-height: 30px;
+            margin: 0;
+        }
+
+        #sub-accordion-section-ncllc_footer .ncllc-footer-font-control input[type="color"] {
+            width: 56px;
+            padding: 0 2px;
+            justify-self: end;
+        }
+
+        #sub-accordion-section-ncllc_footer [data-ncllc-footer-scheme-select] {
+            width: 100%;
+            min-height: 34px;
+            margin: 0;
+        }
     </style>
     <?php
 }
@@ -2859,6 +3109,104 @@ function ncllc_pro_customizer_controls_js() {
             }
 
             applyHeaderScheme(select.value);
+        });
+
+        // Footer Color Schemes
+        // colors: [bg, text, linkHover, divider, submenuBg, submenuText, submenuHover, submenuHoverBg]
+        // font:   [family, size, weight]
+        var footerSchemes = {
+            A: { colors: ['#111827', '#f9fafb', '#f59e0b', '#374151', '#ffffff', '#1f2937', '#2563eb', '#f9fafb'],   font: ['inherit',   '1rem',    '400'] },
+            B: { colors: ['#1e293b', '#e2e8f0', '#818cf8', '#334155', '#ffffff', '#0f172a', '#6366f1', '#eef2ff'],   font: ['Inter',     '1rem',    '400'] },
+            C: { colors: ['#052e16', '#dcfce7', '#86efac', '#166534', '#f0fdf4', '#052e16', '#16a34a', '#dcfce7'],   font: ['Inter',     '1rem',    '500'] },
+            D: { colors: ['#18181b', '#f4f4f5', '#facc15', '#3f3f46', '#27272a', '#fafafa', '#fde047', '#3f3f46'],   font: ['system-ui', '1rem',    '400'] },
+            E: { colors: ['#0f2c36', '#f0fdfa', '#2dd4bf', '#134e4a', '#ffffff', '#134e4a', '#14b8a6', '#f0fdfa'],   font: ['Inter',     '1rem',    '400'] },
+            F: { colors: ['#1e1b4b', '#e0e7ff', '#a5b4fc', '#3730a3', '#ffffff', '#1e1b4b', '#818cf8', '#eef2ff'],   font: ['Poppins',   '1rem',    '500'] },
+            G: { colors: ['#0f172a', '#f1f5f9', '#22d3ee', '#1e293b', '#0f172a', '#e2e8f0', '#67e8f9', '#083344'],   font: ['Inter',     '1rem',    '400'] },
+            H: { colors: ['#1c1412', '#fef3c7', '#fbbf24', '#44403c', '#ffffff', '#1c1412', '#d97706', '#fef3c7'],   font: ['Georgia',   '1.02rem', '400'] },
+            I: { colors: ['#134e4a', '#ecfdf5', '#34d399', '#065f46', '#f0fdf4', '#052e16', '#10b981', '#d1fae5'],   font: ['Inter',     '1rem',    '500'] },
+            J: { colors: ['#000000', '#ffffff', '#facc15', '#27272a', '#18181b', '#fafafa', '#fde047', '#27272a'],   font: ['Arial',     '1rem',    '700'] },
+            K: { colors: ['#ffffff', '#111827', '#2563eb', '#e5e7eb', '#ffffff', '#111827', '#2563eb', '#eff6ff'],   font: ['Inter',     '1rem',    '400'] },
+            L: { colors: ['#f3f4f6', '#1f2937', '#2563eb', '#d1d5db', '#ffffff', '#1f2937', '#2563eb', '#eff6ff'],   font: ['Inter',     '1rem',    '400'] },
+            M: { colors: ['#fefce8', '#1c1917', '#ca8a04', '#fde68a', '#ffffff', '#1c1917', '#b45309', '#fef3c7'],   font: ['Georgia',   '1.02rem', '400'] },
+            N: { colors: ['#000000', '#ffffff', '#ffffff', '#ffffff', '#ffffff', '#000000', '#000000', '#ffffff'],   font: ['Arial',     '1rem',    '700'] }
+        };
+
+        var footerSchemeColorSettings = [
+            'footer_background_color',
+            'footer_text_color',
+            'footer_link_hover_color',
+            'footer_divider_color',
+            'footer_submenu_background',
+            'footer_submenu_text_color',
+            'footer_submenu_hover_color',
+            'footer_submenu_hover_background'
+        ];
+
+        function applyFooterScheme(schemeId) {
+            var scheme = footerSchemes[schemeId];
+            if (!scheme || !window.wp || !wp.customize) {
+                return;
+            }
+
+            // footer_background_color is a text control (supports gradients), not a color picker
+            var bgSetting = wp.customize('footer_background_color');
+            if (bgSetting) {
+                bgSetting.set(scheme.colors[0]);
+            }
+            document.querySelectorAll('[data-customize-setting-link="footer_background_color"]').forEach(function(input) {
+                input.value = scheme.colors[0];
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+
+            // Remaining 7 are color picker controls
+            footerSchemeColorSettings.slice(1).forEach(function(settingId, index) {
+                var color = scheme.colors[index + 1];
+                var setting = wp.customize(settingId);
+                var control = wp.customize.control(settingId);
+
+                if (setting) {
+                    setting.set(color);
+                }
+
+                if (control && control.container) {
+                    control.container.find('.color-picker-hex, input.wp-color-picker').val(color).trigger('change');
+                    control.container.find('.wp-color-result').css('background-color', color);
+                }
+            });
+
+            // Font settings via compact control
+            [
+                ['footer_font_family', scheme.font[0]],
+                ['footer_font_size',   scheme.font[1]],
+                ['footer_font_weight', scheme.font[2]]
+            ].forEach(function(item) {
+                var settingId = item[0];
+                var value     = item[1];
+                var setting   = wp.customize(settingId);
+
+                if (setting) {
+                    setting.set(value);
+                }
+
+                document.querySelectorAll('[data-customize-setting-link="' + settingId + '"]').forEach(function(input) {
+                    input.value = value;
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+            });
+
+            var schemeSetting = wp.customize('footer_color_scheme_picker');
+            if (schemeSetting) {
+                schemeSetting.set(schemeId);
+            }
+        }
+
+        document.addEventListener('change', function(event) {
+            var select = event.target.closest('[data-ncllc-footer-scheme-select]');
+            if (!select || !select.value) {
+                return;
+            }
+
+            applyFooterScheme(select.value);
         });
     })();
     </script>
@@ -3639,3 +3987,316 @@ add_action('init', 'ncllc_pro_register_block_patterns');
 require_once get_template_directory() . '/inc/github-theme-updater.php';
 require_once get_template_directory() . '/inc/duplicate-content.php';
 require_once get_template_directory() . '/blocks/ajnanda-blocks/loader.php';
+
+// =============================================================================
+// Menu Visibility Toggles
+// Show/hide menus by device, control floating vs inline, sticky behaviour.
+// Settings appear in Appearance → Menus → Manage Locations tab.
+// =============================================================================
+
+define('NCLLC_PRO_MENU_TOGGLES_OPTION', 'ncllc_menu_toggles');
+
+function ncllc_pro_menu_toggle_defaults(): array {
+    return [
+        'top_navigation'                 => 1,
+        'top_navigation_desktop'         => 1,
+        'top_navigation_tablet'          => 1,
+        'top_navigation_mobile'          => 1,
+        'top_navigation_sticky'          => 0,
+        'bottom_navigation'              => 1,
+        'bottom_navigation_desktop'      => 1,
+        'bottom_navigation_tablet'       => 1,
+        'bottom_navigation_mobile'       => 1,
+        'bottom_navigation_sticky'       => 0,
+        'office_shortcuts'               => 1,
+        'office_shortcuts_desktop'       => 1,
+        'office_shortcuts_tablet'        => 0,
+        'office_shortcuts_mobile'        => 0,
+        'office_shortcuts_mode'          => 'floating',
+        'store_shortcuts'                => 1,
+        'store_shortcuts_desktop'        => 1,
+        'store_shortcuts_tablet'         => 0,
+        'store_shortcuts_mobile'         => 0,
+        'store_shortcuts_mode'           => 'floating',
+        'theme_toggle'                   => 1,
+        'theme_toggle_desktop'           => 1,
+        'theme_toggle_tablet'            => 0,
+        'theme_toggle_mobile'            => 0,
+        'theme_toggle_mode'              => 'floating',
+        'theme_toggle_floating_position' => 'bottom_right',
+        'theme_toggle_inline_position'   => 'bottom_right',
+    ];
+}
+
+function ncllc_pro_get_menu_toggles(): array {
+    $saved = get_option(NCLLC_PRO_MENU_TOGGLES_OPTION, []);
+    if (!is_array($saved)) {
+        $saved = [];
+    }
+    // One-time migration from previous upos_menu_toggles option
+    if (empty($saved)) {
+        $legacy = get_option('upos_menu_toggles', []);
+        if (!empty($legacy) && is_array($legacy)) {
+            $saved = $legacy;
+        }
+    }
+    return wp_parse_args($saved, ncllc_pro_menu_toggle_defaults());
+}
+
+function ncllc_pro_menu_toggle_enabled(string $key): bool {
+    return !empty(ncllc_pro_get_menu_toggles()[$key]);
+}
+
+function ncllc_pro_menu_toggle_mode(string $key): string {
+    $mode = ncllc_pro_get_menu_toggles()[$key] ?? 'floating';
+    return in_array($mode, ['floating', 'inline'], true) ? $mode : 'floating';
+}
+
+function ncllc_pro_menu_toggle_visible_on_device(string $prefix, string $device): bool {
+    return !empty(ncllc_pro_get_menu_toggles()["{$prefix}_{$device}"]);
+}
+
+function ncllc_pro_menu_toggle_visibility_classes(string $prefix): string {
+    $classes = [];
+    foreach (['desktop', 'tablet', 'mobile'] as $device) {
+        if (ncllc_pro_menu_toggle_visible_on_device($prefix, $device)) {
+            $classes[] = "upos-show-{$device}";
+        }
+    }
+    return implode(' ', $classes);
+}
+
+function ncllc_pro_render_menu_device_checkboxes(string $prefix, array $settings): void {
+    $option = NCLLC_PRO_MENU_TOGGLES_OPTION;
+    $labels = [
+        'desktop' => __('Computer', 'ncllc-pro'),
+        'tablet'  => __('Tablet', 'ncllc-pro'),
+        'mobile'  => __('Phone', 'ncllc-pro'),
+    ];
+    ?>
+    <p style="margin:10px 0 0;"><strong><?php esc_html_e('Display on:', 'ncllc-pro'); ?></strong></p>
+    <p style="margin-top:8px;">
+        <?php foreach ($labels as $device => $label) : ?>
+            <label style="display:inline-block;margin:0 18px 8px 0;">
+                <input type="checkbox"
+                    name="<?php echo esc_attr($option); ?>[<?php echo esc_attr("{$prefix}_{$device}"); ?>]"
+                    value="1"
+                    <?php checked(!empty($settings["{$prefix}_{$device}"])); ?>>
+                <?php echo esc_html($label); ?>
+            </label>
+        <?php endforeach; ?>
+    </p>
+    <?php
+}
+
+add_action('admin_init', function (): void {
+    register_setting(
+        'ncllc_pro_menu_toggles',
+        NCLLC_PRO_MENU_TOGGLES_OPTION,
+        [
+            'type'              => 'array',
+            'sanitize_callback' => static function ($value): array {
+                $value     = is_array($value) ? $value : [];
+                $defaults  = ncllc_pro_menu_toggle_defaults();
+                $sanitized = [];
+                foreach (array_keys($defaults) as $key) {
+                    if (str_ends_with($key, '_mode')) {
+                        $sanitized[$key] = ($value[$key] ?? 'floating') === 'inline' ? 'inline' : 'floating';
+                        continue;
+                    }
+                    if (in_array($key, ['theme_toggle_floating_position', 'theme_toggle_inline_position'], true)) {
+                        $allowed         = ['top_left', 'top_right', 'bottom_left', 'bottom_right'];
+                        $pos             = $value[$key] ?? 'bottom_right';
+                        $sanitized[$key] = in_array($pos, $allowed, true) ? $pos : 'bottom_right';
+                        continue;
+                    }
+                    $sanitized[$key] = empty($value[$key]) ? 0 : 1;
+                }
+                return $sanitized;
+            },
+            'default' => ncllc_pro_menu_toggle_defaults(),
+        ]
+    );
+});
+
+add_action('admin_notices', function (): void {
+    $screen = get_current_screen();
+    if (!$screen || 'nav-menus' !== $screen->id) {
+        return;
+    }
+    if (!empty($_GET['settings-updated'])) {
+        echo '<div class="notice notice-success is-dismissible"><p>'
+            . esc_html__('Menu visibility settings saved.', 'ncllc-pro')
+            . '</p></div>';
+    }
+});
+
+add_action('admin_footer-nav-menus.php', function (): void {
+    if (!current_user_can('manage_options')) {
+        return;
+    }
+
+    $settings    = ncllc_pro_get_menu_toggles();
+    $option      = NCLLC_PRO_MENU_TOGGLES_OPTION;
+    $group       = 'ncllc_pro_menu_toggles';
+    $left_label  = get_theme_mod('ncllc_left_panel_label', __('Left Floater Panel', 'ncllc-pro'));
+    $right_label = get_theme_mod('ncllc_right_panel_label', __('Right Floater Panel', 'ncllc-pro'));
+    $positions   = [
+        'top_left'     => __('Top Left', 'ncllc-pro'),
+        'top_right'    => __('Top Right', 'ncllc-pro'),
+        'bottom_left'  => __('Bottom Left', 'ncllc-pro'),
+        'bottom_right' => __('Bottom Right', 'ncllc-pro'),
+    ];
+    ?>
+    <div id="ncllc-menu-toggles-panel" style="display:none;">
+        <hr style="margin:28px 0 18px;border-top:1px solid #ddd;">
+        <h3 style="margin:0 0 6px;color:#1d2327;font-size:14px;"><?php esc_html_e('Menu Visibility &amp; Behaviour', 'ncllc-pro'); ?></h3>
+        <p style="margin:0 0 16px;color:#646970;"><?php esc_html_e('Control which menus appear and how they behave on different devices.', 'ncllc-pro'); ?></p>
+        <form method="post" action="options.php">
+            <?php settings_fields($group); ?>
+            <table class="form-table" role="presentation">
+                <tbody>
+                    <tr>
+                        <th scope="row"><strong><?php esc_html_e('Top Navigation', 'ncllc-pro'); ?></strong></th>
+                        <td>
+                            <label><input type="checkbox" name="<?php echo esc_attr($option); ?>[top_navigation]" value="1" <?php checked(!empty($settings['top_navigation'])); ?>> <?php esc_html_e('Show the main top menu', 'ncllc-pro'); ?></label>
+                            <?php ncllc_pro_render_menu_device_checkboxes('top_navigation', $settings); ?>
+                            <p style="margin-top:8px;"><label><input type="checkbox" name="<?php echo esc_attr($option); ?>[top_navigation_sticky]" value="1" <?php checked(!empty($settings['top_navigation_sticky'])); ?>> <?php esc_html_e('Keep the top navigation sticky while scrolling', 'ncllc-pro'); ?></label></p>
+                        </td>
+                    </tr>
+                    <?php if (get_theme_mod('ncllc_left_panel_enabled', false)) : ?>
+                    <tr>
+                        <th scope="row"><strong><?php echo esc_html(strtoupper($left_label)); ?></strong></th>
+                        <td>
+                            <label><input type="checkbox" name="<?php echo esc_attr($option); ?>[office_shortcuts]" value="1" <?php checked(!empty($settings['office_shortcuts'])); ?>> <?php esc_html_e('Show the left floating shortcuts menu', 'ncllc-pro'); ?></label>
+                            <?php ncllc_pro_render_menu_device_checkboxes('office_shortcuts', $settings); ?>
+                            <p style="margin-top:8px;">
+                                <label style="margin-right:16px;"><input type="radio" name="<?php echo esc_attr($option); ?>[office_shortcuts_mode]" value="floating" <?php checked(($settings['office_shortcuts_mode'] ?? 'floating') === 'floating'); ?>> <?php esc_html_e('Floating', 'ncllc-pro'); ?></label>
+                                <label><input type="radio" name="<?php echo esc_attr($option); ?>[office_shortcuts_mode]" value="inline" <?php checked(($settings['office_shortcuts_mode'] ?? 'floating') === 'inline'); ?>> <?php esc_html_e('Inline / non-floating', 'ncllc-pro'); ?></label>
+                            </p>
+                        </td>
+                    </tr>
+                    <?php endif; ?>
+                    <?php if (get_theme_mod('ncllc_right_panel_enabled', false)) : ?>
+                    <tr>
+                        <th scope="row"><strong><?php echo esc_html(strtoupper($right_label)); ?></strong></th>
+                        <td>
+                            <label><input type="checkbox" name="<?php echo esc_attr($option); ?>[store_shortcuts]" value="1" <?php checked(!empty($settings['store_shortcuts'])); ?>> <?php esc_html_e('Show the right floating shortcuts menu', 'ncllc-pro'); ?></label>
+                            <?php ncllc_pro_render_menu_device_checkboxes('store_shortcuts', $settings); ?>
+                            <p style="margin-top:8px;">
+                                <label style="margin-right:16px;"><input type="radio" name="<?php echo esc_attr($option); ?>[store_shortcuts_mode]" value="floating" <?php checked(($settings['store_shortcuts_mode'] ?? 'floating') === 'floating'); ?>> <?php esc_html_e('Floating', 'ncllc-pro'); ?></label>
+                                <label><input type="radio" name="<?php echo esc_attr($option); ?>[store_shortcuts_mode]" value="inline" <?php checked(($settings['store_shortcuts_mode'] ?? 'floating') === 'inline'); ?>> <?php esc_html_e('Inline / non-floating', 'ncllc-pro'); ?></label>
+                            </p>
+                        </td>
+                    </tr>
+                    <?php endif; ?>
+                    <tr>
+                        <th scope="row"><strong><?php esc_html_e('Bottom Navigation', 'ncllc-pro'); ?></strong></th>
+                        <td>
+                            <label><input type="checkbox" name="<?php echo esc_attr($option); ?>[bottom_navigation]" value="1" <?php checked(!empty($settings['bottom_navigation'])); ?>> <?php esc_html_e('Show the footer menu', 'ncllc-pro'); ?></label>
+                            <?php ncllc_pro_render_menu_device_checkboxes('bottom_navigation', $settings); ?>
+                            <p style="margin-top:8px;"><label><input type="checkbox" name="<?php echo esc_attr($option); ?>[bottom_navigation_sticky]" value="1" <?php checked(!empty($settings['bottom_navigation_sticky'])); ?>> <?php esc_html_e('Keep the footer menu visible at the bottom of the screen', 'ncllc-pro'); ?></label></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><strong><?php esc_html_e('Dark Theme Toggle', 'ncllc-pro'); ?></strong></th>
+                        <td>
+                            <label><input type="checkbox" name="<?php echo esc_attr($option); ?>[theme_toggle]" value="1" <?php checked(!empty($settings['theme_toggle'])); ?>> <?php esc_html_e('Show the dark theme toggle', 'ncllc-pro'); ?></label>
+                            <?php ncllc_pro_render_menu_device_checkboxes('theme_toggle', $settings); ?>
+                            <p style="margin-top:8px;">
+                                <label style="margin-right:16px;"><input type="radio" name="<?php echo esc_attr($option); ?>[theme_toggle_mode]" value="floating" <?php checked(($settings['theme_toggle_mode'] ?? 'floating') === 'floating'); ?>> <?php esc_html_e('Floating (fixed on scroll)', 'ncllc-pro'); ?></label>
+                                <label><input type="radio" name="<?php echo esc_attr($option); ?>[theme_toggle_mode]" value="inline" <?php checked(($settings['theme_toggle_mode'] ?? 'floating') === 'inline'); ?>> <?php esc_html_e('Inline / non-floating', 'ncllc-pro'); ?></label>
+                            </p>
+                            <p style="margin-top:10px;">
+                                <label style="margin-right:10px;"><?php esc_html_e('Floating position', 'ncllc-pro'); ?></label>
+                                <select name="<?php echo esc_attr($option); ?>[theme_toggle_floating_position]">
+                                    <?php foreach ($positions as $val => $lbl) : ?>
+                                        <option value="<?php echo esc_attr($val); ?>" <?php selected($settings['theme_toggle_floating_position'] ?? 'bottom_right', $val); ?>><?php echo esc_html($lbl); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </p>
+                            <p style="margin-top:8px;">
+                                <label style="margin-right:10px;"><?php esc_html_e('Inline position', 'ncllc-pro'); ?></label>
+                                <select name="<?php echo esc_attr($option); ?>[theme_toggle_inline_position]">
+                                    <?php foreach ($positions as $val => $lbl) : ?>
+                                        <option value="<?php echo esc_attr($val); ?>" <?php selected($settings['theme_toggle_inline_position'] ?? 'bottom_right', $val); ?>><?php echo esc_html($lbl); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </p>
+                            <p style="margin-top:4px;color:#646970;font-size:12px;"><?php esc_html_e('Choose floating and inline positions separately.', 'ncllc-pro'); ?></p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <?php submit_button(__('Save Visibility Settings', 'ncllc-pro')); ?>
+        </form>
+    </div>
+    <script>
+    jQuery(function ($) {
+        $('#ncllc-menu-toggles-panel').appendTo('#manage-locations').show();
+    });
+    </script>
+    <?php
+});
+
+add_action('wp_head', function (): void {
+    $nav  = '.main-navigation, .ajn-builder-cell-primary-menu, #mobile-menu-toggle';
+    $foot = '.ajn-builder-cell-footer-menu, .site-footer .nav-menu';
+    $css  = '';
+
+    if (!ncllc_pro_menu_toggle_enabled('top_navigation')) {
+        $css .= "$nav { display:none !important; }\n";
+    } else {
+        if (!ncllc_pro_menu_toggle_visible_on_device('top_navigation', 'desktop')) {
+            $css .= "@media (min-width:922px) { $nav { display:none !important; } }\n";
+        }
+        if (!ncllc_pro_menu_toggle_visible_on_device('top_navigation', 'tablet')) {
+            $css .= "@media (min-width:768px) and (max-width:921px) { $nav { display:none !important; } }\n";
+        }
+        if (!ncllc_pro_menu_toggle_visible_on_device('top_navigation', 'mobile')) {
+            $css .= "@media (max-width:767px) { $nav { display:none !important; } }\n";
+        }
+    }
+
+    if (ncllc_pro_menu_toggle_enabled('top_navigation_sticky')) {
+        $css .= "header.site-header { position:sticky; top:0; z-index:150; }\n";
+        $css .= "body.admin-bar header.site-header { top:32px; }\n";
+        $css .= "@media (max-width:782px) { body.admin-bar header.site-header { top:46px; } }\n";
+    }
+
+    if (!ncllc_pro_menu_toggle_enabled('bottom_navigation')) {
+        $css .= "$foot { display:none !important; }\n";
+    } else {
+        if (!ncllc_pro_menu_toggle_visible_on_device('bottom_navigation', 'desktop')) {
+            $css .= "@media (min-width:922px) { $foot { display:none !important; } }\n";
+        }
+        if (!ncllc_pro_menu_toggle_visible_on_device('bottom_navigation', 'tablet')) {
+            $css .= "@media (min-width:768px) and (max-width:921px) { $foot { display:none !important; } }\n";
+        }
+        if (!ncllc_pro_menu_toggle_visible_on_device('bottom_navigation', 'mobile')) {
+            $css .= "@media (max-width:767px) { $foot { display:none !important; } }\n";
+        }
+    }
+
+    if (ncllc_pro_menu_toggle_enabled('bottom_navigation_sticky')) {
+        $css .= ".ajn-builder-cell-footer-menu { position:fixed; left:50%; bottom:16px; transform:translateX(-50%); z-index:140; padding:10px 18px; border-radius:999px; background:rgba(36,45,48,0.92); border:1px solid rgba(220,230,226,0.1); box-shadow:0 18px 34px rgba(3,19,22,0.28); backdrop-filter:blur(12px); }\n";
+    }
+
+    if (!ncllc_pro_menu_toggle_enabled('theme_toggle')) {
+        $css .= ".upos-theme-toggle { display:none !important; }\n";
+    } else {
+        if (!ncllc_pro_menu_toggle_visible_on_device('theme_toggle', 'desktop')) {
+            $css .= "@media (min-width:922px) { .upos-theme-toggle { display:none !important; } }\n";
+        }
+        if (!ncllc_pro_menu_toggle_visible_on_device('theme_toggle', 'tablet')) {
+            $css .= "@media (min-width:768px) and (max-width:921px) { .upos-theme-toggle { display:none !important; } }\n";
+        }
+        if (!ncllc_pro_menu_toggle_visible_on_device('theme_toggle', 'mobile')) {
+            $css .= "@media (max-width:767px) { .upos-theme-toggle { display:none !important; } }\n";
+        }
+    }
+
+    if ($css) {
+        echo '<style id="ncllc-menu-toggles-css">' . $css . '</style>' . "\n";
+    }
+}, 99);

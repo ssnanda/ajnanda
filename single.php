@@ -14,13 +14,42 @@ get_header(); ?>
         ?>
         <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
             <div class="container">
+                <header class="entry-header">
+                    <h1 class="entry-title"><?php the_title(); ?></h1>
+                    <div class="entry-meta">
+                        <time class="entry-date" datetime="<?php echo esc_attr(get_the_date('c')); ?>">
+                            <?php echo esc_html(get_the_date()); ?>
+                        </time>
+                        <span class="entry-author">
+                            <?php
+                            printf(
+                                /* translators: %s: author link */
+                                esc_html__('By %s', 'ncllc-pro'),
+                                '<a href="' . esc_url(get_author_posts_url(get_the_author_meta('ID'))) . '">' . esc_html(get_the_author()) . '</a>'
+                            );
+                            ?>
+                        </span>
+                        <?php
+                        $word_count = str_word_count(wp_strip_all_tags(get_the_content()));
+                        $read_time  = max(1, (int) ceil($word_count / 200));
+                        printf(
+                            '<span class="entry-read-time">' . esc_html(
+                                /* translators: %d: minutes */
+                                _n('%d min read', '%d min read', $read_time, 'ncllc-pro')
+                            ) . '</span>',
+                            $read_time
+                        );
+                        ?>
+                    </div>
+                </header>
+
                 <?php if (has_post_thumbnail()) : ?>
-                    <div class="post-thumbnail" style="margin: 2rem 0;">
-                        <?php the_post_thumbnail('large', array('style' => 'width: 100%; height: auto; border-radius: 1rem;')); ?>
+                    <div class="post-thumbnail">
+                        <?php the_post_thumbnail('large', array('alt' => the_title_attribute(array('echo' => false)), 'class' => 'post-thumbnail-img')); ?>
                     </div>
                 <?php endif; ?>
 
-                <div class="entry-content" style="padding: 2rem 0 4rem; max-width: 800px; margin: 0 auto; line-height: 1.8;">
+                <div class="entry-content single-entry-content">
                     <?php
                     the_content();
 
@@ -31,19 +60,79 @@ get_header(); ?>
                     ?>
                 </div>
 
-                <footer class="entry-footer" style="padding: 2rem 0; border-top: 1px solid #e5e7eb; max-width: 800px; margin: 0 auto;">
+                <footer class="entry-footer single-entry-footer">
                     <?php
                     $categories_list = get_the_category_list(', ');
                     if ($categories_list) {
-                        printf('<span class="cat-links">Categories: %s</span>', $categories_list);
+                        printf(
+                            '<span class="cat-links"><span class="entry-footer-label">' . esc_html__('Categories:', 'ncllc-pro') . '</span> %s</span>',
+                            $categories_list
+                        );
                     }
 
                     $tags_list = get_the_tag_list('', ', ');
                     if ($tags_list) {
-                        printf('<span class="tags-links" style="margin-left: 1rem;">Tags: %s</span>', $tags_list);
+                        printf(
+                            '<span class="tags-links"><span class="entry-footer-label">' . esc_html__('Tags:', 'ncllc-pro') . '</span> %s</span>',
+                            $tags_list
+                        );
                     }
                     ?>
                 </footer>
+
+                <?php
+                // Author bio
+                $author_id          = get_the_author_meta('ID');
+                $author_description = get_the_author_meta('description');
+                if ($author_description) :
+                ?>
+                <div class="author-bio">
+                    <div class="author-bio-avatar">
+                        <?php echo get_avatar($author_id, 80, '', get_the_author(), array('class' => '')); ?>
+                    </div>
+                    <div class="author-bio-content">
+                        <p class="author-bio-name"><?php echo esc_html(get_the_author()); ?></p>
+                        <p class="author-bio-description"><?php echo esc_html($author_description); ?></p>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                <?php
+                // Related posts (same category, exclude current)
+                $current_id   = get_the_ID();
+                $cats         = wp_get_post_categories($current_id);
+                $related_args = array(
+                    'category__in'        => $cats ?: array(),
+                    'post__not_in'        => array($current_id),
+                    'posts_per_page'      => 3,
+                    'orderby'             => 'rand',
+                    'ignore_sticky_posts' => 1,
+                );
+                $related = new WP_Query($related_args);
+                if ($related->have_posts()) :
+                ?>
+                <div class="related-posts">
+                    <h3 class="related-posts-title"><?php esc_html_e('Related Articles', 'ncllc-pro'); ?></h3>
+                    <div class="related-posts-grid">
+                        <?php while ($related->have_posts()) : $related->the_post(); ?>
+                        <a class="related-post-card" href="<?php the_permalink(); ?>">
+                            <div class="related-post-thumb">
+                                <?php if (has_post_thumbnail()) : ?>
+                                    <?php the_post_thumbnail('ncllc-thumbnail', array('alt' => the_title_attribute(array('echo' => false)))); ?>
+                                <?php else : ?>
+                                    <div class="related-post-thumb-placeholder"></div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="related-post-info">
+                                <div class="related-post-date"><?php echo esc_html(get_the_date()); ?></div>
+                                <p class="related-post-title"><?php the_title(); ?></p>
+                            </div>
+                        </a>
+                        <?php endwhile; wp_reset_postdata(); ?>
+                    </div>
+                </div>
+                <?php endif; ?>
+
             </div>
         </article>
 

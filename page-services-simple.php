@@ -7,7 +7,7 @@
 get_header();
 ?>
 
-<main id="main" class="site-main">
+<main id="main-content" class="site-main">
     <!-- Page Header -->
     <section class="hero" style="padding: 4rem 1.5rem; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);">
         <div class="container" style="text-align: center;">

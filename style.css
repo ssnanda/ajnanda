@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: http://ncllc.ddev.site/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.1.25
+Version: 1.1.26
 License: GNU General Public License v2 or later
 Text Domain: ncllc-pro
 */
@@ -22,6 +22,7 @@ Text Domain: ncllc-pro
     --gray-800: #1f2937;
     --gray-900: #111827;
     --white: #ffffff;
+    --success: #059669;
     --ajn-header-background: #ffffff;
     --ajn-header-text-color: #1f2937;
     --ajn-header-link-hover-color: var(--primary);
@@ -3537,3 +3538,373 @@ body .site-main .builder-hero-section .wp-block-buttons {
         padding-bottom: var(--ajn-padding-bottom-mobile, var(--ajn-padding-bottom-tablet, var(--ajn-padding-bottom-desktop, 0))) !important;
     }
 }
+
+/* ============================================================
+   ACCESSIBILITY & POLISH — consolidated from inline/JS sources
+   ============================================================ */
+
+/* Skip to content link */
+.skip-link {
+    position: absolute;
+    top: -100px;
+    left: 1rem;
+    z-index: 100000;
+    padding: 0.75rem 1.5rem;
+    background: var(--primary);
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-radius: 0 0 0.5rem 0.5rem;
+    text-decoration: none;
+    transition: top 0.15s ease;
+}
+.skip-link:focus {
+    top: 0;
+    outline: 3px solid var(--primary-dark);
+    outline-offset: 2px;
+}
+
+/* Focus rings for keyboard navigation */
+.nav-menu a:focus-visible,
+.nav-menu .sub-menu a:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+.mobile-menu-toggle:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 3px;
+    border-radius: 6px;
+}
+
+/* Search form (replaces inline styles + event handlers) */
+.search-form {
+    max-width: 500px;
+    margin: 0 auto;
+}
+.search-form-inner {
+    display: flex;
+    gap: 0.5rem;
+}
+.search-field {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--gray-300);
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background: #fff;
+    color: var(--gray-900);
+}
+.search-field:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+.search-submit {
+    padding: 0.75rem 1.5rem;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 1rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    white-space: nowrap;
+}
+.search-submit:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.22);
+}
+.search-submit:focus-visible {
+    outline: 3px solid var(--primary-dark);
+    outline-offset: 2px;
+}
+
+/* Scroll-to-top button (was dynamically injected from JS) */
+.scroll-to-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 50px;
+    height: 50px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease, background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 999;
+}
+.scroll-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+}
+.scroll-to-top:hover {
+    background: var(--primary-dark);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+.scroll-to-top:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 3px;
+}
+
+/* Ripple effect (was dynamically injected from JS) */
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.6);
+    transform: scale(0);
+    animation: ripple-animation 0.6s ease-out;
+    pointer-events: none;
+}
+@keyframes ripple-animation {
+    to { transform: scale(4); opacity: 0; }
+}
+
+/* Feature icon hover (was dynamically injected from JS) */
+.feature-icon { transition: transform 0.3s ease; }
+
+/* Section scroll-reveal (was dynamically injected from JS) */
+/* Only active when JS has run — avoids invisible content if JS fails */
+.js section {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.js section.revealed {
+    opacity: 1;
+    transform: none;
+}
+
+/* Page load fade-in (was dynamically injected from JS) */
+.js body.loaded { animation: ajn-fade-in 0.4s ease-in; }
+@keyframes ajn-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Form validation (replaces alert()) */
+.form-validation-error {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-top: 0.75rem;
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    border-radius: 0.5rem;
+    color: #dc2626;
+    font-size: 0.9rem;
+}
+input.error,
+textarea.error {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+}
+
+/* Single post — entry header & meta */
+.entry-header {
+    padding: 2rem 0 1.25rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+.entry-title {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    line-height: 1.18;
+    margin-bottom: 0.75rem;
+    color: var(--gray-900);
+}
+.entry-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    align-items: center;
+    color: var(--gray-600);
+    font-size: 0.875rem;
+}
+.entry-meta .entry-author a {
+    color: var(--primary);
+    font-weight: 500;
+    text-decoration: none;
+}
+.entry-meta .entry-author a:hover { text-decoration: underline; }
+.entry-meta .entry-date,
+.entry-meta .entry-read-time { color: var(--gray-600); }
+.entry-meta .entry-read-time::before { content: '·'; margin-right: 1.25rem; }
+
+/* Single post — thumbnail and content */
+.post-thumbnail {
+    max-width: 800px;
+    margin: 0 auto 2rem;
+    border-radius: 1rem;
+    overflow: hidden;
+}
+.post-thumbnail-img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+.single-entry-content {
+    padding: 0 0 3rem;
+    max-width: 800px;
+    margin: 0 auto;
+    line-height: 1.8;
+}
+.single-entry-footer {
+    padding: 1.5rem 0 3rem;
+    border-top: 1px solid var(--gray-200);
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+    color: var(--gray-600);
+}
+.entry-footer-label { font-weight: 600; color: var(--gray-700); }
+
+/* Feature card — icon animates on hover via CSS (not JS) */
+.feature-card:hover .feature-icon { transform: scale(1.1) rotate(5deg); }
+
+/* Process steps — hidden until JS-driven IntersectionObserver reveals them */
+.js .process-step { opacity: 0; }
+
+/* Contact form success message */
+.form-success-message {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+    border-radius: 0.5rem;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+/* Submit button success state */
+.btn.btn-sent {
+    background: var(--success) !important;
+    border-color: var(--success) !important;
+}
+
+/* 404 page */
+.error-404.not-found {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 1.5rem;
+}
+.error-404-inner { max-width: 600px; margin: 0 auto; }
+.error-404-code {
+    font-size: clamp(4rem, 10vw, 8rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1rem;
+    line-height: 1;
+}
+.error-404-title { font-size: clamp(1.5rem, 4vw, 2.5rem); margin-bottom: 1.5rem; }
+.error-404-message { font-size: 1.125rem; color: var(--gray-600); margin-bottom: 2.5rem; }
+.error-404-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 3rem;
+}
+.btn-outline {
+    background: var(--gray-100);
+    color: var(--gray-800);
+    border: 2px solid var(--gray-300);
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.btn-outline:hover { background: var(--gray-200); border-color: var(--gray-400); }
+.error-404-search-label { font-size: 1.25rem; margin-bottom: 1rem; }
+
+/* Author bio on single posts */
+.author-bio {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 1rem;
+    padding: 2rem;
+    margin: 2.5rem auto;
+    max-width: 800px;
+}
+.author-bio-avatar img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.author-bio-name {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem;
+    color: var(--gray-900);
+}
+.author-bio-description { color: var(--gray-600); font-size: 0.95rem; line-height: 1.6; margin: 0; }
+@media (max-width: 600px) {
+    .author-bio { flex-direction: column; }
+}
+
+/* Related posts on single posts */
+.related-posts {
+    max-width: 800px;
+    margin: 0 auto 3rem;
+}
+.related-posts-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--gray-200);
+}
+.related-posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.25rem;
+}
+.related-post-card {
+    border: 1px solid var(--gray-200);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+.related-post-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    transform: translateY(-3px);
+}
+.related-post-thumb img { width: 100%; height: 140px; object-fit: cover; display: block; }
+.related-post-thumb-placeholder {
+    width: 100%;
+    height: 140px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    opacity: 0.15;
+}
+.related-post-info { padding: 0.875rem 1rem; }
+.related-post-date { font-size: 0.8rem; color: var(--gray-600); margin-bottom: 0.35rem; }
+.related-post-title { font-size: 0.95rem; font-weight: 600; color: var(--gray-900); line-height: 1.4; margin: 0; }

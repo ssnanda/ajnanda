@@ -3,6 +3,9 @@
  * Modern interactive features and animations
  */
 
+// Mark JS active early — allows CSS section-reveal (.js section) to safely start at opacity:0
+document.documentElement.classList.add('js');
+
 (function($) {
     'use strict';
 
@@ -133,13 +136,6 @@
         // Add loading animation
         $('body').addClass('loaded');
 
-        // Feature cards hover effect enhancement
-        $('.feature-card').on('mouseenter', function() {
-            $(this).find('.feature-icon').css('transform', 'scale(1.1) rotate(5deg)');
-        }).on('mouseleave', function() {
-            $(this).find('.feature-icon').css('transform', 'scale(1) rotate(0deg)');
-        });
-
         // Button ripple effect
         $('.btn').on('click', function(e) {
             const $button = $(this);
@@ -198,22 +194,34 @@
         window.addEventListener('scroll', revealSections);
         revealSections();
 
-        // Form validation enhancement
+        // Form validation — inline banner instead of alert()
         $('form').on('submit', function(e) {
-            let isValid = true;
-            
-            $(this).find('input[required], textarea[required]').each(function() {
-                if (!$(this).val()) {
+            var $form = $(this);
+            var isValid = true;
+
+            $form.find('.form-validation-error').remove();
+
+            $form.find('input[required], textarea[required]').each(function() {
+                if (!$(this).val().trim()) {
                     isValid = false;
                     $(this).addClass('error');
                 } else {
                     $(this).removeClass('error');
                 }
             });
-            
+
             if (!isValid) {
                 e.preventDefault();
-                alert('Please fill in all required fields.');
+                var $banner = $('<div class="form-validation-error" role="alert">Please fill in all required fields.</div>');
+                $form.find('input[required].error, textarea[required].error').first().before($banner);
+                $banner[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
+
+        // Clear individual field error on input
+        $('form').on('input', 'input[required], textarea[required]', function() {
+            if ($(this).val().trim()) {
+                $(this).removeClass('error');
             }
         });
 
@@ -241,71 +249,8 @@
             $('html, body').animate({ scrollTop: 0 }, 600);
         });
 
-        // Add CSS for scroll to top button
-        $('<style>')
-            .text(`
-                .scroll-to-top {
-                    position: fixed;
-                    bottom: 2rem;
-                    right: 2rem;
-                    width: 50px;
-                    height: 50px;
-                    background: var(--primary);
-                    color: white;
-                    border: none;
-                    border-radius: 50%;
-                    font-size: 1.5rem;
-                    cursor: pointer;
-                    opacity: 0;
-                    visibility: hidden;
-                    transition: all 0.3s ease;
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                    z-index: 999;
-                }
-                .scroll-to-top.visible {
-                    opacity: 1;
-                    visibility: visible;
-                }
-                .scroll-to-top:hover {
-                    background: var(--primary-dark);
-                    transform: translateY(-3px);
-                    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-                }
-                .ripple {
-                    position: absolute;
-                    border-radius: 50%;
-                    background: rgba(255, 255, 255, 0.6);
-                    transform: scale(0);
-                    animation: ripple-animation 0.6s ease-out;
-                    pointer-events: none;
-                }
-                @keyframes ripple-animation {
-                    to {
-                        transform: scale(4);
-                        opacity: 0;
-                    }
-                }
-                body.loaded {
-                    animation: fadeIn 0.5s ease-in;
-                }
-                @keyframes fadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
-                .feature-icon {
-                    transition: transform 0.3s ease;
-                }
-                section {
-                    opacity: 0;
-                    transform: translateY(20px);
-                    transition: opacity 0.6s ease, transform 0.6s ease;
-                }
-                section.revealed {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            `)
-            .appendTo('head');
+        // Note: scroll-to-top, ripple, section-reveal, and feature-icon CSS
+        // are now in style.css (no longer injected dynamically).
 
         // FAQ Toggle functionality
         $('.faq-question').on('click keydown', function(e) {
@@ -331,18 +276,7 @@
             }, index * 150);
         });
 
-        // Newsletter form enhancement
-        $('.newsletter-form input').on('focus', function() {
-            $(this).css({
-                'border-color': 'white',
-                'background': 'rgba(255,255,255,0.2)'
-            });
-        }).on('blur', function() {
-            $(this).css({
-                'border-color': 'rgba(255,255,255,0.3)',
-                'background': 'rgba(255,255,255,0.1)'
-            });
-        });
+        // Newsletter form — focus state handled via CSS :focus on .newsletter-form input
 
         // Process steps animation
         const processSteps = document.querySelectorAll('.process-step');
@@ -363,19 +297,7 @@
         }, observerOptions);
 
         processSteps.forEach(step => {
-            step.style.opacity = '0';
             processObserver.observe(step);
-        });
-
-        // Add hover effect to pricing cards
-        $('.pricing-card').on('mouseenter', function() {
-            if (!$(this).hasClass('featured')) {
-                $(this).css('background', 'linear-gradient(135deg, #f9fafb 0%, #ffffff 100%)');
-            }
-        }).on('mouseleave', function() {
-            if (!$(this).hasClass('featured')) {
-                $(this).css('background', 'white');
-            }
         });
 
         // Contact Form Handler
@@ -395,15 +317,19 @@
             submitBtn.html('<span class="loading-spinner"></span> Sending...').prop('disabled', true);
             
             // Simulate form submission (replace with actual AJAX call)
+            var $form = $(this);
             setTimeout(() => {
-                submitBtn.html('✓ Message Sent!').css('background', 'var(--success)');
-                $(this)[0].reset();
-                
+                submitBtn.html('✓ Message Sent!').addClass('btn-sent');
+                $form[0].reset();
+
+                var $success = $('<div class="form-success-message" role="alert">Thank you for contacting University Place Office Suites! We will respond to your inquiry shortly.</div>');
+                $form.prepend($success);
+                $success[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
                 setTimeout(() => {
-                    submitBtn.html(originalText).css('background', '').prop('disabled', false);
-                }, 3000);
-                
-                alert('Thank you for contacting University Place Office Suites! We will respond to your inquiry shortly.');
+                    submitBtn.html(originalText).removeClass('btn-sent').prop('disabled', false);
+                    $success.fadeOut(400, function() { $(this).remove(); });
+                }, 5000);
             }, 1000);
         });
 

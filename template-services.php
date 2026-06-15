@@ -7,7 +7,7 @@
 get_header();
 ?>
 
-<main id="main" class="site-main">
+<main id="main-content" class="site-main">
     <!-- Page Header -->
     <section class="hero" style="padding: 4rem 1.5rem; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);">
         <div class="container" style="text-align: center;">
@@ -182,9 +182,9 @@ get_header();
             
             <div style="max-width: 800px; margin: 0 auto;">
                 <div class="faq-item">
-                    <div class="faq-question">
+                    <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                         <span>What is included in your registered agent service?</span>
-                        <span style="font-size: 1.5rem; color: var(--primary);">+</span>
+                        <span class="faq-toggle" aria-hidden="true">+</span>
                     </div>
                     <div class="faq-answer">
                         Our service includes: acceptance of all legal documents and service of process, immediate email and phone notifications, secure online document portal, mail forwarding to your preferred address, and compliance with all NC Secretary of State requirements.
@@ -192,9 +192,9 @@ get_header();
                 </div>
                 
                 <div class="faq-item">
-                    <div class="faq-question">
+                    <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                         <span>Can I change my registered agent at any time?</span>
-                        <span style="font-size: 1.5rem; color: var(--primary);">+</span>
+                        <span class="faq-toggle" aria-hidden="true">+</span>
                     </div>
                     <div class="faq-answer">
                         Yes! You can change your registered agent at any time by filing the appropriate form with the NC Secretary of State. We can help guide you through the process.
@@ -202,9 +202,9 @@ get_header();
                 </div>
                 
                 <div class="faq-item">
-                    <div class="faq-question">
+                    <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                         <span>What happens if my business moves out of state?</span>
-                        <span style="font-size: 1.5rem; color: var(--primary);">+</span>
+                        <span class="faq-toggle" aria-hidden="true">+</span>
                     </div>
                     <div class="faq-answer">
                         If you move your business out of North Carolina but maintain your NC entity, you'll still need a registered agent in NC. We can continue to serve as your registered agent regardless of where you're physically located.
@@ -212,9 +212,9 @@ get_header();
                 </div>
                 
                 <div class="faq-item">
-                    <div class="faq-question">
+                    <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                         <span>Do you offer services for businesses outside Charlotte?</span>
-                        <span style="font-size: 1.5rem; color: var(--primary);">+</span>
+                        <span class="faq-toggle" aria-hidden="true">+</span>
                     </div>
                     <div class="faq-answer">
                         Absolutely! While our office is in Charlotte, we serve businesses throughout North Carolina - from Asheville to Wilmington, Raleigh to Greensboro, and everywhere in between.
@@ -222,9 +222,9 @@ get_header();
                 </div>
                 
                 <div class="faq-item">
-                    <div class="faq-question">
+                    <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                         <span>How do I access my documents?</span>
-                        <span style="font-size: 1.5rem; color: var(--primary);">+</span>
+                        <span class="faq-toggle" aria-hidden="true">+</span>
                     </div>
                     <div class="faq-answer">
                         You'll receive login credentials to our secure online portal where all your documents are scanned and stored. You can access them 24/7 from any device with internet access.
@@ -239,7 +239,7 @@ get_header();
         <div class="container">
             <h2>Ready to Get Started?</h2>
             <p>Professional registered agent service for your North Carolina business. Same-day setup available.</p>
-            <a href="/contact" class="btn btn-primary">
+            <a href="<?php echo esc_url(home_url('/contact')); ?>" class="btn btn-primary">
                 Contact Us Today
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"/>

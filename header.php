@@ -16,6 +16,7 @@
 
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
+<a class="skip-link screen-reader-text" href="#main-content"><?php esc_html_e('Skip to content', 'ncllc-pro'); ?></a>
 
 <?php $header_layout = ncllc_pro_get_header_layout(); ?>
 <header class="site-header header-layout-<?php echo esc_attr($header_layout); ?>" id="masthead">
