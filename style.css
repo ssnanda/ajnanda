@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: http://ncllc.ddev.site/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.1.23
+Version: 1.1.24
 License: GNU General Public License v2 or later
 Text Domain: ncllc-pro
 */
@@ -171,6 +171,7 @@ body.admin-bar .site-header {
     text-decoration: var(--ajn-header-text-decoration);
     padding: 0.5rem 1rem;
     border-radius: 0.5rem;
+    white-space: nowrap;
 }
 
 .nav-menu a:hover {
@@ -214,6 +215,45 @@ body.admin-bar .site-header {
 .nav-menu .sub-menu .sub-menu {
     top: 0;
     left: 100%;
+}
+
+/* Down chevron on top-level items that have a submenu */
+.nav-menu > li.menu-item-has-children > a {
+    display: flex;
+    align-items: center;
+}
+
+.nav-menu > li.menu-item-has-children > a::after {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg);
+    margin-left: 6px;
+    flex-shrink: 0;
+    position: relative;
+    top: -2px;
+}
+
+/* Right chevron on sub-menu items that have a nested submenu */
+.nav-menu .sub-menu > li.menu-item-has-children > a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.nav-menu .sub-menu > li.menu-item-has-children > a::after {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-right: 2px solid currentColor;
+    border-top: 2px solid currentColor;
+    transform: rotate(45deg);
+    margin-left: 10px;
+    flex-shrink: 0;
 }
 
 .header-layout-centered-menu .header-container {
@@ -1076,9 +1116,86 @@ body.admin-bar .site-header {
     color: inherit;
 }
 
+/* Address paragraph inside builder — strip default block margin */
+.ajn-builder-html p {
+    margin: 0;
+}
+
 .ajn-builder-social a {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     color: inherit;
     text-decoration: none;
+}
+
+/* Right-align social links inside their cell */
+.ajn-builder-cell-social {
+    justify-content: flex-end;
+}
+
+/* ---- Header builder layout ---- */
+
+.header-layout-builder .header-builder-container {
+    gap: 0;
+}
+
+/* All builder rows share the header background and get side padding */
+.header-layout-builder .ajn-builder-row {
+    padding-inline: 1.5rem;
+    background: var(--ajn-header-background);
+}
+
+/* Main nav row — standard vertical rhythm */
+.header-layout-builder .ajn-builder-row {
+    padding-block: 0.5rem;
+}
+
+/* Info bar row (last row when multiple rows exist) — compact strip */
+.header-layout-builder .ajn-builder-row:last-child:not(:only-child) {
+    padding-block: 0.25rem;
+    font-size: 0.875rem;
+    border-top: 1px solid color-mix(in srgb, var(--ajn-header-text-color) 10%, transparent);
+}
+
+/* Center nav menu in builder mode */
+.header-layout-builder .ajn-builder-cell-primary-menu {
+    justify-content: center;
+}
+
+/* Cap logo height in builder mode */
+.header-layout-builder .ajn-builder-cell-site-logo img {
+    max-height: 70px;
+}
+
+.ajn-builder-cart {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: inherit;
+    text-decoration: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    transition: background 0.2s ease;
+}
+
+.ajn-builder-cart:hover {
+    background: rgba(0, 0, 0, 0.08);
+}
+
+.ajn-cart-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    background: var(--primary, #2563eb);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 9px;
+    line-height: 1;
 }
 
 @keyframes fadeInUp {
@@ -1347,8 +1464,20 @@ body.admin-bar .site-header {
 }
 
 .page-content-panel {
-    max-width: 1100px;
+    max-width: min(860px, calc(100vw - 36px));
     margin: 0 auto;
+}
+
+@media (min-width: 922px) and (max-width: 1199px) {
+    .page-content-panel {
+        max-width: min(860px, calc(100vw - 510px));
+    }
+}
+
+@media (min-width: 1200px) {
+    .page-content-panel {
+        max-width: min(860px, calc(100vw - 572px));
+    }
 }
 
 .page-content-panel > * + * {
@@ -1414,12 +1543,18 @@ body.admin-bar .site-header {
 
 .builder-canvas-content .alignfull,
 .posts-page-content .alignfull,
-.entry-content .alignfull,
-.page-content-panel .alignfull {
+.entry-content .alignfull {
     width: 100vw;
     max-width: none;
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
+}
+
+.page-content-panel .alignfull {
+    width: 100%;
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
 }
 
 :where(.builder-hero-section) {

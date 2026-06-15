@@ -435,6 +435,72 @@ function ajnanda_blocks_render_svg($attrs) {
     return '<div class="aj-block aj-svg">' . wp_kses($attrs['svg'], $allowed_svg) . '</div>';
 }
 
+function ajnanda_blocks_render_slide($attrs, $content) {
+    return '<div class="swiper-slide aj-slide">' . $content . '</div>';
+}
+
+function ajnanda_blocks_render_slider($attrs, $content) {
+    $attrs = ajnanda_blocks_attrs($attrs, array(
+        'loop'       => true,
+        'autoplay'   => false,
+        'delay'      => 4000,
+        'speed'      => 400,
+        'effect'     => 'slide',
+        'showArrows' => true,
+        'showDots'   => true,
+    ));
+
+    $config = array(
+        'loop'   => (bool) $attrs['loop'],
+        'speed'  => absint($attrs['speed']),
+        'effect' => in_array($attrs['effect'], array('slide', 'fade'), true) ? $attrs['effect'] : 'slide',
+    );
+    if (!empty($attrs['autoplay'])) {
+        $config['autoplay'] = array('delay' => absint($attrs['delay']), 'disableOnInteraction' => false);
+    }
+    if (!empty($attrs['showDots'])) {
+        $config['pagination'] = true;
+    }
+    if (!empty($attrs['showArrows'])) {
+        $config['navigation'] = true;
+    }
+
+    $dots   = !empty($attrs['showDots'])   ? '<div class="swiper-pagination"></div>' : '';
+    $arrows = !empty($attrs['showArrows']) ? '<div class="swiper-button-prev"></div><div class="swiper-button-next"></div>' : '';
+
+    return '<div class="aj-block aj-slider" data-swiper="' . esc_attr(wp_json_encode($config)) . '">'
+         . '<div class="swiper"><div class="swiper-wrapper">' . $content . '</div>'
+         . $dots . $arrows
+         . '</div></div>';
+}
+
+function ajnanda_blocks_enqueue_slider_assets() {
+    if (!is_singular()) {
+        return;
+    }
+    global $post;
+    if (!$post || !has_block('ajnanda/slider', $post)) {
+        return;
+    }
+
+    $uagb_assets = WP_CONTENT_DIR . '/plugins/ultimate-addons-for-gutenberg/assets/';
+    $uagb_url    = content_url('/plugins/ultimate-addons-for-gutenberg/assets/');
+
+    if (file_exists($uagb_assets . 'js/swiper-bundle.min.js')) {
+        $js_src  = $uagb_url . 'js/swiper-bundle.min.js';
+        $css_src = $uagb_url . 'css/swiper-bundle.min.css';
+        $ver     = (string) filemtime($uagb_assets . 'js/swiper-bundle.min.js');
+    } else {
+        $js_src  = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js';
+        $css_src = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css';
+        $ver     = '11';
+    }
+
+    wp_enqueue_style('aj-swiper-css', $css_src, array(), $ver);
+    wp_enqueue_script('aj-swiper-js', $js_src, array(), $ver, true);
+}
+add_action('wp_enqueue_scripts', 'ajnanda_blocks_enqueue_slider_assets', 15);
+
 function ajnanda_blocks_register_dynamic_blocks() {
     $post_attributes = array(
         'count' => array('type' => 'number', 'default' => 6),
@@ -516,6 +582,22 @@ function ajnanda_blocks_register_dynamic_blocks() {
                 'loggedOutText' => array('type' => 'string', 'default' => __('Login area placeholder.', 'ncllc-pro')),
                 'loginText' => array('type' => 'string', 'default' => __('Log In', 'ncllc-pro')),
                 'logoutText' => array('type' => 'string', 'default' => __('Log Out', 'ncllc-pro')),
+            ),
+        ),
+        'ajnanda/slide' => array(
+            'callback'   => 'ajnanda_blocks_render_slide',
+            'attributes' => array(),
+        ),
+        'ajnanda/slider' => array(
+            'callback'   => 'ajnanda_blocks_render_slider',
+            'attributes' => array(
+                'loop'       => array('type' => 'boolean', 'default' => true),
+                'autoplay'   => array('type' => 'boolean', 'default' => false),
+                'delay'      => array('type' => 'number',  'default' => 4000),
+                'speed'      => array('type' => 'number',  'default' => 400),
+                'effect'     => array('type' => 'string',  'default' => 'slide'),
+                'showArrows' => array('type' => 'boolean', 'default' => true),
+                'showDots'   => array('type' => 'boolean', 'default' => true),
             ),
         ),
     );

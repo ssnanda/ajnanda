@@ -42,6 +42,25 @@
         });
     }
 
+    function initSliders() {
+        Array.prototype.slice.call(document.querySelectorAll('.aj-slider[data-swiper]')).forEach(function(container) {
+            var config = {};
+            try { config = JSON.parse(container.getAttribute('data-swiper')); } catch (e) { return; }
+            var swiperEl = container.querySelector('.swiper');
+            if (!swiperEl || typeof Swiper === 'undefined') { return; }
+            if (config.pagination) {
+                config.pagination = { el: container.querySelector('.swiper-pagination'), clickable: true };
+            }
+            if (config.navigation) {
+                config.navigation = {
+                    nextEl: container.querySelector('.swiper-button-next'),
+                    prevEl: container.querySelector('.swiper-button-prev')
+                };
+            }
+            new Swiper(swiperEl, config);
+        });
+    }
+
     function init() {
         Array.prototype.slice.call(document.querySelectorAll('.aj-faq')).forEach(initFaq);
         Array.prototype.slice.call(document.querySelectorAll('.aj-icon-list')).forEach(function(list) {
@@ -64,6 +83,7 @@
                 }
             });
         });
+        initSliders();
     }
 
     if (document.readyState === 'loading') {

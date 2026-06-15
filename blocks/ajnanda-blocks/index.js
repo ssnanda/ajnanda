@@ -1580,10 +1580,60 @@
             return [field(__('Trigger text', 'ncllc-pro'), props.attributes.triggerText, function(value) { props.setAttributes({ triggerText: value }); }), el(RangeControl, { label: __('Modal width', 'ncllc-pro'), min: 320, max: 1200, value: props.attributes.modalWidth || 640, onChange: function(value) { props.setAttributes({ modalWidth: value }); } })];
         }
     });
-    simpleCardBlock('ajnanda/slider', __('AJ Slider Placeholder', 'ncllc-pro'), 'slides', 'aj-slider-placeholder', [['core/image'], ['core/heading', { level: 3, content: 'Slide Title' }], ['core/paragraph', { placeholder: 'Slide text.' }]], {
-        attributes: { autoplay: { type: 'boolean', default: false }, delay: { type: 'number', default: 4 }, showArrows: { type: 'boolean', default: true } },
-        controls: function(props) {
-            return [el(ToggleControl, { label: __('Autoplay', 'ncllc-pro'), checked: !!props.attributes.autoplay, onChange: function(value) { props.setAttributes({ autoplay: value }); } }), el(RangeControl, { label: __('Delay seconds', 'ncllc-pro'), min: 1, max: 12, value: props.attributes.delay || 4, onChange: function(value) { props.setAttributes({ delay: value }); } }), el(ToggleControl, { label: __('Show arrows', 'ncllc-pro'), checked: !!props.attributes.showArrows, onChange: function(value) { props.setAttributes({ showArrows: value }); } })];
+    registerBlockType('ajnanda/slide', {
+        title: __('AJ Slide', 'ncllc-pro'),
+        category: category,
+        icon: 'slides',
+        parent: ['ajnanda/slider'],
+        supports: { anchor: true },
+        attributes: {},
+        edit: function() {
+            return el('div', { className: 'aj-block aj-slide aj-slide--editor' },
+                el(InnerBlocks, { template: [['core/heading', { level: 2, content: 'Slide Title', textAlign: 'center' }], ['core/paragraph', { placeholder: 'Slide description.', align: 'center' }]], templateLock: false })
+            );
+        },
+        save: function() {
+            return el(InnerBlocks.Content);
+        }
+    });
+
+    registerBlockType('ajnanda/slider', {
+        title: __('AJ Slider', 'ncllc-pro'),
+        category: category,
+        icon: 'images-alt2',
+        supports: { align: ['wide', 'full'], anchor: true },
+        attributes: {
+            loop:       { type: 'boolean', default: true },
+            autoplay:   { type: 'boolean', default: false },
+            delay:      { type: 'number',  default: 4000 },
+            speed:      { type: 'number',  default: 400 },
+            effect:     { type: 'string',  default: 'slide' },
+            showArrows: { type: 'boolean', default: true },
+            showDots:   { type: 'boolean', default: true }
+        },
+        edit: function(props) {
+            var attrs = props.attributes;
+            return el(Fragment, {},
+                inspector([
+                    el(ToggleControl, { label: __('Loop', 'ncllc-pro'), checked: attrs.loop !== false, onChange: function(v) { props.setAttributes({ loop: v }); } }),
+                    el(ToggleControl, { label: __('Autoplay', 'ncllc-pro'), checked: !!attrs.autoplay, onChange: function(v) { props.setAttributes({ autoplay: v }); } }),
+                    el(RangeControl, { label: __('Autoplay delay (ms)', 'ncllc-pro'), min: 1000, max: 10000, step: 500, value: attrs.delay || 4000, onChange: function(v) { props.setAttributes({ delay: v }); } }),
+                    el(RangeControl, { label: __('Transition speed (ms)', 'ncllc-pro'), min: 100, max: 2000, value: attrs.speed || 400, onChange: function(v) { props.setAttributes({ speed: v }); } }),
+                    el(SelectControl, { label: __('Effect', 'ncllc-pro'), value: attrs.effect || 'slide', options: [{ label: __('Slide', 'ncllc-pro'), value: 'slide' }, { label: __('Fade', 'ncllc-pro'), value: 'fade' }], onChange: function(v) { props.setAttributes({ effect: v }); } }),
+                    el(ToggleControl, { label: __('Show arrows', 'ncllc-pro'), checked: attrs.showArrows !== false, onChange: function(v) { props.setAttributes({ showArrows: v }); } }),
+                    el(ToggleControl, { label: __('Show dots', 'ncllc-pro'), checked: attrs.showDots !== false, onChange: function(v) { props.setAttributes({ showDots: v }); } })
+                ]),
+                el('div', { className: 'aj-block aj-slider aj-slider--editor' },
+                    el(InnerBlocks, {
+                        allowedBlocks: ['ajnanda/slide'],
+                        template: [['ajnanda/slide'], ['ajnanda/slide']],
+                        templateLock: false
+                    })
+                )
+            );
+        },
+        save: function() {
+            return el(InnerBlocks.Content);
         }
     });
     simpleCardBlock('ajnanda/lottie-animation', __('AJ Lottie Animation Placeholder', 'ncllc-pro'), 'controls-repeat', 'aj-lottie-placeholder', [['core/paragraph', { content: 'Lottie animation placeholder.' }]], {
