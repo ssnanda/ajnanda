@@ -2361,66 +2361,7 @@ function ajnanda_customize_register($wp_customize) {
 
     ajnanda_register_builder_controls($wp_customize, 'header', 'ajnanda_header', __('Header', 'ajnanda'));
 
-    // Navigation Panels Section
-    $wp_customize->add_section('ajnanda_nav_panels', array(
-        'title'       => __('Navigation Panels', 'ajnanda'),
-        'priority'    => 26,
-        'description' => __('Enable optional floating side-panel menus. Once enabled, assign a menu in Appearance → Menus → Manage Locations.', 'ajnanda'),
-    ));
-
-    $wp_customize->add_setting('ajnanda_left_panel_enabled', array(
-        'default'           => false,
-        'sanitize_callback' => 'rest_sanitize_boolean',
-        'transport'         => 'refresh',
-    ));
-    $wp_customize->add_control('ajnanda_left_panel_enabled', array(
-        'label'       => __('Enable Left Panel Menu', 'ajnanda'),
-        'description' => __('Registers a Left Floater Panel menu location in Appearance → Menus.', 'ajnanda'),
-        'section'     => 'ajnanda_nav_panels',
-        'type'        => 'checkbox',
-    ));
-
-    $wp_customize->add_setting('ajnanda_left_panel_label', array(
-        'default'           => __('Left Floater Panel', 'ajnanda'),
-        'sanitize_callback' => 'sanitize_text_field',
-        'transport'         => 'refresh',
-    ));
-    $wp_customize->add_control('ajnanda_left_panel_label', array(
-        'label'           => __('Left Panel Label', 'ajnanda'),
-        'description'     => __('How the location is named in Appearance → Menus.', 'ajnanda'),
-        'section'         => 'ajnanda_nav_panels',
-        'type'            => 'text',
-        'active_callback' => function() {
-            return (bool) get_theme_mod('ajnanda_left_panel_enabled', false);
-        },
-    ));
-
-    $wp_customize->add_setting('ajnanda_right_panel_enabled', array(
-        'default'           => false,
-        'sanitize_callback' => 'rest_sanitize_boolean',
-        'transport'         => 'refresh',
-    ));
-    $wp_customize->add_control('ajnanda_right_panel_enabled', array(
-        'label'       => __('Enable Right Panel Menu', 'ajnanda'),
-        'description' => __('Registers a Right Floater Panel menu location in Appearance → Menus.', 'ajnanda'),
-        'section'     => 'ajnanda_nav_panels',
-        'type'        => 'checkbox',
-    ));
-
-    $wp_customize->add_setting('ajnanda_right_panel_label', array(
-        'default'           => __('Right Floater Panel', 'ajnanda'),
-        'sanitize_callback' => 'sanitize_text_field',
-        'transport'         => 'refresh',
-    ));
-    $wp_customize->add_control('ajnanda_right_panel_label', array(
-        'label'           => __('Right Panel Label', 'ajnanda'),
-        'description'     => __('How the location is named in Appearance → Menus.', 'ajnanda'),
-        'section'         => 'ajnanda_nav_panels',
-        'type'            => 'text',
-        'active_callback' => function() {
-            return (bool) get_theme_mod('ajnanda_right_panel_enabled', false);
-        },
-    ));
+    // Navigation panel settings moved to Appearance → Menus (ajnanda_menu_toggles option).
 
     // Hero Defaults Section
     $wp_customize->add_section('ajnanda_hero_defaults', array(
@@ -2922,6 +2863,9 @@ function ajnanda_customize_register($wp_customize) {
     if ($wp_customize->is_preview()) {
         add_action('wp_footer', 'ajnanda_customizer_live_preview', 21);
     }
+
+    // Remove the built-in Menus panel — all menu settings live in Appearance → Menus.
+    $wp_customize->remove_panel('nav_menus');
 }
 add_action('customize_register', 'ajnanda_customize_register');
 
@@ -4175,6 +4119,10 @@ define('AJNANDA_MENU_TOGGLES_OPTION', 'ajnanda_menu_toggles');
 
 function ajnanda_menu_toggle_defaults(): array {
     return [
+        'left_panel_enabled'             => 0,
+        'left_panel_label'               => 'Left Floater Panel',
+        'right_panel_enabled'            => 0,
+        'right_panel_label'              => 'Right Floater Panel',
         'top_navigation'                 => 1,
         'top_navigation_desktop'         => 1,
         'top_navigation_tablet'          => 1,
@@ -4224,7 +4172,24 @@ function ajnanda_get_menu_toggles(): array {
             $saved = $legacy;
         }
     }
-    return wp_parse_args($saved, ajnanda_menu_toggle_defaults());
+
+    $merged = wp_parse_args($saved, ajnanda_menu_toggle_defaults());
+
+    // Fall back to theme_mods for panel enable/label until user saves from Appearance → Menus.
+    if (!array_key_exists('left_panel_enabled', $saved)) {
+        $merged['left_panel_enabled'] = get_theme_mod('ajnanda_left_panel_enabled', false) ? 1 : 0;
+    }
+    if (!array_key_exists('left_panel_label', $saved)) {
+        $merged['left_panel_label'] = get_theme_mod('ajnanda_left_panel_label', 'Left Floater Panel');
+    }
+    if (!array_key_exists('right_panel_enabled', $saved)) {
+        $merged['right_panel_enabled'] = get_theme_mod('ajnanda_right_panel_enabled', false) ? 1 : 0;
+    }
+    if (!array_key_exists('right_panel_label', $saved)) {
+        $merged['right_panel_label'] = get_theme_mod('ajnanda_right_panel_label', 'Right Floater Panel');
+    }
+
+    return $merged;
 }
 
 function ajnanda_menu_toggle_enabled(string $key): bool {
@@ -4284,6 +4249,10 @@ add_action('admin_init', function (): void {
                 $defaults  = ajnanda_menu_toggle_defaults();
                 $sanitized = [];
                 foreach (array_keys($defaults) as $key) {
+                    if (in_array($key, ['left_panel_label', 'right_panel_label'], true)) {
+                        $sanitized[$key] = sanitize_text_field($value[$key] ?? $defaults[$key]);
+                        continue;
+                    }
                     if (str_ends_with($key, '_mode')) {
                         $sanitized[$key] = ($value[$key] ?? 'floating') === 'inline' ? 'inline' : 'floating';
                         continue;
@@ -4315,6 +4284,26 @@ add_action('admin_notices', function (): void {
     }
 });
 
+// When the menu toggles option is saved, sync panel enable/label back to theme_mods
+// so that mu-plugins (which read theme_mods during after_setup_theme) stay in sync.
+add_action('update_option_' . AJNANDA_MENU_TOGGLES_OPTION, function ($old_value, $new_value): void {
+    if (!is_array($new_value)) {
+        return;
+    }
+    if (array_key_exists('left_panel_enabled', $new_value)) {
+        set_theme_mod('ajnanda_left_panel_enabled', !empty($new_value['left_panel_enabled']));
+    }
+    if (array_key_exists('left_panel_label', $new_value) && '' !== trim((string) $new_value['left_panel_label'])) {
+        set_theme_mod('ajnanda_left_panel_label', sanitize_text_field($new_value['left_panel_label']));
+    }
+    if (array_key_exists('right_panel_enabled', $new_value)) {
+        set_theme_mod('ajnanda_right_panel_enabled', !empty($new_value['right_panel_enabled']));
+    }
+    if (array_key_exists('right_panel_label', $new_value) && '' !== trim((string) $new_value['right_panel_label'])) {
+        set_theme_mod('ajnanda_right_panel_label', sanitize_text_field($new_value['right_panel_label']));
+    }
+}, 10, 2);
+
 add_action('admin_footer-nav-menus.php', function (): void {
     if (!current_user_can('manage_options')) {
         return;
@@ -4323,8 +4312,6 @@ add_action('admin_footer-nav-menus.php', function (): void {
     $settings    = ajnanda_get_menu_toggles();
     $option      = AJNANDA_MENU_TOGGLES_OPTION;
     $group       = 'ajnanda_menu_toggles';
-    $left_label  = get_theme_mod('ajnanda_left_panel_label', __('Left Floater Panel', 'ajnanda'));
-    $right_label = get_theme_mod('ajnanda_right_panel_label', __('Right Floater Panel', 'ajnanda'));
     $positions   = [
         'top_left'     => __('Top Left', 'ajnanda'),
         'top_right'    => __('Top Right', 'ajnanda'),
@@ -4348,11 +4335,15 @@ add_action('admin_footer-nav-menus.php', function (): void {
                             <p style="margin-top:8px;"><label><input type="checkbox" name="<?php echo esc_attr($option); ?>[top_navigation_sticky]" value="1" <?php checked(!empty($settings['top_navigation_sticky'])); ?>> <?php esc_html_e('Keep the top navigation sticky while scrolling', 'ajnanda'); ?></label></p>
                         </td>
                     </tr>
-                    <?php if (get_theme_mod('ajnanda_left_panel_enabled', false)) : ?>
                     <tr>
-                        <th scope="row"><strong><?php echo esc_html(strtoupper($left_label)); ?></strong></th>
+                        <th scope="row"><strong><?php esc_html_e('Left Panel Menu', 'ajnanda'); ?></strong></th>
                         <td>
-                            <label><input type="checkbox" name="<?php echo esc_attr($option); ?>[office_shortcuts]" value="1" <?php checked(!empty($settings['office_shortcuts'])); ?>> <?php esc_html_e('Show the left floating shortcuts menu', 'ajnanda'); ?></label>
+                            <label><input type="checkbox" name="<?php echo esc_attr($option); ?>[left_panel_enabled]" value="1" <?php checked(!empty($settings['left_panel_enabled'])); ?>> <?php esc_html_e('Enable left floating panel menu', 'ajnanda'); ?></label>
+                            <p style="margin-top:8px;">
+                                <label><?php esc_html_e('Panel label:', 'ajnanda'); ?> <input type="text" name="<?php echo esc_attr($option); ?>[left_panel_label]" value="<?php echo esc_attr($settings['left_panel_label']); ?>" style="width:260px;"></label>
+                                <span style="display:block;margin-top:4px;color:#646970;font-size:12px;"><?php esc_html_e('Shown as the menu location name in Appearance → Menus → Manage Locations.', 'ajnanda'); ?></span>
+                            </p>
+                            <label style="margin-top:8px;display:block;"><input type="checkbox" name="<?php echo esc_attr($option); ?>[office_shortcuts]" value="1" <?php checked(!empty($settings['office_shortcuts'])); ?>> <?php esc_html_e('Show on site', 'ajnanda'); ?></label>
                             <?php ajnanda_render_menu_device_checkboxes('office_shortcuts', $settings); ?>
                             <p style="margin-top:8px;">
                                 <label style="margin-right:16px;"><input type="radio" name="<?php echo esc_attr($option); ?>[office_shortcuts_mode]" value="floating" <?php checked(($settings['office_shortcuts_mode'] ?? 'floating') === 'floating'); ?>> <?php esc_html_e('Floating', 'ajnanda'); ?></label>
@@ -4360,12 +4351,15 @@ add_action('admin_footer-nav-menus.php', function (): void {
                             </p>
                         </td>
                     </tr>
-                    <?php endif; ?>
-                    <?php if (get_theme_mod('ajnanda_right_panel_enabled', false)) : ?>
                     <tr>
-                        <th scope="row"><strong><?php echo esc_html(strtoupper($right_label)); ?></strong></th>
+                        <th scope="row"><strong><?php esc_html_e('Right Panel Menu', 'ajnanda'); ?></strong></th>
                         <td>
-                            <label><input type="checkbox" name="<?php echo esc_attr($option); ?>[store_shortcuts]" value="1" <?php checked(!empty($settings['store_shortcuts'])); ?>> <?php esc_html_e('Show the right floating shortcuts menu', 'ajnanda'); ?></label>
+                            <label><input type="checkbox" name="<?php echo esc_attr($option); ?>[right_panel_enabled]" value="1" <?php checked(!empty($settings['right_panel_enabled'])); ?>> <?php esc_html_e('Enable right floating panel menu', 'ajnanda'); ?></label>
+                            <p style="margin-top:8px;">
+                                <label><?php esc_html_e('Panel label:', 'ajnanda'); ?> <input type="text" name="<?php echo esc_attr($option); ?>[right_panel_label]" value="<?php echo esc_attr($settings['right_panel_label']); ?>" style="width:260px;"></label>
+                                <span style="display:block;margin-top:4px;color:#646970;font-size:12px;"><?php esc_html_e('Shown as the eyebrow text above the primary button on the right panel.', 'ajnanda'); ?></span>
+                            </p>
+                            <label style="margin-top:8px;display:block;"><input type="checkbox" name="<?php echo esc_attr($option); ?>[store_shortcuts]" value="1" <?php checked(!empty($settings['store_shortcuts'])); ?>> <?php esc_html_e('Show on site', 'ajnanda'); ?></label>
                             <?php ajnanda_render_menu_device_checkboxes('store_shortcuts', $settings); ?>
                             <p style="margin-top:8px;">
                                 <label style="margin-right:16px;"><input type="radio" name="<?php echo esc_attr($option); ?>[store_shortcuts_mode]" value="floating" <?php checked(($settings['store_shortcuts_mode'] ?? 'floating') === 'floating'); ?>> <?php esc_html_e('Floating', 'ajnanda'); ?></label>
@@ -4373,7 +4367,6 @@ add_action('admin_footer-nav-menus.php', function (): void {
                             </p>
                         </td>
                     </tr>
-                    <?php endif; ?>
                     <tr>
                         <th scope="row"><strong><?php esc_html_e('Bottom Navigation', 'ajnanda'); ?></strong></th>
                         <td>
