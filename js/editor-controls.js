@@ -102,34 +102,32 @@
         ajnBtnColor5: { type: 'string', default: '' },
         ajnBtnColor6: { type: 'string', default: '' },
         ajnBtnColorSchema: { type: 'string', default: '' },
-        ajnBtnStyle: { type: 'string', default: '' }
+        ajnBtnStyle: { type: 'string', default: '' },
+        ajnBtnScheme: { type: 'string', default: '' },
+        ajnBtnSizeStyle: { type: 'string', default: '' }
     };
 
-    // Format: "Shape • Color style"  — each preset sets ALL of bg, color, border, radius, padding
-    var AJN_BUTTON_STYLES = [
-        // ── Rounded corners (6 px) ──────────────────────────────────────────
-        { value: 'rounded-blue',     label: 'Rounded • Solid Blue',       bg: '#2563eb',    color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 6,   paddingX: 24, paddingY: 12 },
-        { value: 'rounded-dark',     label: 'Rounded • Solid Dark',       bg: '#0f172a',    color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 6,   paddingX: 24, paddingY: 12 },
-        { value: 'rounded-green',    label: 'Rounded • Solid Green',      bg: '#16a34a',    color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 6,   paddingX: 24, paddingY: 12 },
-        { value: 'rounded-red',      label: 'Rounded • Solid Red',        bg: '#dc2626',    color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 6,   paddingX: 24, paddingY: 12 },
-        { value: 'rounded-orange',   label: 'Rounded • Solid Orange',     bg: '#f97316',    color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 6,   paddingX: 24, paddingY: 12 },
-        { value: 'rounded-gray',     label: 'Rounded • Solid Gray',       bg: '#6b7280',    color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 6,   paddingX: 24, paddingY: 12 },
-        // ── Pill / fully rounded ────────────────────────────────────────────
-        { value: 'pill-blue',        label: 'Pill • Solid Blue',          bg: '#2563eb',    color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 999, paddingX: 28, paddingY: 12 },
-        { value: 'pill-dark',        label: 'Pill • Solid Dark',          bg: '#0f172a',    color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 999, paddingX: 28, paddingY: 12 },
-        { value: 'pill-green',       label: 'Pill • Solid Green',         bg: '#16a34a',    color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 999, paddingX: 28, paddingY: 12 },
-        { value: 'pill-red',         label: 'Pill • Solid Red',           bg: '#dc2626',    color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 999, paddingX: 28, paddingY: 12 },
-        // ── Square corners (0 radius) ───────────────────────────────────────
-        { value: 'square-blue',      label: 'Square • Solid Blue',        bg: '#2563eb',    color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 0,   paddingX: 24, paddingY: 12 },
-        { value: 'square-dark',      label: 'Square • Solid Dark',        bg: '#0f172a',    color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 0,   paddingX: 24, paddingY: 12 },
-        // ── Outline / bordered (rounded) ────────────────────────────────────
-        { value: 'outline-blue',     label: 'Outline • Blue Border',      bg: 'transparent', color: '#2563eb', borderColor: '#2563eb', borderWidth: 2, borderRadius: 6,   paddingX: 22, paddingY: 10 },
-        { value: 'outline-dark',     label: 'Outline • Dark Border',      bg: 'transparent', color: '#0f172a', borderColor: '#0f172a', borderWidth: 2, borderRadius: 6,   paddingX: 22, paddingY: 10 },
-        { value: 'outline-white',    label: 'Outline • White Border',     bg: 'transparent', color: '#ffffff', borderColor: '#ffffff', borderWidth: 2, borderRadius: 6,   paddingX: 22, paddingY: 10 },
-        // ── Outline pill ────────────────────────────────────────────────────
-        { value: 'pill-outline-blue', label: 'Pill Outline • Blue',       bg: 'transparent', color: '#2563eb', borderColor: '#2563eb', borderWidth: 2, borderRadius: 999, paddingX: 26, paddingY: 10 },
-        { value: 'pill-outline-dark', label: 'Pill Outline • Dark',       bg: 'transparent', color: '#0f172a', borderColor: '#0f172a', borderWidth: 2, borderRadius: 999, paddingX: 26, paddingY: 10 },
-        { value: 'pill-outline-white', label: 'Pill Outline • White',     bg: 'transparent', color: '#ffffff', borderColor: '#ffffff', borderWidth: 2, borderRadius: 999, paddingX: 26, paddingY: 10 }
+    var AJN_BUTTON_COLOR_SCHEMES = [
+        { value: 'brand-blue', label: 'Brand Blue', bg: '#2563eb', color: '#ffffff', borderColor: '#2563eb' },
+        { value: 'navy', label: 'Deep Navy', bg: '#0f172a', color: '#ffffff', borderColor: '#0f172a' },
+        { value: 'green', label: 'Growth Green', bg: '#16a34a', color: '#ffffff', borderColor: '#16a34a' },
+        { value: 'red', label: 'Action Red', bg: '#dc2626', color: '#ffffff', borderColor: '#dc2626' },
+        { value: 'orange', label: 'Warm Orange', bg: '#f97316', color: '#ffffff', borderColor: '#f97316' },
+        { value: 'gray', label: 'Neutral Gray', bg: '#6b7280', color: '#ffffff', borderColor: '#6b7280' },
+        { value: 'outline-blue', label: 'Outline Blue', bg: 'transparent', color: '#2563eb', borderColor: '#2563eb' },
+        { value: 'outline-dark', label: 'Outline Dark', bg: 'transparent', color: '#0f172a', borderColor: '#0f172a' },
+        { value: 'outline-white', label: 'Outline White', bg: 'transparent', color: '#ffffff', borderColor: '#ffffff' }
+    ];
+
+    var AJN_BUTTON_SIZE_STYLES = [
+        { value: 'compact-rounded', label: 'Compact Rounded', borderWidth: 0, borderRadius: 6, paddingX: 18, paddingY: 8 },
+        { value: 'standard-rounded', label: 'Standard Rounded', borderWidth: 0, borderRadius: 6, paddingX: 24, paddingY: 12 },
+        { value: 'large-rounded', label: 'Large Rounded', borderWidth: 0, borderRadius: 8, paddingX: 30, paddingY: 15 },
+        { value: 'compact-pill', label: 'Compact Pill', borderWidth: 0, borderRadius: 999, paddingX: 22, paddingY: 8 },
+        { value: 'standard-pill', label: 'Standard Pill', borderWidth: 0, borderRadius: 999, paddingX: 28, paddingY: 12 },
+        { value: 'square', label: 'Square', borderWidth: 0, borderRadius: 0, paddingX: 24, paddingY: 12 },
+        { value: 'outline-rounded', label: 'Outline Rounded', borderWidth: 2, borderRadius: 6, paddingX: 22, paddingY: 10 },
+        { value: 'outline-pill', label: 'Outline Pill', borderWidth: 2, borderRadius: 999, paddingX: 26, paddingY: 10 }
     ];
 
     var AJN_COLOR_SCHEMES = [
@@ -169,6 +167,10 @@
         }
 
         return value;
+    }
+
+    function numberValue(value, fallback) {
+        return typeof value === 'number' ? value : fallback;
     }
 
     function setVar(style, name, value) {
@@ -650,7 +652,7 @@
             className = mergeClassName(className, 'aj-buttons-stretch');
         }
 
-        var hasShared = !!attrs.ajnBtnStyle ||  // style preset always enables shared styles
+        var hasShared = !!attrs.ajnBtnStyle || !!attrs.ajnBtnScheme || !!attrs.ajnBtnSizeStyle ||
             attrs.ajnBtnSharedBg || attrs.ajnBtnSharedColor || attrs.ajnBtnSharedBorderColor ||
             attrs.ajnBtnSharedBorderWidth || attrs.ajnBtnSharedBorderRadius ||
             attrs.ajnBtnSharedPaddingX || attrs.ajnBtnSharedPaddingY;
@@ -669,9 +671,9 @@
     function getButtonLayoutStyles(attrs) {
         var layoutDesktop = attrs.ajnButtonLayoutDesktop || 'row';
         var style = {
-            '--aj-buttons-gap-desktop': (attrs.ajnButtonGapDesktop || 12) + 'px',
-            '--aj-buttons-gap-tablet': (attrs.ajnButtonGapTablet || attrs.ajnButtonGapDesktop || 12) + 'px',
-            '--aj-buttons-gap-mobile': (attrs.ajnButtonGapMobile || attrs.ajnButtonGapTablet || attrs.ajnButtonGapDesktop || 12) + 'px',
+            '--aj-buttons-gap-desktop': numberValue(attrs.ajnButtonGapDesktop, 12) + 'px',
+            '--aj-buttons-gap-tablet': numberValue(attrs.ajnButtonGapTablet, numberValue(attrs.ajnButtonGapDesktop, 12)) + 'px',
+            '--aj-buttons-gap-mobile': numberValue(attrs.ajnButtonGapMobile, numberValue(attrs.ajnButtonGapTablet, numberValue(attrs.ajnButtonGapDesktop, 12))) + 'px',
             // CSS var consumed by editor.css so the editor canvas shows the correct direction
             '--aj-editor-direction': layoutDesktop === 'stack' ? 'column' : 'row'
         };
@@ -685,21 +687,23 @@
             style['--aj-btn-justify'] = justify;
         }
 
-        // When a style preset is active, output ALL shared vars even when value is 0
-        // (to correctly handle e.g. Square preset with borderRadius=0, Square preset
-        //  needs to explicitly output 0px to override any inherited rounded corners)
-        if (attrs.ajnBtnStyle) {
+        if (attrs.ajnBtnStyle || attrs.ajnBtnScheme) {
             style['--aj-btn-shared-bg']           = attrs.ajnBtnSharedBg || 'initial';
             style['--aj-btn-shared-color']         = attrs.ajnBtnSharedColor || 'inherit';
             style['--aj-btn-shared-border-color']  = attrs.ajnBtnSharedBorderColor || 'transparent';
-            style['--aj-btn-shared-border-width']  = (attrs.ajnBtnSharedBorderWidth  || 0) + 'px';
-            style['--aj-btn-shared-border-radius'] = (attrs.ajnBtnSharedBorderRadius || 0) + 'px';
-            style['--aj-btn-shared-padding-x']     = (attrs.ajnBtnSharedPaddingX     || 0) + 'px';
-            style['--aj-btn-shared-padding-y']     = (attrs.ajnBtnSharedPaddingY     || 0) + 'px';
         } else {
             if (attrs.ajnBtnSharedBg)           style['--aj-btn-shared-bg']           = attrs.ajnBtnSharedBg;
             if (attrs.ajnBtnSharedColor)         style['--aj-btn-shared-color']         = attrs.ajnBtnSharedColor;
             if (attrs.ajnBtnSharedBorderColor)   style['--aj-btn-shared-border-color']  = attrs.ajnBtnSharedBorderColor;
+        }
+
+        // Size presets need to output zero values explicitly for square/no-border styles.
+        if (attrs.ajnBtnStyle || attrs.ajnBtnSizeStyle) {
+            style['--aj-btn-shared-border-width']  = numberValue(attrs.ajnBtnSharedBorderWidth, 0) + 'px';
+            style['--aj-btn-shared-border-radius'] = numberValue(attrs.ajnBtnSharedBorderRadius, 0) + 'px';
+            style['--aj-btn-shared-padding-x']     = numberValue(attrs.ajnBtnSharedPaddingX, 0) + 'px';
+            style['--aj-btn-shared-padding-y']     = numberValue(attrs.ajnBtnSharedPaddingY, 0) + 'px';
+        } else {
             if (attrs.ajnBtnSharedBorderWidth)   style['--aj-btn-shared-border-width']  = attrs.ajnBtnSharedBorderWidth  + 'px';
             if (attrs.ajnBtnSharedBorderRadius)  style['--aj-btn-shared-border-radius'] = attrs.ajnBtnSharedBorderRadius + 'px';
             if (attrs.ajnBtnSharedPaddingX)      style['--aj-btn-shared-padding-x']     = attrs.ajnBtnSharedPaddingX     + 'px';
@@ -737,7 +741,7 @@
             !!attrs.ajnBtnSharedBorderWidth || !!attrs.ajnBtnSharedBorderRadius ||
             !!attrs.ajnBtnColor1 || !!attrs.ajnBtnColor2 || !!attrs.ajnBtnColor3 ||
             !!attrs.ajnBtnColor4 || !!attrs.ajnBtnColor5 || !!attrs.ajnBtnColor6 ||
-            !!attrs.ajnBtnStyle;
+            !!attrs.ajnBtnStyle || !!attrs.ajnBtnScheme || !!attrs.ajnBtnSizeStyle;
     }
 
     function getSingleButtonClass(attrs, className) {
@@ -1171,40 +1175,58 @@
                             ),
                             createElement(
                                 PanelBody,
-                                { title: 'AJ Buttons — Button Style', initialOpen: false },
+                                { title: 'AJ Buttons — Header Color Scheme', initialOpen: false },
                                 createElement('p', { style: { fontSize: '12px', color: '#6b7280', marginBottom: '12px' } },
-                                    'Choose a preset style for all buttons — sets background, text color, border, radius and padding in one step.'
+                                    'Choose a shared color scheme for all buttons. Size, radius, padding and border width are bundled separately below.'
                                 ),
                                 createElement(SelectControl, {
-                                    label: 'Style preset',
-                                    value: attrs.ajnBtnStyle || '',
+                                    label: 'Color scheme',
+                                    value: attrs.ajnBtnScheme || '',
                                     options: (function() {
                                         var opts = [{ label: '— WP default (no override) —', value: '' }];
-                                        AJN_BUTTON_STYLES.forEach(function(s) { opts.push({ label: s.label, value: s.value }); });
+                                        AJN_BUTTON_COLOR_SCHEMES.forEach(function(s) { opts.push({ label: s.label, value: s.value }); });
                                         return opts;
                                     })(),
-                                    onChange: function(styleValue) {
-                                        var style = null;
-                                        AJN_BUTTON_STYLES.forEach(function(s) { if (s.value === styleValue) { style = s; } });
-                                        if (!style || !styleValue) {
-                                            setAttributes({ ajnBtnStyle: '', ajnBtnSharedBg: '', ajnBtnSharedColor: '', ajnBtnSharedBorderColor: '', ajnBtnSharedBorderWidth: 0, ajnBtnSharedBorderRadius: 0, ajnBtnSharedPaddingX: 0, ajnBtnSharedPaddingY: 0 });
+                                    onChange: function(schemeValue) {
+                                        var scheme = null;
+                                        AJN_BUTTON_COLOR_SCHEMES.forEach(function(s) { if (s.value === schemeValue) { scheme = s; } });
+                                        if (!scheme || !schemeValue) {
+                                            setAttributes({ ajnBtnScheme: '', ajnBtnStyle: '', ajnBtnSharedBg: '', ajnBtnSharedColor: '', ajnBtnSharedBorderColor: '' });
                                             return;
                                         }
                                         setAttributes({
-                                            ajnBtnStyle: styleValue,
-                                            ajnBtnSharedBg: style.bg || '',
-                                            ajnBtnSharedColor: style.color || '',
-                                            ajnBtnSharedBorderColor: style.borderColor || '',
-                                            ajnBtnSharedBorderWidth: style.borderWidth || 0,
-                                            ajnBtnSharedBorderRadius: style.borderRadius || 0,
-                                            ajnBtnSharedPaddingX: style.paddingX || 0,
-                                            ajnBtnSharedPaddingY: style.paddingY || 0
+                                            ajnBtnScheme: schemeValue,
+                                            ajnBtnStyle: '',
+                                            ajnBtnSharedBg: scheme.bg || '',
+                                            ajnBtnSharedColor: scheme.color || '',
+                                            ajnBtnSharedBorderColor: scheme.borderColor || ''
                                         });
                                     }
                                 }),
-                                attrs.ajnBtnStyle ? createElement('p', { style: { fontSize: '11px', color: '#059669', margin: '8px 0 0', fontStyle: 'italic' } },
-                                    'Active: ' + (AJN_BUTTON_STYLES.filter(function(s) { return s.value === attrs.ajnBtnStyle; })[0] || {}).label
-                                ) : null
+                                createElement(SelectControl, {
+                                    label: 'Size and border bundle',
+                                    value: attrs.ajnBtnSizeStyle || '',
+                                    options: (function() {
+                                        var opts = [{ label: '— WP default size —', value: '' }];
+                                        AJN_BUTTON_SIZE_STYLES.forEach(function(s) { opts.push({ label: s.label, value: s.value }); });
+                                        return opts;
+                                    })(),
+                                    onChange: function(sizeValue) {
+                                        var size = null;
+                                        AJN_BUTTON_SIZE_STYLES.forEach(function(s) { if (s.value === sizeValue) { size = s; } });
+                                        if (!size || !sizeValue) {
+                                            setAttributes({ ajnBtnSizeStyle: '', ajnBtnSharedBorderWidth: 0, ajnBtnSharedBorderRadius: 0, ajnBtnSharedPaddingX: 0, ajnBtnSharedPaddingY: 0 });
+                                            return;
+                                        }
+                                        setAttributes({
+                                            ajnBtnSizeStyle: sizeValue,
+                                            ajnBtnSharedBorderWidth: size.borderWidth,
+                                            ajnBtnSharedBorderRadius: size.borderRadius,
+                                            ajnBtnSharedPaddingX: size.paddingX,
+                                            ajnBtnSharedPaddingY: size.paddingY
+                                        });
+                                    }
+                                })
                             ),
                             createElement(
                                 PanelBody,

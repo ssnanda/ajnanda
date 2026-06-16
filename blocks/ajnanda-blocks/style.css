@@ -699,19 +699,30 @@ input[type="checkbox"].aj-field {
     width: 100%;
 }
 
+.aj-buttons,
+.wp-block-buttons.aj-buttons-control {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: var(--aj-buttons-gap-desktop, 12px) !important;
+    align-items: center !important;
+    justify-content: var(--aj-btn-justify, center) !important;
+    margin-right: auto;
+    margin-left: auto;
+}
+
 .aj-buttons-desktop-row {
-    flex-direction: row;
+    flex-direction: row !important;
 }
 
 .aj-buttons-desktop-stack {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: column !important;
+    align-items: stretch !important;
 }
 
 .aj-buttons-desktop-grid,
 .aj-buttons-desktop-featured {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
 }
 
 .aj-buttons-desktop-featured > .wp-block-button:first-child {
@@ -848,20 +859,20 @@ input[type="checkbox"].aj-field {
     }
 
     .aj-buttons-tablet-row {
-        display: flex;
-        flex-direction: row;
+        display: flex !important;
+        flex-direction: row !important;
     }
 
     .aj-buttons-tablet-stack {
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
     }
 
     .aj-buttons-tablet-grid,
     .aj-buttons-tablet-featured {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
 
     .aj-buttons-tablet-featured > .wp-block-button:first-child {
@@ -942,20 +953,20 @@ input[type="checkbox"].aj-field {
     }
 
     .aj-buttons-mobile-row {
-        display: flex;
-        flex-direction: row;
+        display: flex !important;
+        flex-direction: row !important;
     }
 
     .aj-buttons-mobile-stack {
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
     }
 
     .aj-buttons-mobile-grid,
     .aj-buttons-mobile-featured {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
 
     .aj-buttons-mobile-featured > .wp-block-button:first-child {
