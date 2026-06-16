@@ -332,49 +332,53 @@
     line-height: 1;
 }
 
-/* AJ Buttons: editor canvas layout preview */
+/* AJ Buttons: editor canvas layout preview
+ * WP's own flex/grid CSS applies to .block-editor-block-list__layout; we need
+ * !important to override it with the selected arrangement. */
 .editor-styles-wrapper .wp-block-buttons.aj-buttons-control > .block-editor-inner-blocks > .block-editor-block-list__layout {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--aj-buttons-gap-desktop, 12px);
-    justify-content: var(--aj-btn-justify, center);
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: var(--aj-buttons-gap-desktop, 12px) !important;
+    justify-content: var(--aj-btn-justify, center) !important;
+    align-items: center !important;
 }
 
 .editor-styles-wrapper .wp-block-buttons.aj-buttons-desktop-row > .block-editor-inner-blocks > .block-editor-block-list__layout {
-    flex-direction: row;
+    flex-direction: row !important;
 }
 
 .editor-styles-wrapper .wp-block-buttons.aj-buttons-desktop-stack > .block-editor-inner-blocks > .block-editor-block-list__layout {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: column !important;
+    align-items: flex-start !important;
 }
 
 .editor-styles-wrapper .wp-block-buttons.aj-buttons-desktop-grid > .block-editor-inner-blocks > .block-editor-block-list__layout {
     display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    flex-direction: unset !important;
 }
 
 .editor-styles-wrapper .wp-block-buttons.aj-buttons-desktop-featured > .block-editor-inner-blocks > .block-editor-block-list__layout {
-    flex-direction: row;
-    flex-wrap: wrap;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
 }
 
-/* Also handle when the layout class is on the outer wrapper (wrapperProps) */
+/* Also cover the case where layout class is on the outer wrapper element (wrapperProps) */
 .editor-styles-wrapper .aj-buttons-desktop-row .wp-block-buttons.aj-buttons-control > .block-editor-inner-blocks > .block-editor-block-list__layout {
-    flex-direction: row;
+    flex-direction: row !important;
 }
 
 .editor-styles-wrapper .aj-buttons-desktop-stack .wp-block-buttons.aj-buttons-control > .block-editor-inner-blocks > .block-editor-block-list__layout {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: column !important;
+    align-items: flex-start !important;
 }
 
 .editor-styles-wrapper .aj-buttons-desktop-grid .wp-block-buttons.aj-buttons-control > .block-editor-inner-blocks > .block-editor-block-list__layout {
     display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
 }
 
 .editor-styles-wrapper .aj-buttons-desktop-featured .wp-block-buttons.aj-buttons-control > .block-editor-inner-blocks > .block-editor-block-list__layout {
-    flex-direction: row;
-    flex-wrap: wrap;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
 }

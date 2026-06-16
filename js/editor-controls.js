@@ -101,8 +101,24 @@
         ajnBtnColor4: { type: 'string', default: '' },
         ajnBtnColor5: { type: 'string', default: '' },
         ajnBtnColor6: { type: 'string', default: '' },
-        ajnBtnColorSchema: { type: 'string', default: '' }
+        ajnBtnColorSchema: { type: 'string', default: '' },
+        ajnBtnStyle: { type: 'string', default: '' }
     };
+
+    var AJN_BUTTON_STYLES = [
+        { value: 'primary',       label: 'Primary Blue',    bg: '#2563eb', color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 6,   paddingX: 24, paddingY: 12 },
+        { value: 'secondary',     label: 'Secondary Gray',  bg: '#6b7280', color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 6,   paddingX: 24, paddingY: 12 },
+        { value: 'dark',          label: 'Dark / Black',    bg: '#0f172a', color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 6,   paddingX: 24, paddingY: 12 },
+        { value: 'success',       label: 'Success Green',   bg: '#16a34a', color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 6,   paddingX: 24, paddingY: 12 },
+        { value: 'danger',        label: 'Danger Red',      bg: '#dc2626', color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 6,   paddingX: 24, paddingY: 12 },
+        { value: 'warning',       label: 'Warning Orange',  bg: '#f97316', color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 6,   paddingX: 24, paddingY: 12 },
+        { value: 'outline-blue',  label: 'Outline Blue',    bg: 'transparent', color: '#2563eb', borderColor: '#2563eb', borderWidth: 2, borderRadius: 6, paddingX: 22, paddingY: 10 },
+        { value: 'outline-dark',  label: 'Outline Dark',    bg: 'transparent', color: '#0f172a', borderColor: '#0f172a', borderWidth: 2, borderRadius: 6, paddingX: 22, paddingY: 10 },
+        { value: 'outline-white', label: 'Outline White',   bg: 'transparent', color: '#ffffff', borderColor: '#ffffff', borderWidth: 2, borderRadius: 6, paddingX: 22, paddingY: 10 },
+        { value: 'pill-blue',     label: 'Pill Blue',       bg: '#2563eb', color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 999, paddingX: 28, paddingY: 12 },
+        { value: 'pill-outline',  label: 'Pill Outline',    bg: 'transparent', color: '#2563eb', borderColor: '#2563eb', borderWidth: 2, borderRadius: 999, paddingX: 26, paddingY: 10 },
+        { value: 'pill-dark',     label: 'Pill Dark',       bg: '#0f172a', color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 999, paddingX: 28, paddingY: 12 }
+    ];
 
     var AJN_COLOR_SCHEMES = [
         { value: 'brand',   label: 'Brand Blues',   colors: ['#2563eb', '#3b82f6', '#60a5fa', '#1d4ed8', '#1e40af', '#93c5fd'] },
@@ -689,7 +705,8 @@
             !!attrs.ajnBtnSharedBg || !!attrs.ajnBtnSharedColor || !!attrs.ajnBtnSharedBorderColor ||
             !!attrs.ajnBtnSharedBorderWidth || !!attrs.ajnBtnSharedBorderRadius ||
             !!attrs.ajnBtnColor1 || !!attrs.ajnBtnColor2 || !!attrs.ajnBtnColor3 ||
-            !!attrs.ajnBtnColor4 || !!attrs.ajnBtnColor5 || !!attrs.ajnBtnColor6;
+            !!attrs.ajnBtnColor4 || !!attrs.ajnBtnColor5 || !!attrs.ajnBtnColor6 ||
+            !!attrs.ajnBtnStyle;
     }
 
     function getSingleButtonClass(attrs, className) {
@@ -772,6 +789,19 @@
                 // Rebuild className so the editor canvas immediately reflects the new layout
                 var newAttrs = Object.assign({}, props.attributes, update);
                 update.className = getButtonLayoutClass(newAttrs, props.attributes.className || '');
+                // Sync WP's native layout attribute for the desktop control so the
+                // editor's own flex/grid rendering matches the selected arrangement.
+                if (attr === 'ajnButtonLayoutDesktop') {
+                    var justify = props.attributes.ajnBtnJustify || 'center';
+                    var wpJustify = justify === 'flex-start' ? 'left' : justify === 'flex-end' ? 'right' : justify === 'space-between' ? 'space-between' : 'center';
+                    if (value === 'stack') {
+                        update.layout = { type: 'flex', orientation: 'vertical' };
+                    } else if (value === 'grid') {
+                        update.layout = { type: 'flex', flexWrap: 'wrap', justifyContent: wpJustify };
+                    } else {
+                        update.layout = { type: 'flex', justifyContent: wpJustify };
+                    }
+                }
                 props.setAttributes(update);
             }
         });
@@ -1066,7 +1096,15 @@
                                         { label: 'Space evenly', value: 'space-evenly' },
                                         { label: 'Stretch (fill row)', value: 'stretch' }
                                     ],
-                                    onChange: function(value) { setAttributes({ ajnBtnJustify: value }); }
+                                    onChange: function(value) {
+                                        var update = { ajnBtnJustify: value };
+                                        var currentLayout = attrs.layout || {};
+                                        if (currentLayout.type === 'flex' || !currentLayout.type) {
+                                            var wpJustify = value === 'flex-start' ? 'left' : value === 'flex-end' ? 'right' : value === 'space-between' ? 'space-between' : 'center';
+                                            update.layout = Object.assign({}, currentLayout, { type: 'flex', justifyContent: wpJustify });
+                                        }
+                                        setAttributes(update);
+                                    }
                                 }),
                                 createElement(RangeControl, {
                                     label: 'Gap (' + activeDevice.charAt(0).toUpperCase() + activeDevice.slice(1) + ')',
@@ -1104,85 +1142,40 @@
                             ),
                             createElement(
                                 PanelBody,
-                                { title: 'AJ Buttons — Shared Button Styles', initialOpen: false },
+                                { title: 'AJ Buttons — Button Style', initialOpen: false },
                                 createElement('p', { style: { fontSize: '12px', color: '#6b7280', marginBottom: '12px' } },
-                                    'Set a shared style for ALL buttons in this group. Individual button colors override these.'
+                                    'Choose a preset style for all buttons — sets background, text color, border, radius and padding in one step.'
                                 ),
-                                createElement('div', { className: 'ajn-color-row' },
-                                    createElement('label', { className: 'ajn-color-label' }, 'Background'),
-                                    createElement('input', {
-                                        type: 'color',
-                                        value: attrs.ajnBtnSharedBg || '#2563eb',
-                                        onChange: function(e) { setAttributes({ ajnBtnSharedBg: e.target.value }); }
-                                    }),
-                                    createElement(TextControl, {
-                                        value: attrs.ajnBtnSharedBg || '',
-                                        placeholder: '#2563eb',
-                                        onChange: function(v) { setAttributes({ ajnBtnSharedBg: v }); }
-                                    }),
-                                    attrs.ajnBtnSharedBg ? createElement('button', {
-                                        type: 'button', className: 'ajn-clear-btn',
-                                        onClick: function() { setAttributes({ ajnBtnSharedBg: '' }); }
-                                    }, '✕') : null
-                                ),
-                                createElement('div', { className: 'ajn-color-row' },
-                                    createElement('label', { className: 'ajn-color-label' }, 'Text color'),
-                                    createElement('input', {
-                                        type: 'color',
-                                        value: attrs.ajnBtnSharedColor || '#ffffff',
-                                        onChange: function(e) { setAttributes({ ajnBtnSharedColor: e.target.value }); }
-                                    }),
-                                    createElement(TextControl, {
-                                        value: attrs.ajnBtnSharedColor || '',
-                                        placeholder: '#ffffff',
-                                        onChange: function(v) { setAttributes({ ajnBtnSharedColor: v }); }
-                                    }),
-                                    attrs.ajnBtnSharedColor ? createElement('button', {
-                                        type: 'button', className: 'ajn-clear-btn',
-                                        onClick: function() { setAttributes({ ajnBtnSharedColor: '' }); }
-                                    }, '✕') : null
-                                ),
-                                createElement('div', { className: 'ajn-color-row' },
-                                    createElement('label', { className: 'ajn-color-label' }, 'Border color'),
-                                    createElement('input', {
-                                        type: 'color',
-                                        value: attrs.ajnBtnSharedBorderColor || '#1d4ed8',
-                                        onChange: function(e) { setAttributes({ ajnBtnSharedBorderColor: e.target.value }); }
-                                    }),
-                                    createElement(TextControl, {
-                                        value: attrs.ajnBtnSharedBorderColor || '',
-                                        placeholder: 'transparent',
-                                        onChange: function(v) { setAttributes({ ajnBtnSharedBorderColor: v }); }
-                                    }),
-                                    attrs.ajnBtnSharedBorderColor ? createElement('button', {
-                                        type: 'button', className: 'ajn-clear-btn',
-                                        onClick: function() { setAttributes({ ajnBtnSharedBorderColor: '' }); }
-                                    }, '✕') : null
-                                ),
-                                createElement(RangeControl, {
-                                    label: 'Border width',
-                                    min: 0, max: 8,
-                                    value: attrs.ajnBtnSharedBorderWidth || 0,
-                                    onChange: function(v) { setAttributes({ ajnBtnSharedBorderWidth: v }); }
+                                createElement(SelectControl, {
+                                    label: 'Style preset',
+                                    value: attrs.ajnBtnStyle || '',
+                                    options: (function() {
+                                        var opts = [{ label: '— WP default (no override) —', value: '' }];
+                                        AJN_BUTTON_STYLES.forEach(function(s) { opts.push({ label: s.label, value: s.value }); });
+                                        return opts;
+                                    })(),
+                                    onChange: function(styleValue) {
+                                        var style = null;
+                                        AJN_BUTTON_STYLES.forEach(function(s) { if (s.value === styleValue) { style = s; } });
+                                        if (!style || !styleValue) {
+                                            setAttributes({ ajnBtnStyle: '', ajnBtnSharedBg: '', ajnBtnSharedColor: '', ajnBtnSharedBorderColor: '', ajnBtnSharedBorderWidth: 0, ajnBtnSharedBorderRadius: 0, ajnBtnSharedPaddingX: 0, ajnBtnSharedPaddingY: 0 });
+                                            return;
+                                        }
+                                        setAttributes({
+                                            ajnBtnStyle: styleValue,
+                                            ajnBtnSharedBg: style.bg || '',
+                                            ajnBtnSharedColor: style.color || '',
+                                            ajnBtnSharedBorderColor: style.borderColor || '',
+                                            ajnBtnSharedBorderWidth: style.borderWidth || 0,
+                                            ajnBtnSharedBorderRadius: style.borderRadius || 0,
+                                            ajnBtnSharedPaddingX: style.paddingX || 0,
+                                            ajnBtnSharedPaddingY: style.paddingY || 0
+                                        });
+                                    }
                                 }),
-                                createElement(RangeControl, {
-                                    label: 'Border radius',
-                                    min: 0, max: 999,
-                                    value: attrs.ajnBtnSharedBorderRadius || 0,
-                                    onChange: function(v) { setAttributes({ ajnBtnSharedBorderRadius: v }); }
-                                }),
-                                createElement(RangeControl, {
-                                    label: 'Padding X (left/right)',
-                                    min: 0, max: 80,
-                                    value: attrs.ajnBtnSharedPaddingX || 0,
-                                    onChange: function(v) { setAttributes({ ajnBtnSharedPaddingX: v }); }
-                                }),
-                                createElement(RangeControl, {
-                                    label: 'Padding Y (top/bottom)',
-                                    min: 0, max: 80,
-                                    value: attrs.ajnBtnSharedPaddingY || 0,
-                                    onChange: function(v) { setAttributes({ ajnBtnSharedPaddingY: v }); }
-                                })
+                                attrs.ajnBtnStyle ? createElement('p', { style: { fontSize: '11px', color: '#059669', margin: '8px 0 0', fontStyle: 'italic' } },
+                                    'Active: ' + (AJN_BUTTON_STYLES.filter(function(s) { return s.value === attrs.ajnBtnStyle; })[0] || {}).label
+                                ) : null
                             ),
                             createElement(
                                 PanelBody,
