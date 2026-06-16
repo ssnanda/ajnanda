@@ -60,13 +60,35 @@ document.documentElement.classList.add('js');
         animateOnScroll();
 
         // Mobile menu toggle
+        let menuScrollY = 0;
+
+        function lockBodyScroll() {
+            menuScrollY = window.scrollY;
+            document.body.style.position = 'fixed';
+            document.body.style.top = '-' + menuScrollY + 'px';
+            document.body.style.width = '100%';
+            document.body.classList.add('menu-open');
+        }
+
+        function unlockBodyScroll() {
+            document.body.classList.remove('menu-open');
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.width = '';
+            window.scrollTo(0, menuScrollY);
+        }
+
         $('#mobile-menu-toggle').on('click', function() {
             const isOpen = !$(this).hasClass('active');
 
             $(this).toggleClass('active', isOpen);
             $(this).attr('aria-expanded', isOpen ? 'true' : 'false');
             $('.nav-menu').toggleClass('mobile-active', isOpen);
-            $('body').toggleClass('menu-open');
+            if (isOpen) {
+                lockBodyScroll();
+            } else {
+                unlockBodyScroll();
+            }
         });
 
         // Close mobile menu when clicking outside
@@ -75,7 +97,7 @@ document.documentElement.classList.add('js');
                 $('#mobile-menu-toggle').removeClass('active');
                 $('#mobile-menu-toggle').attr('aria-expanded', 'false');
                 $('.nav-menu').removeClass('mobile-active');
-                $('body').removeClass('menu-open');
+                unlockBodyScroll();
             }
         });
 

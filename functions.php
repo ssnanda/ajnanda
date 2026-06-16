@@ -2272,6 +2272,42 @@ function ajnanda_customize_register($wp_customize) {
         ));
     }
 
+    $wp_customize->add_setting('logo_vertical_align', array(
+        'default'           => 'center',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'postMessage',
+    ));
+
+    $wp_customize->add_control('logo_height_desktop_site_identity', array(
+        'label'       => __('Logo Height – Desktop (px)', 'ajnanda'),
+        'section'     => 'title_tagline',
+        'settings'    => 'logo_height_desktop',
+        'type'        => 'number',
+        'input_attrs' => array('min' => 10, 'max' => 300, 'step' => 1),
+        'priority'    => 20,
+    ));
+
+    $wp_customize->add_control('logo_height_mobile_site_identity', array(
+        'label'       => __('Logo Height – Mobile (px)', 'ajnanda'),
+        'section'     => 'title_tagline',
+        'settings'    => 'logo_height_mobile',
+        'type'        => 'number',
+        'input_attrs' => array('min' => 10, 'max' => 300, 'step' => 1),
+        'priority'    => 21,
+    ));
+
+    $wp_customize->add_control('logo_vertical_align', array(
+        'label'    => __('Logo Vertical Alignment', 'ajnanda'),
+        'section'  => 'title_tagline',
+        'type'     => 'select',
+        'choices'  => array(
+            'flex-start' => __('Top', 'ajnanda'),
+            'center'     => __('Center', 'ajnanda'),
+            'flex-end'   => __('Bottom', 'ajnanda'),
+        ),
+        'priority' => 22,
+    ));
+
     foreach ($device_labels as $device => $label) {
         $padding_setting = 'header_padding_' . $device;
 
@@ -3312,6 +3348,12 @@ function ajnanda_customizer_live_preview() {
             return value;
         }
 
+        wp.customize('logo_vertical_align', function(value) {
+            value.bind(function(newval) {
+                document.documentElement.style.setProperty('--ajnanda-logo-vertical-align', newval);
+            });
+        });
+
         devices.forEach(function(device) {
             wp.customize('logo_height_' + device, function(value) {
                 value.bind(function(newval) {
@@ -3851,6 +3893,7 @@ function ajnanda_customizer_css() {
     $logo_height_desktop = get_theme_mod('logo_height_desktop', $old_logo_height);
     $logo_height_tablet = get_theme_mod('logo_height_tablet', $old_logo_height);
     $logo_height_mobile = get_theme_mod('logo_height_mobile', $old_logo_height);
+    $logo_vertical_align = get_theme_mod('logo_vertical_align', 'center');
 
     $header_padding_desktop = get_theme_mod('header_padding_desktop', $old_header_padding);
     $header_padding_tablet = get_theme_mod('header_padding_tablet', $old_header_padding);
@@ -3931,6 +3974,7 @@ function ajnanda_customizer_css() {
             --ajnanda-logo-height-desktop: <?php echo esc_attr($logo_height_desktop); ?>px;
             --ajnanda-logo-height-tablet: <?php echo esc_attr($logo_height_tablet); ?>px;
             --ajnanda-logo-height-mobile: <?php echo esc_attr($logo_height_mobile); ?>px;
+            --ajnanda-logo-vertical-align: <?php echo esc_attr($logo_vertical_align); ?>;
             --ajnanda-header-padding-desktop: <?php echo esc_attr($header_padding_desktop); ?>rem;
             --ajnanda-header-padding-tablet: <?php echo esc_attr($header_padding_tablet); ?>rem;
             --ajnanda-header-padding-mobile: <?php echo esc_attr($header_padding_mobile); ?>rem;
@@ -3955,6 +3999,11 @@ function ajnanda_customizer_css() {
             --ajn-hero-padding-bottom-tablet: <?php echo esc_attr($hero_padding_bottom_tablet); ?>;
             --ajn-hero-padding-top-mobile: <?php echo esc_attr($hero_padding_top_mobile); ?>;
             --ajn-hero-padding-bottom-mobile: <?php echo esc_attr($hero_padding_bottom_mobile); ?>;
+        }
+
+        .site-branding,
+        .custom-logo-link {
+            align-self: var(--ajnanda-logo-vertical-align, center);
         }
 
         .site-branding img,
