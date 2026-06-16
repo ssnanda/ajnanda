@@ -334,6 +334,10 @@
 
 /* AJ Buttons: editor canvas layout preview
  *
+ * Each strategy is written twice:
+ *   (1) Old Gutenberg: .block-editor-inner-blocks > .block-editor-block-list__layout
+ *   (2) New Gutenberg 16+: .block-editor-block-list__layout is a direct child
+ *
  * Strategy A (CSS-var, no class dependency):
  *   `--aj-editor-direction` is set on the OUTER wrapper via wrapperProps.style and
  *   cascades to every descendant including .block-editor-block-list__layout.
@@ -529,4 +533,62 @@
 .editor-styles-wrapper .aj-buttons-desktop-row .wp-block-buttons.aj-buttons-control > .block-editor-inner-blocks > .block-editor-block-list__layout {
     display: flex !important;
     flex-direction: row !important;
+}
+
+/* === New Gutenberg structure: .block-editor-block-list__layout is a direct child
+ *     (no .block-editor-inner-blocks wrapper in Gutenberg 16+) === */
+
+/* A: CSS-var approach */
+.editor-styles-wrapper .wp-block-buttons.aj-buttons-control:not(.aj-buttons-desktop-grid):not(.aj-buttons-desktop-featured) > .block-editor-block-list__layout {
+    display: flex !important;
+    flex-direction: var(--aj-editor-direction, row) !important;
+    flex-wrap: wrap !important;
+    gap: var(--aj-buttons-gap-desktop, 12px) !important;
+    justify-content: var(--aj-btn-justify, center) !important;
+    align-items: center !important;
+}
+
+/* B+C: class-based overrides */
+.editor-styles-wrapper .wp-block-buttons.aj-buttons-control.aj-buttons-desktop-row > .block-editor-block-list__layout,
+.editor-styles-wrapper .aj-buttons-desktop-row .wp-block-buttons.aj-buttons-control > .block-editor-block-list__layout {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+}
+
+.editor-styles-wrapper .wp-block-buttons.aj-buttons-control.aj-buttons-desktop-stack > .block-editor-block-list__layout,
+.editor-styles-wrapper .aj-buttons-desktop-stack .wp-block-buttons.aj-buttons-control > .block-editor-block-list__layout {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+}
+
+.editor-styles-wrapper .wp-block-buttons.aj-buttons-control.aj-buttons-desktop-grid > .block-editor-block-list__layout,
+.editor-styles-wrapper .aj-buttons-desktop-grid .wp-block-buttons.aj-buttons-control > .block-editor-block-list__layout {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.editor-styles-wrapper .wp-block-buttons.aj-buttons-control.aj-buttons-desktop-featured > .block-editor-block-list__layout,
+.editor-styles-wrapper .aj-buttons-desktop-featured .wp-block-buttons.aj-buttons-control > .block-editor-block-list__layout {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+}
+
+/* Item widths for new Gutenberg structure */
+.editor-styles-wrapper .wp-block-buttons.aj-buttons-desktop-stack > .block-editor-block-list__layout > .wp-block,
+.editor-styles-wrapper .wp-block-buttons.aj-buttons-desktop-grid > .block-editor-block-list__layout > .wp-block {
+    width: 100% !important;
+}
+
+.editor-styles-wrapper .wp-block-buttons.aj-buttons-desktop-featured > .block-editor-block-list__layout > .wp-block:first-child {
+    flex: 0 0 100% !important;
+    width: 100% !important;
+}
+
+.editor-styles-wrapper .wp-block-buttons.aj-buttons-desktop-featured > .block-editor-block-list__layout > .wp-block:not(:first-child) {
+    flex: 1 1 0 !important;
+    width: auto !important;
+    min-width: 0;
 }
