@@ -105,19 +105,31 @@
         ajnBtnStyle: { type: 'string', default: '' }
     };
 
+    // Format: "Shape • Color style"  — each preset sets ALL of bg, color, border, radius, padding
     var AJN_BUTTON_STYLES = [
-        { value: 'primary',       label: 'Primary Blue',    bg: '#2563eb', color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 6,   paddingX: 24, paddingY: 12 },
-        { value: 'secondary',     label: 'Secondary Gray',  bg: '#6b7280', color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 6,   paddingX: 24, paddingY: 12 },
-        { value: 'dark',          label: 'Dark / Black',    bg: '#0f172a', color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 6,   paddingX: 24, paddingY: 12 },
-        { value: 'success',       label: 'Success Green',   bg: '#16a34a', color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 6,   paddingX: 24, paddingY: 12 },
-        { value: 'danger',        label: 'Danger Red',      bg: '#dc2626', color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 6,   paddingX: 24, paddingY: 12 },
-        { value: 'warning',       label: 'Warning Orange',  bg: '#f97316', color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 6,   paddingX: 24, paddingY: 12 },
-        { value: 'outline-blue',  label: 'Outline Blue',    bg: 'transparent', color: '#2563eb', borderColor: '#2563eb', borderWidth: 2, borderRadius: 6, paddingX: 22, paddingY: 10 },
-        { value: 'outline-dark',  label: 'Outline Dark',    bg: 'transparent', color: '#0f172a', borderColor: '#0f172a', borderWidth: 2, borderRadius: 6, paddingX: 22, paddingY: 10 },
-        { value: 'outline-white', label: 'Outline White',   bg: 'transparent', color: '#ffffff', borderColor: '#ffffff', borderWidth: 2, borderRadius: 6, paddingX: 22, paddingY: 10 },
-        { value: 'pill-blue',     label: 'Pill Blue',       bg: '#2563eb', color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 999, paddingX: 28, paddingY: 12 },
-        { value: 'pill-outline',  label: 'Pill Outline',    bg: 'transparent', color: '#2563eb', borderColor: '#2563eb', borderWidth: 2, borderRadius: 999, paddingX: 26, paddingY: 10 },
-        { value: 'pill-dark',     label: 'Pill Dark',       bg: '#0f172a', color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 999, paddingX: 28, paddingY: 12 }
+        // ── Rounded corners (6 px) ──────────────────────────────────────────
+        { value: 'rounded-blue',     label: 'Rounded • Solid Blue',       bg: '#2563eb',    color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 6,   paddingX: 24, paddingY: 12 },
+        { value: 'rounded-dark',     label: 'Rounded • Solid Dark',       bg: '#0f172a',    color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 6,   paddingX: 24, paddingY: 12 },
+        { value: 'rounded-green',    label: 'Rounded • Solid Green',      bg: '#16a34a',    color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 6,   paddingX: 24, paddingY: 12 },
+        { value: 'rounded-red',      label: 'Rounded • Solid Red',        bg: '#dc2626',    color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 6,   paddingX: 24, paddingY: 12 },
+        { value: 'rounded-orange',   label: 'Rounded • Solid Orange',     bg: '#f97316',    color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 6,   paddingX: 24, paddingY: 12 },
+        { value: 'rounded-gray',     label: 'Rounded • Solid Gray',       bg: '#6b7280',    color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 6,   paddingX: 24, paddingY: 12 },
+        // ── Pill / fully rounded ────────────────────────────────────────────
+        { value: 'pill-blue',        label: 'Pill • Solid Blue',          bg: '#2563eb',    color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 999, paddingX: 28, paddingY: 12 },
+        { value: 'pill-dark',        label: 'Pill • Solid Dark',          bg: '#0f172a',    color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 999, paddingX: 28, paddingY: 12 },
+        { value: 'pill-green',       label: 'Pill • Solid Green',         bg: '#16a34a',    color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 999, paddingX: 28, paddingY: 12 },
+        { value: 'pill-red',         label: 'Pill • Solid Red',           bg: '#dc2626',    color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 999, paddingX: 28, paddingY: 12 },
+        // ── Square corners (0 radius) ───────────────────────────────────────
+        { value: 'square-blue',      label: 'Square • Solid Blue',        bg: '#2563eb',    color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 0,   paddingX: 24, paddingY: 12 },
+        { value: 'square-dark',      label: 'Square • Solid Dark',        bg: '#0f172a',    color: '#ffffff', borderColor: '',        borderWidth: 0, borderRadius: 0,   paddingX: 24, paddingY: 12 },
+        // ── Outline / bordered (rounded) ────────────────────────────────────
+        { value: 'outline-blue',     label: 'Outline • Blue Border',      bg: 'transparent', color: '#2563eb', borderColor: '#2563eb', borderWidth: 2, borderRadius: 6,   paddingX: 22, paddingY: 10 },
+        { value: 'outline-dark',     label: 'Outline • Dark Border',      bg: 'transparent', color: '#0f172a', borderColor: '#0f172a', borderWidth: 2, borderRadius: 6,   paddingX: 22, paddingY: 10 },
+        { value: 'outline-white',    label: 'Outline • White Border',     bg: 'transparent', color: '#ffffff', borderColor: '#ffffff', borderWidth: 2, borderRadius: 6,   paddingX: 22, paddingY: 10 },
+        // ── Outline pill ────────────────────────────────────────────────────
+        { value: 'pill-outline-blue', label: 'Pill Outline • Blue',       bg: 'transparent', color: '#2563eb', borderColor: '#2563eb', borderWidth: 2, borderRadius: 999, paddingX: 26, paddingY: 10 },
+        { value: 'pill-outline-dark', label: 'Pill Outline • Dark',       bg: 'transparent', color: '#0f172a', borderColor: '#0f172a', borderWidth: 2, borderRadius: 999, paddingX: 26, paddingY: 10 },
+        { value: 'pill-outline-white', label: 'Pill Outline • White',     bg: 'transparent', color: '#ffffff', borderColor: '#ffffff', borderWidth: 2, borderRadius: 999, paddingX: 26, paddingY: 10 }
     ];
 
     var AJN_COLOR_SCHEMES = [
@@ -638,7 +650,10 @@
             className = mergeClassName(className, 'aj-buttons-stretch');
         }
 
-        var hasShared = attrs.ajnBtnSharedBg || attrs.ajnBtnSharedColor || attrs.ajnBtnSharedBorderColor || attrs.ajnBtnSharedBorderWidth || attrs.ajnBtnSharedBorderRadius || attrs.ajnBtnSharedPaddingX || attrs.ajnBtnSharedPaddingY;
+        var hasShared = !!attrs.ajnBtnStyle ||  // style preset always enables shared styles
+            attrs.ajnBtnSharedBg || attrs.ajnBtnSharedColor || attrs.ajnBtnSharedBorderColor ||
+            attrs.ajnBtnSharedBorderWidth || attrs.ajnBtnSharedBorderRadius ||
+            attrs.ajnBtnSharedPaddingX || attrs.ajnBtnSharedPaddingY;
         if (hasShared) {
             className = mergeClassName(className, 'aj-has-btn-shared-styles');
         }
@@ -652,10 +667,13 @@
     }
 
     function getButtonLayoutStyles(attrs) {
+        var layoutDesktop = attrs.ajnButtonLayoutDesktop || 'row';
         var style = {
             '--aj-buttons-gap-desktop': (attrs.ajnButtonGapDesktop || 12) + 'px',
             '--aj-buttons-gap-tablet': (attrs.ajnButtonGapTablet || attrs.ajnButtonGapDesktop || 12) + 'px',
-            '--aj-buttons-gap-mobile': (attrs.ajnButtonGapMobile || attrs.ajnButtonGapTablet || attrs.ajnButtonGapDesktop || 12) + 'px'
+            '--aj-buttons-gap-mobile': (attrs.ajnButtonGapMobile || attrs.ajnButtonGapTablet || attrs.ajnButtonGapDesktop || 12) + 'px',
+            // CSS var consumed by editor.css so the editor canvas shows the correct direction
+            '--aj-editor-direction': layoutDesktop === 'stack' ? 'column' : 'row'
         };
 
         setVar(style, '--aj-buttons-custom-width-desktop', attrs.ajnButtonsCustomWidthDesktop);
@@ -667,13 +685,26 @@
             style['--aj-btn-justify'] = justify;
         }
 
-        if (attrs.ajnBtnSharedBg) style['--aj-btn-shared-bg'] = attrs.ajnBtnSharedBg;
-        if (attrs.ajnBtnSharedColor) style['--aj-btn-shared-color'] = attrs.ajnBtnSharedColor;
-        if (attrs.ajnBtnSharedBorderColor) style['--aj-btn-shared-border-color'] = attrs.ajnBtnSharedBorderColor;
-        if (attrs.ajnBtnSharedBorderWidth) style['--aj-btn-shared-border-width'] = attrs.ajnBtnSharedBorderWidth + 'px';
-        if (attrs.ajnBtnSharedBorderRadius) style['--aj-btn-shared-border-radius'] = attrs.ajnBtnSharedBorderRadius + 'px';
-        if (attrs.ajnBtnSharedPaddingX) style['--aj-btn-shared-padding-x'] = attrs.ajnBtnSharedPaddingX + 'px';
-        if (attrs.ajnBtnSharedPaddingY) style['--aj-btn-shared-padding-y'] = attrs.ajnBtnSharedPaddingY + 'px';
+        // When a style preset is active, output ALL shared vars even when value is 0
+        // (to correctly handle e.g. Square preset with borderRadius=0, Square preset
+        //  needs to explicitly output 0px to override any inherited rounded corners)
+        if (attrs.ajnBtnStyle) {
+            style['--aj-btn-shared-bg']           = attrs.ajnBtnSharedBg || 'initial';
+            style['--aj-btn-shared-color']         = attrs.ajnBtnSharedColor || 'inherit';
+            style['--aj-btn-shared-border-color']  = attrs.ajnBtnSharedBorderColor || 'transparent';
+            style['--aj-btn-shared-border-width']  = (attrs.ajnBtnSharedBorderWidth  || 0) + 'px';
+            style['--aj-btn-shared-border-radius'] = (attrs.ajnBtnSharedBorderRadius || 0) + 'px';
+            style['--aj-btn-shared-padding-x']     = (attrs.ajnBtnSharedPaddingX     || 0) + 'px';
+            style['--aj-btn-shared-padding-y']     = (attrs.ajnBtnSharedPaddingY     || 0) + 'px';
+        } else {
+            if (attrs.ajnBtnSharedBg)           style['--aj-btn-shared-bg']           = attrs.ajnBtnSharedBg;
+            if (attrs.ajnBtnSharedColor)         style['--aj-btn-shared-color']         = attrs.ajnBtnSharedColor;
+            if (attrs.ajnBtnSharedBorderColor)   style['--aj-btn-shared-border-color']  = attrs.ajnBtnSharedBorderColor;
+            if (attrs.ajnBtnSharedBorderWidth)   style['--aj-btn-shared-border-width']  = attrs.ajnBtnSharedBorderWidth  + 'px';
+            if (attrs.ajnBtnSharedBorderRadius)  style['--aj-btn-shared-border-radius'] = attrs.ajnBtnSharedBorderRadius + 'px';
+            if (attrs.ajnBtnSharedPaddingX)      style['--aj-btn-shared-padding-x']     = attrs.ajnBtnSharedPaddingX     + 'px';
+            if (attrs.ajnBtnSharedPaddingY)      style['--aj-btn-shared-padding-y']     = attrs.ajnBtnSharedPaddingY     + 'px';
+        }
 
         if (attrs.ajnBtnColor1) style['--aj-btn-color-1'] = attrs.ajnBtnColor1;
         if (attrs.ajnBtnColor2) style['--aj-btn-color-2'] = attrs.ajnBtnColor2;
@@ -786,21 +817,18 @@
             onChange: function(value) {
                 var update = {};
                 update[attr] = value;
-                // Rebuild className so the editor canvas immediately reflects the new layout
+                // Rebuild className so both the saved HTML and editor wrapperProps
+                // immediately get the correct layout class (e.g. aj-buttons-desktop-stack).
                 var newAttrs = Object.assign({}, props.attributes, update);
                 update.className = getButtonLayoutClass(newAttrs, props.attributes.className || '');
-                // Sync WP's native layout attribute for the desktop control so the
-                // editor's own flex/grid rendering matches the selected arrangement.
+                // Sync WP's native layout for the DESKTOP control so the editor's own
+                // flex rendering matches (vertical = stack, horizontal = row/featured/grid).
                 if (attr === 'ajnButtonLayoutDesktop') {
                     var justify = props.attributes.ajnBtnJustify || 'center';
                     var wpJustify = justify === 'flex-start' ? 'left' : justify === 'flex-end' ? 'right' : justify === 'space-between' ? 'space-between' : 'center';
-                    if (value === 'stack') {
-                        update.layout = { type: 'flex', orientation: 'vertical' };
-                    } else if (value === 'grid') {
-                        update.layout = { type: 'flex', flexWrap: 'wrap', justifyContent: wpJustify };
-                    } else {
-                        update.layout = { type: 'flex', justifyContent: wpJustify };
-                    }
+                    update.layout = value === 'stack'
+                        ? { type: 'flex', flexWrap: 'nowrap', orientation: 'vertical' }
+                        : { type: 'flex', flexWrap: 'wrap', justifyContent: wpJustify };
                 }
                 props.setAttributes(update);
             }
@@ -1098,10 +1126,11 @@
                                     ],
                                     onChange: function(value) {
                                         var update = { ajnBtnJustify: value };
+                                        // Keep WP native layout in sync so the editor canvas shows correct justify
                                         var currentLayout = attrs.layout || {};
-                                        if (currentLayout.type === 'flex' || !currentLayout.type) {
+                                        if (!currentLayout.orientation || currentLayout.orientation !== 'vertical') {
                                             var wpJustify = value === 'flex-start' ? 'left' : value === 'flex-end' ? 'right' : value === 'space-between' ? 'space-between' : 'center';
-                                            update.layout = Object.assign({}, currentLayout, { type: 'flex', justifyContent: wpJustify });
+                                            update.layout = { type: 'flex', flexWrap: 'wrap', justifyContent: wpJustify };
                                         }
                                         setAttributes(update);
                                     }
