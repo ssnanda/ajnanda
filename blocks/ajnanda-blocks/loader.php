@@ -613,3 +613,93 @@ function ajnanda_blocks_register_dynamic_blocks() {
     }
 }
 add_action('init', 'ajnanda_blocks_register_dynamic_blocks');
+
+// ---------------------------------------------------------------------------
+// Frontend: inject CSS custom properties onto core/buttons on render so they
+// survive even when wp_kses_post strips them from the saved inline style.
+// ---------------------------------------------------------------------------
+
+add_filter('render_block', 'ajnanda_render_core_buttons_block', 10, 2);
+
+function ajnanda_render_core_buttons_block($block_content, $block) {
+    if (('core/buttons' !== ($block['blockName'] ?? '')) || empty($block_content)) {
+        return $block_content;
+    }
+
+    $attrs      = $block['attrs'] ?? [];
+    $class_name = $attrs['className'] ?? '';
+
+    // Only process blocks that have been configured via the AJ Buttons panel.
+    if (false === strpos($class_name, 'aj-buttons-control')) {
+        return $block_content;
+    }
+
+    $vars = ajnanda_buttons_build_css_vars($attrs);
+    if (!$vars) {
+        return $block_content;
+    }
+
+    // Inject the CSS vars into the existing style attribute (or add one).
+    // render_block fires after wp_kses_post, so custom properties are safe here.
+    $block_content = preg_replace_callback(
+        '/(<div\b[^>]*\bwp-block-buttons\b[^>]*>)/i',
+        static function ($m) use ($vars) {
+            $tag = $m[1];
+            if (preg_match('/\bstyle="([^"]*)"/i', $tag, $s)) {
+                $existing = rtrim($s[1], '; ');
+                $merged   = $existing ? $existing . ';' . $vars : $vars;
+                return str_replace($s[0], 'style="' . esc_attr($merged) . '"', $tag);
+            }
+            // No existing style attribute — insert one before the closing >.
+            return substr($tag, 0, -1) . ' style="' . esc_attr($vars) . '">';
+        },
+        $block_content,
+        1
+    );
+
+    return $block_content;
+}
+
+function ajnanda_buttons_build_css_vars($attrs) {
+    $parts      = [];
+    $has_scheme = !empty($attrs['ajnBtnScheme']) || !empty($attrs['ajnBtnStyle']);
+    $has_size   = !empty($attrs['ajnBtnStyle'])  || !empty($attrs['ajnBtnSizeStyle']);
+
+    $bg       = ajnanda_safe_css_color($attrs['ajnBtnSharedBg'] ?? '');
+    $text     = ajnanda_safe_css_color($attrs['ajnBtnSharedColor'] ?? '');
+    $border_c = ajnanda_safe_css_color($attrs['ajnBtnSharedBorderColor'] ?? '');
+
+    if ($bg || $has_scheme)       $parts[] = '--aj-btn-shared-bg:'          . ($bg       ?: 'initial');
+    if ($text || $has_scheme)     $parts[] = '--aj-btn-shared-color:'        . ($text     ?: 'inherit');
+    if ($border_c || $has_scheme) $parts[] = '--aj-btn-shared-border-color:' . ($border_c ?: 'transparent');
+
+    $bdr_w = isset($attrs['ajnBtnSharedBorderWidth'])  ? (int) $attrs['ajnBtnSharedBorderWidth']  : null;
+    $bdr_r = isset($attrs['ajnBtnSharedBorderRadius']) ? (int) $attrs['ajnBtnSharedBorderRadius'] : null;
+    $pad_x = isset($attrs['ajnBtnSharedPaddingX'])     ? (int) $attrs['ajnBtnSharedPaddingX']     : null;
+    $pad_y = isset($attrs['ajnBtnSharedPaddingY'])     ? (int) $attrs['ajnBtnSharedPaddingY']     : null;
+
+    if ($has_size || ($bdr_w !== null && $bdr_w > 0)) $parts[] = '--aj-btn-shared-border-width:'  . ($bdr_w  ?? 0) . 'px';
+    if ($has_size || ($bdr_r !== null && $bdr_r > 0)) $parts[] = '--aj-btn-shared-border-radius:' . ($bdr_r  ?? 0) . 'px';
+    if ($has_size || ($pad_x !== null && $pad_x > 0)) $parts[] = '--aj-btn-shared-padding-x:'     . ($pad_x  ?? 0) . 'px';
+    if ($has_size || ($pad_y !== null && $pad_y > 0)) $parts[] = '--aj-btn-shared-padding-y:'     . ($pad_y  ?? 0) . 'px';
+
+    for ($i = 1; $i <= 6; $i++) {
+        $c = ajnanda_safe_css_color($attrs['ajnBtnColor' . $i] ?? '');
+        if ($c) $parts[] = '--aj-btn-color-' . $i . ':' . $c;
+    }
+
+    $gap = isset($attrs['ajnButtonGapDesktop']) ? (int) $attrs['ajnButtonGapDesktop'] : 12;
+    if ($gap !== 12) $parts[] = '--aj-buttons-gap-desktop:' . $gap . 'px';
+
+    return $parts ? implode(';', $parts) : '';
+}
+
+function ajnanda_safe_css_color($value) {
+    if (!$value || !is_string($value)) return '';
+    $value = trim($value);
+    if (preg_match('/^#[0-9a-fA-F]{3,8}$/', $value))  return $value;
+    if (preg_match('/^rgba?\([^)]{0,60}\)$/', $value)) return $value;
+    if (preg_match('/^hsla?\([^)]{0,60}\)$/', $value)) return $value;
+    if (preg_match('/^[a-zA-Z]{1,30}$/', $value))      return $value;
+    return '';
+}
