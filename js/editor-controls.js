@@ -818,22 +818,16 @@
             label: label,
             value: props.attributes[attr] || fallback,
             options: [
-                { label: 'Horizontal row', value: 'row' },
-                { label: 'Stacked', value: 'stack' },
                 { label: 'Equal grid', value: 'grid' },
                 { label: 'First wide, rest below', value: 'featured' }
             ],
             onChange: function(value) {
                 var update = {};
                 update[attr] = value;
-                // Sync WP's native layout for the DESKTOP control so the editor's own
-                // flex rendering matches (vertical = stack, horizontal = row/featured/grid).
                 if (attr === 'ajnButtonLayoutDesktop') {
                     var justify = props.attributes.ajnBtnJustify || 'center';
                     var wpJustify = justify === 'flex-start' ? 'left' : justify === 'flex-end' ? 'right' : justify === 'space-between' ? 'space-between' : 'center';
-                    update.layout = value === 'stack'
-                        ? { type: 'flex', flexWrap: 'nowrap', orientation: 'vertical' }
-                        : { type: 'flex', flexWrap: 'wrap', orientation: 'horizontal', justifyContent: wpJustify };
+                    update.layout = { type: 'flex', flexWrap: 'wrap', orientation: 'horizontal', justifyContent: wpJustify };
                 }
                 setButtonAttributes(props, update);
             }
