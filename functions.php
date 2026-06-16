@@ -2864,10 +2864,14 @@ function ajnanda_customize_register($wp_customize) {
         add_action('wp_footer', 'ajnanda_customizer_live_preview', 21);
     }
 
-    // Remove the built-in Menus panel — all menu settings live in Appearance → Menus.
-    $wp_customize->remove_panel('nav_menus');
 }
 add_action('customize_register', 'ajnanda_customize_register');
+
+// Remove the built-in Menus panel — all menu settings live in Appearance → Menus.
+// Priority 30 ensures this runs after WP registers the panel at priority 10.
+add_action('customize_register', function($wp_customize): void {
+    $wp_customize->remove_panel('nav_menus');
+}, 30);
 
 function ajnanda_save_footer_color_scheme_settings($wp_customize) {
     $scheme_id = '';
