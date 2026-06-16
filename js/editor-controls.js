@@ -22,6 +22,7 @@
     var useEffect = wp.element.useEffect;
     var useState = wp.element.useState;
     var registerBlockVariation = wp.blocks.registerBlockVariation;
+    var useSelect = wp.data && wp.data.useSelect;
 
     var LAYOUT_ATTRS = {
         ajnMinHeightDesktop: { type: 'string', default: '' },
@@ -99,8 +100,18 @@
         ajnBtnColor3: { type: 'string', default: '' },
         ajnBtnColor4: { type: 'string', default: '' },
         ajnBtnColor5: { type: 'string', default: '' },
-        ajnBtnColor6: { type: 'string', default: '' }
+        ajnBtnColor6: { type: 'string', default: '' },
+        ajnBtnColorSchema: { type: 'string', default: '' }
     };
+
+    var AJN_COLOR_SCHEMES = [
+        { value: 'brand',   label: 'Brand Blues',   colors: ['#2563eb', '#3b82f6', '#60a5fa', '#1d4ed8', '#1e40af', '#93c5fd'] },
+        { value: 'sunset',  label: 'Sunset Warm',   colors: ['#f97316', '#ef4444', '#ec4899', '#f59e0b', '#eab308', '#dc2626'] },
+        { value: 'forest',  label: 'Nature Green',  colors: ['#16a34a', '#059669', '#84cc16', '#15803d', '#65a30d', '#4ade80'] },
+        { value: 'ocean',   label: 'Ocean Blue',    colors: ['#0ea5e9', '#06b6d4', '#0284c7', '#0891b2', '#0369a1', '#38bdf8'] },
+        { value: 'royal',   label: 'Royal Purple',  colors: ['#7c3aed', '#8b5cf6', '#a855f7', '#6d28d9', '#c026d3', '#9333ea'] },
+        { value: 'random',  label: 'Random Colors', colors: ['#f43f5e', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#3b82f6'] }
+    ];
 
     var SINGLE_BUTTON_ATTRS = {
         ajnSingleButtonWidthDesktop: { type: 'string', default: 'auto' },
@@ -758,6 +769,9 @@
             onChange: function(value) {
                 var update = {};
                 update[attr] = value;
+                // Rebuild className so the editor canvas immediately reflects the new layout
+                var newAttrs = Object.assign({}, props.attributes, update);
+                update.className = getButtonLayoutClass(newAttrs, props.attributes.className || '');
                 props.setAttributes(update);
             }
         });
@@ -981,6 +995,9 @@
                 var attrs = props.attributes || {};
                 var setAttributes = props.setAttributes;
                 var measuredHeight = useMeasuredBlockHeight(props.clientId);
+                var innerBlockCount = useSelect ? useSelect(function(select) {
+                    return select('core/block-editor').getBlockCount(props.clientId);
+                }, [props.clientId]) : 0;
 
                 if ('core/buttons' === props.name) {
                     var deviceTabState = useState('desktop');
@@ -1171,40 +1188,68 @@
                                 PanelBody,
                                 { title: 'AJ Buttons — Individual Colors', initialOpen: false },
                                 createElement('p', { style: { fontSize: '12px', color: '#6b7280', marginBottom: '12px' } },
-                                    'Set a unique background color for each button by position (1st, 2nd, 3rd…). Leave blank to use shared style or WP default.'
+                                    'Set a unique background color for each button by position. Leave blank to use shared style or WP default.'
                                 ),
-                                [1, 2, 3, 4, 5, 6].map(function(n) {
-                                    var attr = 'ajnBtnColor' + n;
-                                    return createElement('div', { key: n, className: 'ajn-color-row' },
-                                        createElement('label', { className: 'ajn-color-label' }, 'Button ' + n),
-                                        createElement('input', {
-                                            type: 'color',
-                                            value: attrs[attr] || '#2563eb',
-                                            onChange: function(e) {
-                                                var update = {};
-                                                update[attr] = e.target.value;
-                                                setAttributes(update);
-                                            }
-                                        }),
-                                        createElement(TextControl, {
-                                            value: attrs[attr] || '',
-                                            placeholder: 'inherit',
-                                            onChange: function(v) {
-                                                var update = {};
-                                                update[attr] = v;
-                                                setAttributes(update);
-                                            }
-                                        }),
-                                        attrs[attr] ? createElement('button', {
-                                            type: 'button', className: 'ajn-clear-btn',
-                                            onClick: function() {
-                                                var update = {};
-                                                update[attr] = '';
-                                                setAttributes(update);
-                                            }
-                                        }, '✕') : null
-                                    );
-                                })
+                                createElement(SelectControl, {
+                                    label: 'Color scheme',
+                                    value: attrs.ajnBtnColorSchema || '',
+                                    options: (function() {
+                                        var opts = [{ label: '— Pick a preset scheme —', value: '' }];
+                                        AJN_COLOR_SCHEMES.forEach(function(s) { opts.push({ label: s.label, value: s.value }); });
+                                        return opts;
+                                    })(),
+                                    onChange: function(schemeValue) {
+                                        var scheme = null;
+                                        AJN_COLOR_SCHEMES.forEach(function(s) { if (s.value === schemeValue) { scheme = s; } });
+                                        if (!scheme || !schemeValue) {
+                                            setAttributes({ ajnBtnColorSchema: '' });
+                                            return;
+                                        }
+                                        var count = innerBlockCount > 0 ? Math.min(innerBlockCount, 6) : 6;
+                                        var update = { ajnBtnColorSchema: schemeValue };
+                                        for (var i = 1; i <= 6; i++) {
+                                            update['ajnBtnColor' + i] = i <= count
+                                                ? (scheme.colors[i - 1] || scheme.colors[(i - 1) % scheme.colors.length])
+                                                : '';
+                                        }
+                                        setAttributes(update);
+                                    }
+                                }),
+                                (function() {
+                                    var btnCount = innerBlockCount > 0 ? Math.min(innerBlockCount, 6) : 6;
+                                    return Array.from({ length: btnCount }, function(_, i) { return i + 1; }).map(function(n) {
+                                        var attr = 'ajnBtnColor' + n;
+                                        return createElement('div', { key: n, className: 'ajn-color-row' },
+                                            createElement('label', { className: 'ajn-color-label' }, 'Button ' + n),
+                                            createElement('input', {
+                                                type: 'color',
+                                                value: attrs[attr] || '#2563eb',
+                                                onChange: function(e) {
+                                                    var update = {};
+                                                    update[attr] = e.target.value;
+                                                    setAttributes(update);
+                                                }
+                                            }),
+                                            createElement(TextControl, {
+                                                value: attrs[attr] || '',
+                                                placeholder: 'inherit',
+                                                onChange: function(v) {
+                                                    var update = {};
+                                                    update[attr] = v;
+                                                    setAttributes(update);
+                                                }
+                                            }),
+                                            attrs[attr] ? createElement('button', {
+                                                type: 'button', className: 'ajn-clear-btn',
+                                                onClick: function() {
+                                                    var update = {};
+                                                    update[attr] = '';
+                                                    setAttributes(update);
+                                                }
+                                            }, '✕') : null
+                                        );
+                                    });
+                                })()
                             )
                         )
                     );

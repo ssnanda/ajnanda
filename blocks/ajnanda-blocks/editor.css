@@ -331,3 +331,50 @@
     font-size: 11px;
     line-height: 1;
 }
+
+/* AJ Buttons: editor canvas layout preview */
+.editor-styles-wrapper .wp-block-buttons.aj-buttons-control > .block-editor-inner-blocks > .block-editor-block-list__layout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--aj-buttons-gap-desktop, 12px);
+    justify-content: var(--aj-btn-justify, center);
+}
+
+.editor-styles-wrapper .wp-block-buttons.aj-buttons-desktop-row > .block-editor-inner-blocks > .block-editor-block-list__layout {
+    flex-direction: row;
+}
+
+.editor-styles-wrapper .wp-block-buttons.aj-buttons-desktop-stack > .block-editor-inner-blocks > .block-editor-block-list__layout {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.editor-styles-wrapper .wp-block-buttons.aj-buttons-desktop-grid > .block-editor-inner-blocks > .block-editor-block-list__layout {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.editor-styles-wrapper .wp-block-buttons.aj-buttons-desktop-featured > .block-editor-inner-blocks > .block-editor-block-list__layout {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+/* Also handle when the layout class is on the outer wrapper (wrapperProps) */
+.editor-styles-wrapper .aj-buttons-desktop-row .wp-block-buttons.aj-buttons-control > .block-editor-inner-blocks > .block-editor-block-list__layout {
+    flex-direction: row;
+}
+
+.editor-styles-wrapper .aj-buttons-desktop-stack .wp-block-buttons.aj-buttons-control > .block-editor-inner-blocks > .block-editor-block-list__layout {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.editor-styles-wrapper .aj-buttons-desktop-grid .wp-block-buttons.aj-buttons-control > .block-editor-inner-blocks > .block-editor-block-list__layout {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.editor-styles-wrapper .aj-buttons-desktop-featured .wp-block-buttons.aj-buttons-control > .block-editor-inner-blocks > .block-editor-block-list__layout {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
