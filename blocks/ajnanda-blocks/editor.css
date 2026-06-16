@@ -415,6 +415,7 @@
 .editor-styles-wrapper .wp-block-buttons.aj-buttons-desktop-row > .block-editor-inner-blocks > .block-editor-block-list__layout {
     display: flex !important;
     flex-direction: row !important;
+    align-items: center !important;
 }
 
 .editor-styles-wrapper .aj-buttons-desktop-stack .wp-block-buttons > .block-editor-inner-blocks > .block-editor-block-list__layout,
@@ -425,25 +426,36 @@
 }
 
 .editor-styles-wrapper .aj-buttons-desktop-grid .wp-block-buttons > .block-editor-inner-blocks > .block-editor-block-list__layout,
-.editor-styles-wrapper .wp-block-buttons.aj-buttons-desktop-grid > .block-editor-inner-blocks > .block-editor-block-list__layout,
-.editor-styles-wrapper .aj-buttons-desktop-featured .wp-block-buttons > .block-editor-inner-blocks > .block-editor-block-list__layout,
-.editor-styles-wrapper .wp-block-buttons.aj-buttons-desktop-featured > .block-editor-inner-blocks > .block-editor-block-list__layout {
+.editor-styles-wrapper .wp-block-buttons.aj-buttons-desktop-grid > .block-editor-inner-blocks > .block-editor-block-list__layout {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
 }
 
+.editor-styles-wrapper .aj-buttons-desktop-featured .wp-block-buttons > .block-editor-inner-blocks > .block-editor-block-list__layout,
+.editor-styles-wrapper .wp-block-buttons.aj-buttons-desktop-featured > .block-editor-inner-blocks > .block-editor-block-list__layout {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+}
+
 .editor-styles-wrapper .aj-buttons-desktop-featured .wp-block-buttons > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block:first-child,
 .editor-styles-wrapper .wp-block-buttons.aj-buttons-desktop-featured > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block:first-child {
-    grid-column: 1 / -1 !important;
+    flex: 0 0 100% !important;
+    width: 100% !important;
 }
 
 .editor-styles-wrapper .aj-buttons-desktop-stack .wp-block-buttons > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block,
 .editor-styles-wrapper .aj-buttons-desktop-grid .wp-block-buttons > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block,
-.editor-styles-wrapper .aj-buttons-desktop-featured .wp-block-buttons > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block,
 .editor-styles-wrapper .wp-block-buttons.aj-buttons-desktop-stack > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block,
-.editor-styles-wrapper .wp-block-buttons.aj-buttons-desktop-grid > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block,
-.editor-styles-wrapper .wp-block-buttons.aj-buttons-desktop-featured > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block {
+.editor-styles-wrapper .wp-block-buttons.aj-buttons-desktop-grid > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block {
     width: 100% !important;
+}
+
+.editor-styles-wrapper .aj-buttons-desktop-featured .wp-block-buttons > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block:not(:first-child),
+.editor-styles-wrapper .wp-block-buttons.aj-buttons-desktop-featured > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block:not(:first-child) {
+    flex: 1 1 0 !important;
+    width: auto !important;
+    min-width: 0;
 }
 
 .editor-styles-wrapper .aj-buttons-width-desktop-narrow .wp-block-buttons,

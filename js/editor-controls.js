@@ -828,7 +828,7 @@
                     var wpJustify = justify === 'flex-start' ? 'left' : justify === 'flex-end' ? 'right' : justify === 'space-between' ? 'space-between' : 'center';
                     update.layout = value === 'stack'
                         ? { type: 'flex', flexWrap: 'nowrap', orientation: 'vertical' }
-                        : { type: 'flex', flexWrap: 'wrap', justifyContent: wpJustify };
+                        : { type: 'flex', flexWrap: 'wrap', orientation: 'horizontal', justifyContent: wpJustify };
                 }
                 setButtonAttributes(props, update);
             }
