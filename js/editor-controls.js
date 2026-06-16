@@ -818,6 +818,8 @@
             label: label,
             value: props.attributes[attr] || fallback,
             options: [
+                { label: 'Horizontal row', value: 'row' },
+                { label: 'Stacked', value: 'stack' },
                 { label: 'Equal grid', value: 'grid' },
                 { label: 'First wide, rest below', value: 'featured' }
             ],
@@ -827,7 +829,9 @@
                 if (attr === 'ajnButtonLayoutDesktop') {
                     var justify = props.attributes.ajnBtnJustify || 'center';
                     var wpJustify = justify === 'flex-start' ? 'left' : justify === 'flex-end' ? 'right' : justify === 'space-between' ? 'space-between' : 'center';
-                    update.layout = { type: 'flex', flexWrap: 'wrap', orientation: 'horizontal', justifyContent: wpJustify };
+                    update.layout = value === 'stack'
+                        ? { type: 'flex', flexWrap: 'nowrap', orientation: 'vertical' }
+                        : { type: 'flex', flexWrap: 'wrap', orientation: 'horizontal', justifyContent: wpJustify };
                 }
                 setButtonAttributes(props, update);
             }
@@ -838,6 +842,91 @@
         var nextAttrs = Object.assign({}, props.attributes || {}, update);
         update.className = getButtonLayoutClass(nextAttrs, (props.attributes || {}).className || '');
         props.setAttributes(update);
+    }
+
+    function safeColor(v) {
+        if (!v || typeof v !== 'string') return '';
+        v = v.trim();
+        return /^#[0-9a-fA-F]{3,8}$|^rgba?\([^)]{0,60}\)$|^hsla?\([^)]{0,60}\)$|^[a-zA-Z]{1,30}$/.test(v) ? v : '';
+    }
+
+    function safeCssSize(v) {
+        if (!v || typeof v !== 'string') return '';
+        v = v.trim();
+        return /^[0-9]+(\.[0-9]+)?(px|em|rem|vh|vw|vmin|vmax|%)$/.test(v) ? v : '';
+    }
+
+    function generateButtonPreviewCss(clientId, attrs) {
+        var bSel = '[data-block="' + clientId + '"]';
+        var lSel = bSel + ' .wp-block-button__link';
+        var css  = '';
+
+        var bg          = safeColor(attrs.ajnBtnSharedBg);
+        var color       = safeColor(attrs.ajnBtnSharedColor);
+        var borderColor = safeColor(attrs.ajnBtnSharedBorderColor);
+        var hasScheme   = !!(attrs.ajnBtnStyle || attrs.ajnBtnScheme);
+
+        if (hasScheme || bg || color || borderColor) {
+            css += lSel + '{';
+            if (bg || hasScheme)           css += 'background-color:' + (bg || 'initial') + ' !important;';
+            if (color || hasScheme)         css += 'color:' + (color || 'inherit') + ' !important;';
+            if (borderColor || hasScheme)  css += 'border-color:' + (borderColor || 'transparent') + ' !important;border-style:solid !important;';
+            css += '}';
+        }
+
+        var bw = numberValue(attrs.ajnBtnSharedBorderWidth, null);
+        var br = numberValue(attrs.ajnBtnSharedBorderRadius, null);
+        var px = numberValue(attrs.ajnBtnSharedPaddingX, null);
+        var py = numberValue(attrs.ajnBtnSharedPaddingY, null);
+        var hasSize = !!(attrs.ajnBtnStyle || attrs.ajnBtnSizeStyle);
+
+        if (hasSize || bw > 0 || br > 0 || px > 0 || py > 0) {
+            css += lSel + '{';
+            if (hasSize || bw !== null) css += 'border-width:' + (bw !== null ? bw : 0) + 'px !important;';
+            if (hasSize || br !== null) css += 'border-radius:' + (br !== null ? br : 0) + 'px !important;';
+            if (hasSize || px !== null) css += 'padding-left:' + (px !== null ? px : 0) + 'px !important;padding-right:' + (px !== null ? px : 0) + 'px !important;';
+            if (hasSize || py !== null) css += 'padding-top:' + (py !== null ? py : 0) + 'px !important;padding-bottom:' + (py !== null ? py : 0) + 'px !important;';
+            css += '}';
+        }
+
+        for (var i = 1; i <= 6; i++) {
+            var btnColor = safeColor(attrs['ajnBtnColor' + i]);
+            if (btnColor) {
+                css += bSel + ' .wp-block-button:nth-child(' + i + ') .wp-block-button__link{background-color:' + btnColor + ' !important}';
+            }
+        }
+
+        var gapDesktop = numberValue(attrs.ajnButtonGapDesktop, 12);
+        if (gapDesktop !== 12) {
+            css += bSel + ' .wp-block-buttons,.wp-block-buttons' + bSel + '{gap:' + gapDesktop + 'px !important}';
+        }
+
+        var layout = attrs.ajnButtonLayoutDesktop || 'row';
+        if (layout === 'row') {
+            css += bSel + ' .block-editor-block-list__layout{display:flex !important;flex-direction:row !important;flex-wrap:wrap !important;align-items:center !important}';
+        } else if (layout === 'stack') {
+            css += bSel + ' .block-editor-block-list__layout{display:flex !important;flex-direction:column !important;align-items:stretch !important}';
+            css += bSel + ' .block-editor-block-list__layout > .wp-block{width:100% !important}';
+        } else if (layout === 'grid') {
+            css += bSel + ' .block-editor-block-list__layout{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important}';
+            css += bSel + ' .block-editor-block-list__layout > .wp-block{width:100% !important}';
+        } else if (layout === 'featured') {
+            css += bSel + ' .block-editor-block-list__layout{display:flex !important;flex-direction:row !important;flex-wrap:wrap !important}';
+            css += bSel + ' .block-editor-block-list__layout > .wp-block:first-child{flex:0 0 100% !important;width:100% !important}';
+            css += bSel + ' .block-editor-block-list__layout > .wp-block:not(:first-child){flex:1 1 0 !important;min-width:0;width:auto !important}';
+        }
+
+        var widthMap = { narrow: '480px', standard: '720px', wide: '960px', full: '100%' };
+        var widthVal = widthMap[attrs.ajnButtonsWidthDesktop];
+        if (!widthVal && attrs.ajnButtonsWidthDesktop === 'custom') {
+            widthVal = safeCssSize(attrs.ajnButtonsCustomWidthDesktop);
+        }
+        if (widthVal) {
+            var w = widthVal === '100%' ? '100%' : 'min(100%,' + widthVal + ')';
+            css += bSel + '{width:' + w + ' !important;max-width:' + w + ' !important;margin-left:auto !important;margin-right:auto !important}';
+        }
+
+        return css;
     }
 
     function buttonGapControl(props, attr, label, fallback) {
@@ -1061,6 +1150,42 @@
                 var innerBlockCount = useSelect ? useSelect(function(select) {
                     return select('core/block-editor').getBlockCount(props.clientId);
                 }, [props.clientId]) : 0;
+
+                var isButtonsBlock = 'core/buttons' === props.name;
+                var btnPreviewKey = isButtonsBlock ? JSON.stringify({
+                    layout: attrs.ajnButtonLayoutDesktop,
+                    scheme: attrs.ajnBtnScheme, style: attrs.ajnBtnStyle,
+                    bg: attrs.ajnBtnSharedBg, color: attrs.ajnBtnSharedColor,
+                    bc: attrs.ajnBtnSharedBorderColor,
+                    bw: attrs.ajnBtnSharedBorderWidth, br: attrs.ajnBtnSharedBorderRadius,
+                    px: attrs.ajnBtnSharedPaddingX, py: attrs.ajnBtnSharedPaddingY,
+                    ss: attrs.ajnBtnSizeStyle,
+                    c1: attrs.ajnBtnColor1, c2: attrs.ajnBtnColor2, c3: attrs.ajnBtnColor3,
+                    c4: attrs.ajnBtnColor4, c5: attrs.ajnBtnColor5, c6: attrs.ajnBtnColor6,
+                    gd: attrs.ajnButtonGapDesktop,
+                    wd: attrs.ajnButtonsWidthDesktop, wc: attrs.ajnButtonsCustomWidthDesktop
+                }) : '';
+
+                useEffect(function() {
+                    if (!isButtonsBlock || !props.clientId) return;
+                    var styleId = 'ajn-btn-preview-' + props.clientId;
+                    var css = generateButtonPreviewCss(props.clientId, attrs);
+                    var el = document.getElementById(styleId);
+                    if (!css) {
+                        if (el) el.parentNode.removeChild(el);
+                        return;
+                    }
+                    if (!el) {
+                        el = document.createElement('style');
+                        el.id = styleId;
+                        document.head.appendChild(el);
+                    }
+                    el.textContent = css;
+                    return function() {
+                        var toRemove = document.getElementById(styleId);
+                        if (toRemove && toRemove.parentNode) toRemove.parentNode.removeChild(toRemove);
+                    };
+                }, [isButtonsBlock, props.clientId, btnPreviewKey]);
 
                 if ('core/buttons' === props.name) {
                     var deviceTabState = useState('desktop');
