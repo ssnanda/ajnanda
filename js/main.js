@@ -87,8 +87,19 @@ document.documentElement.classList.add('js');
             if (isOpen) {
                 lockBodyScroll();
             } else {
+                $('.nav-menu').find('.submenu-open').removeClass('submenu-open');
                 unlockBodyScroll();
             }
+        });
+
+        // Mobile submenu toggle — tap parent link to expand/collapse
+        $(document).on('click', '.nav-menu.mobile-active .menu-item-has-children > a', function(e) {
+            e.preventDefault();
+            var $parent = $(this).closest('.menu-item-has-children');
+            var isOpen = $parent.hasClass('submenu-open');
+            // Collapse siblings at the same level
+            $parent.siblings('.submenu-open').removeClass('submenu-open');
+            $parent.toggleClass('submenu-open', !isOpen);
         });
 
         // Close mobile menu when clicking outside
@@ -96,7 +107,7 @@ document.documentElement.classList.add('js');
             if (!$(e.target).closest('.main-navigation, .ajn-builder-cell-primary-menu, #mobile-menu-toggle').length) {
                 $('#mobile-menu-toggle').removeClass('active');
                 $('#mobile-menu-toggle').attr('aria-expanded', 'false');
-                $('.nav-menu').removeClass('mobile-active');
+                $('.nav-menu').removeClass('mobile-active').find('.submenu-open').removeClass('submenu-open');
                 unlockBodyScroll();
             }
         });

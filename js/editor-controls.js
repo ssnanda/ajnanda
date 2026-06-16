@@ -85,7 +85,21 @@
         ajnButtonsWidthMobile: { type: 'string', default: 'auto' },
         ajnButtonsCustomWidthDesktop: { type: 'string', default: '' },
         ajnButtonsCustomWidthTablet: { type: 'string', default: '' },
-        ajnButtonsCustomWidthMobile: { type: 'string', default: '' }
+        ajnButtonsCustomWidthMobile: { type: 'string', default: '' },
+        ajnBtnJustify: { type: 'string', default: 'center' },
+        ajnBtnSharedBg: { type: 'string', default: '' },
+        ajnBtnSharedColor: { type: 'string', default: '' },
+        ajnBtnSharedBorderColor: { type: 'string', default: '' },
+        ajnBtnSharedBorderWidth: { type: 'number', default: 0 },
+        ajnBtnSharedBorderRadius: { type: 'number', default: 0 },
+        ajnBtnSharedPaddingX: { type: 'number', default: 0 },
+        ajnBtnSharedPaddingY: { type: 'number', default: 0 },
+        ajnBtnColor1: { type: 'string', default: '' },
+        ajnBtnColor2: { type: 'string', default: '' },
+        ajnBtnColor3: { type: 'string', default: '' },
+        ajnBtnColor4: { type: 'string', default: '' },
+        ajnBtnColor5: { type: 'string', default: '' },
+        ajnBtnColor6: { type: 'string', default: '' }
     };
 
     var SINGLE_BUTTON_ATTRS = {
@@ -94,7 +108,10 @@
         ajnSingleButtonWidthMobile: { type: 'string', default: 'auto' },
         ajnSingleButtonCustomWidthDesktop: { type: 'string', default: '' },
         ajnSingleButtonCustomWidthTablet: { type: 'string', default: '' },
-        ajnSingleButtonCustomWidthMobile: { type: 'string', default: '' }
+        ajnSingleButtonCustomWidthMobile: { type: 'string', default: '' },
+        ajnSingleBtnBg: { type: 'string', default: '' },
+        ajnSingleBtnColor: { type: 'string', default: '' },
+        ajnSingleBtnBorderColor: { type: 'string', default: '' }
     };
 
     function hasLayoutControls(blockName) {
@@ -577,7 +594,10 @@
             'aj-buttons-width-mobile-standard',
             'aj-buttons-width-mobile-wide',
             'aj-buttons-width-mobile-full',
-            'aj-buttons-width-mobile-custom'
+            'aj-buttons-width-mobile-custom',
+            'aj-buttons-stretch',
+            'aj-has-btn-shared-styles',
+            'aj-has-btn-per-colors'
         ]);
 
         className = mergeClassName(className, 'aj-buttons-desktop-' + (attrs.ajnButtonLayoutDesktop || 'row'));
@@ -586,6 +606,20 @@
         className = mergeClassName(className, 'aj-buttons-width-desktop-' + (attrs.ajnButtonsWidthDesktop || 'auto'));
         className = mergeClassName(className, 'aj-buttons-width-tablet-' + (attrs.ajnButtonsWidthTablet || attrs.ajnButtonsWidthDesktop || 'auto'));
         className = mergeClassName(className, 'aj-buttons-width-mobile-' + (attrs.ajnButtonsWidthMobile || attrs.ajnButtonsWidthTablet || attrs.ajnButtonsWidthDesktop || 'auto'));
+
+        if (attrs.ajnBtnJustify === 'stretch') {
+            className = mergeClassName(className, 'aj-buttons-stretch');
+        }
+
+        var hasShared = attrs.ajnBtnSharedBg || attrs.ajnBtnSharedColor || attrs.ajnBtnSharedBorderColor || attrs.ajnBtnSharedBorderWidth || attrs.ajnBtnSharedBorderRadius || attrs.ajnBtnSharedPaddingX || attrs.ajnBtnSharedPaddingY;
+        if (hasShared) {
+            className = mergeClassName(className, 'aj-has-btn-shared-styles');
+        }
+
+        var hasPerColors = attrs.ajnBtnColor1 || attrs.ajnBtnColor2 || attrs.ajnBtnColor3 || attrs.ajnBtnColor4 || attrs.ajnBtnColor5 || attrs.ajnBtnColor6;
+        if (hasPerColors) {
+            className = mergeClassName(className, 'aj-has-btn-per-colors');
+        }
 
         return className;
     }
@@ -600,6 +634,26 @@
         setVar(style, '--aj-buttons-custom-width-desktop', attrs.ajnButtonsCustomWidthDesktop);
         setVar(style, '--aj-buttons-custom-width-tablet', attrs.ajnButtonsCustomWidthTablet);
         setVar(style, '--aj-buttons-custom-width-mobile', attrs.ajnButtonsCustomWidthMobile);
+
+        var justify = attrs.ajnBtnJustify || 'center';
+        if (justify !== 'stretch') {
+            style['--aj-btn-justify'] = justify;
+        }
+
+        if (attrs.ajnBtnSharedBg) style['--aj-btn-shared-bg'] = attrs.ajnBtnSharedBg;
+        if (attrs.ajnBtnSharedColor) style['--aj-btn-shared-color'] = attrs.ajnBtnSharedColor;
+        if (attrs.ajnBtnSharedBorderColor) style['--aj-btn-shared-border-color'] = attrs.ajnBtnSharedBorderColor;
+        if (attrs.ajnBtnSharedBorderWidth) style['--aj-btn-shared-border-width'] = attrs.ajnBtnSharedBorderWidth + 'px';
+        if (attrs.ajnBtnSharedBorderRadius) style['--aj-btn-shared-border-radius'] = attrs.ajnBtnSharedBorderRadius + 'px';
+        if (attrs.ajnBtnSharedPaddingX) style['--aj-btn-shared-padding-x'] = attrs.ajnBtnSharedPaddingX + 'px';
+        if (attrs.ajnBtnSharedPaddingY) style['--aj-btn-shared-padding-y'] = attrs.ajnBtnSharedPaddingY + 'px';
+
+        if (attrs.ajnBtnColor1) style['--aj-btn-color-1'] = attrs.ajnBtnColor1;
+        if (attrs.ajnBtnColor2) style['--aj-btn-color-2'] = attrs.ajnBtnColor2;
+        if (attrs.ajnBtnColor3) style['--aj-btn-color-3'] = attrs.ajnBtnColor3;
+        if (attrs.ajnBtnColor4) style['--aj-btn-color-4'] = attrs.ajnBtnColor4;
+        if (attrs.ajnBtnColor5) style['--aj-btn-color-5'] = attrs.ajnBtnColor5;
+        if (attrs.ajnBtnColor6) style['--aj-btn-color-6'] = attrs.ajnBtnColor6;
 
         return style;
     }
@@ -619,7 +673,12 @@
             (attrs.ajnButtonsWidthMobile && attrs.ajnButtonsWidthMobile !== 'auto') ||
             !!attrs.ajnButtonsCustomWidthDesktop ||
             !!attrs.ajnButtonsCustomWidthTablet ||
-            !!attrs.ajnButtonsCustomWidthMobile;
+            !!attrs.ajnButtonsCustomWidthMobile ||
+            (attrs.ajnBtnJustify && attrs.ajnBtnJustify !== 'center') ||
+            !!attrs.ajnBtnSharedBg || !!attrs.ajnBtnSharedColor || !!attrs.ajnBtnSharedBorderColor ||
+            !!attrs.ajnBtnSharedBorderWidth || !!attrs.ajnBtnSharedBorderRadius ||
+            !!attrs.ajnBtnColor1 || !!attrs.ajnBtnColor2 || !!attrs.ajnBtnColor3 ||
+            !!attrs.ajnBtnColor4 || !!attrs.ajnBtnColor5 || !!attrs.ajnBtnColor6;
     }
 
     function getSingleButtonClass(attrs, className) {
@@ -642,12 +701,17 @@
             'aj-button-width-mobile-medium',
             'aj-button-width-mobile-large',
             'aj-button-width-mobile-full',
-            'aj-button-width-mobile-custom'
+            'aj-button-width-mobile-custom',
+            'aj-has-btn-item-color'
         ]);
 
         className = mergeClassName(className, 'aj-button-width-desktop-' + (attrs.ajnSingleButtonWidthDesktop || 'auto'));
         className = mergeClassName(className, 'aj-button-width-tablet-' + (attrs.ajnSingleButtonWidthTablet || attrs.ajnSingleButtonWidthDesktop || 'auto'));
         className = mergeClassName(className, 'aj-button-width-mobile-' + (attrs.ajnSingleButtonWidthMobile || attrs.ajnSingleButtonWidthTablet || attrs.ajnSingleButtonWidthDesktop || 'auto'));
+
+        if (attrs.ajnSingleBtnBg || attrs.ajnSingleBtnColor || attrs.ajnSingleBtnBorderColor) {
+            className = mergeClassName(className, 'aj-has-btn-item-color');
+        }
 
         return className;
     }
@@ -658,6 +722,10 @@
         setVar(style, '--aj-button-custom-width-desktop', attrs.ajnSingleButtonCustomWidthDesktop);
         setVar(style, '--aj-button-custom-width-tablet', attrs.ajnSingleButtonCustomWidthTablet);
         setVar(style, '--aj-button-custom-width-mobile', attrs.ajnSingleButtonCustomWidthMobile);
+
+        if (attrs.ajnSingleBtnBg) style['--aj-btn-item-bg'] = attrs.ajnSingleBtnBg;
+        if (attrs.ajnSingleBtnColor) style['--aj-btn-item-color'] = attrs.ajnSingleBtnColor;
+        if (attrs.ajnSingleBtnBorderColor) style['--aj-btn-item-border-color'] = attrs.ajnSingleBtnBorderColor;
 
         return style;
     }
@@ -671,7 +739,10 @@
             (attrs.ajnSingleButtonWidthMobile && attrs.ajnSingleButtonWidthMobile !== 'auto') ||
             !!attrs.ajnSingleButtonCustomWidthDesktop ||
             !!attrs.ajnSingleButtonCustomWidthTablet ||
-            !!attrs.ajnSingleButtonCustomWidthMobile;
+            !!attrs.ajnSingleButtonCustomWidthMobile ||
+            !!attrs.ajnSingleBtnBg ||
+            !!attrs.ajnSingleBtnColor ||
+            !!attrs.ajnSingleBtnBorderColor;
     }
 
     function buttonLayoutControl(props, attr, label, fallback) {
@@ -912,6 +983,49 @@
                 var measuredHeight = useMeasuredBlockHeight(props.clientId);
 
                 if ('core/buttons' === props.name) {
+                    var deviceTabState = useState('desktop');
+                    var activeDevice = deviceTabState[0];
+                    var setActiveDevice = deviceTabState[1];
+
+                    var gapForDevice = activeDevice === 'mobile'
+                        ? (attrs.ajnButtonGapMobile || attrs.ajnButtonGapTablet || attrs.ajnButtonGapDesktop || 12)
+                        : activeDevice === 'tablet'
+                        ? (attrs.ajnButtonGapTablet || attrs.ajnButtonGapDesktop || 12)
+                        : (attrs.ajnButtonGapDesktop || 12);
+
+                    var widthAttr = activeDevice === 'mobile' ? 'ajnButtonsWidthMobile'
+                        : activeDevice === 'tablet' ? 'ajnButtonsWidthTablet'
+                        : 'ajnButtonsWidthDesktop';
+                    var customWidthAttr = activeDevice === 'mobile' ? 'ajnButtonsCustomWidthMobile'
+                        : activeDevice === 'tablet' ? 'ajnButtonsCustomWidthTablet'
+                        : 'ajnButtonsCustomWidthDesktop';
+                    var widthFallback = activeDevice === 'mobile'
+                        ? (attrs.ajnButtonsWidthMobile || attrs.ajnButtonsWidthTablet || attrs.ajnButtonsWidthDesktop || 'auto')
+                        : activeDevice === 'tablet'
+                        ? (attrs.ajnButtonsWidthTablet || attrs.ajnButtonsWidthDesktop || 'auto')
+                        : (attrs.ajnButtonsWidthDesktop || 'auto');
+                    var layoutAttr = activeDevice === 'mobile' ? 'ajnButtonLayoutMobile'
+                        : activeDevice === 'tablet' ? 'ajnButtonLayoutTablet'
+                        : 'ajnButtonLayoutDesktop';
+                    var layoutFallback = activeDevice === 'mobile'
+                        ? (attrs.ajnButtonLayoutMobile || attrs.ajnButtonLayoutTablet || attrs.ajnButtonLayoutDesktop || 'stack')
+                        : activeDevice === 'tablet'
+                        ? (attrs.ajnButtonLayoutTablet || attrs.ajnButtonLayoutDesktop || 'row')
+                        : (attrs.ajnButtonLayoutDesktop || 'row');
+
+                    var deviceTabsEl = createElement('div', { className: 'ajn-device-tabs' },
+                        ['desktop', 'tablet', 'mobile'].map(function(d) {
+                            return createElement('button', {
+                                key: d,
+                                type: 'button',
+                                className: 'ajn-device-tab' + (activeDevice === d ? ' is-selected' : ''),
+                                onClick: function() { setActiveDevice(d); }
+                            }, d.charAt(0).toUpperCase() + d.slice(1));
+                        })
+                    );
+
+                    var justify = attrs.ajnBtnJustify || 'center';
+
                     return createElement(
                         Fragment,
                         {},
@@ -921,28 +1035,209 @@
                             {},
                             createElement(
                                 PanelBody,
-                                {
-                                    title: 'AJNanda Button Layout',
-                                    initialOpen: true
-                                },
-                                buttonLayoutControl(props, 'ajnButtonLayoutDesktop', 'Desktop layout', attrs.ajnButtonLayoutDesktop || 'row'),
-                                buttonLayoutControl(props, 'ajnButtonLayoutTablet', 'Tablet layout', attrs.ajnButtonLayoutTablet || attrs.ajnButtonLayoutDesktop || 'row'),
-                                buttonLayoutControl(props, 'ajnButtonLayoutMobile', 'Mobile layout', attrs.ajnButtonLayoutMobile || attrs.ajnButtonLayoutTablet || attrs.ajnButtonLayoutDesktop || 'stack'),
-                                buttonGapControl(props, 'ajnButtonGapDesktop', 'Desktop gap', attrs.ajnButtonGapDesktop || 12),
-                                buttonGapControl(props, 'ajnButtonGapTablet', 'Tablet gap', attrs.ajnButtonGapTablet || attrs.ajnButtonGapDesktop || 12),
-                                buttonGapControl(props, 'ajnButtonGapMobile', 'Mobile gap', attrs.ajnButtonGapMobile || attrs.ajnButtonGapTablet || attrs.ajnButtonGapDesktop || 12),
-                                widthControl(props, 'ajnButtonsWidthDesktop', 'Buttons area width - Desktop', attrs.ajnButtonsWidthDesktop || 'auto'),
-                                attrs.ajnButtonsWidthDesktop === 'custom' ? field('Custom desktop width', attrs.ajnButtonsCustomWidthDesktop, 'Example: 760px or 70%', '', function(value) { setAttributes({ ajnButtonsCustomWidthDesktop: value }); }) : null,
-                                widthControl(props, 'ajnButtonsWidthTablet', 'Buttons area width - Tablet', attrs.ajnButtonsWidthTablet || attrs.ajnButtonsWidthDesktop || 'auto'),
-                                attrs.ajnButtonsWidthTablet === 'custom' ? field('Custom tablet width', attrs.ajnButtonsCustomWidthTablet, 'Leave blank to use desktop', '', function(value) { setAttributes({ ajnButtonsCustomWidthTablet: value }); }) : null,
-                                widthControl(props, 'ajnButtonsWidthMobile', 'Buttons area width - Mobile', attrs.ajnButtonsWidthMobile || attrs.ajnButtonsWidthTablet || attrs.ajnButtonsWidthDesktop || 'auto'),
-                                attrs.ajnButtonsWidthMobile === 'custom' ? field('Custom mobile width', attrs.ajnButtonsCustomWidthMobile, 'Leave blank to use tablet/desktop', '', function(value) { setAttributes({ ajnButtonsCustomWidthMobile: value }); }) : null
+                                { title: 'AJ Buttons — Layout & Spacing', initialOpen: true },
+                                deviceTabsEl,
+                                buttonLayoutControl(props, layoutAttr, 'Arrangement', layoutFallback),
+                                createElement(SelectControl, {
+                                    label: 'Justify content',
+                                    value: justify,
+                                    options: [
+                                        { label: 'Center', value: 'center' },
+                                        { label: 'Left', value: 'flex-start' },
+                                        { label: 'Right', value: 'flex-end' },
+                                        { label: 'Space between', value: 'space-between' },
+                                        { label: 'Space evenly', value: 'space-evenly' },
+                                        { label: 'Stretch (fill row)', value: 'stretch' }
+                                    ],
+                                    onChange: function(value) { setAttributes({ ajnBtnJustify: value }); }
+                                }),
+                                createElement(RangeControl, {
+                                    label: 'Gap (' + activeDevice.charAt(0).toUpperCase() + activeDevice.slice(1) + ')',
+                                    min: 0,
+                                    max: 60,
+                                    value: gapForDevice,
+                                    onChange: function(value) {
+                                        var update = {};
+                                        update['ajnButtonGap' + activeDevice.charAt(0).toUpperCase() + activeDevice.slice(1)] = value;
+                                        setAttributes(update);
+                                    }
+                                }),
+                                createElement(SelectControl, {
+                                    label: 'Area width (' + activeDevice.charAt(0).toUpperCase() + activeDevice.slice(1) + ')',
+                                    value: widthFallback,
+                                    options: [
+                                        { label: 'Auto (shrink to content)', value: 'auto' },
+                                        { label: 'Narrow — 480px', value: 'narrow' },
+                                        { label: 'Standard — 720px', value: 'standard' },
+                                        { label: 'Wide — 960px', value: 'wide' },
+                                        { label: 'Full width', value: 'full' },
+                                        { label: 'Custom', value: 'custom' }
+                                    ],
+                                    onChange: function(value) {
+                                        var update = {};
+                                        update[widthAttr] = value;
+                                        setAttributes(update);
+                                    }
+                                }),
+                                attrs[widthAttr] === 'custom' ? field('Custom width', attrs[customWidthAttr], 'e.g. 760px or 80%', '', function(value) {
+                                    var update = {};
+                                    update[customWidthAttr] = value;
+                                    setAttributes(update);
+                                }) : null
+                            ),
+                            createElement(
+                                PanelBody,
+                                { title: 'AJ Buttons — Shared Button Styles', initialOpen: false },
+                                createElement('p', { style: { fontSize: '12px', color: '#6b7280', marginBottom: '12px' } },
+                                    'Set a shared style for ALL buttons in this group. Individual button colors override these.'
+                                ),
+                                createElement('div', { className: 'ajn-color-row' },
+                                    createElement('label', { className: 'ajn-color-label' }, 'Background'),
+                                    createElement('input', {
+                                        type: 'color',
+                                        value: attrs.ajnBtnSharedBg || '#2563eb',
+                                        onChange: function(e) { setAttributes({ ajnBtnSharedBg: e.target.value }); }
+                                    }),
+                                    createElement(TextControl, {
+                                        value: attrs.ajnBtnSharedBg || '',
+                                        placeholder: '#2563eb',
+                                        onChange: function(v) { setAttributes({ ajnBtnSharedBg: v }); }
+                                    }),
+                                    attrs.ajnBtnSharedBg ? createElement('button', {
+                                        type: 'button', className: 'ajn-clear-btn',
+                                        onClick: function() { setAttributes({ ajnBtnSharedBg: '' }); }
+                                    }, '✕') : null
+                                ),
+                                createElement('div', { className: 'ajn-color-row' },
+                                    createElement('label', { className: 'ajn-color-label' }, 'Text color'),
+                                    createElement('input', {
+                                        type: 'color',
+                                        value: attrs.ajnBtnSharedColor || '#ffffff',
+                                        onChange: function(e) { setAttributes({ ajnBtnSharedColor: e.target.value }); }
+                                    }),
+                                    createElement(TextControl, {
+                                        value: attrs.ajnBtnSharedColor || '',
+                                        placeholder: '#ffffff',
+                                        onChange: function(v) { setAttributes({ ajnBtnSharedColor: v }); }
+                                    }),
+                                    attrs.ajnBtnSharedColor ? createElement('button', {
+                                        type: 'button', className: 'ajn-clear-btn',
+                                        onClick: function() { setAttributes({ ajnBtnSharedColor: '' }); }
+                                    }, '✕') : null
+                                ),
+                                createElement('div', { className: 'ajn-color-row' },
+                                    createElement('label', { className: 'ajn-color-label' }, 'Border color'),
+                                    createElement('input', {
+                                        type: 'color',
+                                        value: attrs.ajnBtnSharedBorderColor || '#1d4ed8',
+                                        onChange: function(e) { setAttributes({ ajnBtnSharedBorderColor: e.target.value }); }
+                                    }),
+                                    createElement(TextControl, {
+                                        value: attrs.ajnBtnSharedBorderColor || '',
+                                        placeholder: 'transparent',
+                                        onChange: function(v) { setAttributes({ ajnBtnSharedBorderColor: v }); }
+                                    }),
+                                    attrs.ajnBtnSharedBorderColor ? createElement('button', {
+                                        type: 'button', className: 'ajn-clear-btn',
+                                        onClick: function() { setAttributes({ ajnBtnSharedBorderColor: '' }); }
+                                    }, '✕') : null
+                                ),
+                                createElement(RangeControl, {
+                                    label: 'Border width',
+                                    min: 0, max: 8,
+                                    value: attrs.ajnBtnSharedBorderWidth || 0,
+                                    onChange: function(v) { setAttributes({ ajnBtnSharedBorderWidth: v }); }
+                                }),
+                                createElement(RangeControl, {
+                                    label: 'Border radius',
+                                    min: 0, max: 999,
+                                    value: attrs.ajnBtnSharedBorderRadius || 0,
+                                    onChange: function(v) { setAttributes({ ajnBtnSharedBorderRadius: v }); }
+                                }),
+                                createElement(RangeControl, {
+                                    label: 'Padding X (left/right)',
+                                    min: 0, max: 80,
+                                    value: attrs.ajnBtnSharedPaddingX || 0,
+                                    onChange: function(v) { setAttributes({ ajnBtnSharedPaddingX: v }); }
+                                }),
+                                createElement(RangeControl, {
+                                    label: 'Padding Y (top/bottom)',
+                                    min: 0, max: 80,
+                                    value: attrs.ajnBtnSharedPaddingY || 0,
+                                    onChange: function(v) { setAttributes({ ajnBtnSharedPaddingY: v }); }
+                                })
+                            ),
+                            createElement(
+                                PanelBody,
+                                { title: 'AJ Buttons — Individual Colors', initialOpen: false },
+                                createElement('p', { style: { fontSize: '12px', color: '#6b7280', marginBottom: '12px' } },
+                                    'Set a unique background color for each button by position (1st, 2nd, 3rd…). Leave blank to use shared style or WP default.'
+                                ),
+                                [1, 2, 3, 4, 5, 6].map(function(n) {
+                                    var attr = 'ajnBtnColor' + n;
+                                    return createElement('div', { key: n, className: 'ajn-color-row' },
+                                        createElement('label', { className: 'ajn-color-label' }, 'Button ' + n),
+                                        createElement('input', {
+                                            type: 'color',
+                                            value: attrs[attr] || '#2563eb',
+                                            onChange: function(e) {
+                                                var update = {};
+                                                update[attr] = e.target.value;
+                                                setAttributes(update);
+                                            }
+                                        }),
+                                        createElement(TextControl, {
+                                            value: attrs[attr] || '',
+                                            placeholder: 'inherit',
+                                            onChange: function(v) {
+                                                var update = {};
+                                                update[attr] = v;
+                                                setAttributes(update);
+                                            }
+                                        }),
+                                        attrs[attr] ? createElement('button', {
+                                            type: 'button', className: 'ajn-clear-btn',
+                                            onClick: function() {
+                                                var update = {};
+                                                update[attr] = '';
+                                                setAttributes(update);
+                                            }
+                                        }, '✕') : null
+                                    );
+                                })
                             )
                         )
                     );
                 }
 
                 if ('core/button' === props.name) {
+                    var btnDeviceState = useState('desktop');
+                    var activeBtnDevice = btnDeviceState[0];
+                    var setActiveBtnDevice = btnDeviceState[1];
+
+                    var btnWidthAttr = activeBtnDevice === 'mobile' ? 'ajnSingleButtonWidthMobile'
+                        : activeBtnDevice === 'tablet' ? 'ajnSingleButtonWidthTablet'
+                        : 'ajnSingleButtonWidthDesktop';
+                    var btnCustomWidthAttr = activeBtnDevice === 'mobile' ? 'ajnSingleButtonCustomWidthMobile'
+                        : activeBtnDevice === 'tablet' ? 'ajnSingleButtonCustomWidthTablet'
+                        : 'ajnSingleButtonCustomWidthDesktop';
+                    var btnWidthFallback = activeBtnDevice === 'mobile'
+                        ? (attrs.ajnSingleButtonWidthMobile || attrs.ajnSingleButtonWidthTablet || attrs.ajnSingleButtonWidthDesktop || 'auto')
+                        : activeBtnDevice === 'tablet'
+                        ? (attrs.ajnSingleButtonWidthTablet || attrs.ajnSingleButtonWidthDesktop || 'auto')
+                        : (attrs.ajnSingleButtonWidthDesktop || 'auto');
+
+                    var btnDeviceTabsEl = createElement('div', { className: 'ajn-device-tabs' },
+                        ['desktop', 'tablet', 'mobile'].map(function(d) {
+                            return createElement('button', {
+                                key: d,
+                                type: 'button',
+                                className: 'ajn-device-tab' + (activeBtnDevice === d ? ' is-selected' : ''),
+                                onClick: function() { setActiveBtnDevice(d); }
+                            }, d.charAt(0).toUpperCase() + d.slice(1));
+                        })
+                    );
+
                     return createElement(
                         Fragment,
                         {},
@@ -952,16 +1247,72 @@
                             {},
                             createElement(
                                 PanelBody,
-                                {
-                                    title: 'AJNanda Button Width',
-                                    initialOpen: true
-                                },
-                                singleButtonWidthControl(props, 'ajnSingleButtonWidthDesktop', 'Desktop width', attrs.ajnSingleButtonWidthDesktop || 'auto'),
-                                attrs.ajnSingleButtonWidthDesktop === 'custom' ? field('Custom desktop width', attrs.ajnSingleButtonCustomWidthDesktop, 'Example: 220px or 50%', '', function(value) { setAttributes({ ajnSingleButtonCustomWidthDesktop: value }); }) : null,
-                                singleButtonWidthControl(props, 'ajnSingleButtonWidthTablet', 'Tablet width', attrs.ajnSingleButtonWidthTablet || attrs.ajnSingleButtonWidthDesktop || 'auto'),
-                                attrs.ajnSingleButtonWidthTablet === 'custom' ? field('Custom tablet width', attrs.ajnSingleButtonCustomWidthTablet, 'Leave blank to use desktop', '', function(value) { setAttributes({ ajnSingleButtonCustomWidthTablet: value }); }) : null,
-                                singleButtonWidthControl(props, 'ajnSingleButtonWidthMobile', 'Mobile width', attrs.ajnSingleButtonWidthMobile || attrs.ajnSingleButtonWidthTablet || attrs.ajnSingleButtonWidthDesktop || 'auto'),
-                                attrs.ajnSingleButtonWidthMobile === 'custom' ? field('Custom mobile width', attrs.ajnSingleButtonCustomWidthMobile, 'Leave blank to use tablet/desktop', '', function(value) { setAttributes({ ajnSingleButtonCustomWidthMobile: value }); }) : null
+                                { title: 'AJNanda Button Width', initialOpen: true },
+                                btnDeviceTabsEl,
+                                singleButtonWidthControl(props, btnWidthAttr, 'Width (' + activeBtnDevice.charAt(0).toUpperCase() + activeBtnDevice.slice(1) + ')', btnWidthFallback),
+                                attrs[btnWidthAttr] === 'custom' ? field('Custom width', attrs[btnCustomWidthAttr], 'e.g. 220px or 50%', '', function(value) {
+                                    var update = {};
+                                    update[btnCustomWidthAttr] = value;
+                                    setAttributes(update);
+                                }) : null
+                            ),
+                            createElement(
+                                PanelBody,
+                                { title: 'AJNanda Button Color', initialOpen: false },
+                                createElement('p', { style: { fontSize: '12px', color: '#6b7280', marginBottom: '12px' } },
+                                    'Override the color of this specific button. Overrides shared group styles.'
+                                ),
+                                createElement('div', { className: 'ajn-color-row' },
+                                    createElement('label', { className: 'ajn-color-label' }, 'Background'),
+                                    createElement('input', {
+                                        type: 'color',
+                                        value: attrs.ajnSingleBtnBg || '#2563eb',
+                                        onChange: function(e) { setAttributes({ ajnSingleBtnBg: e.target.value }); }
+                                    }),
+                                    createElement(TextControl, {
+                                        value: attrs.ajnSingleBtnBg || '',
+                                        placeholder: 'inherit',
+                                        onChange: function(v) { setAttributes({ ajnSingleBtnBg: v }); }
+                                    }),
+                                    attrs.ajnSingleBtnBg ? createElement('button', {
+                                        type: 'button', className: 'ajn-clear-btn',
+                                        onClick: function() { setAttributes({ ajnSingleBtnBg: '' }); }
+                                    }, '✕') : null
+                                ),
+                                createElement('div', { className: 'ajn-color-row' },
+                                    createElement('label', { className: 'ajn-color-label' }, 'Text color'),
+                                    createElement('input', {
+                                        type: 'color',
+                                        value: attrs.ajnSingleBtnColor || '#ffffff',
+                                        onChange: function(e) { setAttributes({ ajnSingleBtnColor: e.target.value }); }
+                                    }),
+                                    createElement(TextControl, {
+                                        value: attrs.ajnSingleBtnColor || '',
+                                        placeholder: 'inherit',
+                                        onChange: function(v) { setAttributes({ ajnSingleBtnColor: v }); }
+                                    }),
+                                    attrs.ajnSingleBtnColor ? createElement('button', {
+                                        type: 'button', className: 'ajn-clear-btn',
+                                        onClick: function() { setAttributes({ ajnSingleBtnColor: '' }); }
+                                    }, '✕') : null
+                                ),
+                                createElement('div', { className: 'ajn-color-row' },
+                                    createElement('label', { className: 'ajn-color-label' }, 'Border color'),
+                                    createElement('input', {
+                                        type: 'color',
+                                        value: attrs.ajnSingleBtnBorderColor || '#1d4ed8',
+                                        onChange: function(e) { setAttributes({ ajnSingleBtnBorderColor: e.target.value }); }
+                                    }),
+                                    createElement(TextControl, {
+                                        value: attrs.ajnSingleBtnBorderColor || '',
+                                        placeholder: 'inherit',
+                                        onChange: function(v) { setAttributes({ ajnSingleBtnBorderColor: v }); }
+                                    }),
+                                    attrs.ajnSingleBtnBorderColor ? createElement('button', {
+                                        type: 'button', className: 'ajn-clear-btn',
+                                        onClick: function() { setAttributes({ ajnSingleBtnBorderColor: '' }); }
+                                    }, '✕') : null
+                                )
                             )
                         )
                     );

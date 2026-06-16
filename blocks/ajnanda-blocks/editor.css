@@ -250,3 +250,84 @@
     border-top-right-radius: 3px;
     border-bottom-right-radius: 3px;
 }
+
+/* AJ Buttons responsive device tabs */
+.ajn-device-tabs {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 12px;
+    background: #f0f0f1;
+    border-radius: 4px;
+    padding: 3px;
+}
+
+.ajn-device-tab {
+    flex: 1;
+    padding: 5px 8px;
+    border: 0;
+    border-radius: 3px;
+    background: transparent;
+    color: #757575;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    transition: background 0.1s, color 0.1s;
+}
+
+.ajn-device-tab.is-selected {
+    background: #fff;
+    color: #1e1e1e;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+/* AJ Buttons color row */
+.ajn-color-row {
+    display: grid;
+    grid-template-columns: 64px 32px minmax(0, 1fr) 24px;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.ajn-color-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #1e1e1e;
+}
+
+.ajn-color-row input[type="color"] {
+    width: 32px;
+    height: 32px;
+    padding: 2px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.ajn-color-row .components-base-control,
+.ajn-color-row .components-base-control__field {
+    margin-bottom: 0;
+}
+
+.ajn-color-row .components-text-control__input {
+    font-size: 12px;
+    padding: 4px 8px;
+}
+
+.ajn-clear-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: 0;
+    border-radius: 50%;
+    background: #f0f0f1;
+    color: #757575;
+    cursor: pointer;
+    font-size: 11px;
+    line-height: 1;
+}

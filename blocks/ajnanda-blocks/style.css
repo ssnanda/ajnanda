@@ -686,6 +686,7 @@ input[type="checkbox"].aj-field {
     flex-wrap: wrap;
     gap: var(--aj-buttons-gap-desktop, 12px);
     align-items: center;
+    justify-content: var(--aj-btn-justify, center);
     margin-right: auto;
     margin-left: auto;
 }
@@ -710,8 +711,7 @@ input[type="checkbox"].aj-field {
 .aj-buttons-desktop-grid,
 .aj-buttons-desktop-featured {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, auto));
-    justify-content: center;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .aj-buttons-desktop-featured > .wp-block-button:first-child {
@@ -722,6 +722,55 @@ input[type="checkbox"].aj-field {
 .aj-buttons-desktop-grid > .wp-block-button,
 .aj-buttons-desktop-featured > .wp-block-button {
     width: 100%;
+}
+
+/* Stretch: buttons grow to fill available row width */
+.aj-buttons-stretch > .wp-block-button,
+.aj-buttons-stretch > .aj-button-width-control {
+    flex: 1 1 0 !important;
+    width: auto !important;
+    min-width: 0;
+}
+
+/* Shared button styles (set at container level via CSS vars) */
+.aj-has-btn-shared-styles .wp-block-button__link {
+    background-color: var(--aj-btn-item-bg, var(--aj-btn-shared-bg)) !important;
+    color: var(--aj-btn-item-color, var(--aj-btn-shared-color)) !important;
+    border-color: var(--aj-btn-item-border-color, var(--aj-btn-shared-border-color, transparent)) !important;
+    border-style: solid !important;
+    border-width: var(--aj-btn-shared-border-width, 0px) !important;
+    border-radius: var(--aj-btn-shared-border-radius, inherit) !important;
+    padding-top: var(--aj-btn-shared-padding-y, inherit) !important;
+    padding-bottom: var(--aj-btn-shared-padding-y, inherit) !important;
+    padding-left: var(--aj-btn-shared-padding-x, inherit) !important;
+    padding-right: var(--aj-btn-shared-padding-x, inherit) !important;
+}
+
+/* Per-button individual colors (on inner .wp-block-button wrapper) */
+.aj-has-btn-item-color .wp-block-button__link {
+    background-color: var(--aj-btn-item-bg) !important;
+    color: var(--aj-btn-item-color, #ffffff) !important;
+    border-color: var(--aj-btn-item-border-color, transparent) !important;
+}
+
+/* Individual button colors by position from container vars */
+.aj-has-btn-per-colors > .wp-block-button:nth-child(1) .wp-block-button__link {
+    background-color: var(--aj-btn-color-1, initial) !important;
+}
+.aj-has-btn-per-colors > .wp-block-button:nth-child(2) .wp-block-button__link {
+    background-color: var(--aj-btn-color-2, initial) !important;
+}
+.aj-has-btn-per-colors > .wp-block-button:nth-child(3) .wp-block-button__link {
+    background-color: var(--aj-btn-color-3, initial) !important;
+}
+.aj-has-btn-per-colors > .wp-block-button:nth-child(4) .wp-block-button__link {
+    background-color: var(--aj-btn-color-4, initial) !important;
+}
+.aj-has-btn-per-colors > .wp-block-button:nth-child(5) .wp-block-button__link {
+    background-color: var(--aj-btn-color-5, initial) !important;
+}
+.aj-has-btn-per-colors > .wp-block-button:nth-child(6) .wp-block-button__link {
+    background-color: var(--aj-btn-color-6, initial) !important;
 }
 
 .aj-buttons-width-desktop-auto {
@@ -812,8 +861,7 @@ input[type="checkbox"].aj-field {
     .aj-buttons-tablet-grid,
     .aj-buttons-tablet-featured {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, auto));
-        justify-content: center;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .aj-buttons-tablet-featured > .wp-block-button:first-child {
