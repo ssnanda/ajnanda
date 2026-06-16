@@ -710,17 +710,22 @@ input[type="checkbox"].aj-field {
     margin-left: auto;
 }
 
-.aj-buttons-desktop-row {
+.aj-buttons-desktop-row,
+.wp-block-buttons.aj-buttons-control.aj-buttons-desktop-row {
     flex-direction: row !important;
 }
 
-.aj-buttons-desktop-stack {
+.aj-buttons-desktop-stack,
+.wp-block-buttons.aj-buttons-control.aj-buttons-desktop-stack {
+    display: flex !important;
     flex-direction: column !important;
     align-items: stretch !important;
 }
 
 .aj-buttons-desktop-grid,
-.aj-buttons-desktop-featured {
+.aj-buttons-desktop-featured,
+.wp-block-buttons.aj-buttons-control.aj-buttons-desktop-grid,
+.wp-block-buttons.aj-buttons-control.aj-buttons-desktop-featured {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
 }
@@ -744,10 +749,11 @@ input[type="checkbox"].aj-field {
 }
 
 /* Shared button styles (set at container level via CSS vars) */
-.aj-has-btn-shared-styles .wp-block-button__link {
-    background-color: var(--aj-btn-item-bg, var(--aj-btn-shared-bg)) !important;
-    color: var(--aj-btn-item-color, var(--aj-btn-shared-color)) !important;
-    border-color: var(--aj-btn-item-border-color, var(--aj-btn-shared-border-color, transparent)) !important;
+.aj-has-btn-shared-styles .wp-block-button__link,
+.wp-block-buttons.aj-buttons-control.aj-has-btn-shared-styles .wp-block-button__link {
+    background-color: var(--aj-btn-shared-bg) !important;
+    color: var(--aj-btn-shared-color) !important;
+    border-color: var(--aj-btn-shared-border-color, transparent) !important;
     border-style: solid !important;
     border-width: var(--aj-btn-shared-border-width, 0px) !important;
     border-radius: var(--aj-btn-shared-border-radius, inherit) !important;
@@ -858,19 +864,23 @@ input[type="checkbox"].aj-field {
         gap: var(--aj-buttons-gap-tablet, var(--aj-buttons-gap-desktop, 12px));
     }
 
-    .aj-buttons-tablet-row {
+    .aj-buttons-tablet-row,
+    .wp-block-buttons.aj-buttons-control.aj-buttons-tablet-row {
         display: flex !important;
         flex-direction: row !important;
     }
 
-    .aj-buttons-tablet-stack {
+    .aj-buttons-tablet-stack,
+    .wp-block-buttons.aj-buttons-control.aj-buttons-tablet-stack {
         display: flex !important;
         flex-direction: column !important;
         align-items: stretch !important;
     }
 
     .aj-buttons-tablet-grid,
-    .aj-buttons-tablet-featured {
+    .aj-buttons-tablet-featured,
+    .wp-block-buttons.aj-buttons-control.aj-buttons-tablet-grid,
+    .wp-block-buttons.aj-buttons-control.aj-buttons-tablet-featured {
         display: grid !important;
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
@@ -952,19 +962,23 @@ input[type="checkbox"].aj-field {
         gap: var(--aj-buttons-gap-mobile, var(--aj-buttons-gap-tablet, var(--aj-buttons-gap-desktop, 12px)));
     }
 
-    .aj-buttons-mobile-row {
+    .aj-buttons-mobile-row,
+    .wp-block-buttons.aj-buttons-control.aj-buttons-mobile-row {
         display: flex !important;
         flex-direction: row !important;
     }
 
-    .aj-buttons-mobile-stack {
+    .aj-buttons-mobile-stack,
+    .wp-block-buttons.aj-buttons-control.aj-buttons-mobile-stack {
         display: flex !important;
         flex-direction: column !important;
         align-items: stretch !important;
     }
 
     .aj-buttons-mobile-grid,
-    .aj-buttons-mobile-featured {
+    .aj-buttons-mobile-featured,
+    .wp-block-buttons.aj-buttons-control.aj-buttons-mobile-grid,
+    .wp-block-buttons.aj-buttons-control.aj-buttons-mobile-featured {
         display: grid !important;
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }

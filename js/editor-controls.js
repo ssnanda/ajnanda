@@ -821,10 +821,6 @@
             onChange: function(value) {
                 var update = {};
                 update[attr] = value;
-                // Rebuild className so both the saved HTML and editor wrapperProps
-                // immediately get the correct layout class (e.g. aj-buttons-desktop-stack).
-                var newAttrs = Object.assign({}, props.attributes, update);
-                update.className = getButtonLayoutClass(newAttrs, props.attributes.className || '');
                 // Sync WP's native layout for the DESKTOP control so the editor's own
                 // flex rendering matches (vertical = stack, horizontal = row/featured/grid).
                 if (attr === 'ajnButtonLayoutDesktop') {
@@ -834,9 +830,15 @@
                         ? { type: 'flex', flexWrap: 'nowrap', orientation: 'vertical' }
                         : { type: 'flex', flexWrap: 'wrap', justifyContent: wpJustify };
                 }
-                props.setAttributes(update);
+                setButtonAttributes(props, update);
             }
         });
+    }
+
+    function setButtonAttributes(props, update) {
+        var nextAttrs = Object.assign({}, props.attributes || {}, update);
+        update.className = getButtonLayoutClass(nextAttrs, (props.attributes || {}).className || '');
+        props.setAttributes(update);
     }
 
     function buttonGapControl(props, attr, label, fallback) {
@@ -1136,7 +1138,7 @@
                                             var wpJustify = value === 'flex-start' ? 'left' : value === 'flex-end' ? 'right' : value === 'space-between' ? 'space-between' : 'center';
                                             update.layout = { type: 'flex', flexWrap: 'wrap', justifyContent: wpJustify };
                                         }
-                                        setAttributes(update);
+                                        setButtonAttributes(props, update);
                                     }
                                 }),
                                 createElement(RangeControl, {
@@ -1147,7 +1149,7 @@
                                     onChange: function(value) {
                                         var update = {};
                                         update['ajnButtonGap' + activeDevice.charAt(0).toUpperCase() + activeDevice.slice(1)] = value;
-                                        setAttributes(update);
+                                        setButtonAttributes(props, update);
                                     }
                                 }),
                                 createElement(SelectControl, {
@@ -1164,13 +1166,13 @@
                                     onChange: function(value) {
                                         var update = {};
                                         update[widthAttr] = value;
-                                        setAttributes(update);
+                                        setButtonAttributes(props, update);
                                     }
                                 }),
                                 attrs[widthAttr] === 'custom' ? field('Custom width', attrs[customWidthAttr], 'e.g. 760px or 80%', '', function(value) {
                                     var update = {};
                                     update[customWidthAttr] = value;
-                                    setAttributes(update);
+                                    setButtonAttributes(props, update);
                                 }) : null
                             ),
                             createElement(
@@ -1191,10 +1193,10 @@
                                         var scheme = null;
                                         AJN_BUTTON_COLOR_SCHEMES.forEach(function(s) { if (s.value === schemeValue) { scheme = s; } });
                                         if (!scheme || !schemeValue) {
-                                            setAttributes({ ajnBtnScheme: '', ajnBtnStyle: '', ajnBtnSharedBg: '', ajnBtnSharedColor: '', ajnBtnSharedBorderColor: '' });
+                                            setButtonAttributes(props, { ajnBtnScheme: '', ajnBtnStyle: '', ajnBtnSharedBg: '', ajnBtnSharedColor: '', ajnBtnSharedBorderColor: '' });
                                             return;
                                         }
-                                        setAttributes({
+                                        setButtonAttributes(props, {
                                             ajnBtnScheme: schemeValue,
                                             ajnBtnStyle: '',
                                             ajnBtnSharedBg: scheme.bg || '',
@@ -1215,10 +1217,10 @@
                                         var size = null;
                                         AJN_BUTTON_SIZE_STYLES.forEach(function(s) { if (s.value === sizeValue) { size = s; } });
                                         if (!size || !sizeValue) {
-                                            setAttributes({ ajnBtnSizeStyle: '', ajnBtnSharedBorderWidth: 0, ajnBtnSharedBorderRadius: 0, ajnBtnSharedPaddingX: 0, ajnBtnSharedPaddingY: 0 });
+                                            setButtonAttributes(props, { ajnBtnSizeStyle: '', ajnBtnSharedBorderWidth: 0, ajnBtnSharedBorderRadius: 0, ajnBtnSharedPaddingX: 0, ajnBtnSharedPaddingY: 0 });
                                             return;
                                         }
-                                        setAttributes({
+                                        setButtonAttributes(props, {
                                             ajnBtnSizeStyle: sizeValue,
                                             ajnBtnSharedBorderWidth: size.borderWidth,
                                             ajnBtnSharedBorderRadius: size.borderRadius,
@@ -1246,7 +1248,7 @@
                                         var scheme = null;
                                         AJN_COLOR_SCHEMES.forEach(function(s) { if (s.value === schemeValue) { scheme = s; } });
                                         if (!scheme || !schemeValue) {
-                                            setAttributes({ ajnBtnColorSchema: '' });
+                                            setButtonAttributes(props, { ajnBtnColorSchema: '' });
                                             return;
                                         }
                                         var count = innerBlockCount > 0 ? Math.min(innerBlockCount, 6) : 6;
@@ -1256,7 +1258,7 @@
                                                 ? (scheme.colors[i - 1] || scheme.colors[(i - 1) % scheme.colors.length])
                                                 : '';
                                         }
-                                        setAttributes(update);
+                                        setButtonAttributes(props, update);
                                     }
                                 }),
                                 (function() {
@@ -1271,7 +1273,7 @@
                                                 onChange: function(e) {
                                                     var update = {};
                                                     update[attr] = e.target.value;
-                                                    setAttributes(update);
+                                                    setButtonAttributes(props, update);
                                                 }
                                             }),
                                             createElement(TextControl, {
@@ -1280,7 +1282,7 @@
                                                 onChange: function(v) {
                                                     var update = {};
                                                     update[attr] = v;
-                                                    setAttributes(update);
+                                                    setButtonAttributes(props, update);
                                                 }
                                             }),
                                             attrs[attr] ? createElement('button', {
@@ -1288,7 +1290,7 @@
                                                 onClick: function() {
                                                     var update = {};
                                                     update[attr] = '';
-                                                    setAttributes(update);
+                                                    setButtonAttributes(props, update);
                                                 }
                                             }, '✕') : null
                                         );

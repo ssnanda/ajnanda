@@ -471,10 +471,11 @@
     width: min(100%, var(--aj-buttons-custom-width-desktop, 100%)) !important;
 }
 
-.editor-styles-wrapper .aj-has-btn-shared-styles .wp-block-button__link {
-    background-color: var(--aj-btn-item-bg, var(--aj-btn-shared-bg)) !important;
-    color: var(--aj-btn-item-color, var(--aj-btn-shared-color)) !important;
-    border-color: var(--aj-btn-item-border-color, var(--aj-btn-shared-border-color, transparent)) !important;
+.editor-styles-wrapper .aj-has-btn-shared-styles .wp-block-button__link,
+.editor-styles-wrapper .wp-block-buttons.aj-buttons-control.aj-has-btn-shared-styles .wp-block-button__link {
+    background-color: var(--aj-btn-shared-bg) !important;
+    color: var(--aj-btn-shared-color) !important;
+    border-color: var(--aj-btn-shared-border-color, transparent) !important;
     border-style: solid !important;
     border-width: var(--aj-btn-shared-border-width, 0px) !important;
     border-radius: var(--aj-btn-shared-border-radius, inherit) !important;
