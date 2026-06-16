@@ -638,7 +638,8 @@
             'aj-buttons-width-mobile-custom',
             'aj-buttons-stretch',
             'aj-has-btn-shared-styles',
-            'aj-has-btn-per-colors'
+            'aj-has-btn-per-colors',
+            'is-vertical'
         ]);
 
         className = mergeClassName(className, 'aj-buttons-desktop-' + (attrs.ajnButtonLayoutDesktop || 'row'));
@@ -650,6 +651,10 @@
 
         if (attrs.ajnBtnJustify === 'stretch') {
             className = mergeClassName(className, 'aj-buttons-stretch');
+        }
+
+        if ((attrs.ajnButtonLayoutDesktop || 'row') === 'stack') {
+            className = mergeClassName(className, 'is-vertical');
         }
 
         var hasShared = !!attrs.ajnBtnStyle || !!attrs.ajnBtnScheme || !!attrs.ajnBtnSizeStyle ||

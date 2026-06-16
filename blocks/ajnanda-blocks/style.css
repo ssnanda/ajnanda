@@ -717,6 +717,12 @@ input[type="checkbox"].aj-field {
     align-items: center !important;
 }
 
+.wp-block-buttons.aj-buttons-control.aj-buttons-desktop-row.is-vertical,
+.wp-block-buttons.aj-buttons-control.aj-buttons-desktop-grid.is-vertical,
+.wp-block-buttons.aj-buttons-control.aj-buttons-desktop-featured.is-vertical {
+    flex-direction: row !important;
+}
+
 .aj-buttons-desktop-stack,
 .wp-block-buttons.aj-buttons-control.aj-buttons-desktop-stack {
     display: flex !important;
@@ -728,6 +734,7 @@ input[type="checkbox"].aj-field {
 .wp-block-buttons.aj-buttons-control.aj-buttons-desktop-grid {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    flex-direction: initial !important;
 }
 
 .aj-buttons-desktop-featured,
@@ -890,6 +897,12 @@ input[type="checkbox"].aj-field {
         align-items: center !important;
     }
 
+    .wp-block-buttons.aj-buttons-control.aj-buttons-tablet-row.is-vertical,
+    .wp-block-buttons.aj-buttons-control.aj-buttons-tablet-grid.is-vertical,
+    .wp-block-buttons.aj-buttons-control.aj-buttons-tablet-featured.is-vertical {
+        flex-direction: row !important;
+    }
+
     .aj-buttons-tablet-stack,
     .wp-block-buttons.aj-buttons-control.aj-buttons-tablet-stack {
         display: flex !important;
@@ -901,6 +914,7 @@ input[type="checkbox"].aj-field {
     .wp-block-buttons.aj-buttons-control.aj-buttons-tablet-grid {
         display: grid !important;
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        flex-direction: initial !important;
     }
 
     .aj-buttons-tablet-featured,
@@ -1006,6 +1020,12 @@ input[type="checkbox"].aj-field {
         align-items: center !important;
     }
 
+    .wp-block-buttons.aj-buttons-control.aj-buttons-mobile-row.is-vertical,
+    .wp-block-buttons.aj-buttons-control.aj-buttons-mobile-grid.is-vertical,
+    .wp-block-buttons.aj-buttons-control.aj-buttons-mobile-featured.is-vertical {
+        flex-direction: row !important;
+    }
+
     .aj-buttons-mobile-stack,
     .wp-block-buttons.aj-buttons-control.aj-buttons-mobile-stack {
         display: flex !important;
@@ -1017,6 +1037,7 @@ input[type="checkbox"].aj-field {
     .wp-block-buttons.aj-buttons-control.aj-buttons-mobile-grid {
         display: grid !important;
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        flex-direction: initial !important;
     }
 
     .aj-buttons-mobile-featured,
