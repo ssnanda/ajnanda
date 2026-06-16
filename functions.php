@@ -1752,6 +1752,56 @@ add_filter('wp_check_filetype_and_ext', 'ajnanda_sanitize_svg', 10, 4);
 /**
  * Customizer settings
  */
+function ajnanda_header_color_scheme_labels() {
+    return array(
+        'A' => __('A - Midnight Navy', 'ajnanda'),
+        'B' => __('B - Deep Slate', 'ajnanda'),
+        'C' => __('C - Clear Sky', 'ajnanda'),
+        'D' => __('D - Purple Lift', 'ajnanda'),
+        'E' => __('E - Slate Indigo', 'ajnanda'),
+        'F' => __('F - Blue & Gold', 'ajnanda'),
+        'G' => __('G - Cool Gray', 'ajnanda'),
+        'H' => __('H - Dark Navy', 'ajnanda'),
+        'I' => __('I - Charcoal Cyan', 'ajnanda'),
+        'J' => __('J - Forest Dark', 'ajnanda'),
+        'K' => __('K - Editorial Black', 'ajnanda'),
+        'L' => __('L - Warm Ivory', 'ajnanda'),
+        'M' => __('M - Rose Graphite', 'ajnanda'),
+        'N' => __('N - High Contrast', 'ajnanda'),
+        'O' => __('O - Ocean Teal', 'ajnanda'),
+        'P' => __('P - Sky Light', 'ajnanda'),
+        'Q' => __('Q - Emerald Pro', 'ajnanda'),
+        'R' => __('R - Soft Mint', 'ajnanda'),
+        'S' => __('S - Royal Blue', 'ajnanda'),
+        'T' => __('T - Executive Gray', 'ajnanda'),
+    );
+}
+
+function ajnanda_header_color_scheme_values() {
+    return array(
+        'A' => array('colors' => array('#111827','#60A5FA','#1F2937','#0F172A','#F1F5F9','#93C5FD','#1E3A8A'), 'font' => array('#F9FAFB','inherit','1rem','normal')),
+        'B' => array('colors' => array('#E0E7FF','#4F46E5','#C7D2FE','#FFFFFF','#111827','#4F46E5','#EEF2FF'), 'font' => array('#111827','Inter','1rem','bold')),
+        'C' => array('colors' => array('#EFF6FF','#1D4ED8','#DBEAFE','#FFFFFF','#0F172A','#1D4ED8','#F0F9FF'), 'font' => array('#0F172A','system-ui','1rem','normal')),
+        'D' => array('colors' => array('#F3E8FF','#7C3AED','#E9D5FF','#FFFFFF','#111827','#7C3AED','#FAF5FF'), 'font' => array('#111827','Poppins','1rem','bold')),
+        'E' => array('colors' => array('#EEF2FF','#4338CA','#E0E7FF','#F8FAFC','#0F172A','#4338CA','#EEF2FF'), 'font' => array('#0F172A','Inter','1rem','normal')),
+        'F' => array('colors' => array('#EFF6FF','#F59E0B','#DBEAFE','#FFFFFF','#0F172A','#F59E0B','#FEF3C7'), 'font' => array('#0F172A','Poppins','1rem','bold')),
+        'G' => array('colors' => array('#F8FAFC','#2563EB','#E2E8F0','#FFFFFF','#0F172A','#2563EB','#EFF6FF'), 'font' => array('#0F172A','Inter','1rem','normal')),
+        'H' => array('colors' => array('#0F172A','#93C5FD','#1E293B','#F8FAFC','#93C5FD','#93C5FD','#1E3A8A'), 'font' => array('#F8FAFC','Inter','1rem','bold')),
+        'I' => array('colors' => array('#111827','#22D3EE','#164E63','#0F172A','#E5E7EB','#67E8F9','#083344'), 'font' => array('#F9FAFB','system-ui','1rem','normal')),
+        'J' => array('colors' => array('#052E16','#86EFAC','#14532D','#ECFDF5','#BBF7D0','#BBF7D0','#166534'), 'font' => array('#F0FDF4','Inter','1rem','bold')),
+        'K' => array('colors' => array('#030712','#FACC15','#27272A','#FAFAFA','#FDE047','#FDE047','#3F3F46'), 'font' => array('#FAFAFA','Georgia','1.02rem','normal')),
+        'L' => array('colors' => array('#FFFBEB','#B45309','#FEF3C7','#FFFFFF','#1F2937','#92400E','#FDE68A'), 'font' => array('#1F2937','Georgia','1.02rem','normal')),
+        'M' => array('colors' => array('#FFF1F2','#BE123C','#FFE4E6','#FFFFFF','#111827','#BE123C','#FFE4E6'), 'font' => array('#111827','Poppins','1rem','bold')),
+        'N' => array('colors' => array('#000000','#FFFFFF','#1F2937','#FFFFFF','#FACC15','#FACC15','#111827'), 'font' => array('#FFFFFF','Arial','1rem','bold-underline')),
+        'O' => array('colors' => array('#F0FDFA','#0D9488','#CCFBF1','#FFFFFF','#134E4A','#0F766E','#F0FDFA'), 'font' => array('#134E4A','Inter','1rem','normal')),
+        'P' => array('colors' => array('#F0F9FF','#0284C7','#E0F2FE','#FFFFFF','#0C4A6E','#0369A1','#F0F9FF'), 'font' => array('#0C4A6E','Inter','1rem','normal')),
+        'Q' => array('colors' => array('#ECFDF5','#059669','#D1FAE5','#FFFFFF','#065F46','#047857','#D1FAE5'), 'font' => array('#065F46','Inter','1rem','normal')),
+        'R' => array('colors' => array('#F0FDF4','#16A34A','#DCFCE7','#FFFFFF','#14532D','#15803D','#DCFCE7'), 'font' => array('#14532D','Inter','1rem','normal')),
+        'S' => array('colors' => array('#1D4ED8','#FBBF24','#1E40AF','#FFFFFF','#1D4ED8','#1E40AF','#EFF6FF'), 'font' => array('#FFFFFF','Inter','1rem','bold')),
+        'T' => array('colors' => array('#374151','#60A5FA','#4B5563','#FFFFFF','#374151','#2563EB','#EFF6FF'), 'font' => array('#F9FAFB','Inter','1rem','normal')),
+    );
+}
+
 function ajnanda_customize_register($wp_customize) {
     if (class_exists('WP_Customize_Control') && !class_exists('NCLLC_Pro_Header_Font_Control')) {
         class NCLLC_Pro_Header_Font_Control extends WP_Customize_Control {
@@ -1849,28 +1899,7 @@ function ajnanda_customize_register($wp_customize) {
             public $type = 'ajnanda_header_color_schemes';
 
             public function render_content() {
-                $schemes = array(
-                    'A' => __('A - Midnight Navy', 'ajnanda'),
-                    'B' => __('B - Deep Slate', 'ajnanda'),
-                    'C' => __('C - Clear Sky', 'ajnanda'),
-                    'D' => __('D - Purple Lift', 'ajnanda'),
-                    'E' => __('E - Slate Indigo', 'ajnanda'),
-                    'F' => __('F - Blue & Gold', 'ajnanda'),
-                    'G' => __('G - Cool Gray', 'ajnanda'),
-                    'H' => __('H - Dark Navy', 'ajnanda'),
-                    'I' => __('I - Charcoal Cyan', 'ajnanda'),
-                    'J' => __('J - Forest Dark', 'ajnanda'),
-                    'K' => __('K - Editorial Black', 'ajnanda'),
-                    'L' => __('L - Warm Ivory', 'ajnanda'),
-                    'M' => __('M - Rose Graphite', 'ajnanda'),
-                    'N' => __('N - High Contrast', 'ajnanda'),
-                    'O' => __('O - Ocean Teal', 'ajnanda'),
-                    'P' => __('P - Sky Light', 'ajnanda'),
-                    'Q' => __('Q - Emerald Pro', 'ajnanda'),
-                    'R' => __('R - Soft Mint', 'ajnanda'),
-                    'S' => __('S - Royal Blue', 'ajnanda'),
-                    'T' => __('T - Executive Gray', 'ajnanda'),
-                );
+                $schemes = ajnanda_header_color_scheme_labels();
                 ?>
                 <?php
                 $saved_header_scheme = $this->manager->get_setting('header_color_scheme_picker');
@@ -1941,28 +1970,7 @@ function ajnanda_customize_register($wp_customize) {
             public $type = 'ajnanda_footer_color_schemes';
 
             public function render_content() {
-                $schemes = array(
-                    'A' => __('A - Midnight Navy', 'ajnanda'),
-                    'B' => __('B - Deep Slate', 'ajnanda'),
-                    'C' => __('C - Clear Sky', 'ajnanda'),
-                    'D' => __('D - Purple Lift', 'ajnanda'),
-                    'E' => __('E - Slate Indigo', 'ajnanda'),
-                    'F' => __('F - Blue & Gold', 'ajnanda'),
-                    'G' => __('G - Cool Gray', 'ajnanda'),
-                    'H' => __('H - Dark Navy', 'ajnanda'),
-                    'I' => __('I - Charcoal Cyan', 'ajnanda'),
-                    'J' => __('J - Forest Dark', 'ajnanda'),
-                    'K' => __('K - Editorial Black', 'ajnanda'),
-                    'L' => __('L - Warm Ivory', 'ajnanda'),
-                    'M' => __('M - Rose Graphite', 'ajnanda'),
-                    'N' => __('N - High Contrast', 'ajnanda'),
-                    'O' => __('O - Ocean Teal', 'ajnanda'),
-                    'P' => __('P - Sky Light', 'ajnanda'),
-                    'Q' => __('Q - Emerald Pro', 'ajnanda'),
-                    'R' => __('R - Soft Mint', 'ajnanda'),
-                    'S' => __('S - Royal Blue', 'ajnanda'),
-                    'T' => __('T - Executive Gray', 'ajnanda'),
-                );
+                $schemes = ajnanda_header_color_scheme_labels();
                 ?>
                 <?php
                 $saved_footer_scheme = $this->manager->get_setting('footer_color_scheme_picker');
@@ -3124,33 +3132,13 @@ function ajnanda_customizer_controls_css() {
 add_action('customize_controls_print_styles', 'ajnanda_customizer_controls_css');
 
 function ajnanda_customizer_controls_js() {
+    $header_color_schemes = ajnanda_header_color_scheme_values();
     ?>
     <script type="text/javascript">
     (function() {
         // Header schemes — colors: [bg, linkHoverColor, linkHoverBg, submenuBg, submenuText, submenuHoverColor, submenuHoverBg]
         // font: [textColor, fontFamily, fontSize, fontPreset]
-        var headerSchemes = {
-            A: { colors: ['#111827','#60A5FA','#1F2937','#0F172A','#F1F5F9','#93C5FD','#1E3A8A'], font: ['#F9FAFB','inherit','1rem','normal'] },
-            B: { colors: ['#E0E7FF','#4F46E5','#C7D2FE','#FFFFFF','#111827','#4F46E5','#EEF2FF'], font: ['#111827','Inter','1rem','bold'] },
-            C: { colors: ['#EFF6FF','#1D4ED8','#DBEAFE','#FFFFFF','#0F172A','#1D4ED8','#F0F9FF'], font: ['#0F172A','system-ui','1rem','normal'] },
-            D: { colors: ['#F3E8FF','#7C3AED','#E9D5FF','#FFFFFF','#111827','#7C3AED','#FAF5FF'], font: ['#111827','Poppins','1rem','bold'] },
-            E: { colors: ['#EEF2FF','#4338CA','#E0E7FF','#F8FAFC','#0F172A','#4338CA','#EEF2FF'], font: ['#0F172A','Inter','1rem','normal'] },
-            F: { colors: ['#EFF6FF','#F59E0B','#DBEAFE','#FFFFFF','#0F172A','#F59E0B','#FEF3C7'], font: ['#0F172A','Poppins','1rem','bold'] },
-            G: { colors: ['#F8FAFC','#2563EB','#E2E8F0','#FFFFFF','#0F172A','#2563EB','#EFF6FF'], font: ['#0F172A','Inter','1rem','normal'] },
-            H: { colors: ['#0F172A','#93C5FD','#1E293B','#F8FAFC','#93C5FD','#93C5FD','#1E3A8A'], font: ['#F8FAFC','Inter','1rem','bold'] },
-            I: { colors: ['#111827','#22D3EE','#164E63','#0F172A','#E5E7EB','#67E8F9','#083344'], font: ['#F9FAFB','system-ui','1rem','normal'] },
-            J: { colors: ['#052E16','#86EFAC','#14532D','#ECFDF5','#BBF7D0','#BBF7D0','#166534'], font: ['#F0FDF4','Inter','1rem','bold'] },
-            K: { colors: ['#030712','#FACC15','#27272A','#FAFAFA','#FDE047','#FDE047','#3F3F46'], font: ['#FAFAFA','Georgia','1.02rem','normal'] },
-            L: { colors: ['#FFFBEB','#B45309','#FEF3C7','#FFFFFF','#1F2937','#92400E','#FDE68A'], font: ['#1F2937','Georgia','1.02rem','normal'] },
-            M: { colors: ['#FFF1F2','#BE123C','#FFE4E6','#FFFFFF','#111827','#BE123C','#FFE4E6'], font: ['#111827','Poppins','1rem','bold'] },
-            N: { colors: ['#000000','#FFFFFF','#1F2937','#FFFFFF','#FACC15','#FACC15','#111827'], font: ['#FFFFFF','Arial','1rem','bold-underline'] },
-            O: { colors: ['#F0FDFA','#0D9488','#CCFBF1','#FFFFFF','#134E4A','#0F766E','#F0FDFA'], font: ['#134E4A','Inter','1rem','normal'] },
-            P: { colors: ['#F0F9FF','#0284C7','#E0F2FE','#FFFFFF','#0C4A6E','#0369A1','#F0F9FF'], font: ['#0C4A6E','Inter','1rem','normal'] },
-            Q: { colors: ['#ECFDF5','#059669','#D1FAE5','#FFFFFF','#065F46','#047857','#D1FAE5'], font: ['#065F46','Inter','1rem','normal'] },
-            R: { colors: ['#F0FDF4','#16A34A','#DCFCE7','#FFFFFF','#14532D','#15803D','#DCFCE7'], font: ['#14532D','Inter','1rem','normal'] },
-            S: { colors: ['#1D4ED8','#FBBF24','#1E40AF','#FFFFFF','#1D4ED8','#1E40AF','#EFF6FF'], font: ['#FFFFFF','Inter','1rem','bold'] },
-            T: { colors: ['#374151','#60A5FA','#4B5563','#FFFFFF','#374151','#2563EB','#EFF6FF'], font: ['#F9FAFB','Inter','1rem','normal'] }
-        };
+        var headerSchemes = <?php echo wp_json_encode($header_color_schemes); ?>;
         var headerSchemeSettings = [
             'header_background_color',
             'header_link_hover_color',
@@ -3160,6 +3148,19 @@ function ajnanda_customizer_controls_js() {
             'header_submenu_hover_color',
             'header_submenu_hover_background'
         ];
+        var footerSchemeSettings = [
+            ['footer_background_color', 0],
+            ['footer_link_hover_color', 1],
+            ['footer_divider_color', 2],
+            ['footer_submenu_background', 3],
+            ['footer_submenu_text_color', 4],
+            ['footer_submenu_hover_color', 5],
+            ['footer_submenu_hover_background', 6]
+        ];
+
+        function headerPresetToFooterWeight(preset) {
+            return ['bold', 'bold-italic', 'bold-underline'].indexOf(preset) !== -1 ? '700' : '400';
+        }
 
         function syncResponsiveControl(control) {
             var select = control.querySelector('.ajnanda-header-responsive-device');
@@ -3220,6 +3221,31 @@ function ajnanda_customizer_controls_js() {
             }
         }
 
+        function applyFooterScheme(schemeId) {
+            var scheme = headerSchemes[schemeId];
+            if (!scheme || !window.wp || !wp.customize) {
+                return;
+            }
+
+            footerSchemeSettings.forEach(function(item) {
+                setCustomizerValue(item[0], scheme.colors[item[1]]);
+            });
+
+            [
+                ['footer_text_color', scheme.font[0]],
+                ['footer_font_family', scheme.font[1]],
+                ['footer_font_size', scheme.font[2]],
+                ['footer_font_weight', headerPresetToFooterWeight(scheme.font[3])]
+            ].forEach(function(item) {
+                setCustomizerValue(item[0], item[1]);
+            });
+
+            var schemeSetting = wp.customize('footer_color_scheme_picker');
+            if (schemeSetting && schemeSetting.get() !== schemeId) {
+                schemeSetting.set(schemeId);
+            }
+        }
+
         function initResponsiveControls() {
             document.querySelectorAll('[data-ajnanda-responsive-control]').forEach(function(control) {
                 var select = control.querySelector('.ajnanda-header-responsive-device');
@@ -3244,72 +3270,6 @@ function ajnanda_customizer_controls_js() {
 
             applyHeaderScheme(select.value);
         });
-
-        // Footer Color Schemes
-        // colors: [bg, text, linkHover, divider, submenuBg, submenuText, submenuHover, submenuHoverBg]
-        // font:   [family, size, weight]
-        // Footer schemes — colors: [bg, text, linkHover, divider, submenuBg, submenuText, submenuHoverColor, submenuHoverBg]
-        // font: [fontFamily, fontSize, fontWeight]
-        var footerSchemes = {
-            A: { colors: ['#111827','#F9FAFB','#F59E0B','#374151','#FFFFFF','#1F2937','#2563EB','#F9FAFB'], font: ['inherit','1rem','400'] },
-            B: { colors: ['#1E293B','#E2E8F0','#818CF8','#334155','#FFFFFF','#0F172A','#6366F1','#EEF2FF'], font: ['Inter','1rem','400'] },
-            C: { colors: ['#1E3A5F','#F0F7FF','#60A5FA','#1E40AF','#FFFFFF','#1E3A5F','#3B82F6','#EFF6FF'], font: ['Inter','1rem','400'] },
-            D: { colors: ['#2E1065','#F3E8FF','#D8B4FE','#4C1D95','#FFFFFF','#2E1065','#C084FC','#FAF5FF'], font: ['Poppins','1rem','400'] },
-            E: { colors: ['#1E1B4B','#E0E7FF','#A5B4FC','#3730A3','#FFFFFF','#1E1B4B','#818CF8','#EEF2FF'], font: ['Poppins','1rem','500'] },
-            F: { colors: ['#1C1412','#FEF3C7','#FBBF24','#44403C','#FFFFFF','#1C1412','#D97706','#FEF3C7'], font: ['Georgia','1.02rem','400'] },
-            G: { colors: ['#1F2937','#F9FAFB','#60A5FA','#374151','#FFFFFF','#1F2937','#3B82F6','#EFF6FF'], font: ['Inter','1rem','400'] },
-            H: { colors: ['#0F172A','#F1F5F9','#22D3EE','#1E293B','#0F172A','#E2E8F0','#67E8F9','#083344'], font: ['Inter','1rem','400'] },
-            I: { colors: ['#0F2C36','#F0FDFA','#2DD4BF','#134E4A','#FFFFFF','#134E4A','#14B8A6','#F0FDFA'], font: ['Inter','1rem','400'] },
-            J: { colors: ['#052E16','#DCFCE7','#86EFAC','#166534','#F0FDF4','#052E16','#16A34A','#DCFCE7'], font: ['Inter','1rem','500'] },
-            K: { colors: ['#000000','#FFFFFF','#FACC15','#27272A','#18181B','#FAFAFA','#FDE047','#3F3F46'], font: ['Arial','1rem','700'] },
-            L: { colors: ['#FEFCE8','#1C1917','#CA8A04','#FDE68A','#FFFFFF','#1C1917','#B45309','#FEF3C7'], font: ['Georgia','1.02rem','400'] },
-            M: { colors: ['#4A1942','#FCE7F3','#F9A8D4','#831843','#FFFFFF','#4A1942','#EC4899','#FCE7F3'], font: ['Georgia','1rem','400'] },
-            N: { colors: ['#000000','#FFFFFF','#FFFFFF','#FFFFFF','#FFFFFF','#000000','#000000','#FFFFFF'], font: ['Arial','1rem','700'] },
-            O: { colors: ['#0F766E','#F0FDFA','#CCFBF1','#0D9488','#FFFFFF','#0F766E','#14B8A6','#F0FDFA'], font: ['Inter','1rem','400'] },
-            P: { colors: ['#0C4A6E','#E0F2FE','#38BDF8','#0369A1','#FFFFFF','#0C4A6E','#0EA5E9','#F0F9FF'], font: ['Inter','1rem','400'] },
-            Q: { colors: ['#134E4A','#ECFDF5','#34D399','#065F46','#F0FDF4','#052E16','#10B981','#D1FAE5'], font: ['Inter','1rem','500'] },
-            R: { colors: ['#F0FDF4','#14532D','#16A34A','#BBF7D0','#FFFFFF','#14532D','#15803D','#DCFCE7'], font: ['Inter','1rem','400'] },
-            S: { colors: ['#1D4ED8','#FFFFFF','#FBBF24','#3B82F6','#FFFFFF','#1D4ED8','#1E40AF','#EFF6FF'], font: ['Inter','1rem','700'] },
-            T: { colors: ['#374151','#F9FAFB','#60A5FA','#4B5563','#FFFFFF','#374151','#3B82F6','#EFF6FF'], font: ['Inter','1rem','400'] }
-        };
-
-        var footerSchemeColorSettings = [
-            'footer_background_color',
-            'footer_text_color',
-            'footer_link_hover_color',
-            'footer_divider_color',
-            'footer_submenu_background',
-            'footer_submenu_text_color',
-            'footer_submenu_hover_color',
-            'footer_submenu_hover_background'
-        ];
-
-        function applyFooterScheme(schemeId) {
-            var scheme = footerSchemes[schemeId];
-            if (!scheme || !window.wp || !wp.customize) {
-                return;
-            }
-
-            footerSchemeColorSettings.forEach(function(settingId, index) {
-                setCustomizerValue(settingId, scheme.colors[index]);
-            });
-
-            [
-                ['footer_font_family', scheme.font[0]],
-                ['footer_font_size',   scheme.font[1]],
-                ['footer_font_weight', scheme.font[2]]
-            ].forEach(function(item) {
-                var settingId = item[0];
-                var value = item[1];
-                setCustomizerValue(settingId, value);
-            });
-
-            var schemeSetting = wp.customize('footer_color_scheme_picker');
-            if (schemeSetting && schemeSetting.get() !== schemeId) {
-                schemeSetting.set(schemeId);
-            }
-        }
-
         document.addEventListener('change', function(event) {
             var select = event.target.closest('[data-ajnanda-footer-scheme-select]');
             if (!select || !select.value) {
@@ -3318,6 +3278,7 @@ function ajnanda_customizer_controls_js() {
 
             applyFooterScheme(select.value);
         });
+
     })();
     </script>
     <?php
