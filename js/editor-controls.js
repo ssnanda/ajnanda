@@ -871,13 +871,20 @@
         var bg          = safeColor(attrs.ajnBtnSharedBg);
         var color       = safeColor(attrs.ajnBtnSharedColor);
         var borderColor = safeColor(attrs.ajnBtnSharedBorderColor);
-        var hasScheme   = !!(attrs.ajnBtnStyle || attrs.ajnBtnScheme);
+        var hasOneColorScheme = !!(attrs.ajnBtnStyle || attrs.ajnBtnScheme || bg || borderColor);
+        var hasPerButtonColors = !!(attrs.ajnBtnColor1 || attrs.ajnBtnColor2 || attrs.ajnBtnColor3 || attrs.ajnBtnColor4 || attrs.ajnBtnColor5 || attrs.ajnBtnColor6);
 
-        if (hasScheme || bg || color || borderColor) {
+        /*
+         * Do not write background-color: initial for mixed schemes.
+         * Mixed schemes store colors in ajnBtnColor1..6, while ajnBtnSharedBg is empty.
+         * Writing a shared empty background makes the editor look white-on-white until
+         * every per-button selector wins, which is fragile across Gutenberg versions.
+         */
+        if (hasOneColorScheme || color) {
             css += lSel + '{';
-            if (bg || hasScheme)           css += 'background-color:' + (bg || 'initial') + ' !important;';
-            if (color || hasScheme)         css += 'color:' + (color || 'inherit') + ' !important;';
-            if (borderColor || hasScheme)  css += 'border-color:' + (borderColor || 'transparent') + ' !important;border-style:solid !important;';
+            if (bg) css += 'background-color:' + bg + ' !important;';
+            if (color || hasOneColorScheme || hasPerButtonColors) css += 'color:' + (color || '#ffffff') + ' !important;';
+            if (borderColor || (hasOneColorScheme && bg)) css += 'border-color:' + (borderColor || bg || 'transparent') + ' !important;border-style:solid !important;';
             css += '}';
         }
 
@@ -899,14 +906,15 @@
         for (var i = 1; i <= 6; i++) {
             var btnColor = safeColor(attrs['ajnBtnColor' + i]);
             if (btnColor) {
-                // Gutenberg wraps inner core/button blocks differently across versions.
-                // Target both the direct block-list child wrapper and the button div itself.
                 var childSelectors = [
                     bSel + ' .block-editor-block-list__layout > .wp-block:nth-child(' + i + ') .wp-block-button__link',
-                    bSel + ' .block-editor-block-list__layout > [data-type=\"core/button\"]:nth-child(' + i + ') .wp-block-button__link',
-                    bSel + ' .wp-block-button:nth-of-type(' + i + ') .wp-block-button__link'
+                    bSel + ' .block-editor-block-list__layout > .block-editor-block-list__block:nth-child(' + i + ') .wp-block-button__link',
+                    bSel + ' .block-editor-block-list__layout > [data-type="core/button"]:nth-child(' + i + ') .wp-block-button__link',
+                    bSel + ' [data-type="core/button"]:nth-of-type(' + i + ') .wp-block-button__link',
+                    bSel + ' .wp-block-button:nth-of-type(' + i + ') .wp-block-button__link',
+                    bSel + ' .wp-block-button:nth-child(' + i + ') .wp-block-button__link'
                 ].join(',');
-                css += childSelectors + '{background-color:' + btnColor + ' !important;border-color:' + btnColor + ' !important;border-style:solid !important;}';
+                css += childSelectors + '{background-color:' + btnColor + ' !important;color:' + (color || '#ffffff') + ' !important;border-color:' + btnColor + ' !important;border-style:solid !important;}';
             }
         }
 
@@ -920,14 +928,14 @@
             css += bSel + ' .block-editor-block-list__layout{display:flex !important;flex-direction:row !important;flex-wrap:wrap !important;align-items:center !important}';
         } else if (layout === 'stack') {
             css += bSel + ' .block-editor-block-list__layout{display:flex !important;flex-direction:column !important;align-items:stretch !important}';
-            css += bSel + ' .block-editor-block-list__layout > .wp-block{width:100% !important}';
+            css += bSel + ' .block-editor-block-list__layout > .wp-block,' + bSel + ' .block-editor-block-list__layout > .block-editor-block-list__block{width:100% !important}';
         } else if (layout === 'grid') {
             css += bSel + ' .block-editor-block-list__layout{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important}';
-            css += bSel + ' .block-editor-block-list__layout > .wp-block{width:100% !important}';
+            css += bSel + ' .block-editor-block-list__layout > .wp-block,' + bSel + ' .block-editor-block-list__layout > .block-editor-block-list__block{width:100% !important}';
         } else if (layout === 'featured') {
             css += bSel + ' .block-editor-block-list__layout{display:flex !important;flex-direction:row !important;flex-wrap:wrap !important}';
-            css += bSel + ' .block-editor-block-list__layout > .wp-block:first-child{flex:0 0 100% !important;width:100% !important}';
-            css += bSel + ' .block-editor-block-list__layout > .wp-block:not(:first-child){flex:1 1 0 !important;min-width:0;width:auto !important}';
+            css += bSel + ' .block-editor-block-list__layout > .wp-block:first-child,' + bSel + ' .block-editor-block-list__layout > .block-editor-block-list__block:first-child{flex:0 0 100% !important;width:100% !important}';
+            css += bSel + ' .block-editor-block-list__layout > .wp-block:not(:first-child),' + bSel + ' .block-editor-block-list__layout > .block-editor-block-list__block:not(:first-child){flex:1 1 0 !important;min-width:0;width:auto !important}';
         }
 
         var widthMap = { narrow: '480px', standard: '720px', wide: '960px', full: '100%' };
@@ -1184,21 +1192,45 @@
                     if (!isButtonsBlock || !props.clientId) return;
                     var styleId = 'ajn-btn-preview-' + props.clientId;
                     var css = generateButtonPreviewCss(props.clientId, attrs);
-                    var el = document.getElementById(styleId);
+
+                    function editorDocuments() {
+                        var docs = [document];
+                        var frames = document.querySelectorAll('iframe');
+                        Array.prototype.forEach.call(frames, function(frame) {
+                            try {
+                                if (frame.contentDocument && frame.contentDocument.head) {
+                                    docs.push(frame.contentDocument);
+                                }
+                            } catch (e) {}
+                        });
+                        return docs;
+                    }
+
+                    function removePreviewStyles() {
+                        editorDocuments().forEach(function(doc) {
+                            var node = doc.getElementById(styleId);
+                            if (node && node.parentNode) {
+                                node.parentNode.removeChild(node);
+                            }
+                        });
+                    }
+
                     if (!css) {
-                        if (el) el.parentNode.removeChild(el);
+                        removePreviewStyles();
                         return;
                     }
-                    if (!el) {
-                        el = document.createElement('style');
-                        el.id = styleId;
-                        document.head.appendChild(el);
-                    }
-                    el.textContent = css;
-                    return function() {
-                        var toRemove = document.getElementById(styleId);
-                        if (toRemove && toRemove.parentNode) toRemove.parentNode.removeChild(toRemove);
-                    };
+
+                    editorDocuments().forEach(function(doc) {
+                        var el = doc.getElementById(styleId);
+                        if (!el) {
+                            el = doc.createElement('style');
+                            el.id = styleId;
+                            doc.head.appendChild(el);
+                        }
+                        el.textContent = css;
+                    });
+
+                    return removePreviewStyles;
                 }, [isButtonsBlock, props.clientId, btnPreviewKey]);
 
                 if ('core/buttons' === props.name) {
