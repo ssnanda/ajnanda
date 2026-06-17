@@ -116,7 +116,7 @@
         { value: 'gray', label: 'Neutral Gray', bg: '#6b7280', color: '#ffffff', borderColor: '#6b7280' },
         { value: 'outline-blue', label: 'Outline Blue', bg: 'transparent', color: '#2563eb', borderColor: '#2563eb' },
         { value: 'outline-dark', label: 'Outline Dark', bg: 'transparent', color: '#0f172a', borderColor: '#0f172a' },
-        { value: 'outline-white', label: 'Outline White', bg: 'transparent', color: '#ffffff', borderColor: '#ffffff' },
+        { value: 'outline-white', label: 'Outline White (dark backgrounds)', bg: 'transparent', color: '#ffffff', borderColor: '#ffffff' },
         { value: 'cta-mix', label: 'CTA Mix (blue / green / orange / purple)', colors: ['#2563eb', '#16a34a', '#f97316', '#7c3aed', '#dc2626', '#0891b2'], color: '#ffffff', borderColor: 'match' },
         { value: 'modern-saas', label: 'Modern SaaS (blue / cyan / green / purple)', colors: ['#2563eb', '#06b6d4', '#10b981', '#8b5cf6', '#f97316', '#0f172a'], color: '#ffffff', borderColor: 'match' },
         { value: 'traffic', label: 'Traffic Lights', colors: ['#dc2626', '#f97316', '#eab308', '#16a34a', '#2563eb', '#7c3aed'], color: '#ffffff', borderColor: 'match' },
@@ -899,7 +899,15 @@
         for (var i = 1; i <= 6; i++) {
             var btnColor = safeColor(attrs['ajnBtnColor' + i]);
             if (btnColor) {
-                css += bSel + ' .wp-block-button:nth-child(' + i + ') .wp-block-button__link{background-color:' + btnColor + ' !important}';
+                /* Gutenberg wraps inner buttons differently across versions.
+                 * Target both the newer editor wrapper and the plain frontend-like
+                 * .wp-block-button structure so multi-color schemes preview reliably.
+                 */
+                css += bSel + ' .block-editor-block-list__layout > .wp-block:nth-child(' + i + ') .wp-block-button__link,' +
+                    bSel + ' .wp-block-button:nth-of-type(' + i + ') .wp-block-button__link{' +
+                    'background-color:' + btnColor + ' !important;' +
+                    'border-color:' + btnColor + ' !important;' +
+                    '}';
             }
         }
 
@@ -1339,7 +1347,7 @@
                                         }
 
                                         var update = {
-                                            ajnBtnScheme: scheme.colors ? '' : schemeValue,
+                                            ajnBtnScheme: schemeValue,
                                             ajnBtnStyle: '',
                                             ajnBtnColorSchema: scheme.colors ? schemeValue : '',
                                             ajnBtnSharedBg: scheme.colors ? '' : (scheme.bg || ''),
