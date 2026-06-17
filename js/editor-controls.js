@@ -116,7 +116,14 @@
         { value: 'gray', label: 'Neutral Gray', bg: '#6b7280', color: '#ffffff', borderColor: '#6b7280' },
         { value: 'outline-blue', label: 'Outline Blue', bg: 'transparent', color: '#2563eb', borderColor: '#2563eb' },
         { value: 'outline-dark', label: 'Outline Dark', bg: 'transparent', color: '#0f172a', borderColor: '#0f172a' },
-        { value: 'outline-white', label: 'Outline White', bg: 'transparent', color: '#ffffff', borderColor: '#ffffff' }
+        { value: 'outline-white', label: 'Outline White', bg: 'transparent', color: '#ffffff', borderColor: '#ffffff' },
+        { value: 'cta-mix', label: 'CTA Mix (blue / green / orange / purple)', colors: ['#2563eb', '#16a34a', '#f97316', '#7c3aed', '#dc2626', '#0891b2'], color: '#ffffff', borderColor: 'match' },
+        { value: 'modern-saas', label: 'Modern SaaS (blue / cyan / green / purple)', colors: ['#2563eb', '#06b6d4', '#10b981', '#8b5cf6', '#f97316', '#0f172a'], color: '#ffffff', borderColor: 'match' },
+        { value: 'traffic', label: 'Traffic Lights', colors: ['#dc2626', '#f97316', '#eab308', '#16a34a', '#2563eb', '#7c3aed'], color: '#ffffff', borderColor: 'match' },
+        { value: 'brand-mix', label: 'Brand Mix', colors: ['#2563eb', '#3b82f6', '#60a5fa', '#1d4ed8', '#1e40af', '#93c5fd'], color: '#ffffff', borderColor: 'match' },
+        { value: 'sunset-mix', label: 'Sunset Mix', colors: ['#f97316', '#ef4444', '#ec4899', '#f59e0b', '#eab308', '#dc2626'], color: '#ffffff', borderColor: 'match' },
+        { value: 'forest-mix', label: 'Forest Mix', colors: ['#16a34a', '#059669', '#84cc16', '#15803d', '#65a30d', '#4ade80'], color: '#ffffff', borderColor: 'match' },
+        { value: 'royal-mix', label: 'Royal Mix', colors: ['#7c3aed', '#8b5cf6', '#a855f7', '#6d28d9', '#c026d3', '#9333ea'], color: '#ffffff', borderColor: 'match' }
     ];
 
     var AJN_BUTTON_SIZE_STYLES = [
@@ -131,14 +138,11 @@
     ];
 
     var AJN_COLOR_SCHEMES = [
-        { value: 'cta-mix', label: 'CTA Mix',       colors: ['#2563eb', '#16a34a', '#f97316', '#7c3aed', '#dc2626', '#0891b2'] },
         { value: 'brand',   label: 'Brand Blues',   colors: ['#2563eb', '#3b82f6', '#60a5fa', '#1d4ed8', '#1e40af', '#93c5fd'] },
         { value: 'sunset',  label: 'Sunset Warm',   colors: ['#f97316', '#ef4444', '#ec4899', '#f59e0b', '#eab308', '#dc2626'] },
         { value: 'forest',  label: 'Nature Green',  colors: ['#16a34a', '#059669', '#84cc16', '#15803d', '#65a30d', '#4ade80'] },
         { value: 'ocean',   label: 'Ocean Blue',    colors: ['#0ea5e9', '#06b6d4', '#0284c7', '#0891b2', '#0369a1', '#38bdf8'] },
         { value: 'royal',   label: 'Royal Purple',  colors: ['#7c3aed', '#8b5cf6', '#a855f7', '#6d28d9', '#c026d3', '#9333ea'] },
-        { value: 'traffic', label: 'Traffic Lights', colors: ['#dc2626', '#f97316', '#eab308', '#16a34a', '#2563eb', '#7c3aed'] },
-        { value: 'modern',  label: 'Modern SaaS',    colors: ['#2563eb', '#06b6d4', '#10b981', '#8b5cf6', '#f97316', '#0f172a'] },
         { value: 'random',  label: 'Random Colors', colors: ['#f43f5e', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#3b82f6'] }
     ];
 
@@ -1304,13 +1308,13 @@
                             ),
                             createElement(
                                 PanelBody,
-                                { title: 'AJ Buttons — Colors', initialOpen: false },
+                                { title: 'AJ Buttons — Colors & Shape', initialOpen: false },
                                 createElement('p', { style: { fontSize: '12px', color: '#6b7280', marginBottom: '12px' } },
-                                    'Shared scheme applies one color to all buttons and fills Button 1, Button 2, etc. Selecting a per-button preset changes each button individually.'
+                                    'Choose one color scheme for the whole button group. Schemes may use one color for all buttons or different colors per button. Shape and border are controlled separately below.'
                                 ),
                                 createElement(SelectControl, {
-                                    label: 'Shared color scheme',
-                                    value: attrs.ajnBtnScheme || '',
+                                    label: 'Color scheme',
+                                    value: attrs.ajnBtnScheme || attrs.ajnBtnColorSchema || '',
                                     options: (function() {
                                         var opts = [{ label: '— WP default (no override) —', value: '' }];
                                         AJN_BUTTON_COLOR_SCHEMES.forEach(function(s) { opts.push({ label: s.label, value: s.value }); });
@@ -1319,29 +1323,50 @@
                                     onChange: function(schemeValue) {
                                         var scheme = null;
                                         AJN_BUTTON_COLOR_SCHEMES.forEach(function(s) { if (s.value === schemeValue) { scheme = s; } });
+
                                         if (!scheme || !schemeValue) {
-                                            setButtonAttributes(props, { ajnBtnScheme: '', ajnBtnStyle: '', ajnBtnSharedBg: '', ajnBtnSharedColor: '', ajnBtnSharedBorderColor: '' });
+                                            setButtonAttributes(props, {
+                                                ajnBtnScheme: '',
+                                                ajnBtnStyle: '',
+                                                ajnBtnSharedBg: '',
+                                                ajnBtnSharedColor: '',
+                                                ajnBtnSharedBorderColor: '',
+                                                ajnBtnColor1: '', ajnBtnColor2: '', ajnBtnColor3: '',
+                                                ajnBtnColor4: '', ajnBtnColor5: '', ajnBtnColor6: '',
+                                                ajnBtnColorSchema: ''
+                                            });
                                             return;
                                         }
-                                        var sharedUpdate = {
-                                            ajnBtnScheme: schemeValue,
+
+                                        var update = {
+                                            ajnBtnScheme: scheme.colors ? '' : schemeValue,
                                             ajnBtnStyle: '',
-                                            ajnBtnSharedBg: scheme.bg || '',
-                                            ajnBtnSharedColor: scheme.color || '',
-                                            ajnBtnSharedBorderColor: scheme.borderColor || '',
-                                            ajnBtnColorSchema: ''
+                                            ajnBtnColorSchema: scheme.colors ? schemeValue : '',
+                                            ajnBtnSharedBg: scheme.colors ? '' : (scheme.bg || ''),
+                                            ajnBtnSharedColor: scheme.color || '#ffffff',
+                                            ajnBtnSharedBorderColor: scheme.colors ? '' : (scheme.borderColor || scheme.bg || '')
                                         };
-                                        for (var i = 1; i <= 6; i++) {
-                                            sharedUpdate['ajnBtnColor' + i] = scheme.bg || '';
+
+                                        if (scheme.colors) {
+                                            var count = innerBlockCount > 0 ? Math.min(innerBlockCount, 6) : 6;
+                                            for (var i = 1; i <= 6; i++) {
+                                                update['ajnBtnColor' + i] = i <= count
+                                                    ? (scheme.colors[i - 1] || scheme.colors[(i - 1) % scheme.colors.length])
+                                                    : '';
+                                            }
+                                        } else {
+                                            update.ajnBtnColor1 = ''; update.ajnBtnColor2 = ''; update.ajnBtnColor3 = '';
+                                            update.ajnBtnColor4 = ''; update.ajnBtnColor5 = ''; update.ajnBtnColor6 = '';
                                         }
-                                        setButtonAttributes(props, sharedUpdate);
+
+                                        setButtonAttributes(props, update);
                                     }
                                 }),
                                 createElement(SelectControl, {
-                                    label: 'Size and border bundle',
+                                    label: 'Shape and border',
                                     value: attrs.ajnBtnSizeStyle || '',
                                     options: (function() {
-                                        var opts = [{ label: '— WP default size —', value: '' }];
+                                        var opts = [{ label: '— WP default shape —', value: '' }];
                                         AJN_BUTTON_SIZE_STYLES.forEach(function(s) { opts.push({ label: s.label, value: s.value }); });
                                         return opts;
                                     })(),
@@ -1360,78 +1385,7 @@
                                             ajnBtnSharedPaddingY: size.paddingY
                                         });
                                     }
-                                }),
-                                createElement('hr', { style: { margin: '16px 0', border: 'none', borderTop: '1px solid #e2e8f0' } }),
-                                createElement('p', { style: { fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#374151', margin: '0 0 8px' } },
-                                    'Per-button colors'
-                                ),
-                                createElement('p', { style: { fontSize: '12px', color: '#6b7280', marginBottom: '12px' } },
-                                    'Set a unique background for each button. Selecting a preset clears the shared scheme above.'
-                                ),
-                                createElement(SelectControl, {
-                                    label: 'Color preset',
-                                    value: attrs.ajnBtnColorSchema || '',
-                                    options: (function() {
-                                        var opts = [{ label: '— Pick a preset —', value: '' }];
-                                        AJN_COLOR_SCHEMES.forEach(function(s) { opts.push({ label: s.label, value: s.value }); });
-                                        return opts;
-                                    })(),
-                                    onChange: function(schemeValue) {
-                                        var scheme = null;
-                                        AJN_COLOR_SCHEMES.forEach(function(s) { if (s.value === schemeValue) { scheme = s; } });
-                                        if (!scheme || !schemeValue) {
-                                            setButtonAttributes(props, { ajnBtnColorSchema: '' });
-                                            return;
-                                        }
-                                        var count = innerBlockCount > 0 ? Math.min(innerBlockCount, 6) : 6;
-                                        var update = {
-                                            ajnBtnColorSchema: schemeValue,
-                                            ajnBtnScheme: '', ajnBtnStyle: '',
-                                            ajnBtnSharedBg: '', ajnBtnSharedColor: '', ajnBtnSharedBorderColor: ''
-                                        };
-                                        for (var i = 1; i <= 6; i++) {
-                                            update['ajnBtnColor' + i] = i <= count
-                                                ? (scheme.colors[i - 1] || scheme.colors[(i - 1) % scheme.colors.length])
-                                                : '';
-                                        }
-                                        setButtonAttributes(props, update);
-                                    }
-                                }),
-                                (function() {
-                                    var btnCount = innerBlockCount > 0 ? Math.min(innerBlockCount, 6) : 6;
-                                    return Array.from({ length: btnCount }, function(_, i) { return i + 1; }).map(function(n) {
-                                        var attr = 'ajnBtnColor' + n;
-                                        return createElement('div', { key: n, className: 'ajn-color-row' },
-                                            createElement('label', { className: 'ajn-color-label' }, 'Button ' + n),
-                                            createElement('input', {
-                                                type: 'color',
-                                                value: attrs[attr] || '#2563eb',
-                                                onChange: function(e) {
-                                                    var update = {};
-                                                    update[attr] = e.target.value;
-                                                    setButtonAttributes(props, update);
-                                                }
-                                            }),
-                                            createElement(TextControl, {
-                                                value: attrs[attr] || '',
-                                                placeholder: 'inherit',
-                                                onChange: function(v) {
-                                                    var update = {};
-                                                    update[attr] = v;
-                                                    setButtonAttributes(props, update);
-                                                }
-                                            }),
-                                            attrs[attr] ? createElement('button', {
-                                                type: 'button', className: 'ajn-clear-btn',
-                                                onClick: function() {
-                                                    var update = {};
-                                                    update[attr] = '';
-                                                    setButtonAttributes(props, update);
-                                                }
-                                            }, '✕') : null
-                                        );
-                                    });
-                                })()
+                                })
                             )
                         )
                     );
