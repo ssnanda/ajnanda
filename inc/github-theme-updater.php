@@ -301,6 +301,33 @@ function ajnanda_updater_admin_menu() {
 }
 add_action('admin_menu', 'ajnanda_updater_admin_menu');
 
+function ajnanda_updater_admin_menu_child_style() {
+    ?>
+    <style>
+        #adminmenu .wp-submenu a[href="themes.php?page=ajnanda-theme-updater"] {
+            position: relative;
+            padding-left: 28px !important;
+            font-size: 12px;
+            opacity: 0.86;
+        }
+
+        #adminmenu .wp-submenu a[href="themes.php?page=ajnanda-theme-updater"]::before {
+            content: "↳";
+            position: absolute;
+            left: 14px;
+            color: currentColor;
+            opacity: 0.65;
+        }
+
+        #adminmenu .wp-submenu a[href="themes.php?page=ajnanda-theme-updater"].current {
+            opacity: 1;
+            font-weight: 600;
+        }
+    </style>
+    <?php
+}
+add_action('admin_head', 'ajnanda_updater_admin_menu_child_style');
+
 function ajnanda_updater_update_now_url() {
     return add_query_arg(
         array(
