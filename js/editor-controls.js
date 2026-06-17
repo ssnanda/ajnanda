@@ -116,7 +116,7 @@
         { value: 'gray', label: 'Neutral Gray', bg: '#6b7280', color: '#ffffff', borderColor: '#6b7280' },
         { value: 'outline-blue', label: 'Outline Blue', bg: 'transparent', color: '#2563eb', borderColor: '#2563eb' },
         { value: 'outline-dark', label: 'Outline Dark', bg: 'transparent', color: '#0f172a', borderColor: '#0f172a' },
-        { value: 'outline-white', label: 'Outline White (dark backgrounds)', bg: 'transparent', color: '#ffffff', borderColor: '#ffffff' },
+        { value: 'outline-white', label: 'Outline White', bg: 'transparent', color: '#ffffff', borderColor: '#ffffff' },
         { value: 'cta-mix', label: 'CTA Mix (blue / green / orange / purple)', colors: ['#2563eb', '#16a34a', '#f97316', '#7c3aed', '#dc2626', '#0891b2'], color: '#ffffff', borderColor: 'match' },
         { value: 'modern-saas', label: 'Modern SaaS (blue / cyan / green / purple)', colors: ['#2563eb', '#06b6d4', '#10b981', '#8b5cf6', '#f97316', '#0f172a'], color: '#ffffff', borderColor: 'match' },
         { value: 'traffic', label: 'Traffic Lights', colors: ['#dc2626', '#f97316', '#eab308', '#16a34a', '#2563eb', '#7c3aed'], color: '#ffffff', borderColor: 'match' },
@@ -1444,64 +1444,6 @@
                                     update[btnCustomWidthAttr] = value;
                                     setAttributes(update);
                                 }) : null
-                            ),
-                            createElement(
-                                PanelBody,
-                                { title: 'AJNanda Button Color', initialOpen: false },
-                                createElement('p', { style: { fontSize: '12px', color: '#6b7280', marginBottom: '12px' } },
-                                    'Override the color of this specific button. Overrides shared group styles.'
-                                ),
-                                createElement('div', { className: 'ajn-color-row' },
-                                    createElement('label', { className: 'ajn-color-label' }, 'Background'),
-                                    createElement('input', {
-                                        type: 'color',
-                                        value: attrs.ajnSingleBtnBg || '#2563eb',
-                                        onChange: function(e) { setAttributes({ ajnSingleBtnBg: e.target.value }); }
-                                    }),
-                                    createElement(TextControl, {
-                                        value: attrs.ajnSingleBtnBg || '',
-                                        placeholder: 'inherit',
-                                        onChange: function(v) { setAttributes({ ajnSingleBtnBg: v }); }
-                                    }),
-                                    attrs.ajnSingleBtnBg ? createElement('button', {
-                                        type: 'button', className: 'ajn-clear-btn',
-                                        onClick: function() { setAttributes({ ajnSingleBtnBg: '' }); }
-                                    }, '✕') : null
-                                ),
-                                createElement('div', { className: 'ajn-color-row' },
-                                    createElement('label', { className: 'ajn-color-label' }, 'Text color'),
-                                    createElement('input', {
-                                        type: 'color',
-                                        value: attrs.ajnSingleBtnColor || '#ffffff',
-                                        onChange: function(e) { setAttributes({ ajnSingleBtnColor: e.target.value }); }
-                                    }),
-                                    createElement(TextControl, {
-                                        value: attrs.ajnSingleBtnColor || '',
-                                        placeholder: 'inherit',
-                                        onChange: function(v) { setAttributes({ ajnSingleBtnColor: v }); }
-                                    }),
-                                    attrs.ajnSingleBtnColor ? createElement('button', {
-                                        type: 'button', className: 'ajn-clear-btn',
-                                        onClick: function() { setAttributes({ ajnSingleBtnColor: '' }); }
-                                    }, '✕') : null
-                                ),
-                                createElement('div', { className: 'ajn-color-row' },
-                                    createElement('label', { className: 'ajn-color-label' }, 'Border color'),
-                                    createElement('input', {
-                                        type: 'color',
-                                        value: attrs.ajnSingleBtnBorderColor || '#1d4ed8',
-                                        onChange: function(e) { setAttributes({ ajnSingleBtnBorderColor: e.target.value }); }
-                                    }),
-                                    createElement(TextControl, {
-                                        value: attrs.ajnSingleBtnBorderColor || '',
-                                        placeholder: 'inherit',
-                                        onChange: function(v) { setAttributes({ ajnSingleBtnBorderColor: v }); }
-                                    }),
-                                    attrs.ajnSingleBtnBorderColor ? createElement('button', {
-                                        type: 'button', className: 'ajn-clear-btn',
-                                        onClick: function() { setAttributes({ ajnSingleBtnBorderColor: '' }); }
-                                    }, '✕') : null
-                                )
                             )
                         )
                     );
