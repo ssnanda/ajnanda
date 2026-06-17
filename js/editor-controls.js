@@ -953,8 +953,13 @@
         var layout = attrs.ajnButtonLayoutDesktop || 'row';
         if (layout === 'row') {
             css += layoutTargets + '{display:flex !important;flex-direction:row !important;flex-wrap:wrap !important;align-items:center !important;justify-content:' + justifyCss + ' !important;gap:' + gapCss + ' !important;}';
-            css += buttonWrappers + '{width:auto !important;max-width:none !important;flex:0 0 auto !important;display:block !important;}';
-            css += lSel + '{width:auto !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;}';
+            if (justify === 'stretch') {
+                css += buttonWrappers + '{width:auto !important;max-width:none !important;min-width:0 !important;flex:1 1 0 !important;display:block !important;}';
+                css += lSel + '{width:100% !important;display:flex !important;align-items:center !important;justify-content:center !important;}';
+            } else {
+                css += buttonWrappers + '{width:auto !important;max-width:none !important;flex:0 0 auto !important;display:block !important;}';
+                css += lSel + '{width:auto !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;}';
+            }
         } else if (layout === 'stack') {
             css += layoutTargets + '{display:flex !important;flex-direction:column !important;flex-wrap:nowrap !important;align-items:stretch !important;justify-content:flex-start !important;gap:' + gapCss + ' !important;}';
             css += buttonWrappers + '{width:100% !important;max-width:100% !important;flex:0 0 auto !important;display:block !important;}';
@@ -1330,7 +1335,7 @@
                                         { label: 'Right', value: 'flex-end' },
                                         { label: 'Space between', value: 'space-between' },
                                         { label: 'Space evenly', value: 'space-evenly' },
-                                        { label: 'Stretch (fill row)', value: 'stretch' }
+                                        { label: 'Fill row — equal button widths', value: 'stretch' }
                                     ],
                                     onChange: function(value) {
                                         var update = { ajnBtnJustify: value };

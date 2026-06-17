@@ -689,6 +689,9 @@ input[type="checkbox"].aj-field {
     justify-content: var(--aj-btn-justify, center);
     margin-right: auto;
     margin-left: auto;
+    border: 0 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
 }
 
 :where(.aj-buttons, .aj-buttons-control) > .wp-block-button {
@@ -706,8 +709,11 @@ input[type="checkbox"].aj-field {
     gap: var(--aj-buttons-gap-desktop, 12px) !important;
     align-items: center !important;
     justify-content: var(--aj-btn-justify, center) !important;
-    margin-right: auto;
-    margin-left: auto;
+    margin-right: auto !important;
+    margin-left: auto !important;
+    border: 0 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
 }
 
 .aj-buttons-desktop-row,
@@ -760,12 +766,20 @@ input[type="checkbox"].aj-field {
     min-width: 0;
 }
 
-/* Stretch: buttons grow to fill available row width */
+/* Fill row: buttons grow to fill the chosen area width equally */
 .aj-buttons-stretch > .wp-block-button,
 .aj-buttons-stretch > .aj-button-width-control {
     flex: 1 1 0 !important;
     width: auto !important;
-    min-width: 0;
+    min-width: 0 !important;
+}
+
+.aj-buttons-stretch > .wp-block-button > .wp-block-button__link,
+.aj-buttons-stretch > .aj-button-width-control .wp-block-button__link {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 /* Shared button styles (set at container level via CSS vars) */
@@ -811,28 +825,33 @@ input[type="checkbox"].aj-field {
 }
 
 .aj-buttons-width-desktop-auto {
-    width: auto;
-    max-width: none;
+    width: auto !important;
+    max-width: none !important;
 }
 
 .aj-buttons-width-desktop-narrow {
-    width: min(100%, 480px);
+    width: min(100%, 480px) !important;
+    max-width: 480px !important;
 }
 
 .aj-buttons-width-desktop-standard {
-    width: min(100%, 720px);
+    width: min(100%, 720px) !important;
+    max-width: 720px !important;
 }
 
 .aj-buttons-width-desktop-wide {
-    width: min(100%, 960px);
+    width: min(100%, 960px) !important;
+    max-width: 960px !important;
 }
 
 .aj-buttons-width-desktop-full {
-    width: 100%;
+    width: 100% !important;
+    max-width: none !important;
 }
 
 .aj-buttons-width-desktop-custom {
-    width: min(100%, var(--aj-buttons-custom-width-desktop, 100%));
+    width: min(100%, var(--aj-buttons-custom-width-desktop, 100%)) !important;
+    max-width: var(--aj-buttons-custom-width-desktop, 100%) !important;
 }
 
 .aj-button-width-control {
