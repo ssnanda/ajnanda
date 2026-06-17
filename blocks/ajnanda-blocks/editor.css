@@ -517,6 +517,45 @@
     background-color: var(--aj-btn-color-6, initial) !important;
 }
 
+
+/* AJ Buttons: Gutenberg iframe/editor wrapper fallback for mixed color schemes */
+.editor-styles-wrapper .aj-has-btn-per-colors .block-editor-block-list__layout > .block-editor-block-list__block:nth-child(1) .wp-block-button__link,
+.editor-styles-wrapper .aj-has-btn-per-colors [data-type="core/button"]:nth-of-type(1) .wp-block-button__link {
+    background-color: var(--aj-btn-color-1, initial) !important;
+    color: var(--aj-btn-shared-color, #ffffff) !important;
+    border-color: var(--aj-btn-color-1, transparent) !important;
+}
+.editor-styles-wrapper .aj-has-btn-per-colors .block-editor-block-list__layout > .block-editor-block-list__block:nth-child(2) .wp-block-button__link,
+.editor-styles-wrapper .aj-has-btn-per-colors [data-type="core/button"]:nth-of-type(2) .wp-block-button__link {
+    background-color: var(--aj-btn-color-2, initial) !important;
+    color: var(--aj-btn-shared-color, #ffffff) !important;
+    border-color: var(--aj-btn-color-2, transparent) !important;
+}
+.editor-styles-wrapper .aj-has-btn-per-colors .block-editor-block-list__layout > .block-editor-block-list__block:nth-child(3) .wp-block-button__link,
+.editor-styles-wrapper .aj-has-btn-per-colors [data-type="core/button"]:nth-of-type(3) .wp-block-button__link {
+    background-color: var(--aj-btn-color-3, initial) !important;
+    color: var(--aj-btn-shared-color, #ffffff) !important;
+    border-color: var(--aj-btn-color-3, transparent) !important;
+}
+.editor-styles-wrapper .aj-has-btn-per-colors .block-editor-block-list__layout > .block-editor-block-list__block:nth-child(4) .wp-block-button__link,
+.editor-styles-wrapper .aj-has-btn-per-colors [data-type="core/button"]:nth-of-type(4) .wp-block-button__link {
+    background-color: var(--aj-btn-color-4, initial) !important;
+    color: var(--aj-btn-shared-color, #ffffff) !important;
+    border-color: var(--aj-btn-color-4, transparent) !important;
+}
+.editor-styles-wrapper .aj-has-btn-per-colors .block-editor-block-list__layout > .block-editor-block-list__block:nth-child(5) .wp-block-button__link,
+.editor-styles-wrapper .aj-has-btn-per-colors [data-type="core/button"]:nth-of-type(5) .wp-block-button__link {
+    background-color: var(--aj-btn-color-5, initial) !important;
+    color: var(--aj-btn-shared-color, #ffffff) !important;
+    border-color: var(--aj-btn-color-5, transparent) !important;
+}
+.editor-styles-wrapper .aj-has-btn-per-colors .block-editor-block-list__layout > .block-editor-block-list__block:nth-child(6) .wp-block-button__link,
+.editor-styles-wrapper .aj-has-btn-per-colors [data-type="core/button"]:nth-of-type(6) .wp-block-button__link {
+    background-color: var(--aj-btn-color-6, initial) !important;
+    color: var(--aj-btn-shared-color, #ffffff) !important;
+    border-color: var(--aj-btn-color-6, transparent) !important;
+}
+
 .editor-styles-wrapper .wp-block-buttons.aj-buttons-control.aj-buttons-desktop-stack > .block-editor-inner-blocks > .block-editor-block-list__layout,
 .editor-styles-wrapper .aj-buttons-desktop-stack .wp-block-buttons.aj-buttons-control > .block-editor-inner-blocks > .block-editor-block-list__layout {
     display: flex !important;
@@ -591,78 +630,4 @@
     flex: 1 1 0 !important;
     width: auto !important;
     min-width: 0;
-}
-
-/* AJ Buttons: Gutenberg iframe/editor wrapper fallback for mixed color schemes */
-.editor-styles-wrapper .aj-has-btn-per-colors .block-editor-block-list__layout > .block-editor-block-list__block:nth-child(1) .wp-block-button__link,
-.editor-styles-wrapper .aj-has-btn-per-colors [data-type="core/button"]:nth-of-type(1) .wp-block-button__link {
-    background-color: var(--aj-btn-color-1, initial) !important;
-    color: var(--aj-btn-shared-color, #ffffff) !important;
-    border-color: var(--aj-btn-color-1, transparent) !important;
-}
-.editor-styles-wrapper .aj-has-btn-per-colors .block-editor-block-list__layout > .block-editor-block-list__block:nth-child(2) .wp-block-button__link,
-.editor-styles-wrapper .aj-has-btn-per-colors [data-type="core/button"]:nth-of-type(2) .wp-block-button__link {
-    background-color: var(--aj-btn-color-2, initial) !important;
-    color: var(--aj-btn-shared-color, #ffffff) !important;
-    border-color: var(--aj-btn-color-2, transparent) !important;
-}
-.editor-styles-wrapper .aj-has-btn-per-colors .block-editor-block-list__layout > .block-editor-block-list__block:nth-child(3) .wp-block-button__link,
-.editor-styles-wrapper .aj-has-btn-per-colors [data-type="core/button"]:nth-of-type(3) .wp-block-button__link {
-    background-color: var(--aj-btn-color-3, initial) !important;
-    color: var(--aj-btn-shared-color, #ffffff) !important;
-    border-color: var(--aj-btn-color-3, transparent) !important;
-}
-.editor-styles-wrapper .aj-has-btn-per-colors .block-editor-block-list__layout > .block-editor-block-list__block:nth-child(4) .wp-block-button__link,
-.editor-styles-wrapper .aj-has-btn-per-colors [data-type="core/button"]:nth-of-type(4) .wp-block-button__link {
-    background-color: var(--aj-btn-color-4, initial) !important;
-    color: var(--aj-btn-shared-color, #ffffff) !important;
-    border-color: var(--aj-btn-color-4, transparent) !important;
-}
-.editor-styles-wrapper .aj-has-btn-per-colors .block-editor-block-list__layout > .block-editor-block-list__block:nth-child(5) .wp-block-button__link,
-.editor-styles-wrapper .aj-has-btn-per-colors [data-type="core/button"]:nth-of-type(5) .wp-block-button__link {
-    background-color: var(--aj-btn-color-5, initial) !important;
-    color: var(--aj-btn-shared-color, #ffffff) !important;
-    border-color: var(--aj-btn-color-5, transparent) !important;
-}
-.editor-styles-wrapper .aj-has-btn-per-colors .block-editor-block-list__layout > .block-editor-block-list__block:nth-child(6) .wp-block-button__link,
-.editor-styles-wrapper .aj-has-btn-per-colors [data-type="core/button"]:nth-of-type(6) .wp-block-button__link {
-    background-color: var(--aj-btn-color-6, initial) !important;
-    color: var(--aj-btn-shared-color, #ffffff) !important;
-    border-color: var(--aj-btn-color-6, transparent) !important;
-}
-
-/* AJ Buttons: direct editor arrangement targeting for current Gutenberg wrappers. */
-.editor-styles-wrapper [data-type="core/buttons"].aj-buttons-desktop-row > .wp-block-buttons,
-.editor-styles-wrapper [data-type="core/buttons"].aj-buttons-desktop-row > .wp-block-buttons > .block-editor-inner-blocks > .block-editor-block-list__layout,
-.editor-styles-wrapper [data-type="core/buttons"].aj-buttons-desktop-row > .wp-block-buttons > .block-editor-block-list__layout,
-.editor-styles-wrapper [data-type="core/buttons"].aj-buttons-desktop-row > .block-editor-inner-blocks > .block-editor-block-list__layout,
-.editor-styles-wrapper [data-type="core/buttons"].aj-buttons-desktop-row > .block-editor-block-list__layout {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: wrap !important;
-    align-items: center !important;
-}
-
-.editor-styles-wrapper [data-type="core/buttons"].aj-buttons-desktop-row .block-editor-block-list__layout > .wp-block,
-.editor-styles-wrapper [data-type="core/buttons"].aj-buttons-desktop-row > .wp-block-buttons > .wp-block-button {
-    flex: 0 1 auto !important;
-    width: auto !important;
-}
-
-.editor-styles-wrapper [data-type="core/buttons"].aj-buttons-desktop-stack > .wp-block-buttons,
-.editor-styles-wrapper [data-type="core/buttons"].aj-buttons-desktop-stack > .wp-block-buttons > .block-editor-inner-blocks > .block-editor-block-list__layout,
-.editor-styles-wrapper [data-type="core/buttons"].aj-buttons-desktop-stack > .wp-block-buttons > .block-editor-block-list__layout,
-.editor-styles-wrapper [data-type="core/buttons"].aj-buttons-desktop-stack > .block-editor-inner-blocks > .block-editor-block-list__layout,
-.editor-styles-wrapper [data-type="core/buttons"].aj-buttons-desktop-stack > .block-editor-block-list__layout {
-    display: flex !important;
-    flex-direction: column !important;
-    flex-wrap: nowrap !important;
-    align-items: stretch !important;
-}
-
-.editor-styles-wrapper [data-type="core/buttons"].aj-buttons-desktop-stack .block-editor-block-list__layout > .wp-block,
-.editor-styles-wrapper [data-type="core/buttons"].aj-buttons-desktop-stack > .wp-block-buttons > .wp-block-button,
-.editor-styles-wrapper [data-type="core/buttons"].aj-buttons-desktop-stack .wp-block-button__link {
-    width: 100% !important;
-    box-sizing: border-box !important;
 }
