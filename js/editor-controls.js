@@ -131,11 +131,14 @@
     ];
 
     var AJN_COLOR_SCHEMES = [
+        { value: 'cta-mix', label: 'CTA Mix',       colors: ['#2563eb', '#16a34a', '#f97316', '#7c3aed', '#dc2626', '#0891b2'] },
         { value: 'brand',   label: 'Brand Blues',   colors: ['#2563eb', '#3b82f6', '#60a5fa', '#1d4ed8', '#1e40af', '#93c5fd'] },
         { value: 'sunset',  label: 'Sunset Warm',   colors: ['#f97316', '#ef4444', '#ec4899', '#f59e0b', '#eab308', '#dc2626'] },
         { value: 'forest',  label: 'Nature Green',  colors: ['#16a34a', '#059669', '#84cc16', '#15803d', '#65a30d', '#4ade80'] },
         { value: 'ocean',   label: 'Ocean Blue',    colors: ['#0ea5e9', '#06b6d4', '#0284c7', '#0891b2', '#0369a1', '#38bdf8'] },
         { value: 'royal',   label: 'Royal Purple',  colors: ['#7c3aed', '#8b5cf6', '#a855f7', '#6d28d9', '#c026d3', '#9333ea'] },
+        { value: 'traffic', label: 'Traffic Lights', colors: ['#dc2626', '#f97316', '#eab308', '#16a34a', '#2563eb', '#7c3aed'] },
+        { value: 'modern',  label: 'Modern SaaS',    colors: ['#2563eb', '#06b6d4', '#10b981', '#8b5cf6', '#f97316', '#0f172a'] },
         { value: 'random',  label: 'Random Colors', colors: ['#f43f5e', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#3b82f6'] }
     ];
 
@@ -1303,7 +1306,7 @@
                                 PanelBody,
                                 { title: 'AJ Buttons — Colors', initialOpen: false },
                                 createElement('p', { style: { fontSize: '12px', color: '#6b7280', marginBottom: '12px' } },
-                                    'Shared scheme applies one color to all buttons. Selecting a shared scheme clears per-button colors, and vice-versa.'
+                                    'Shared scheme applies one color to all buttons and fills Button 1, Button 2, etc. Selecting a per-button preset changes each button individually.'
                                 ),
                                 createElement(SelectControl, {
                                     label: 'Shared color scheme',
@@ -1320,16 +1323,18 @@
                                             setButtonAttributes(props, { ajnBtnScheme: '', ajnBtnStyle: '', ajnBtnSharedBg: '', ajnBtnSharedColor: '', ajnBtnSharedBorderColor: '' });
                                             return;
                                         }
-                                        setButtonAttributes(props, {
+                                        var sharedUpdate = {
                                             ajnBtnScheme: schemeValue,
                                             ajnBtnStyle: '',
                                             ajnBtnSharedBg: scheme.bg || '',
                                             ajnBtnSharedColor: scheme.color || '',
                                             ajnBtnSharedBorderColor: scheme.borderColor || '',
-                                            ajnBtnColor1: '', ajnBtnColor2: '', ajnBtnColor3: '',
-                                            ajnBtnColor4: '', ajnBtnColor5: '', ajnBtnColor6: '',
                                             ajnBtnColorSchema: ''
-                                        });
+                                        };
+                                        for (var i = 1; i <= 6; i++) {
+                                            sharedUpdate['ajnBtnColor' + i] = scheme.bg || '';
+                                        }
+                                        setButtonAttributes(props, sharedUpdate);
                                     }
                                 }),
                                 createElement(SelectControl, {
