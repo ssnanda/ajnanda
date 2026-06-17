@@ -615,8 +615,13 @@ function ajnanda_blocks_register_dynamic_blocks() {
 add_action('init', 'ajnanda_blocks_register_dynamic_blocks');
 
 // ---------------------------------------------------------------------------
-// Frontend: inject CSS custom properties onto core/buttons on render so they
-// survive even when wp_kses_post strips them from the saved inline style.
+// Frontend: normalize AJ Buttons classes/styles on render.
+//
+// This protects the frontend when the editor preview is correct but the saved
+// core/buttons wrapper still has stale WordPress layout classes such as
+// is-vertical or older AJ layout classes. The block attributes are the source
+// of truth; render_block rebuilds the wrapper classes every time the page is
+// rendered.
 // ---------------------------------------------------------------------------
 
 add_filter('render_block', 'ajnanda_render_core_buttons_block', 10, 2);
@@ -630,22 +635,32 @@ function ajnanda_render_core_buttons_block($block_content, $block) {
     $attrs      = $block['attrs'] ?? [];
 
     if ('core/buttons' === $block_name) {
-        // Only process button groups configured via the AJ Buttons panel.
-        $has_shared = !empty($attrs['ajnBtnScheme']) || !empty($attrs['ajnBtnSharedBg']) || !empty($attrs['ajnBtnStyle']);
+        $has_layout = ajnanda_buttons_has_layout_attrs($attrs);
+        $has_shared = !empty($attrs['ajnBtnScheme']) || !empty($attrs['ajnBtnSharedBg']) || !empty($attrs['ajnBtnStyle']) || !empty($attrs['ajnBtnSizeStyle']);
         $has_per    = false;
+
         for ($i = 1; $i <= 6; $i++) {
-            if (!empty($attrs['ajnBtnColor' . $i])) { $has_per = true; break; }
+            if (!empty($attrs['ajnBtnColor' . $i])) {
+                $has_per = true;
+                break;
+            }
         }
-        if (!$has_shared && !$has_per) {
+
+        if (!$has_layout && !$has_shared && !$has_per) {
             return $block_content;
+        }
+
+        $classes = ajnanda_buttons_build_wrapper_classes($attrs);
+        if ($classes) {
+            $block_content = ajnanda_buttons_inject_wrapper_classes($block_content, $classes, 'wp-block-buttons');
         }
 
         $vars = ajnanda_buttons_build_css_vars($attrs);
-        if (!$vars) {
-            return $block_content;
+        if ($vars) {
+            $block_content = ajnanda_buttons_inject_style_vars($block_content, $vars, 'wp-block-buttons');
         }
 
-        return ajnanda_buttons_inject_style_vars($block_content, $vars, 'wp-block-buttons');
+        return $block_content;
     }
 
     if ('core/button' === $block_name) {
@@ -658,6 +673,150 @@ function ajnanda_render_core_buttons_block($block_content, $block) {
     }
 
     return $block_content;
+}
+
+function ajnanda_buttons_has_layout_attrs($attrs) {
+    if (!is_array($attrs)) {
+        return false;
+    }
+
+    $keys = array(
+        'ajnButtonLayoutDesktop',
+        'ajnButtonLayoutTablet',
+        'ajnButtonLayoutMobile',
+        'ajnButtonGapDesktop',
+        'ajnButtonGapTablet',
+        'ajnButtonGapMobile',
+        'ajnButtonsWidthDesktop',
+        'ajnButtonsWidthTablet',
+        'ajnButtonsWidthMobile',
+        'ajnButtonsCustomWidthDesktop',
+        'ajnButtonsCustomWidthTablet',
+        'ajnButtonsCustomWidthMobile',
+        'ajnBtnJustify',
+    );
+
+    foreach ($keys as $key) {
+        if (array_key_exists($key, $attrs) && '' !== $attrs[$key] && null !== $attrs[$key]) {
+            return true;
+        }
+    }
+
+    $class_name = isset($attrs['className']) ? (string) $attrs['className'] : '';
+    return false !== strpos($class_name, 'aj-buttons-control');
+}
+
+function ajnanda_buttons_allowed_layout($value, $fallback = 'row') {
+    $value = is_string($value) ? $value : '';
+    return in_array($value, array('row', 'stack', 'grid', 'featured'), true) ? $value : $fallback;
+}
+
+function ajnanda_buttons_allowed_width($value, $fallback = 'auto') {
+    $value = is_string($value) ? $value : '';
+    return in_array($value, array('auto', 'narrow', 'standard', 'wide', 'full', 'custom'), true) ? $value : $fallback;
+}
+
+function ajnanda_buttons_allowed_justify($value) {
+    $value = is_string($value) ? $value : 'center';
+    return in_array($value, array('flex-start', 'center', 'flex-end', 'space-between', 'space-evenly', 'stretch'), true) ? $value : 'center';
+}
+
+function ajnanda_buttons_build_wrapper_classes($attrs) {
+    $desktop_layout = ajnanda_buttons_allowed_layout($attrs['ajnButtonLayoutDesktop'] ?? 'row', 'row');
+    $tablet_layout  = ajnanda_buttons_allowed_layout($attrs['ajnButtonLayoutTablet'] ?? $desktop_layout, $desktop_layout);
+    $mobile_layout  = ajnanda_buttons_allowed_layout($attrs['ajnButtonLayoutMobile'] ?? $tablet_layout, $tablet_layout ?: 'stack');
+
+    $desktop_width = ajnanda_buttons_allowed_width($attrs['ajnButtonsWidthDesktop'] ?? 'auto', 'auto');
+    $tablet_width  = ajnanda_buttons_allowed_width($attrs['ajnButtonsWidthTablet'] ?? $desktop_width, $desktop_width);
+    $mobile_width  = ajnanda_buttons_allowed_width($attrs['ajnButtonsWidthMobile'] ?? $tablet_width, $tablet_width);
+
+    $classes = array(
+        'aj-buttons-control',
+        'aj-buttons-desktop-' . $desktop_layout,
+        'aj-buttons-tablet-' . $tablet_layout,
+        'aj-buttons-mobile-' . $mobile_layout,
+        'aj-buttons-width-desktop-' . $desktop_width,
+        'aj-buttons-width-tablet-' . $tablet_width,
+        'aj-buttons-width-mobile-' . $mobile_width,
+    );
+
+    if ('stack' === $desktop_layout) {
+        $classes[] = 'is-vertical';
+    }
+
+    if ('stretch' === ajnanda_buttons_allowed_justify($attrs['ajnBtnJustify'] ?? 'center')) {
+        $classes[] = 'aj-buttons-stretch';
+    }
+
+    $has_shared = !empty($attrs['ajnBtnStyle']) || !empty($attrs['ajnBtnScheme']) || !empty($attrs['ajnBtnSizeStyle']) ||
+        !empty($attrs['ajnBtnSharedBg']) || !empty($attrs['ajnBtnSharedColor']) || !empty($attrs['ajnBtnSharedBorderColor']) ||
+        isset($attrs['ajnBtnSharedBorderWidth']) || isset($attrs['ajnBtnSharedBorderRadius']) ||
+        isset($attrs['ajnBtnSharedPaddingX']) || isset($attrs['ajnBtnSharedPaddingY']);
+
+    if ($has_shared) {
+        $classes[] = 'aj-has-btn-shared-styles';
+    }
+
+    for ($i = 1; $i <= 6; $i++) {
+        if (!empty($attrs['ajnBtnColor' . $i])) {
+            $classes[] = 'aj-has-btn-per-colors';
+            break;
+        }
+    }
+
+    return implode(' ', array_unique(array_map('sanitize_html_class', $classes)));
+}
+
+function ajnanda_buttons_inject_wrapper_classes($block_content, $classes, $required_class) {
+    return preg_replace_callback(
+        '/(<div\b[^>]*\b' . preg_quote($required_class, '/') . '\b[^>]*>)/i',
+        static function ($m) use ($classes) {
+            $tag = $m[1];
+            $remove_patterns = array(
+                '/^aj-buttons-control$/',
+                '/^aj-buttons-desktop-(row|stack|grid|featured)$/',
+                '/^aj-buttons-tablet-(row|stack|grid|featured)$/',
+                '/^aj-buttons-mobile-(row|stack|grid|featured)$/',
+                '/^aj-buttons-width-desktop-(auto|narrow|standard|wide|full|custom)$/',
+                '/^aj-buttons-width-tablet-(auto|narrow|standard|wide|full|custom)$/',
+                '/^aj-buttons-width-mobile-(auto|narrow|standard|wide|full|custom)$/',
+                '/^aj-buttons-stretch$/',
+                '/^aj-has-btn-shared-styles$/',
+                '/^aj-has-btn-per-colors$/',
+                '/^is-vertical$/',
+            );
+
+            if (preg_match('/\bclass="([^"]*)"/i', $tag, $class_match)) {
+                $existing = preg_split('/\s+/', trim($class_match[1]));
+                $kept = array();
+
+                foreach ($existing as $class_name) {
+                    if ('' === $class_name) {
+                        continue;
+                    }
+
+                    $remove = false;
+                    foreach ($remove_patterns as $pattern) {
+                        if (preg_match($pattern, $class_name)) {
+                            $remove = true;
+                            break;
+                        }
+                    }
+
+                    if (!$remove) {
+                        $kept[] = $class_name;
+                    }
+                }
+
+                $next = trim(implode(' ', array_unique(array_merge($kept, preg_split('/\s+/', $classes)))));
+                return str_replace($class_match[0], 'class="' . esc_attr($next) . '"', $tag);
+            }
+
+            return substr($tag, 0, -1) . ' class="' . esc_attr($classes) . '">';
+        },
+        $block_content,
+        1
+    );
 }
 
 function ajnanda_buttons_inject_style_vars($block_content, $vars, $required_class) {
@@ -720,8 +879,26 @@ function ajnanda_buttons_build_css_vars($attrs) {
         if ($c) $parts[] = '--aj-btn-color-' . $i . ':' . $c;
     }
 
-    $gap = isset($attrs['ajnButtonGapDesktop']) ? (int) $attrs['ajnButtonGapDesktop'] : 12;
-    if ($gap !== 12) $parts[] = '--aj-buttons-gap-desktop:' . $gap . 'px';
+    $gap_desktop = isset($attrs['ajnButtonGapDesktop']) ? (int) $attrs['ajnButtonGapDesktop'] : 12;
+    $gap_tablet  = isset($attrs['ajnButtonGapTablet'])  ? (int) $attrs['ajnButtonGapTablet']  : $gap_desktop;
+    $gap_mobile  = isset($attrs['ajnButtonGapMobile'])  ? (int) $attrs['ajnButtonGapMobile']  : $gap_tablet;
+
+    $parts[] = '--aj-buttons-gap-desktop:' . max(0, min(120, $gap_desktop)) . 'px';
+    $parts[] = '--aj-buttons-gap-tablet:'  . max(0, min(120, $gap_tablet))  . 'px';
+    $parts[] = '--aj-buttons-gap-mobile:'  . max(0, min(120, $gap_mobile))  . 'px';
+
+    $custom_desktop = ajnanda_safe_css_size($attrs['ajnButtonsCustomWidthDesktop'] ?? '');
+    $custom_tablet  = ajnanda_safe_css_size($attrs['ajnButtonsCustomWidthTablet'] ?? '');
+    $custom_mobile  = ajnanda_safe_css_size($attrs['ajnButtonsCustomWidthMobile'] ?? '');
+
+    if ($custom_desktop) $parts[] = '--aj-buttons-custom-width-desktop:' . $custom_desktop;
+    if ($custom_tablet)  $parts[] = '--aj-buttons-custom-width-tablet:' . $custom_tablet;
+    if ($custom_mobile)  $parts[] = '--aj-buttons-custom-width-mobile:' . $custom_mobile;
+
+    $justify = ajnanda_buttons_allowed_justify($attrs['ajnBtnJustify'] ?? 'center');
+    if ('stretch' !== $justify) {
+        $parts[] = '--aj-btn-justify:' . $justify;
+    }
 
     return $parts ? implode(';', $parts) : '';
 }
@@ -735,3 +912,12 @@ function ajnanda_safe_css_color($value) {
     if (preg_match('/^[a-zA-Z]{1,30}$/', $value))      return $value;
     return '';
 }
+
+function ajnanda_safe_css_size($value) {
+    if (!$value || !is_string($value)) return '';
+    $value = trim($value);
+    if (preg_match('/^[0-9]+(?:\.[0-9]+)?$/', $value)) return $value . 'px';
+    if (preg_match('/^[0-9]+(?:\.[0-9]+)?(?:px|em|rem|vh|vw|vmin|vmax|%)$/', $value)) return $value;
+    return '';
+}
+
