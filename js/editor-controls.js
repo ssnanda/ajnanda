@@ -919,23 +919,55 @@
         }
 
         var gapDesktop = numberValue(attrs.ajnButtonGapDesktop, 12);
-        if (gapDesktop !== 12) {
-            css += bSel + ' .wp-block-buttons,.wp-block-buttons' + bSel + '{gap:' + gapDesktop + 'px !important}';
-        }
+        var justify = attrs.ajnBtnJustify || 'center';
+        var justifyCss = justify === 'stretch' ? 'center' : justify;
+        var gapCss = gapDesktop + 'px';
+
+        /*
+         * Arrangement preview fix:
+         * In the block editor, core/buttons can render through several wrapper shapes,
+         * including an iframe canvas and nested block-list wrappers. These scoped selectors
+         * target only the selected Buttons block and reset child widths when switching
+         * between row and stack so an old stacked editor rule cannot keep row looking stacked.
+         */
+        var layoutTargets = [
+            bSel + '.wp-block-buttons',
+            bSel + ' .wp-block-buttons',
+            bSel + ' > .wp-block-buttons',
+            bSel + ' > .block-editor-inner-blocks > .block-editor-block-list__layout',
+            bSel + ' .wp-block-buttons > .block-editor-inner-blocks > .block-editor-block-list__layout',
+            bSel + ' > .block-editor-block-list__layout',
+            bSel + ' .wp-block-buttons > .block-editor-block-list__layout'
+        ].join(',');
+
+        var buttonWrappers = [
+            bSel + ' > .wp-block-button',
+            bSel + ' .wp-block-buttons > .wp-block-button',
+            bSel + ' .block-editor-block-list__layout > .wp-block-button',
+            bSel + ' .block-editor-block-list__layout > .wp-block',
+            bSel + ' .block-editor-block-list__layout > .block-editor-block-list__block',
+            bSel + ' .block-editor-block-list__layout > [data-type="core/button"]',
+            bSel + ' [data-type="core/button"]'
+        ].join(',');
 
         var layout = attrs.ajnButtonLayoutDesktop || 'row';
         if (layout === 'row') {
-            css += bSel + ' .block-editor-block-list__layout{display:flex !important;flex-direction:row !important;flex-wrap:wrap !important;align-items:center !important}';
+            css += layoutTargets + '{display:flex !important;flex-direction:row !important;flex-wrap:wrap !important;align-items:center !important;justify-content:' + justifyCss + ' !important;gap:' + gapCss + ' !important;}';
+            css += buttonWrappers + '{width:auto !important;max-width:none !important;flex:0 0 auto !important;display:block !important;}';
+            css += lSel + '{width:auto !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;}';
         } else if (layout === 'stack') {
-            css += bSel + ' .block-editor-block-list__layout{display:flex !important;flex-direction:column !important;align-items:stretch !important}';
-            css += bSel + ' .block-editor-block-list__layout > .wp-block,' + bSel + ' .block-editor-block-list__layout > .block-editor-block-list__block{width:100% !important}';
+            css += layoutTargets + '{display:flex !important;flex-direction:column !important;flex-wrap:nowrap !important;align-items:stretch !important;justify-content:flex-start !important;gap:' + gapCss + ' !important;}';
+            css += buttonWrappers + '{width:100% !important;max-width:100% !important;flex:0 0 auto !important;display:block !important;}';
+            css += lSel + '{width:100% !important;display:flex !important;align-items:center !important;justify-content:center !important;}';
         } else if (layout === 'grid') {
-            css += bSel + ' .block-editor-block-list__layout{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important}';
-            css += bSel + ' .block-editor-block-list__layout > .wp-block,' + bSel + ' .block-editor-block-list__layout > .block-editor-block-list__block{width:100% !important}';
+            css += layoutTargets + '{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:' + gapCss + ' !important;}';
+            css += buttonWrappers + '{width:100% !important;max-width:100% !important;min-width:0 !important;}';
+            css += lSel + '{width:100% !important;display:flex !important;align-items:center !important;justify-content:center !important;}';
         } else if (layout === 'featured') {
-            css += bSel + ' .block-editor-block-list__layout{display:flex !important;flex-direction:row !important;flex-wrap:wrap !important}';
-            css += bSel + ' .block-editor-block-list__layout > .wp-block:first-child,' + bSel + ' .block-editor-block-list__layout > .block-editor-block-list__block:first-child{flex:0 0 100% !important;width:100% !important}';
-            css += bSel + ' .block-editor-block-list__layout > .wp-block:not(:first-child),' + bSel + ' .block-editor-block-list__layout > .block-editor-block-list__block:not(:first-child){flex:1 1 0 !important;min-width:0;width:auto !important}';
+            css += layoutTargets + '{display:flex !important;flex-direction:row !important;flex-wrap:wrap !important;align-items:center !important;justify-content:' + justifyCss + ' !important;gap:' + gapCss + ' !important;}';
+            css += bSel + ' .block-editor-block-list__layout > .wp-block:first-child,' + bSel + ' .block-editor-block-list__layout > .block-editor-block-list__block:first-child,' + bSel + ' .block-editor-block-list__layout > [data-type="core/button"]:first-child{flex:0 0 100% !important;width:100% !important;max-width:100% !important;}';
+            css += bSel + ' .block-editor-block-list__layout > .wp-block:not(:first-child),' + bSel + ' .block-editor-block-list__layout > .block-editor-block-list__block:not(:first-child),' + bSel + ' .block-editor-block-list__layout > [data-type="core/button"]:not(:first-child){flex:1 1 0 !important;min-width:0 !important;width:auto !important;}';
+            css += lSel + '{display:flex !important;align-items:center !important;justify-content:center !important;}';
         }
 
         var widthMap = { narrow: '480px', standard: '720px', wide: '960px', full: '100%' };
