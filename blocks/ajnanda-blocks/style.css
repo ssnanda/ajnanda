@@ -1392,3 +1392,84 @@ input[type="checkbox"].aj-field {
     border-radius: 8px;
     min-height: 120px;
 }
+
+/* AJ Buttons frontend row fix: ignore old per-button width classes when the group is Horizontal row.
+ * Some pages saved child core/button widths such as wp-block-button__width-100 during an older
+ * stacked/featured layout. Those child widths can force a row layout to look stacked on the live site.
+ */
+.aj-buttons-desktop-row > .wp-block-button,
+.wp-block-buttons.aj-buttons-control.aj-buttons-desktop-row > .wp-block-button {
+    flex: 0 1 auto !important;
+    width: auto !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    flex-basis: auto !important;
+}
+
+.aj-buttons-desktop-row > .wp-block-button.has-custom-width,
+.aj-buttons-desktop-row > .wp-block-button[class*="wp-block-button__width-"],
+.wp-block-buttons.aj-buttons-control.aj-buttons-desktop-row > .wp-block-button.has-custom-width,
+.wp-block-buttons.aj-buttons-control.aj-buttons-desktop-row > .wp-block-button[class*="wp-block-button__width-"] {
+    flex: 0 1 auto !important;
+    width: auto !important;
+    max-width: none !important;
+    flex-basis: auto !important;
+}
+
+.aj-buttons-desktop-row:not(.aj-buttons-stretch) > .wp-block-button > .wp-block-button__link,
+.wp-block-buttons.aj-buttons-control.aj-buttons-desktop-row:not(.aj-buttons-stretch) > .wp-block-button > .wp-block-button__link {
+    width: auto !important;
+    min-width: var(--aj-button-row-min-width, 140px);
+}
+
+.aj-buttons-desktop-row.aj-buttons-stretch > .wp-block-button,
+.wp-block-buttons.aj-buttons-control.aj-buttons-desktop-row.aj-buttons-stretch > .wp-block-button {
+    flex: 1 1 0 !important;
+    width: auto !important;
+    min-width: 0 !important;
+}
+
+.aj-buttons-desktop-row.aj-buttons-stretch > .wp-block-button > .wp-block-button__link,
+.wp-block-buttons.aj-buttons-control.aj-buttons-desktop-row.aj-buttons-stretch > .wp-block-button > .wp-block-button__link {
+    width: 100% !important;
+}
+
+@media (max-width: 1024px) {
+    .aj-buttons-tablet-row > .wp-block-button,
+    .wp-block-buttons.aj-buttons-control.aj-buttons-tablet-row > .wp-block-button,
+    .aj-buttons-tablet-row > .wp-block-button.has-custom-width,
+    .aj-buttons-tablet-row > .wp-block-button[class*="wp-block-button__width-"],
+    .wp-block-buttons.aj-buttons-control.aj-buttons-tablet-row > .wp-block-button.has-custom-width,
+    .wp-block-buttons.aj-buttons-control.aj-buttons-tablet-row > .wp-block-button[class*="wp-block-button__width-"] {
+        flex: 0 1 auto !important;
+        width: auto !important;
+        max-width: none !important;
+        flex-basis: auto !important;
+    }
+
+    .aj-buttons-tablet-row:not(.aj-buttons-stretch) > .wp-block-button > .wp-block-button__link,
+    .wp-block-buttons.aj-buttons-control.aj-buttons-tablet-row:not(.aj-buttons-stretch) > .wp-block-button > .wp-block-button__link {
+        width: auto !important;
+        min-width: var(--aj-button-row-min-width, 140px);
+    }
+}
+
+@media (max-width: 768px) {
+    .aj-buttons-mobile-row > .wp-block-button,
+    .wp-block-buttons.aj-buttons-control.aj-buttons-mobile-row > .wp-block-button,
+    .aj-buttons-mobile-row > .wp-block-button.has-custom-width,
+    .aj-buttons-mobile-row > .wp-block-button[class*="wp-block-button__width-"],
+    .wp-block-buttons.aj-buttons-control.aj-buttons-mobile-row > .wp-block-button.has-custom-width,
+    .wp-block-buttons.aj-buttons-control.aj-buttons-mobile-row > .wp-block-button[class*="wp-block-button__width-"] {
+        flex: 0 1 auto !important;
+        width: auto !important;
+        max-width: none !important;
+        flex-basis: auto !important;
+    }
+
+    .aj-buttons-mobile-row:not(.aj-buttons-stretch) > .wp-block-button > .wp-block-button__link,
+    .wp-block-buttons.aj-buttons-control.aj-buttons-mobile-row:not(.aj-buttons-stretch) > .wp-block-button > .wp-block-button__link {
+        width: auto !important;
+        min-width: var(--aj-button-row-min-width, 140px);
+    }
+}
