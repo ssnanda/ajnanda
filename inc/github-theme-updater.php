@@ -289,15 +289,15 @@ function ajnanda_updater_handle_update_now() {
 add_action('admin_post_ajnanda_theme_update_now', 'ajnanda_updater_handle_update_now');
 
 function ajnanda_updater_admin_menu() {
-    add_theme_page(
+    add_submenu_page(
+        'themes.php',
         'Update AJNanda',
         'Update AJNanda',
         'manage_options',
         'ajnanda-theme-updater',
-        'ajnanda_updater_admin_page'
+        'ajnanda_updater_admin_page',
+        1
     );
-
-    add_action('admin_head', 'ajnanda_updater_replace_menu_link');
 }
 add_action('admin_menu', 'ajnanda_updater_admin_menu');
 
@@ -309,21 +309,6 @@ function ajnanda_updater_update_now_url() {
         ),
         admin_url('admin-post.php')
     );
-}
-
-function ajnanda_updater_replace_menu_link() {
-    global $submenu;
-
-    if (empty($submenu['themes.php']) || !is_array($submenu['themes.php'])) {
-        return;
-    }
-
-    foreach ($submenu['themes.php'] as $index => $item) {
-        if (!empty($item[2]) && 'ajnanda-theme-updater' === $item[2]) {
-            $submenu['themes.php'][$index][2] = ajnanda_updater_update_now_url();
-            break;
-        }
-    }
 }
 
 function ajnanda_updater_admin_page() {
@@ -339,6 +324,9 @@ function ajnanda_updater_admin_page() {
     $asset_name = '';
     $asset_url = '';
     $update_available = 'No';
+    $status_class = 'is-current';
+    $status_label = 'Up to date';
+    $status_help = 'The installed version matches the latest GitHub release, or no newer valid ZIP was found.';
 
     if ($release && empty($release['_ajnanda_error'])) {
         $latest_version = ajnanda_updater_clean_version($release['tag_name']);
@@ -351,13 +339,156 @@ function ajnanda_updater_admin_page() {
 
         if ($latest_version && version_compare($latest_version, $current_version, '>') && $asset) {
             $update_available = 'Yes';
+            $status_class = 'has-update';
+            $status_label = 'Update available';
+            $status_help = 'A newer AJNanda release ZIP was found on GitHub.';
         }
+    } elseif (!empty($release['_ajnanda_error'])) {
+        $status_class = 'has-error';
+        $status_label = 'Check failed';
+        $status_help = 'WordPress could not read the latest GitHub release.';
     }
 
     $message = isset($_GET['ajnanda-message']) ? sanitize_key($_GET['ajnanda-message']) : '';
     ?>
-    <div class="wrap">
-        <h1>Update AJNanda</h1>
+    <div class="wrap ajnanda-update-wrap">
+        <style>
+            .ajnanda-update-wrap {
+                max-width: 1180px;
+            }
+            .ajnanda-update-hero {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                gap: 24px;
+                align-items: center;
+                margin: 20px 0 22px;
+                padding: 28px 30px;
+                border: 1px solid #dcdcde;
+                border-radius: 16px;
+                background: linear-gradient(135deg, #ffffff 0%, #f6f8ff 100%);
+                box-shadow: 0 14px 35px rgba(15, 23, 42, 0.08);
+            }
+            .ajnanda-update-eyebrow {
+                margin: 0 0 8px;
+                color: #3858e9;
+                font-size: 12px;
+                font-weight: 700;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+            }
+            .ajnanda-update-hero h1 {
+                margin: 0;
+                color: #111827;
+                font-size: 34px;
+                line-height: 1.15;
+            }
+            .ajnanda-update-hero p {
+                max-width: 720px;
+                margin: 10px 0 0;
+                color: #4b5563;
+                font-size: 15px;
+            }
+            .ajnanda-update-status {
+                min-width: 210px;
+                padding: 18px;
+                border-radius: 14px;
+                background: #ffffff;
+                border: 1px solid #e5e7eb;
+                text-align: center;
+            }
+            .ajnanda-update-status strong {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 32px;
+                padding: 0 14px;
+                border-radius: 999px;
+                background: #ecfdf5;
+                color: #047857;
+                font-size: 13px;
+            }
+            .ajnanda-update-status.has-update strong {
+                background: #eff6ff;
+                color: #1d4ed8;
+            }
+            .ajnanda-update-status.has-error strong {
+                background: #fef2f2;
+                color: #b91c1c;
+            }
+            .ajnanda-update-status span {
+                display: block;
+                margin-top: 10px;
+                color: #6b7280;
+                font-size: 13px;
+                line-height: 1.45;
+            }
+            .ajnanda-update-grid {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 16px;
+                margin-bottom: 18px;
+            }
+            .ajnanda-update-card {
+                padding: 18px;
+                border: 1px solid #dcdcde;
+                border-radius: 14px;
+                background: #fff;
+            }
+            .ajnanda-update-card h2 {
+                margin: 0 0 8px;
+                color: #374151;
+                font-size: 13px;
+                font-weight: 700;
+                letter-spacing: 0.05em;
+                text-transform: uppercase;
+            }
+            .ajnanda-update-card code {
+                display: inline-block;
+                max-width: 100%;
+                padding: 5px 8px;
+                border-radius: 7px;
+                background: #f3f4f6;
+                color: #111827;
+                font-size: 14px;
+                word-break: break-word;
+            }
+            .ajnanda-update-actions {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                align-items: center;
+                margin: 18px 0 0;
+            }
+            .ajnanda-update-actions .button {
+                min-height: 40px;
+                padding: 4px 16px;
+                border-radius: 8px;
+                font-weight: 600;
+            }
+            .ajnanda-update-details {
+                margin-top: 18px;
+                overflow: hidden;
+                border: 1px solid #dcdcde;
+                border-radius: 14px;
+                background: #fff;
+            }
+            .ajnanda-update-details table {
+                border: 0;
+                box-shadow: none;
+            }
+            .ajnanda-update-details th {
+                width: 260px;
+            }
+            @media (max-width: 900px) {
+                .ajnanda-update-hero,
+                .ajnanda-update-grid {
+                    grid-template-columns: 1fr;
+                }
+                .ajnanda-update-status {
+                    text-align: left;
+                }
+            }
+        </style>
 
         <?php if ('cache-cleared' === $message) : ?>
             <div class="notice notice-success"><p>AJNanda update cache cleared.</p></div>
@@ -367,45 +498,75 @@ function ajnanda_updater_admin_page() {
             <div class="notice notice-info"><p>AJNanda is already up to date, or no valid update ZIP was found.</p></div>
         <?php endif; ?>
 
-        <table class="widefat striped" style="max-width: 980px;">
-            <tbody>
-                <tr><th scope="row">Theme Name</th><td><?php echo esc_html($theme_name); ?></td></tr>
-                <tr><th scope="row">Installed Theme Folder / Slug</th><td><code><?php echo esc_html($theme_slug); ?></code></td></tr>
-                <tr><th scope="row">Installed Version from style.css</th><td><code><?php echo esc_html($current_version); ?></code></td></tr>
-                <tr><th scope="row">GitHub API URL</th><td><code><?php echo esc_html(ajnanda_updater_latest_release_url()); ?></code></td></tr>
-                <tr><th scope="row">Latest GitHub Version</th><td><code><?php echo esc_html($latest_version ?: 'Not found'); ?></code></td></tr>
-                <tr><th scope="row">Expected ZIP Asset</th><td><code><?php echo esc_html($latest_version ? 'ajnanda-' . $latest_version . '.zip' : 'Not found'); ?></code></td></tr>
-                <tr><th scope="row">Found ZIP Asset</th><td><code><?php echo esc_html($asset_name ?: 'Not found'); ?></code></td></tr>
-                <tr><th scope="row">Update Available</th><td><strong><?php echo esc_html($update_available); ?></strong></td></tr>
-                <?php if (!empty($release['_ajnanda_error'])) : ?>
-                    <tr><th scope="row">Error</th><td><code><?php echo esc_html($release['_ajnanda_error']); ?></code></td></tr>
-                <?php endif; ?>
-                <?php if ($asset_url) : ?>
-                    <tr><th scope="row">Download URL</th><td><code style="word-break: break-all;"><?php echo esc_html($asset_url); ?></code></td></tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+        <div class="ajnanda-update-hero">
+            <div>
+                <p class="ajnanda-update-eyebrow">AJNanda Theme Updater</p>
+                <h1>Update AJNanda</h1>
+                <p>Check the latest GitHub release, confirm the expected ZIP asset, clear WordPress update cache, and launch the normal WordPress theme update flow from one clean screen.</p>
+            </div>
+            <div class="ajnanda-update-status <?php echo esc_attr($status_class); ?>">
+                <strong><?php echo esc_html($status_label); ?></strong>
+                <span><?php echo esc_html($status_help); ?></span>
+            </div>
+        </div>
 
-        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="margin-top: 20px;">
+        <div class="ajnanda-update-grid">
+            <div class="ajnanda-update-card">
+                <h2>Installed Version</h2>
+                <code><?php echo esc_html($current_version); ?></code>
+            </div>
+            <div class="ajnanda-update-card">
+                <h2>Latest GitHub Version</h2>
+                <code><?php echo esc_html($latest_version ?: 'Not found'); ?></code>
+            </div>
+            <div class="ajnanda-update-card">
+                <h2>Update Available</h2>
+                <code><?php echo esc_html($update_available); ?></code>
+            </div>
+        </div>
+
+        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="ajnanda-update-actions">
             <?php wp_nonce_field('ajnanda_theme_update_tools'); ?>
             <input type="hidden" name="action" value="ajnanda_theme_update_tools">
 
             <button type="submit" class="button" name="ajnanda_tool_action" value="clear_cache">
-                Clear AJNanda Update Cache
+                Clear Update Cache
             </button>
 
             <button type="submit" class="button button-primary" name="ajnanda_tool_action" value="force_check">
-                Force Check for AJNanda Update
+                Force Check
             </button>
 
             <a class="button button-primary" href="<?php echo esc_url(ajnanda_updater_update_now_url()); ?>">
-                Update AJNanda Now
+                Update Now
+            </a>
+
+            <a class="button" href="<?php echo esc_url(admin_url('themes.php')); ?>">
+                Open Themes
             </a>
 
             <a class="button" href="<?php echo esc_url(admin_url('update-core.php?force-check=1')); ?>">
-                Open WordPress Updates
+                WordPress Updates
             </a>
         </form>
+
+        <div class="ajnanda-update-details">
+            <table class="widefat striped">
+                <tbody>
+                    <tr><th scope="row">Theme Name</th><td><?php echo esc_html($theme_name); ?></td></tr>
+                    <tr><th scope="row">Installed Theme Folder / Slug</th><td><code><?php echo esc_html($theme_slug); ?></code></td></tr>
+                    <tr><th scope="row">GitHub API URL</th><td><code><?php echo esc_html(ajnanda_updater_latest_release_url()); ?></code></td></tr>
+                    <tr><th scope="row">Expected ZIP Asset</th><td><code><?php echo esc_html($latest_version ? 'ajnanda-' . $latest_version . '.zip' : 'Not found'); ?></code></td></tr>
+                    <tr><th scope="row">Found ZIP Asset</th><td><code><?php echo esc_html($asset_name ?: 'Not found'); ?></code></td></tr>
+                    <?php if (!empty($release['_ajnanda_error'])) : ?>
+                        <tr><th scope="row">Error</th><td><code><?php echo esc_html($release['_ajnanda_error']); ?></code></td></tr>
+                    <?php endif; ?>
+                    <?php if ($asset_url) : ?>
+                        <tr><th scope="row">Download URL</th><td><code style="word-break: break-all;"><?php echo esc_html($asset_url); ?></code></td></tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
     <?php
 }
