@@ -622,27 +622,47 @@ add_action('init', 'ajnanda_blocks_register_dynamic_blocks');
 add_filter('render_block', 'ajnanda_render_core_buttons_block', 10, 2);
 
 function ajnanda_render_core_buttons_block($block_content, $block) {
-    if (('core/buttons' !== ($block['blockName'] ?? '')) || empty($block_content)) {
+    if (empty($block_content)) {
         return $block_content;
     }
 
+    $block_name = $block['blockName'] ?? '';
     $attrs      = $block['attrs'] ?? [];
-    $class_name = $attrs['className'] ?? '';
 
-    // Only process blocks that have been configured via the AJ Buttons panel.
-    if (false === strpos($class_name, 'aj-buttons-control')) {
-        return $block_content;
+    if ('core/buttons' === $block_name) {
+        // Only process button groups configured via the AJ Buttons panel.
+        $has_shared = !empty($attrs['ajnBtnScheme']) || !empty($attrs['ajnBtnSharedBg']) || !empty($attrs['ajnBtnStyle']);
+        $has_per    = false;
+        for ($i = 1; $i <= 6; $i++) {
+            if (!empty($attrs['ajnBtnColor' . $i])) { $has_per = true; break; }
+        }
+        if (!$has_shared && !$has_per) {
+            return $block_content;
+        }
+
+        $vars = ajnanda_buttons_build_css_vars($attrs);
+        if (!$vars) {
+            return $block_content;
+        }
+
+        return ajnanda_buttons_inject_style_vars($block_content, $vars, 'wp-block-buttons');
     }
 
-    $vars = ajnanda_buttons_build_css_vars($attrs);
-    if (!$vars) {
-        return $block_content;
+    if ('core/button' === $block_name) {
+        $vars = ajnanda_single_button_build_css_vars($attrs);
+        if (!$vars) {
+            return $block_content;
+        }
+
+        return ajnanda_buttons_inject_style_vars($block_content, $vars, 'wp-block-button');
     }
 
-    // Inject the CSS vars into the existing style attribute (or add one).
-    // render_block fires after wp_kses_post, so custom properties are safe here.
-    $block_content = preg_replace_callback(
-        '/(<div\b[^>]*\bwp-block-buttons\b[^>]*>)/i',
+    return $block_content;
+}
+
+function ajnanda_buttons_inject_style_vars($block_content, $vars, $required_class) {
+    return preg_replace_callback(
+        '/(<div\b[^>]*\b' . preg_quote($required_class, '/') . '\b[^>]*>)/i',
         static function ($m) use ($vars) {
             $tag = $m[1];
             if (preg_match('/\bstyle="([^"]*)"/i', $tag, $s)) {
@@ -650,14 +670,26 @@ function ajnanda_render_core_buttons_block($block_content, $block) {
                 $merged   = $existing ? $existing . ';' . $vars : $vars;
                 return str_replace($s[0], 'style="' . esc_attr($merged) . '"', $tag);
             }
-            // No existing style attribute — insert one before the closing >.
+
             return substr($tag, 0, -1) . ' style="' . esc_attr($vars) . '">';
         },
         $block_content,
         1
     );
+}
 
-    return $block_content;
+function ajnanda_single_button_build_css_vars($attrs) {
+    $parts = [];
+
+    $bg       = ajnanda_safe_css_color($attrs['ajnSingleBtnBg'] ?? '');
+    $text     = ajnanda_safe_css_color($attrs['ajnSingleBtnColor'] ?? '');
+    $border_c = ajnanda_safe_css_color($attrs['ajnSingleBtnBorderColor'] ?? '');
+
+    if ($bg)       $parts[] = '--aj-btn-item-bg:' . $bg;
+    if ($text)     $parts[] = '--aj-btn-item-color:' . $text;
+    if ($border_c) $parts[] = '--aj-btn-item-border-color:' . $border_c;
+
+    return $parts ? implode(';', $parts) : '';
 }
 
 function ajnanda_buttons_build_css_vars($attrs) {

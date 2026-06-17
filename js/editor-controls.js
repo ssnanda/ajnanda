@@ -1301,12 +1301,12 @@
                             ),
                             createElement(
                                 PanelBody,
-                                { title: 'AJ Buttons — Header Color Scheme', initialOpen: false },
+                                { title: 'AJ Buttons — Colors', initialOpen: false },
                                 createElement('p', { style: { fontSize: '12px', color: '#6b7280', marginBottom: '12px' } },
-                                    'Choose a shared color scheme for all buttons. Size, radius, padding and border width are bundled separately below.'
+                                    'Shared scheme applies one color to all buttons. Selecting a shared scheme clears per-button colors, and vice-versa.'
                                 ),
                                 createElement(SelectControl, {
-                                    label: 'Color scheme',
+                                    label: 'Shared color scheme',
                                     value: attrs.ajnBtnScheme || '',
                                     options: (function() {
                                         var opts = [{ label: '— WP default (no override) —', value: '' }];
@@ -1325,7 +1325,10 @@
                                             ajnBtnStyle: '',
                                             ajnBtnSharedBg: scheme.bg || '',
                                             ajnBtnSharedColor: scheme.color || '',
-                                            ajnBtnSharedBorderColor: scheme.borderColor || ''
+                                            ajnBtnSharedBorderColor: scheme.borderColor || '',
+                                            ajnBtnColor1: '', ajnBtnColor2: '', ajnBtnColor3: '',
+                                            ajnBtnColor4: '', ajnBtnColor5: '', ajnBtnColor6: '',
+                                            ajnBtnColorSchema: ''
                                         });
                                     }
                                 }),
@@ -1352,19 +1355,19 @@
                                             ajnBtnSharedPaddingY: size.paddingY
                                         });
                                     }
-                                })
-                            ),
-                            createElement(
-                                PanelBody,
-                                { title: 'AJ Buttons — Individual Colors', initialOpen: false },
+                                }),
+                                createElement('hr', { style: { margin: '16px 0', border: 'none', borderTop: '1px solid #e2e8f0' } }),
+                                createElement('p', { style: { fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#374151', margin: '0 0 8px' } },
+                                    'Per-button colors'
+                                ),
                                 createElement('p', { style: { fontSize: '12px', color: '#6b7280', marginBottom: '12px' } },
-                                    'Set a unique background color for each button by position. Leave blank to use shared style or WP default.'
+                                    'Set a unique background for each button. Selecting a preset clears the shared scheme above.'
                                 ),
                                 createElement(SelectControl, {
-                                    label: 'Color scheme',
+                                    label: 'Color preset',
                                     value: attrs.ajnBtnColorSchema || '',
                                     options: (function() {
-                                        var opts = [{ label: '— Pick a preset scheme —', value: '' }];
+                                        var opts = [{ label: '— Pick a preset —', value: '' }];
                                         AJN_COLOR_SCHEMES.forEach(function(s) { opts.push({ label: s.label, value: s.value }); });
                                         return opts;
                                     })(),
@@ -1376,7 +1379,11 @@
                                             return;
                                         }
                                         var count = innerBlockCount > 0 ? Math.min(innerBlockCount, 6) : 6;
-                                        var update = { ajnBtnColorSchema: schemeValue };
+                                        var update = {
+                                            ajnBtnColorSchema: schemeValue,
+                                            ajnBtnScheme: '', ajnBtnStyle: '',
+                                            ajnBtnSharedBg: '', ajnBtnSharedColor: '', ajnBtnSharedBorderColor: ''
+                                        };
                                         for (var i = 1; i <= 6; i++) {
                                             update['ajnBtnColor' + i] = i <= count
                                                 ? (scheme.colors[i - 1] || scheme.colors[(i - 1) % scheme.colors.length])
