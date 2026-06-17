@@ -865,26 +865,37 @@
 
     function generateButtonPreviewCss(clientId, attrs) {
         var bSel = '[data-block="' + clientId + '"]';
-        var lSel = bSel + ' .wp-block-button__link';
-        var css  = '';
+        var linkSel = [
+            bSel + ' .wp-block-button__link',
+            bSel + ' .wp-element-button'
+        ].join(',');
+        var layoutSelectors = [
+            bSel + ' > .wp-block-buttons',
+            bSel + ' .wp-block-buttons[data-block="' + clientId + '"]',
+            bSel + ' > .wp-block-buttons > .block-editor-inner-blocks > .block-editor-block-list__layout',
+            bSel + ' > .wp-block-buttons > .block-editor-block-list__layout',
+            bSel + ' > .block-editor-inner-blocks > .block-editor-block-list__layout',
+            bSel + ' > .block-editor-block-list__layout'
+        ].join(',');
+        var itemSelectors = [
+            bSel + ' > .wp-block-buttons > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block',
+            bSel + ' > .wp-block-buttons > .block-editor-block-list__layout > .wp-block',
+            bSel + ' > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block',
+            bSel + ' > .block-editor-block-list__layout > .wp-block',
+            bSel + ' > .wp-block-buttons > .wp-block-button'
+        ].join(',');
+        var css = '';
 
         var bg          = safeColor(attrs.ajnBtnSharedBg);
         var color       = safeColor(attrs.ajnBtnSharedColor);
         var borderColor = safeColor(attrs.ajnBtnSharedBorderColor);
-        var hasOneColorScheme = !!(attrs.ajnBtnStyle || attrs.ajnBtnScheme || bg || borderColor);
-        var hasPerButtonColors = !!(attrs.ajnBtnColor1 || attrs.ajnBtnColor2 || attrs.ajnBtnColor3 || attrs.ajnBtnColor4 || attrs.ajnBtnColor5 || attrs.ajnBtnColor6);
+        var hasScheme   = !!(attrs.ajnBtnStyle || attrs.ajnBtnScheme);
 
-        /*
-         * Do not write background-color: initial for mixed schemes.
-         * Mixed schemes store colors in ajnBtnColor1..6, while ajnBtnSharedBg is empty.
-         * Writing a shared empty background makes the editor look white-on-white until
-         * every per-button selector wins, which is fragile across Gutenberg versions.
-         */
-        if (hasOneColorScheme || color) {
-            css += lSel + '{';
-            if (bg) css += 'background-color:' + bg + ' !important;';
-            if (color || hasOneColorScheme || hasPerButtonColors) css += 'color:' + (color || '#ffffff') + ' !important;';
-            if (borderColor || (hasOneColorScheme && bg)) css += 'border-color:' + (borderColor || bg || 'transparent') + ' !important;border-style:solid !important;';
+        if (hasScheme || bg || color || borderColor) {
+            css += linkSel + '{';
+            if (bg || hasScheme)           css += 'background-color:' + (bg || 'initial') + ' !important;';
+            if (color || hasScheme)        css += 'color:' + (color || 'inherit') + ' !important;';
+            if (borderColor || hasScheme)  css += 'border-color:' + (borderColor || 'transparent') + ' !important;border-style:solid !important;';
             css += '}';
         }
 
@@ -895,7 +906,7 @@
         var hasSize = !!(attrs.ajnBtnStyle || attrs.ajnBtnSizeStyle);
 
         if (hasSize || bw > 0 || br > 0 || px > 0 || py > 0) {
-            css += lSel + '{';
+            css += linkSel + '{';
             if (hasSize || bw !== null) css += 'border-width:' + (bw !== null ? bw : 0) + 'px !important;';
             if (hasSize || br !== null) css += 'border-radius:' + (br !== null ? br : 0) + 'px !important;';
             if (hasSize || px !== null) css += 'padding-left:' + (px !== null ? px : 0) + 'px !important;padding-right:' + (px !== null ? px : 0) + 'px !important;';
@@ -907,35 +918,43 @@
             var btnColor = safeColor(attrs['ajnBtnColor' + i]);
             if (btnColor) {
                 var childSelectors = [
-                    bSel + ' .block-editor-block-list__layout > .wp-block:nth-child(' + i + ') .wp-block-button__link',
-                    bSel + ' .block-editor-block-list__layout > .block-editor-block-list__block:nth-child(' + i + ') .wp-block-button__link',
-                    bSel + ' .block-editor-block-list__layout > [data-type="core/button"]:nth-child(' + i + ') .wp-block-button__link',
-                    bSel + ' [data-type="core/button"]:nth-of-type(' + i + ') .wp-block-button__link',
-                    bSel + ' .wp-block-button:nth-of-type(' + i + ') .wp-block-button__link',
-                    bSel + ' .wp-block-button:nth-child(' + i + ') .wp-block-button__link'
+                    bSel + ' > .wp-block-buttons > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block:nth-child(' + i + ') .wp-block-button__link',
+                    bSel + ' > .wp-block-buttons > .block-editor-block-list__layout > .wp-block:nth-child(' + i + ') .wp-block-button__link',
+                    bSel + ' > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block:nth-child(' + i + ') .wp-block-button__link',
+                    bSel + ' > .block-editor-block-list__layout > .wp-block:nth-child(' + i + ') .wp-block-button__link',
+                    bSel + ' > .wp-block-buttons > .wp-block-button:nth-child(' + i + ') .wp-block-button__link',
+                    bSel + ' .block-editor-block-list__layout > [data-type="core/button"]:nth-child(' + i + ') .wp-block-button__link'
                 ].join(',');
-                css += childSelectors + '{background-color:' + btnColor + ' !important;color:' + (color || '#ffffff') + ' !important;border-color:' + btnColor + ' !important;border-style:solid !important;}';
+                css += childSelectors + '{background-color:' + btnColor + ' !important;border-color:' + btnColor + ' !important;border-style:solid !important;}';
             }
         }
 
         var gapDesktop = numberValue(attrs.ajnButtonGapDesktop, 12);
-        if (gapDesktop !== 12) {
-            css += bSel + ' .wp-block-buttons,.wp-block-buttons' + bSel + '{gap:' + gapDesktop + 'px !important}';
-        }
+        css += layoutSelectors + '{gap:' + gapDesktop + 'px !important;}';
 
         var layout = attrs.ajnButtonLayoutDesktop || 'row';
         if (layout === 'row') {
-            css += bSel + ' .block-editor-block-list__layout{display:flex !important;flex-direction:row !important;flex-wrap:wrap !important;align-items:center !important}';
+            css += layoutSelectors + '{display:flex !important;flex-direction:row !important;flex-wrap:wrap !important;align-items:center !important;}';
+            css += itemSelectors + '{width:auto !important;flex:0 1 auto !important;}';
         } else if (layout === 'stack') {
-            css += bSel + ' .block-editor-block-list__layout{display:flex !important;flex-direction:column !important;align-items:stretch !important}';
-            css += bSel + ' .block-editor-block-list__layout > .wp-block,' + bSel + ' .block-editor-block-list__layout > .block-editor-block-list__block{width:100% !important}';
+            css += layoutSelectors + '{display:flex !important;flex-direction:column !important;flex-wrap:nowrap !important;align-items:stretch !important;}';
+            css += itemSelectors + '{width:100% !important;flex:0 0 auto !important;}';
+            css += bSel + ' .wp-block-button__link{width:100% !important;box-sizing:border-box !important;}';
         } else if (layout === 'grid') {
-            css += bSel + ' .block-editor-block-list__layout{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important}';
-            css += bSel + ' .block-editor-block-list__layout > .wp-block,' + bSel + ' .block-editor-block-list__layout > .block-editor-block-list__block{width:100% !important}';
+            css += layoutSelectors + '{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;align-items:stretch !important;}';
+            css += itemSelectors + '{width:100% !important;}';
+            css += bSel + ' .wp-block-button__link{width:100% !important;box-sizing:border-box !important;}';
         } else if (layout === 'featured') {
-            css += bSel + ' .block-editor-block-list__layout{display:flex !important;flex-direction:row !important;flex-wrap:wrap !important}';
-            css += bSel + ' .block-editor-block-list__layout > .wp-block:first-child,' + bSel + ' .block-editor-block-list__layout > .block-editor-block-list__block:first-child{flex:0 0 100% !important;width:100% !important}';
-            css += bSel + ' .block-editor-block-list__layout > .wp-block:not(:first-child),' + bSel + ' .block-editor-block-list__layout > .block-editor-block-list__block:not(:first-child){flex:1 1 0 !important;min-width:0;width:auto !important}';
+            css += layoutSelectors + '{display:flex !important;flex-direction:row !important;flex-wrap:wrap !important;align-items:stretch !important;}';
+            css += itemSelectors + '{flex:1 1 0 !important;min-width:0;width:auto !important;}';
+            css += [
+                bSel + ' > .wp-block-buttons > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block:first-child',
+                bSel + ' > .wp-block-buttons > .block-editor-block-list__layout > .wp-block:first-child',
+                bSel + ' > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block:first-child',
+                bSel + ' > .block-editor-block-list__layout > .wp-block:first-child',
+                bSel + ' > .wp-block-buttons > .wp-block-button:first-child'
+            ].join(',') + '{flex:0 0 100% !important;width:100% !important;}';
+            css += bSel + ' .wp-block-button__link{width:100% !important;box-sizing:border-box !important;}';
         }
 
         var widthMap = { narrow: '480px', standard: '720px', wide: '960px', full: '100%' };
@@ -945,7 +964,8 @@
         }
         if (widthVal) {
             var w = widthVal === '100%' ? '100%' : 'min(100%,' + widthVal + ')';
-            css += bSel + '{width:' + w + ' !important;max-width:' + w + ' !important;margin-left:auto !important;margin-right:auto !important}';
+            css += bSel + '{width:' + w + ' !important;max-width:' + w + ' !important;margin-left:auto !important;margin-right:auto !important;}';
+            css += bSel + ' > .wp-block-buttons{width:100% !important;max-width:100% !important;}';
         }
 
         return css;
@@ -1192,45 +1212,47 @@
                     if (!isButtonsBlock || !props.clientId) return;
                     var styleId = 'ajn-btn-preview-' + props.clientId;
                     var css = generateButtonPreviewCss(props.clientId, attrs);
+                    var mountedDocs = [];
 
-                    function editorDocuments() {
-                        var docs = [document];
-                        var frames = document.querySelectorAll('iframe');
-                        Array.prototype.forEach.call(frames, function(frame) {
-                            try {
-                                if (frame.contentDocument && frame.contentDocument.head) {
-                                    docs.push(frame.contentDocument);
-                                }
-                            } catch (e) {}
-                        });
-                        return docs;
-                    }
-
-                    function removePreviewStyles() {
-                        editorDocuments().forEach(function(doc) {
-                            var node = doc.getElementById(styleId);
-                            if (node && node.parentNode) {
-                                node.parentNode.removeChild(node);
-                            }
-                        });
-                    }
-
-                    if (!css) {
-                        removePreviewStyles();
-                        return;
-                    }
-
-                    editorDocuments().forEach(function(doc) {
-                        var el = doc.getElementById(styleId);
-                        if (!el) {
-                            el = doc.createElement('style');
-                            el.id = styleId;
-                            doc.head.appendChild(el);
+                    function upsertPreviewStyle(targetDoc) {
+                        if (!targetDoc || !targetDoc.head) {
+                            return;
                         }
+
+                        var el = targetDoc.getElementById(styleId);
+                        if (!css) {
+                            if (el && el.parentNode) {
+                                el.parentNode.removeChild(el);
+                            }
+                            return;
+                        }
+
+                        if (!el) {
+                            el = targetDoc.createElement('style');
+                            el.id = styleId;
+                            targetDoc.head.appendChild(el);
+                        }
+
                         el.textContent = css;
+                        mountedDocs.push(targetDoc);
+                    }
+
+                    upsertPreviewStyle(document);
+
+                    Array.prototype.slice.call(document.querySelectorAll('iframe')).forEach(function(frame) {
+                        try {
+                            upsertPreviewStyle(frame.contentDocument);
+                        } catch (e) {}
                     });
 
-                    return removePreviewStyles;
+                    return function() {
+                        mountedDocs.forEach(function(targetDoc) {
+                            var toRemove = targetDoc.getElementById(styleId);
+                            if (toRemove && toRemove.parentNode) {
+                                toRemove.parentNode.removeChild(toRemove);
+                            }
+                        });
+                    };
                 }, [isButtonsBlock, props.clientId, btnPreviewKey]);
 
                 if ('core/buttons' === props.name) {
