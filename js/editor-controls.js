@@ -889,13 +889,20 @@
         var bg          = safeColor(attrs.ajnBtnSharedBg);
         var color       = safeColor(attrs.ajnBtnSharedColor);
         var borderColor = safeColor(attrs.ajnBtnSharedBorderColor);
-        var hasScheme   = !!(attrs.ajnBtnStyle || attrs.ajnBtnScheme);
+        var hasOneColorScheme = !!(attrs.ajnBtnStyle || attrs.ajnBtnScheme || bg || borderColor);
+        var hasPerButtonColors = !!(attrs.ajnBtnColor1 || attrs.ajnBtnColor2 || attrs.ajnBtnColor3 || attrs.ajnBtnColor4 || attrs.ajnBtnColor5 || attrs.ajnBtnColor6);
 
-        if (hasScheme || bg || color || borderColor) {
+        /*
+         * Do not write background-color: initial for mixed schemes.
+         * Mixed schemes store colors in ajnBtnColor1..6, while ajnBtnSharedBg is empty.
+         * Writing a shared empty background makes the editor look white-on-white until
+         * every per-button selector wins, which is fragile across Gutenberg versions.
+         */
+        if (hasOneColorScheme || color) {
             css += linkSel + '{';
-            if (bg || hasScheme)           css += 'background-color:' + (bg || 'initial') + ' !important;';
-            if (color || hasScheme)        css += 'color:' + (color || 'inherit') + ' !important;';
-            if (borderColor || hasScheme)  css += 'border-color:' + (borderColor || 'transparent') + ' !important;border-style:solid !important;';
+            if (bg) css += 'background-color:' + bg + ' !important;';
+            if (color || hasOneColorScheme || hasPerButtonColors) css += 'color:' + (color || '#ffffff') + ' !important;';
+            if (borderColor || (hasOneColorScheme && bg)) css += 'border-color:' + (borderColor || bg || 'transparent') + ' !important;border-style:solid !important;';
             css += '}';
         }
 
@@ -925,7 +932,7 @@
                     bSel + ' > .wp-block-buttons > .wp-block-button:nth-child(' + i + ') .wp-block-button__link',
                     bSel + ' .block-editor-block-list__layout > [data-type="core/button"]:nth-child(' + i + ') .wp-block-button__link'
                 ].join(',');
-                css += childSelectors + '{background-color:' + btnColor + ' !important;border-color:' + btnColor + ' !important;border-style:solid !important;}';
+                css += childSelectors + '{background-color:' + btnColor + ' !important;color:' + (color || '#ffffff') + ' !important;border-color:' + btnColor + ' !important;border-style:solid !important;}';
             }
         }
 
