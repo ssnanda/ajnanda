@@ -4696,17 +4696,35 @@ add_action('wp_head', function (): void {
         '.menu-store-shortcuts',
     ]);
     $settings = ajnanda_get_menu_toggles();
-    $css  = ".ajnanda-panel-menu { z-index:145; max-width:min(260px, calc(100vw - 32px)); font-family:inherit; }\n";
-    $css .= ".ajnanda-panel-menu-floating { position:fixed; top:50%; transform:translateY(-50%); }\n";
-    $css .= ".ajnanda-left-panel-menu.ajnanda-panel-menu-floating { left:16px; }\n";
-    $css .= ".ajnanda-right-panel-menu.ajnanda-panel-menu-floating { right:16px; }\n";
-    $css .= "body.admin-bar .ajnanda-panel-menu-floating { margin-top:16px; }\n";
-    $css .= ".ajnanda-panel-menu-inline { position:static; margin:18px auto; }\n";
-    $css .= ".ajnanda-panel-menu-label { display:block; margin:0 0 6px; color:#4b5563; font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; }\n";
-    $css .= ".ajnanda-panel-menu-list { display:grid; gap:8px; margin:0; padding:0; list-style:none; }\n";
-    $css .= ".ajnanda-panel-menu-list ul { margin:8px 0 0 12px; padding:0; list-style:none; }\n";
-    $css .= ".ajnanda-panel-menu-list a { display:block; padding:10px 12px; border-radius:10px; background:rgba(255,255,255,0.96); border:1px solid rgba(17,24,39,0.12); color:#111827; text-decoration:none; box-shadow:0 10px 24px rgba(15,23,42,0.12); }\n";
-    $css .= ".ajnanda-panel-menu-list a:hover, .ajnanda-panel-menu-list a:focus { background:#111827; border-color:#111827; color:#ffffff; }\n";
+    $panel_width         = max(180, min(420, absint($settings['panel_menu_width'] ?? 270)));
+    $panel_font_size     = max(12, min(32, absint($settings['panel_menu_font_size'] ?? 19)));
+    $panel_radius        = max(0, min(48, absint($settings['panel_menu_radius'] ?? 22)));
+    $panel_primary       = sanitize_hex_color($settings['panel_menu_primary_color'] ?? '#2563eb') ?: '#2563eb';
+    $panel_primary_hover = sanitize_hex_color($settings['panel_menu_primary_hover_color'] ?? '#1d4ed8') ?: '#1d4ed8';
+    $panel_inner_radius  = max(0, $panel_radius - 6);
+    $css  = ".ajnanda-panel-menu { --ajn-panel-width: {$panel_width}px; --ajn-panel-font-size: {$panel_font_size}px; --ajn-panel-radius: {$panel_radius}px; --ajn-panel-inner-radius: {$panel_inner_radius}px; --ajn-panel-primary: {$panel_primary}; --ajn-panel-primary-hover: {$panel_primary_hover}; z-index:145; width:var(--ajn-panel-width); max-width:min(var(--ajn-panel-width), calc(100vw - 32px)); padding:20px; border-radius:var(--ajn-panel-radius); font-family:inherit; backdrop-filter:blur(12px); }\n";
+    $css .= ".ajnanda-panel-menu-floating { position:fixed; top:330px; }\n";
+    $css .= ".ajnanda-left-panel-menu.ajnanda-panel-menu-floating { left:max(16px, calc((100vw - 1200px) / 2 - 300px)); }\n";
+    $css .= ".ajnanda-right-panel-menu.ajnanda-panel-menu-floating { right:max(16px, calc((100vw - 1200px) / 2 - 300px)); }\n";
+    $css .= "body.admin-bar .ajnanda-panel-menu-floating { top:362px; }\n";
+    $css .= ".ajnanda-panel-menu-inline { position:static; margin:24px auto; }\n";
+    $css .= ".ajnanda-left-panel-menu { background:rgba(36,45,48,0.94); border:1px solid rgba(220,230,226,0.12); box-shadow:0 16px 36px rgba(0,0,0,0.18); }\n";
+    $css .= ".ajnanda-right-panel-menu { background:rgba(255,255,255,0.94); border:1px solid rgba(2,71,81,0.12); box-shadow:0 16px 36px rgba(2,71,81,0.12); }\n";
+    $css .= ".ajnanda-panel-menu-label { display:block; margin:0 0 12px; font-size:18px; font-weight:800; letter-spacing:0.12em; line-height:1.2; text-transform:uppercase; }\n";
+    $css .= ".ajnanda-left-panel-menu .ajnanda-panel-menu-label { color:#dce6e2; }\n";
+    $css .= ".ajnanda-right-panel-menu .ajnanda-panel-menu-label { color:#4b5563; }\n";
+    $css .= ".ajnanda-panel-menu-list, .ajnanda-panel-menu-list ul { display:grid; gap:10px; margin:0; padding:0; list-style:none; }\n";
+    $css .= ".ajnanda-panel-menu-list ul { margin-top:10px; padding-left:12px; }\n";
+    $css .= ".ajnanda-panel-menu-list a { display:block; padding:14px 16px; border-radius:var(--ajn-panel-inner-radius); font-weight:600; font-size:var(--ajn-panel-font-size); line-height:1.35; text-decoration:none; }\n";
+    $css .= ".ajnanda-panel-menu-list > li:first-child > a { margin-bottom:2px; padding:16px 18px; background:var(--ajn-panel-primary); border:1px solid var(--ajn-panel-primary); color:#ffffff; font-weight:700; line-height:1.2; text-align:center; }\n";
+    $css .= ".ajnanda-panel-menu-list > li:first-child > a:hover, .ajnanda-panel-menu-list > li:first-child > a:focus { background:var(--ajn-panel-primary-hover); border-color:var(--ajn-panel-primary-hover); color:#ffffff; }\n";
+    $css .= ".ajnanda-left-panel-menu .ajnanda-panel-menu-list li:not(:first-child) > a, .ajnanda-left-panel-menu .ajnanda-panel-menu-list ul a { background:#2d383b; border:1px solid rgba(220,230,226,0.08); color:#dce6e2; }\n";
+    $css .= ".ajnanda-left-panel-menu .ajnanda-panel-menu-list li:not(:first-child) > a:hover, .ajnanda-left-panel-menu .ajnanda-panel-menu-list li:not(:first-child) > a:focus { background:#37464a; border-color:rgba(147,197,253,0.22); color:#ffffff; }\n";
+    $css .= ".ajnanda-right-panel-menu .ajnanda-panel-menu-list li:not(:first-child) > a, .ajnanda-right-panel-menu .ajnanda-panel-menu-list ul a { background:#f8fbff; border:1px solid rgba(2,71,81,0.1); color:#0f172a; }\n";
+    $css .= ".ajnanda-right-panel-menu .ajnanda-panel-menu-list li:not(:first-child) > a:hover, .ajnanda-right-panel-menu .ajnanda-panel-menu-list li:not(:first-child) > a:focus { background:#eff6ff; border-color:rgba(37,99,235,0.24); color:var(--ajn-panel-primary-hover); }\n";
+    $css .= "@media (max-width:1200px) and (min-width:922px) { .ajnanda-left-panel-menu.ajnanda-panel-menu-floating { left:16px; } .ajnanda-right-panel-menu.ajnanda-panel-menu-floating { right:16px; } .ajnanda-panel-menu { --ajn-panel-width:min({$panel_width}px, 230px); } }\n";
+    $css .= "@media (min-width:768px) and (max-width:921px) { .ajnanda-panel-menu-floating { top:220px; } .ajnanda-left-panel-menu.ajnanda-panel-menu-floating { left:16px; } .ajnanda-right-panel-menu.ajnanda-panel-menu-floating { right:16px; } }\n";
+    $css .= "@media (max-width:767px) { .ajnanda-panel-menu-floating, body.admin-bar .ajnanda-panel-menu-floating { position:static; width:auto; max-width:none; margin:24px 16px; } }\n";
 
     if (!ajnanda_menu_toggle_enabled('top_navigation')) {
         $css .= "$nav { display:none !important; }\n";
