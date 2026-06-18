@@ -336,27 +336,40 @@ function ajnanda_updater_admin_menu() {
 }
 add_action('admin_menu', 'ajnanda_updater_admin_menu');
 
+function ajnanda_updater_make_menu_item_direct_update(): void {
+    global $submenu;
+
+    if (empty($submenu['themes.php']) || !is_array($submenu['themes.php'])) {
+        return;
+    }
+
+    foreach ($submenu['themes.php'] as $index => $item) {
+        if (empty($item[2]) || 'ajnanda-theme-updater' !== $item[2]) {
+            continue;
+        }
+
+        $submenu['themes.php'][$index][2] = ajnanda_updater_update_now_url();
+        break;
+    }
+}
+add_action('admin_menu', 'ajnanda_updater_make_menu_item_direct_update', 999);
+
 function ajnanda_updater_admin_menu_child_style() {
     ?>
     <style>
-        #adminmenu .wp-submenu a[href="themes.php?page=ajnanda-theme-updater"] {
+        #adminmenu .wp-submenu a[href*="ajnanda_theme_update_now"] {
             position: relative;
             padding-left: 28px !important;
             font-size: 12px;
             opacity: 0.86;
         }
 
-        #adminmenu .wp-submenu a[href="themes.php?page=ajnanda-theme-updater"]::before {
+        #adminmenu .wp-submenu a[href*="ajnanda_theme_update_now"]::before {
             content: "↳";
             position: absolute;
             left: 14px;
             color: currentColor;
             opacity: 0.65;
-        }
-
-        #adminmenu .wp-submenu a[href="themes.php?page=ajnanda-theme-updater"].current {
-            opacity: 1;
-            font-weight: 600;
         }
     </style>
     <?php
@@ -570,7 +583,7 @@ function ajnanda_updater_admin_page() {
             <div>
                 <p class="ajnanda-update-eyebrow">AJNanda Theme Updater</p>
                 <h1>Update AJNanda</h1>
-                <p>Check the latest GitHub release, confirm the expected ZIP asset, clear WordPress update cache, and launch the normal WordPress theme update flow from one clean screen.</p>
+                <p>Check the latest GitHub release, confirm the expected ZIP asset, clear WordPress update cache, and run the AJNanda theme update directly from one clean screen.</p>
             </div>
             <div class="ajnanda-update-status <?php echo esc_attr($status_class); ?>">
                 <strong><?php echo esc_html($status_label); ?></strong>
