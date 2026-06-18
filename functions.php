@@ -32,13 +32,25 @@ function ajnanda_setup() {
     add_theme_support('custom-background');
     add_theme_support('customize-selective-refresh-widgets');
     
-    // Register navigation menus — Primary and Footer always on
-    // Optional panel menus (Left/Right Floater) are registered by site-level plugins
-    // that check the ajnanda_left_panel_enabled / ajnanda_right_panel_enabled theme mods
-    register_nav_menus(array(
+    // Register navigation menus — Primary and Footer always on.
+    $menus = array(
         'primary' => __('Primary Menu', 'ajnanda'),
         'footer'  => __('Footer Menu', 'ajnanda'),
-    ));
+    );
+
+    $panel_settings = function_exists('ajnanda_get_menu_toggles') ? ajnanda_get_menu_toggles() : array();
+    if (!empty($panel_settings['left_panel_enabled'])) {
+        $menus['office_shortcuts'] = !empty($panel_settings['left_panel_label'])
+            ? $panel_settings['left_panel_label']
+            : __('Left Floater Panel', 'ajnanda');
+    }
+    if (!empty($panel_settings['right_panel_enabled'])) {
+        $menus['store_shortcuts'] = !empty($panel_settings['right_panel_label'])
+            ? $panel_settings['right_panel_label']
+            : __('Right Floater Panel', 'ajnanda');
+    }
+
+    register_nav_menus($menus);
 }
 add_action('after_setup_theme', 'ajnanda_setup');
 
@@ -4191,11 +4203,13 @@ function ajnanda_menu_toggle_defaults(): array {
         'office_shortcuts_tablet'        => 0,
         'office_shortcuts_mobile'        => 0,
         'office_shortcuts_mode'          => 'floating',
+        'office_shortcuts_exclude_urls'  => '',
         'store_shortcuts'                => 1,
         'store_shortcuts_desktop'        => 1,
         'store_shortcuts_tablet'         => 0,
         'store_shortcuts_mobile'         => 0,
         'store_shortcuts_mode'           => 'floating',
+        'store_shortcuts_exclude_urls'   => '',
         'theme_toggle'                   => 1,
         'theme_toggle_desktop'           => 1,
         'theme_toggle_tablet'            => 0,
@@ -4268,6 +4282,41 @@ function ajnanda_menu_toggle_visibility_classes(string $prefix): string {
     return implode(' ', $classes);
 }
 
+function ajnanda_menu_toggle_url_matches_patterns(string $patterns): bool {
+    if ('' === trim($patterns)) {
+        return false;
+    }
+
+    $request_uri  = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])) : '/';
+    $request_path = wp_parse_url($request_uri, PHP_URL_PATH);
+    $request_path = '/' . trim((string) $request_path, '/');
+    if ('/' !== $request_path) {
+        $request_path = untrailingslashit($request_path);
+    }
+
+    foreach (preg_split('/\r\n|\r|\n/', $patterns) as $pattern) {
+        $pattern = trim((string) $pattern);
+        if ('' === $pattern) {
+            continue;
+        }
+
+        $pattern_path = wp_parse_url($pattern, PHP_URL_PATH);
+        $pattern_path = null === $pattern_path ? $pattern : $pattern_path;
+        $pattern_path = '/' . trim((string) $pattern_path, '/');
+        if ('/' !== $pattern_path) {
+            $pattern_path = untrailingslashit($pattern_path);
+        }
+
+        $quoted = preg_quote($pattern_path, '#');
+        $regex  = '#^' . str_replace('\*', '.*', $quoted) . '$#';
+        if (preg_match($regex, $request_path)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function ajnanda_render_menu_device_checkboxes(string $prefix, array $settings): void {
     $option = AJNANDA_MENU_TOGGLES_OPTION;
     $labels = [
@@ -4291,6 +4340,21 @@ function ajnanda_render_menu_device_checkboxes(string $prefix, array $settings):
     <?php
 }
 
+function ajnanda_render_menu_exclude_urls_field(string $prefix, array $settings): void {
+    $option = AJNANDA_MENU_TOGGLES_OPTION;
+    ?>
+    <p style="margin-top:10px;">
+        <label for="<?php echo esc_attr("ajnanda-{$prefix}-exclude-urls"); ?>"><strong><?php esc_html_e('Hide on URL paths:', 'ajnanda'); ?></strong></label>
+        <textarea
+            id="<?php echo esc_attr("ajnanda-{$prefix}-exclude-urls"); ?>"
+            name="<?php echo esc_attr($option); ?>[<?php echo esc_attr("{$prefix}_exclude_urls"); ?>]"
+            rows="3"
+            style="display:block;width:100%;max-width:520px;margin-top:6px;"><?php echo esc_textarea($settings["{$prefix}_exclude_urls"] ?? ''); ?></textarea>
+        <span style="display:block;margin-top:4px;color:#646970;font-size:12px;"><?php esc_html_e('One path per line. Use * as a wildcard, for example /client-portal* or /client-portal/*.', 'ajnanda'); ?></span>
+    </p>
+    <?php
+}
+
 add_action('admin_init', function (): void {
     register_setting(
         'ajnanda_menu_toggles',
@@ -4304,6 +4368,15 @@ add_action('admin_init', function (): void {
                 foreach (array_keys($defaults) as $key) {
                     if (in_array($key, ['left_panel_label', 'right_panel_label'], true)) {
                         $sanitized[$key] = sanitize_text_field($value[$key] ?? $defaults[$key]);
+                        continue;
+                    }
+                    if (str_ends_with($key, '_exclude_urls')) {
+                        $lines = preg_split('/\r\n|\r|\n/', (string) ($value[$key] ?? ''));
+                        $lines = array_filter(array_map(static function ($line): string {
+                            return sanitize_text_field(trim((string) $line));
+                        }, is_array($lines) ? $lines : []));
+
+                        $sanitized[$key] = implode("\n", $lines);
                         continue;
                     }
                     if (str_ends_with($key, '_mode')) {
@@ -4402,6 +4475,7 @@ add_action('admin_footer-nav-menus.php', function (): void {
                                 <label style="margin-right:16px;"><input type="radio" name="<?php echo esc_attr($option); ?>[office_shortcuts_mode]" value="floating" <?php checked(($settings['office_shortcuts_mode'] ?? 'floating') === 'floating'); ?>> <?php esc_html_e('Floating', 'ajnanda'); ?></label>
                                 <label><input type="radio" name="<?php echo esc_attr($option); ?>[office_shortcuts_mode]" value="inline" <?php checked(($settings['office_shortcuts_mode'] ?? 'floating') === 'inline'); ?>> <?php esc_html_e('Inline / non-floating', 'ajnanda'); ?></label>
                             </p>
+                            <?php ajnanda_render_menu_exclude_urls_field('office_shortcuts', $settings); ?>
                         </td>
                     </tr>
                     <tr>
@@ -4418,6 +4492,7 @@ add_action('admin_footer-nav-menus.php', function (): void {
                                 <label style="margin-right:16px;"><input type="radio" name="<?php echo esc_attr($option); ?>[store_shortcuts_mode]" value="floating" <?php checked(($settings['store_shortcuts_mode'] ?? 'floating') === 'floating'); ?>> <?php esc_html_e('Floating', 'ajnanda'); ?></label>
                                 <label><input type="radio" name="<?php echo esc_attr($option); ?>[store_shortcuts_mode]" value="inline" <?php checked(($settings['store_shortcuts_mode'] ?? 'floating') === 'inline'); ?>> <?php esc_html_e('Inline / non-floating', 'ajnanda'); ?></label>
                             </p>
+                            <?php ajnanda_render_menu_exclude_urls_field('store_shortcuts', $settings); ?>
                         </td>
                     </tr>
                     <tr>
@@ -4478,6 +4553,31 @@ add_action('admin_footer-nav-menus.php', function (): void {
 add_action('wp_head', function (): void {
     $nav  = '.main-navigation, .ajn-builder-cell-primary-menu, #mobile-menu-toggle';
     $foot = '.ajn-builder-cell-footer-menu, .site-footer .nav-menu';
+    $left_panel = implode(', ', [
+        '.upos-office-shortcuts',
+        '.upos-left-panel',
+        '.upos-floating-left',
+        '.ajnanda-left-panel-menu',
+        '.ajnanda-left-floating-panel',
+        '.left-panel-menu',
+        '.left-floating-panel',
+        '.floating-panel-left',
+        '.office-shortcuts',
+        '.menu-office-shortcuts',
+    ]);
+    $right_panel = implode(', ', [
+        '.upos-store-shortcuts',
+        '.upos-right-panel',
+        '.upos-floating-right',
+        '.ajnanda-right-panel-menu',
+        '.ajnanda-right-floating-panel',
+        '.right-panel-menu',
+        '.right-floating-panel',
+        '.floating-panel-right',
+        '.store-shortcuts',
+        '.menu-store-shortcuts',
+    ]);
+    $settings = ajnanda_get_menu_toggles();
     $css  = '';
 
     if (!ajnanda_menu_toggle_enabled('top_navigation')) {
@@ -4516,6 +4616,42 @@ add_action('wp_head', function (): void {
 
     if (ajnanda_menu_toggle_enabled('bottom_navigation_sticky')) {
         $css .= ".ajn-builder-cell-footer-menu { position:fixed; left:50%; bottom:16px; transform:translateX(-50%); z-index:140; padding:10px 18px; border-radius:999px; background:rgba(36,45,48,0.92); border:1px solid rgba(220,230,226,0.1); box-shadow:0 18px 34px rgba(3,19,22,0.28); backdrop-filter:blur(12px); }\n";
+    }
+
+    if (
+        !ajnanda_menu_toggle_enabled('left_panel_enabled')
+        || !ajnanda_menu_toggle_enabled('office_shortcuts')
+        || ajnanda_menu_toggle_url_matches_patterns((string) ($settings['office_shortcuts_exclude_urls'] ?? ''))
+    ) {
+        $css .= "$left_panel { display:none !important; }\n";
+    } else {
+        if (!ajnanda_menu_toggle_visible_on_device('office_shortcuts', 'desktop')) {
+            $css .= "@media (min-width:922px) { $left_panel { display:none !important; } }\n";
+        }
+        if (!ajnanda_menu_toggle_visible_on_device('office_shortcuts', 'tablet')) {
+            $css .= "@media (min-width:768px) and (max-width:921px) { $left_panel { display:none !important; } }\n";
+        }
+        if (!ajnanda_menu_toggle_visible_on_device('office_shortcuts', 'mobile')) {
+            $css .= "@media (max-width:767px) { $left_panel { display:none !important; } }\n";
+        }
+    }
+
+    if (
+        !ajnanda_menu_toggle_enabled('right_panel_enabled')
+        || !ajnanda_menu_toggle_enabled('store_shortcuts')
+        || ajnanda_menu_toggle_url_matches_patterns((string) ($settings['store_shortcuts_exclude_urls'] ?? ''))
+    ) {
+        $css .= "$right_panel { display:none !important; }\n";
+    } else {
+        if (!ajnanda_menu_toggle_visible_on_device('store_shortcuts', 'desktop')) {
+            $css .= "@media (min-width:922px) { $right_panel { display:none !important; } }\n";
+        }
+        if (!ajnanda_menu_toggle_visible_on_device('store_shortcuts', 'tablet')) {
+            $css .= "@media (min-width:768px) and (max-width:921px) { $right_panel { display:none !important; } }\n";
+        }
+        if (!ajnanda_menu_toggle_visible_on_device('store_shortcuts', 'mobile')) {
+            $css .= "@media (max-width:767px) { $right_panel { display:none !important; } }\n";
+        }
     }
 
     if (!ajnanda_menu_toggle_enabled('theme_toggle')) {
