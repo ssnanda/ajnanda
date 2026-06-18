@@ -72,6 +72,30 @@ add_action('after_setup_theme', function (): void {
     }
 }, 5);
 
+add_action('after_setup_theme', function (): void {
+    $locations = get_theme_mod('nav_menu_locations', []);
+    if (!is_array($locations)) {
+        return;
+    }
+
+    $changed = false;
+    $legacy_locations = [
+        'upos_office_shortcuts' => 'office_shortcuts',
+        'upos_store_shortcuts'  => 'store_shortcuts',
+    ];
+
+    foreach ($legacy_locations as $legacy => $current) {
+        if (empty($locations[$current]) && !empty($locations[$legacy])) {
+            $locations[$current] = $locations[$legacy];
+            $changed = true;
+        }
+    }
+
+    if ($changed) {
+        set_theme_mod('nav_menu_locations', $locations);
+    }
+}, 11);
+
 /**
  * Enqueue scripts and styles
  */
@@ -87,9 +111,11 @@ function ajnanda_asset_version($relative_path) {
 function ajnanda_scripts() {
     // Enqueue main stylesheet
     wp_enqueue_style('ajnanda-pro-style', get_stylesheet_uri(), array(), ajnanda_asset_version('style.css'));
+    wp_enqueue_style('ajnanda-theme-toggle', get_theme_file_uri('css/theme-toggle.css'), array(), ajnanda_asset_version('css/theme-toggle.css'));
     
     // Enqueue custom JavaScript
     wp_enqueue_script('ajnanda-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), ajnanda_asset_version('js/main.js'), true);
+    wp_enqueue_script('ajnanda-theme-toggle', get_theme_file_uri('js/theme-toggle.js'), array(), ajnanda_asset_version('js/theme-toggle.js'), true);
     
     // Localize script
     wp_localize_script('ajnanda-pro-script', 'ajnandaData', array(
@@ -4405,10 +4431,13 @@ function ajnanda_render_panel_menu(string $location, string $prefix, string $sid
     }
 
     $mode    = ajnanda_menu_toggle_mode($prefix);
+    $upos_prefix = 'left' === $side ? 'upos-office-shortcuts' : 'upos-store-shortcuts';
     $classes = array_filter([
         'ajnanda-panel-menu',
         "ajnanda-{$side}-panel-menu",
         "ajnanda-{$side}-floating-panel",
+        $upos_prefix,
+        "{$upos_prefix}--{$mode}",
         "{$side}-panel-menu",
         "{$side}-floating-panel",
         "floating-panel-{$side}",
@@ -4451,6 +4480,129 @@ function ajnanda_render_panel_menus(): void {
     );
 }
 add_action('wp_footer', 'ajnanda_render_panel_menus', 18);
+
+function ajnanda_render_theme_toggle_markup(): void {
+    $settings = ajnanda_get_menu_toggles();
+    if (empty($settings['theme_toggle'])) {
+        return;
+    }
+
+    $mode = $settings['theme_toggle_mode'] ?? 'floating';
+    $is_inline = 'inline' === $mode || 'sticky' === $mode;
+    $mode_class = $is_inline ? 'upos-theme-toggle--inline' : 'upos-theme-toggle--floating';
+    $position = $is_inline
+        ? ($settings['theme_toggle_inline_position'] ?? 'bottom_right')
+        : ($settings['theme_toggle_floating_position'] ?? 'bottom_right');
+    $positions = [
+        'top_left'     => 'upos-theme-toggle--top-left',
+        'top_right'    => 'upos-theme-toggle--top-right',
+        'bottom_left'  => 'upos-theme-toggle--bottom-left',
+        'bottom_right' => 'upos-theme-toggle--bottom-right',
+    ];
+    $position_class = $positions[$position] ?? $positions['bottom_right'];
+
+    ob_start();
+    ?>
+    <div class="upos-theme-toggle <?php echo esc_attr($mode_class . ($is_inline ? '' : ' ' . $position_class)); ?>" aria-live="polite">
+        <span class="upos-theme-toggle__label"><?php esc_html_e('Dark Theme', 'ajnanda'); ?></span>
+        <button
+            type="button"
+            class="upos-theme-toggle__button"
+            aria-pressed="false"
+            aria-label="<?php esc_attr_e('Toggle dark theme', 'ajnanda'); ?>"
+        >
+            <span class="upos-theme-toggle__track">
+                <span class="upos-theme-toggle__thumb"></span>
+            </span>
+            <span class="upos-theme-toggle__state"><?php esc_html_e('Off', 'ajnanda'); ?></span>
+        </button>
+    </div>
+    <?php
+    $markup = trim((string) ob_get_clean());
+
+    if ($is_inline) {
+        ?>
+        <div class="upos-theme-toggle-anchor upos-theme-toggle-anchor--inline <?php echo esc_attr($position_class); ?>">
+            <?php echo $markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+        </div>
+        <?php
+        return;
+    }
+
+    echo $markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+}
+
+add_action('wp_head', function (): void {
+    $settings = ajnanda_get_menu_toggles();
+    $allow_mobile_toggle = !empty($settings['theme_toggle_mobile']);
+    ?>
+    <script>
+        (() => {
+            window.UPOS_THEME_TOGGLE_ALLOW_MOBILE = <?php echo $allow_mobile_toggle ? 'true' : 'false'; ?>;
+            const storageKey = 'upos-theme-mode';
+            const storage = (() => {
+                try {
+                    return window.sessionStorage;
+                } catch (error) {
+                    return null;
+                }
+            })();
+            const isMobileViewport = window.matchMedia('(max-width: 921px)').matches;
+            const allowMobileToggle = <?php echo $allow_mobile_toggle ? 'true' : 'false'; ?>;
+            let savedMode = null;
+            try {
+                if (window.localStorage) {
+                    window.localStorage.removeItem(storageKey);
+                }
+            } catch (error) {}
+
+            try {
+                savedMode = storage ? storage.getItem(storageKey) : null;
+            } catch (error) {
+                savedMode = null;
+            }
+
+            const root = document.documentElement;
+            if (!root) {
+                return;
+            }
+
+            const useLight = (isMobileViewport && !allowMobileToggle) || savedMode !== 'dark';
+            root.classList.toggle('upos-theme-light', useLight);
+            root.setAttribute('data-upos-theme', useLight ? 'light' : 'dark');
+        })();
+    </script>
+    <?php
+}, 1);
+
+add_action('wp_body_open', function (): void {
+    $settings = ajnanda_get_menu_toggles();
+    if (empty($settings['theme_toggle'])) {
+        return;
+    }
+
+    $mode = $settings['theme_toggle_mode'] ?? 'floating';
+    $position = $settings['theme_toggle_inline_position'] ?? 'bottom_right';
+    if (('inline' === $mode || 'sticky' === $mode) && str_starts_with($position, 'top_')) {
+        ajnanda_render_theme_toggle_markup();
+    }
+});
+
+add_action('wp_footer', function (): void {
+    $settings = ajnanda_get_menu_toggles();
+    if (empty($settings['theme_toggle'])) {
+        return;
+    }
+
+    $mode = $settings['theme_toggle_mode'] ?? 'floating';
+    $position = 'floating' === $mode
+        ? ($settings['theme_toggle_floating_position'] ?? 'bottom_right')
+        : ($settings['theme_toggle_inline_position'] ?? 'bottom_right');
+
+    if ('floating' === $mode || str_starts_with($position, 'bottom_')) {
+        ajnanda_render_theme_toggle_markup();
+    }
+}, 19);
 
 add_action('admin_init', function (): void {
     register_setting(
