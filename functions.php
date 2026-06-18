@@ -4210,6 +4210,11 @@ function ajnanda_menu_toggle_defaults(): array {
         'store_shortcuts_mobile'         => 0,
         'store_shortcuts_mode'           => 'floating',
         'store_shortcuts_exclude_urls'   => '',
+        'panel_menu_width'               => 270,
+        'panel_menu_font_size'           => 19,
+        'panel_menu_radius'              => 22,
+        'panel_menu_primary_color'       => '#2563eb',
+        'panel_menu_primary_hover_color' => '#1d4ed8',
         'theme_toggle'                   => 1,
         'theme_toggle_desktop'           => 1,
         'theme_toggle_tablet'            => 0,
@@ -4355,6 +4360,35 @@ function ajnanda_render_menu_exclude_urls_field(string $prefix, array $settings)
     <?php
 }
 
+function ajnanda_render_panel_menu_style_fields(array $settings): void {
+    $option = AJNANDA_MENU_TOGGLES_OPTION;
+    ?>
+    <p style="margin-top:8px;color:#646970;"><?php esc_html_e('Shared styling for the left and right floating panel menus.', 'ajnanda'); ?></p>
+    <p style="display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;">
+        <label>
+            <?php esc_html_e('Width (px)', 'ajnanda'); ?><br>
+            <input type="number" min="180" max="420" step="1" name="<?php echo esc_attr($option); ?>[panel_menu_width]" value="<?php echo esc_attr((int) ($settings['panel_menu_width'] ?? 270)); ?>" style="width:110px;">
+        </label>
+        <label>
+            <?php esc_html_e('Font size (px)', 'ajnanda'); ?><br>
+            <input type="number" min="12" max="32" step="1" name="<?php echo esc_attr($option); ?>[panel_menu_font_size]" value="<?php echo esc_attr((int) ($settings['panel_menu_font_size'] ?? 19)); ?>" style="width:110px;">
+        </label>
+        <label>
+            <?php esc_html_e('Corner radius (px)', 'ajnanda'); ?><br>
+            <input type="number" min="0" max="48" step="1" name="<?php echo esc_attr($option); ?>[panel_menu_radius]" value="<?php echo esc_attr((int) ($settings['panel_menu_radius'] ?? 22)); ?>" style="width:110px;">
+        </label>
+        <label>
+            <?php esc_html_e('Primary color', 'ajnanda'); ?><br>
+            <input type="color" name="<?php echo esc_attr($option); ?>[panel_menu_primary_color]" value="<?php echo esc_attr($settings['panel_menu_primary_color'] ?? '#2563eb'); ?>">
+        </label>
+        <label>
+            <?php esc_html_e('Primary hover', 'ajnanda'); ?><br>
+            <input type="color" name="<?php echo esc_attr($option); ?>[panel_menu_primary_hover_color]" value="<?php echo esc_attr($settings['panel_menu_primary_hover_color'] ?? '#1d4ed8'); ?>">
+        </label>
+    </p>
+    <?php
+}
+
 function ajnanda_render_panel_menu(string $location, string $prefix, string $side, string $label): void {
     $settings = ajnanda_get_menu_toggles();
 
@@ -4440,6 +4474,21 @@ add_action('admin_init', function (): void {
                         }, is_array($lines) ? $lines : []));
 
                         $sanitized[$key] = implode("\n", $lines);
+                        continue;
+                    }
+                    if (in_array($key, ['panel_menu_width', 'panel_menu_font_size', 'panel_menu_radius'], true)) {
+                        $limits = [
+                            'panel_menu_width'     => [180, 420],
+                            'panel_menu_font_size' => [12, 32],
+                            'panel_menu_radius'    => [0, 48],
+                        ];
+                        $number = absint($value[$key] ?? $defaults[$key]);
+                        $sanitized[$key] = max($limits[$key][0], min($limits[$key][1], $number));
+                        continue;
+                    }
+                    if (in_array($key, ['panel_menu_primary_color', 'panel_menu_primary_hover_color'], true)) {
+                        $color = sanitize_hex_color($value[$key] ?? $defaults[$key]);
+                        $sanitized[$key] = $color ?: $defaults[$key];
                         continue;
                     }
                     if (str_ends_with($key, '_mode')) {
@@ -4564,6 +4613,12 @@ add_action('admin_footer-nav-menus.php', function (): void {
                             <label><input type="checkbox" name="<?php echo esc_attr($option); ?>[bottom_navigation]" value="1" <?php checked(!empty($settings['bottom_navigation'])); ?>> <?php esc_html_e('Show the footer menu', 'ajnanda'); ?></label>
                             <?php ajnanda_render_menu_device_checkboxes('bottom_navigation', $settings); ?>
                             <p style="margin-top:8px;"><label><input type="checkbox" name="<?php echo esc_attr($option); ?>[bottom_navigation_sticky]" value="1" <?php checked(!empty($settings['bottom_navigation_sticky'])); ?>> <?php esc_html_e('Keep the footer menu visible at the bottom of the screen', 'ajnanda'); ?></label></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><strong><?php esc_html_e('Panel Menu Style', 'ajnanda'); ?></strong></th>
+                        <td>
+                            <?php ajnanda_render_panel_menu_style_fields($settings); ?>
                         </td>
                     </tr>
                     <tr>
