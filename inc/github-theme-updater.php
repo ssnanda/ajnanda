@@ -225,6 +225,47 @@ function ajnanda_updater_force_check_now() {
     return ajnanda_updater_update_payload(true);
 }
 
+function ajnanda_updater_run_direct_theme_update() {
+    $payload = ajnanda_updater_force_check_now();
+
+    if (!$payload) {
+        return new WP_Error('ajnanda_no_update', 'AJNanda is already up to date, or no valid update ZIP was found.');
+    }
+
+    if (!class_exists('Theme_Upgrader')) {
+        require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+    }
+
+    if (!function_exists('request_filesystem_credentials')) {
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+    }
+
+    $skin     = new Automatic_Upgrader_Skin();
+    $upgrader = new Theme_Upgrader($skin);
+    $result   = $upgrader->upgrade(ajnanda_updater_theme_slug());
+
+    ajnanda_updater_clear_all_update_cache();
+
+    if (is_wp_error($result)) {
+        return $result;
+    }
+
+    if (is_wp_error($skin->result)) {
+        return $skin->result;
+    }
+
+    if (false === $result || null === $result) {
+        $error = $skin->get_errors();
+        if (is_wp_error($error) && $error->has_errors()) {
+            return $error;
+        }
+
+        return new WP_Error('ajnanda_update_failed', 'WordPress could not complete the AJNanda theme update.');
+    }
+
+    return true;
+}
+
 function ajnanda_updater_handle_admin_action() {
     if (!current_user_can('manage_options')) {
         wp_die('You do not have permission to manage theme updates.');
@@ -267,24 +308,18 @@ function ajnanda_updater_handle_update_now() {
 
     check_admin_referer('ajnanda_theme_update_now');
 
-    $payload = ajnanda_updater_force_check_now();
+    $result = ajnanda_updater_run_direct_theme_update();
 
-    if (!$payload) {
-        ajnanda_updater_redirect_to_theme_update('no-update');
+    if (is_wp_error($result)) {
+        if ('ajnanda_no_update' === $result->get_error_code()) {
+            ajnanda_updater_redirect_to_theme_update('no-update');
+        }
+
+        set_transient('ajnanda_update_error_message', $result->get_error_message(), MINUTE_IN_SECONDS);
+        ajnanda_updater_redirect_to_theme_update('update-failed');
     }
 
-    $theme_slug = ajnanda_updater_theme_slug();
-    $update_url = add_query_arg(
-        array(
-            'action'   => 'upgrade-theme',
-            'theme'    => $theme_slug,
-            '_wpnonce' => wp_create_nonce('upgrade-theme_' . $theme_slug),
-        ),
-        admin_url('update.php')
-    );
-
-    wp_safe_redirect($update_url);
-    exit;
+    ajnanda_updater_redirect_to_theme_update('updated');
 }
 add_action('admin_post_ajnanda_theme_update_now', 'ajnanda_updater_handle_update_now');
 
@@ -521,6 +556,12 @@ function ajnanda_updater_admin_page() {
             <div class="notice notice-success"><p>AJNanda update cache cleared.</p></div>
         <?php elseif ('force-checked' === $message) : ?>
             <div class="notice notice-success"><p>AJNanda update check completed.</p></div>
+        <?php elseif ('updated' === $message) : ?>
+            <div class="notice notice-success"><p>AJNanda was updated successfully.</p></div>
+        <?php elseif ('update-failed' === $message) : ?>
+            <?php $error_message = get_transient('ajnanda_update_error_message'); ?>
+            <?php delete_transient('ajnanda_update_error_message'); ?>
+            <div class="notice notice-error"><p><?php echo esc_html($error_message ?: 'AJNanda update failed.'); ?></p></div>
         <?php elseif ('no-update' === $message) : ?>
             <div class="notice notice-info"><p>AJNanda is already up to date, or no valid update ZIP was found.</p></div>
         <?php endif; ?>
