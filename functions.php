@@ -4355,6 +4355,69 @@ function ajnanda_render_menu_exclude_urls_field(string $prefix, array $settings)
     <?php
 }
 
+function ajnanda_render_panel_menu(string $location, string $prefix, string $side, string $label): void {
+    $settings = ajnanda_get_menu_toggles();
+
+    if (empty($settings["{$side}_panel_enabled"]) || empty($settings[$prefix])) {
+        return;
+    }
+
+    if (ajnanda_menu_toggle_url_matches_patterns((string) ($settings["{$prefix}_exclude_urls"] ?? ''))) {
+        return;
+    }
+
+    if (!has_nav_menu($location)) {
+        return;
+    }
+
+    $mode    = ajnanda_menu_toggle_mode($prefix);
+    $classes = array_filter([
+        'ajnanda-panel-menu',
+        "ajnanda-{$side}-panel-menu",
+        "ajnanda-{$side}-floating-panel",
+        "{$side}-panel-menu",
+        "{$side}-floating-panel",
+        "floating-panel-{$side}",
+        str_replace('_', '-', $prefix),
+        "menu-" . str_replace('_', '-', $prefix),
+        "ajnanda-panel-menu-{$mode}",
+        ajnanda_menu_toggle_visibility_classes($prefix),
+    ]);
+    ?>
+    <nav class="<?php echo esc_attr(implode(' ', $classes)); ?>" aria-label="<?php echo esc_attr($label); ?>">
+        <span class="ajnanda-panel-menu-label"><?php echo esc_html($label); ?></span>
+        <?php
+        wp_nav_menu(array(
+            'theme_location' => $location,
+            'menu_class'     => 'ajnanda-panel-menu-list',
+            'container'      => false,
+            'fallback_cb'    => false,
+            'depth'          => 2,
+        ));
+        ?>
+    </nav>
+    <?php
+}
+
+function ajnanda_render_panel_menus(): void {
+    $settings = ajnanda_get_menu_toggles();
+
+    ajnanda_render_panel_menu(
+        'office_shortcuts',
+        'office_shortcuts',
+        'left',
+        (string) ($settings['left_panel_label'] ?? __('Left Floater Panel', 'ajnanda'))
+    );
+
+    ajnanda_render_panel_menu(
+        'store_shortcuts',
+        'store_shortcuts',
+        'right',
+        (string) ($settings['right_panel_label'] ?? __('Right Floater Panel', 'ajnanda'))
+    );
+}
+add_action('wp_footer', 'ajnanda_render_panel_menus', 18);
+
 add_action('admin_init', function (): void {
     register_setting(
         'ajnanda_menu_toggles',
@@ -4578,7 +4641,17 @@ add_action('wp_head', function (): void {
         '.menu-store-shortcuts',
     ]);
     $settings = ajnanda_get_menu_toggles();
-    $css  = '';
+    $css  = ".ajnanda-panel-menu { z-index:145; max-width:min(260px, calc(100vw - 32px)); font-family:inherit; }\n";
+    $css .= ".ajnanda-panel-menu-floating { position:fixed; top:50%; transform:translateY(-50%); }\n";
+    $css .= ".ajnanda-left-panel-menu.ajnanda-panel-menu-floating { left:16px; }\n";
+    $css .= ".ajnanda-right-panel-menu.ajnanda-panel-menu-floating { right:16px; }\n";
+    $css .= "body.admin-bar .ajnanda-panel-menu-floating { margin-top:16px; }\n";
+    $css .= ".ajnanda-panel-menu-inline { position:static; margin:18px auto; }\n";
+    $css .= ".ajnanda-panel-menu-label { display:block; margin:0 0 6px; color:#4b5563; font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; }\n";
+    $css .= ".ajnanda-panel-menu-list { display:grid; gap:8px; margin:0; padding:0; list-style:none; }\n";
+    $css .= ".ajnanda-panel-menu-list ul { margin:8px 0 0 12px; padding:0; list-style:none; }\n";
+    $css .= ".ajnanda-panel-menu-list a { display:block; padding:10px 12px; border-radius:10px; background:rgba(255,255,255,0.96); border:1px solid rgba(17,24,39,0.12); color:#111827; text-decoration:none; box-shadow:0 10px 24px rgba(15,23,42,0.12); }\n";
+    $css .= ".ajnanda-panel-menu-list a:hover, .ajnanda-panel-menu-list a:focus { background:#111827; border-color:#111827; color:#ffffff; }\n";
 
     if (!ajnanda_menu_toggle_enabled('top_navigation')) {
         $css .= "$nav { display:none !important; }\n";
