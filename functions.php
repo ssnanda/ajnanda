@@ -111,11 +111,15 @@ function ajnanda_asset_version($relative_path) {
 function ajnanda_scripts() {
     // Enqueue main stylesheet
     wp_enqueue_style('ajnanda-pro-style', get_stylesheet_uri(), array(), ajnanda_asset_version('style.css'));
-    wp_enqueue_style('ajnanda-theme-toggle', get_theme_file_uri('css/theme-toggle.css'), array(), ajnanda_asset_version('css/theme-toggle.css'));
+    if (!function_exists('upos_render_theme_toggle_markup')) {
+        wp_enqueue_style('ajnanda-theme-toggle', get_theme_file_uri('css/theme-toggle.css'), array(), ajnanda_asset_version('css/theme-toggle.css'));
+    }
     
     // Enqueue custom JavaScript
     wp_enqueue_script('ajnanda-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), ajnanda_asset_version('js/main.js'), true);
-    wp_enqueue_script('ajnanda-theme-toggle', get_theme_file_uri('js/theme-toggle.js'), array(), ajnanda_asset_version('js/theme-toggle.js'), true);
+    if (!function_exists('upos_render_theme_toggle_markup')) {
+        wp_enqueue_script('ajnanda-theme-toggle', get_theme_file_uri('js/theme-toggle.js'), array(), ajnanda_asset_version('js/theme-toggle.js'), true);
+    }
     
     // Localize script
     wp_localize_script('ajnanda-pro-script', 'ajnandaData', array(
@@ -4418,6 +4422,13 @@ function ajnanda_render_panel_menu_style_fields(array $settings): void {
 function ajnanda_render_panel_menu(string $location, string $prefix, string $side, string $label): void {
     $settings = ajnanda_get_menu_toggles();
 
+    if ('left' === $side && function_exists('upos_get_office_shortcuts_data')) {
+        return;
+    }
+    if ('right' === $side && function_exists('upos_get_store_shortcuts_data')) {
+        return;
+    }
+
     if (empty($settings["{$side}_panel_enabled"]) || empty($settings[$prefix])) {
         return;
     }
@@ -4431,13 +4442,10 @@ function ajnanda_render_panel_menu(string $location, string $prefix, string $sid
     }
 
     $mode    = ajnanda_menu_toggle_mode($prefix);
-    $upos_prefix = 'left' === $side ? 'upos-office-shortcuts' : 'upos-store-shortcuts';
     $classes = array_filter([
         'ajnanda-panel-menu',
         "ajnanda-{$side}-panel-menu",
         "ajnanda-{$side}-floating-panel",
-        $upos_prefix,
-        "{$upos_prefix}--{$mode}",
         "{$side}-panel-menu",
         "{$side}-floating-panel",
         "floating-panel-{$side}",
@@ -4448,7 +4456,9 @@ function ajnanda_render_panel_menu(string $location, string $prefix, string $sid
     ]);
     ?>
     <nav class="<?php echo esc_attr(implode(' ', $classes)); ?>" aria-label="<?php echo esc_attr($label); ?>">
-        <span class="ajnanda-panel-menu-label"><?php echo esc_html($label); ?></span>
+        <?php if ('right' === $side) : ?>
+            <span class="ajnanda-panel-menu-label"><?php echo esc_html($label); ?></span>
+        <?php endif; ?>
         <?php
         wp_nav_menu(array(
             'theme_location' => $location,
@@ -4482,6 +4492,10 @@ function ajnanda_render_panel_menus(): void {
 add_action('wp_footer', 'ajnanda_render_panel_menus', 18);
 
 function ajnanda_render_theme_toggle_markup(): void {
+    if (function_exists('upos_render_theme_toggle_markup')) {
+        return;
+    }
+
     $settings = ajnanda_get_menu_toggles();
     if (empty($settings['theme_toggle'])) {
         return;
@@ -4533,6 +4547,10 @@ function ajnanda_render_theme_toggle_markup(): void {
 }
 
 add_action('wp_head', function (): void {
+    if (function_exists('upos_render_theme_toggle_markup')) {
+        return;
+    }
+
     $settings = ajnanda_get_menu_toggles();
     $allow_mobile_toggle = !empty($settings['theme_toggle_mobile']);
     ?>
@@ -4576,6 +4594,10 @@ add_action('wp_head', function (): void {
 }, 1);
 
 add_action('wp_body_open', function (): void {
+    if (function_exists('upos_render_theme_toggle_markup')) {
+        return;
+    }
+
     $settings = ajnanda_get_menu_toggles();
     if (empty($settings['theme_toggle'])) {
         return;
@@ -4589,6 +4611,10 @@ add_action('wp_body_open', function (): void {
 });
 
 add_action('wp_footer', function (): void {
+    if (function_exists('upos_render_theme_toggle_markup')) {
+        return;
+    }
+
     $settings = ajnanda_get_menu_toggles();
     if (empty($settings['theme_toggle'])) {
         return;
