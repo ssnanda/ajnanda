@@ -30,6 +30,11 @@ get_header(); ?>
                 break;
             }
         }
+
+        $page_content_section_classes = array('page-content-section');
+        if (ajnanda_has_leading_builder_hero_content($content)) {
+            $page_content_section_classes[] = 'has-leading-hero-content';
+        }
         ?>
         <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
             <?php if ($has_builder_sections) : ?>
@@ -44,7 +49,7 @@ get_header(); ?>
                     ?>
                 </div>
             <?php else : ?>
-            <section class="page-content-section">
+            <section class="<?php echo esc_attr(implode(' ', $page_content_section_classes)); ?>">
                 <div class="container">
                     <div class="entry-content page-content-panel">
                     <?php

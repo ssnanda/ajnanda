@@ -627,6 +627,41 @@ function ajnanda_split_leading_builder_hero($content) {
 }
 
 /**
+ * Check whether page content begins with a builder hero, optionally preceded by
+ * editor-visible spacer blocks that control the above-hero gap per page.
+ */
+function ajnanda_has_leading_builder_hero_content($content) {
+    if (!function_exists('parse_blocks')) {
+        return false;
+    }
+
+    $blocks = parse_blocks($content);
+    if (empty($blocks)) {
+        return false;
+    }
+
+    foreach ($blocks as $block) {
+        $block_name = isset($block['blockName']) ? (string) $block['blockName'] : '';
+        $inner_html = isset($block['innerHTML']) ? trim((string) $block['innerHTML']) : '';
+
+        if ('' === $block_name && '' === $inner_html) {
+            continue;
+        }
+
+        if ('core/spacer' === $block_name) {
+            continue;
+        }
+
+        $class_name = isset($block['attrs']['className']) ? (string) $block['attrs']['className'] : '';
+
+        return false !== strpos($class_name, 'builder-hero-section')
+            || false !== strpos($inner_html, 'builder-hero-section');
+    }
+
+    return false;
+}
+
+/**
  * Check whether a saved block layout attribute has a meaningful value.
  */
 function ajnanda_has_block_layout_value($block, $keys) {
