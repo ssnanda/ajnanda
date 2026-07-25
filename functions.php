@@ -111,16 +111,10 @@ function ajnanda_asset_version($relative_path) {
 function ajnanda_scripts() {
     // Enqueue main stylesheet
     wp_enqueue_style('ajnanda-pro-style', get_stylesheet_uri(), array(), ajnanda_asset_version('style.css'));
-    if (!function_exists('upos_render_theme_toggle_markup')) {
-        wp_enqueue_style('ajnanda-theme-toggle', get_theme_file_uri('css/theme-toggle.css'), array(), ajnanda_asset_version('css/theme-toggle.css'));
-    }
-    
+
     // Enqueue custom JavaScript
     wp_enqueue_script('ajnanda-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), ajnanda_asset_version('js/main.js'), true);
-    if (!function_exists('upos_render_theme_toggle_markup')) {
-        wp_enqueue_script('ajnanda-theme-toggle', get_theme_file_uri('js/theme-toggle.js'), array(), ajnanda_asset_version('js/theme-toggle.js'), true);
-    }
-    
+
     // Localize script
     wp_localize_script('ajnanda-pro-script', 'ajnandaData', array(
         'ajaxurl' => admin_url('admin-ajax.php'),
@@ -4280,13 +4274,6 @@ function ajnanda_menu_toggle_defaults(): array {
         'panel_menu_radius'              => 22,
         'panel_menu_primary_color'       => '#2563eb',
         'panel_menu_primary_hover_color' => '#1d4ed8',
-        'theme_toggle'                   => 1,
-        'theme_toggle_desktop'           => 1,
-        'theme_toggle_tablet'            => 0,
-        'theme_toggle_mobile'            => 0,
-        'theme_toggle_mode'              => 'floating',
-        'theme_toggle_floating_position' => 'bottom_right',
-        'theme_toggle_inline_position'   => 'bottom_right',
     ];
 }
 
@@ -4526,145 +4513,6 @@ function ajnanda_render_panel_menus(): void {
 }
 add_action('wp_footer', 'ajnanda_render_panel_menus', 18);
 
-function ajnanda_render_theme_toggle_markup(): void {
-    if (function_exists('upos_render_theme_toggle_markup')) {
-        return;
-    }
-
-    $settings = ajnanda_get_menu_toggles();
-    if (empty($settings['theme_toggle'])) {
-        return;
-    }
-
-    $mode = $settings['theme_toggle_mode'] ?? 'floating';
-    $is_inline = 'inline' === $mode || 'sticky' === $mode;
-    $mode_class = $is_inline ? 'upos-theme-toggle--inline' : 'upos-theme-toggle--floating';
-    $position = $is_inline
-        ? ($settings['theme_toggle_inline_position'] ?? 'bottom_right')
-        : ($settings['theme_toggle_floating_position'] ?? 'bottom_right');
-    $positions = [
-        'top_left'     => 'upos-theme-toggle--top-left',
-        'top_right'    => 'upos-theme-toggle--top-right',
-        'bottom_left'  => 'upos-theme-toggle--bottom-left',
-        'bottom_right' => 'upos-theme-toggle--bottom-right',
-    ];
-    $position_class = $positions[$position] ?? $positions['bottom_right'];
-
-    ob_start();
-    ?>
-    <div class="upos-theme-toggle <?php echo esc_attr($mode_class . ($is_inline ? '' : ' ' . $position_class)); ?>" aria-live="polite">
-        <span class="upos-theme-toggle__label"><?php esc_html_e('Dark Theme', 'ajnanda'); ?></span>
-        <button
-            type="button"
-            class="upos-theme-toggle__button"
-            aria-pressed="false"
-            aria-label="<?php esc_attr_e('Toggle dark theme', 'ajnanda'); ?>"
-        >
-            <span class="upos-theme-toggle__track">
-                <span class="upos-theme-toggle__thumb"></span>
-            </span>
-            <span class="upos-theme-toggle__state"><?php esc_html_e('Off', 'ajnanda'); ?></span>
-        </button>
-    </div>
-    <?php
-    $markup = trim((string) ob_get_clean());
-
-    if ($is_inline) {
-        ?>
-        <div class="upos-theme-toggle-anchor upos-theme-toggle-anchor--inline <?php echo esc_attr($position_class); ?>">
-            <?php echo $markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-        </div>
-        <?php
-        return;
-    }
-
-    echo $markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-}
-
-add_action('wp_head', function (): void {
-    if (function_exists('upos_render_theme_toggle_markup')) {
-        return;
-    }
-
-    $settings = ajnanda_get_menu_toggles();
-    $allow_mobile_toggle = !empty($settings['theme_toggle_mobile']);
-    ?>
-    <script>
-        (() => {
-            window.UPOS_THEME_TOGGLE_ALLOW_MOBILE = <?php echo $allow_mobile_toggle ? 'true' : 'false'; ?>;
-            const storageKey = 'upos-theme-mode';
-            const storage = (() => {
-                try {
-                    return window.sessionStorage;
-                } catch (error) {
-                    return null;
-                }
-            })();
-            const isMobileViewport = window.matchMedia('(max-width: 921px)').matches;
-            const allowMobileToggle = <?php echo $allow_mobile_toggle ? 'true' : 'false'; ?>;
-            let savedMode = null;
-            try {
-                if (window.localStorage) {
-                    window.localStorage.removeItem(storageKey);
-                }
-            } catch (error) {}
-
-            try {
-                savedMode = storage ? storage.getItem(storageKey) : null;
-            } catch (error) {
-                savedMode = null;
-            }
-
-            const root = document.documentElement;
-            if (!root) {
-                return;
-            }
-
-            const useLight = (isMobileViewport && !allowMobileToggle) || savedMode !== 'dark';
-            root.classList.toggle('upos-theme-light', useLight);
-            root.setAttribute('data-upos-theme', useLight ? 'light' : 'dark');
-        })();
-    </script>
-    <?php
-}, 1);
-
-add_action('wp_body_open', function (): void {
-    if (function_exists('upos_render_theme_toggle_markup')) {
-        return;
-    }
-
-    $settings = ajnanda_get_menu_toggles();
-    if (empty($settings['theme_toggle'])) {
-        return;
-    }
-
-    $mode = $settings['theme_toggle_mode'] ?? 'floating';
-    $position = $settings['theme_toggle_inline_position'] ?? 'bottom_right';
-    if (('inline' === $mode || 'sticky' === $mode) && str_starts_with($position, 'top_')) {
-        ajnanda_render_theme_toggle_markup();
-    }
-});
-
-add_action('wp_footer', function (): void {
-    if (function_exists('upos_render_theme_toggle_markup')) {
-        return;
-    }
-
-    $settings = ajnanda_get_menu_toggles();
-    if (empty($settings['theme_toggle'])) {
-        return;
-    }
-
-    $mode = $settings['theme_toggle_mode'] ?? 'floating';
-    $position = 'floating' === $mode
-        ? ($settings['theme_toggle_floating_position'] ?? 'bottom_right')
-        : ($settings['theme_toggle_inline_position'] ?? 'bottom_right');
-
-    if ('floating' === $mode || str_starts_with($position, 'bottom_')) {
-        ajnanda_render_theme_toggle_markup();
-    }
-}, 19);
-
 add_action('admin_init', function (): void {
     register_setting(
         'ajnanda_menu_toggles',
@@ -4706,12 +4554,6 @@ add_action('admin_init', function (): void {
                     }
                     if (str_ends_with($key, '_mode')) {
                         $sanitized[$key] = ($value[$key] ?? 'floating') === 'inline' ? 'inline' : 'floating';
-                        continue;
-                    }
-                    if (in_array($key, ['theme_toggle_floating_position', 'theme_toggle_inline_position'], true)) {
-                        $allowed         = ['top_left', 'top_right', 'bottom_left', 'bottom_right'];
-                        $pos             = $value[$key] ?? 'bottom_right';
-                        $sanitized[$key] = in_array($pos, $allowed, true) ? $pos : 'bottom_right';
                         continue;
                     }
                     $sanitized[$key] = empty($value[$key]) ? 0 : 1;
@@ -4832,34 +4674,6 @@ add_action('admin_footer-nav-menus.php', function (): void {
                         <th scope="row"><strong><?php esc_html_e('Panel Menu Style', 'ajnanda'); ?></strong></th>
                         <td>
                             <?php ajnanda_render_panel_menu_style_fields($settings); ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><strong><?php esc_html_e('Dark Theme Toggle', 'ajnanda'); ?></strong></th>
-                        <td>
-                            <label><input type="checkbox" name="<?php echo esc_attr($option); ?>[theme_toggle]" value="1" <?php checked(!empty($settings['theme_toggle'])); ?>> <?php esc_html_e('Show the dark theme toggle', 'ajnanda'); ?></label>
-                            <?php ajnanda_render_menu_device_checkboxes('theme_toggle', $settings); ?>
-                            <p style="margin-top:8px;">
-                                <label style="margin-right:16px;"><input type="radio" name="<?php echo esc_attr($option); ?>[theme_toggle_mode]" value="floating" <?php checked(($settings['theme_toggle_mode'] ?? 'floating') === 'floating'); ?>> <?php esc_html_e('Floating (fixed on scroll)', 'ajnanda'); ?></label>
-                                <label><input type="radio" name="<?php echo esc_attr($option); ?>[theme_toggle_mode]" value="inline" <?php checked(($settings['theme_toggle_mode'] ?? 'floating') === 'inline'); ?>> <?php esc_html_e('Inline / non-floating', 'ajnanda'); ?></label>
-                            </p>
-                            <p style="margin-top:10px;">
-                                <label style="margin-right:10px;"><?php esc_html_e('Floating position', 'ajnanda'); ?></label>
-                                <select name="<?php echo esc_attr($option); ?>[theme_toggle_floating_position]">
-                                    <?php foreach ($positions as $val => $lbl) : ?>
-                                        <option value="<?php echo esc_attr($val); ?>" <?php selected($settings['theme_toggle_floating_position'] ?? 'bottom_right', $val); ?>><?php echo esc_html($lbl); ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </p>
-                            <p style="margin-top:8px;">
-                                <label style="margin-right:10px;"><?php esc_html_e('Inline position', 'ajnanda'); ?></label>
-                                <select name="<?php echo esc_attr($option); ?>[theme_toggle_inline_position]">
-                                    <?php foreach ($positions as $val => $lbl) : ?>
-                                        <option value="<?php echo esc_attr($val); ?>" <?php selected($settings['theme_toggle_inline_position'] ?? 'bottom_right', $val); ?>><?php echo esc_html($lbl); ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </p>
-                            <p style="margin-top:4px;color:#646970;font-size:12px;"><?php esc_html_e('Choose floating and inline positions separately.', 'ajnanda'); ?></p>
                         </td>
                     </tr>
                 </tbody>
@@ -5010,20 +4824,6 @@ add_action('wp_head', function (): void {
         }
         if (!ajnanda_menu_toggle_visible_on_device('store_shortcuts', 'mobile')) {
             $css .= "@media (max-width:767px) { $right_panel { display:none !important; } }\n";
-        }
-    }
-
-    if (!ajnanda_menu_toggle_enabled('theme_toggle')) {
-        $css .= ".upos-theme-toggle { display:none !important; }\n";
-    } else {
-        if (!ajnanda_menu_toggle_visible_on_device('theme_toggle', 'desktop')) {
-            $css .= "@media (min-width:922px) { .upos-theme-toggle { display:none !important; } }\n";
-        }
-        if (!ajnanda_menu_toggle_visible_on_device('theme_toggle', 'tablet')) {
-            $css .= "@media (min-width:768px) and (max-width:921px) { .upos-theme-toggle { display:none !important; } }\n";
-        }
-        if (!ajnanda_menu_toggle_visible_on_device('theme_toggle', 'mobile')) {
-            $css .= "@media (max-width:767px) { .upos-theme-toggle { display:none !important; } }\n";
         }
     }
 
