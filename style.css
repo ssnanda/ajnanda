@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.1.81
+Version: 1.1.82
 License: GNU General Public License v2 or later
 Text Domain: ajnanda
 */
@@ -168,11 +168,12 @@ body.admin-bar .site-header {
     font-size: var(--ajn-header-font-size);
     font-weight: var(--ajn-header-font-weight);
     font-style: var(--ajn-header-font-style);
-    color: var(--ajn-header-text-color);
+    color: var(--ajn-header-text-color) !important;
     text-decoration: var(--ajn-header-text-decoration);
     padding: 0.5rem 1rem;
     border-radius: 0.5rem;
     white-space: nowrap;
+    opacity: 1 !important;
 }
 
 .nav-menu a:hover {
