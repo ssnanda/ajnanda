@@ -595,6 +595,34 @@
         ];
     }
 
+    function galleryControls(props) {
+        var attrs = props.attributes;
+
+        return gridControls(props).concat([
+            el(ToggleControl, {
+                label: __('Enable lightbox on click', 'ajnanda'),
+                help: __('Applies to every photo in this gallery.', 'ajnanda'),
+                checked: attrs.lightbox !== false,
+                onChange: function(value) { props.setAttributes({ lightbox: value }); }
+            })
+        ]);
+    }
+
+    function collectNestedImageBlocks(block, found) {
+        found = found || [];
+        if (!block || !block.innerBlocks) {
+            return found;
+        }
+        for (var i = 0; i < block.innerBlocks.length; i++) {
+            var inner = block.innerBlocks[i];
+            if (inner.name === 'core/image') {
+                found.push(inner);
+            }
+            collectNestedImageBlocks(inner, found);
+        }
+        return found;
+    }
+
     function galleryWrapperStyle(attrs) {
         var style = blockStyle(attrs);
         style['--wp--style--unstable-gallery-gap'] = (attrs.gap || 20) + 'px';
@@ -623,7 +651,8 @@
             attributes: withStyleAttributes({
                 className: { type: 'string' },
                 columns: { type: 'number', default: 3 },
-                gap: { type: 'number', default: 20 }
+                gap: { type: 'number', default: 20 },
+                lightbox: { type: 'boolean', default: true }
             }),
             edit: function(props) {
                 var attrs = props.attributes;
@@ -648,11 +677,21 @@
                         if (innerGallery.attributes.columns !== columns) {
                             dispatch('core/block-editor').updateBlockAttributes(innerGallery.clientId, { columns: columns });
                         }
-                    }, [innerGallery, attrs.columns]);
+
+                        var wantLightbox = attrs.lightbox !== false;
+                        var images = collectNestedImageBlocks(innerGallery);
+                        for (var i = 0; i < images.length; i++) {
+                            var current = images[i].attributes.lightbox;
+                            var currentEnabled = !!(current && current.enabled);
+                            if (currentEnabled !== wantLightbox) {
+                                dispatch('core/block-editor').updateBlockAttributes(images[i].clientId, { lightbox: { enabled: wantLightbox } });
+                            }
+                        }
+                    }, [innerGallery, attrs.columns, attrs.lightbox]);
                 }
 
                 return el(Fragment, {},
-                    inspector(controlsWithCommon(props, gridControls(props))),
+                    inspector(controlsWithCommon(props, galleryControls(props))),
                     el('div', galleryStyledProps('aj-gallery', attrs, attrs.className),
                         el(InnerBlocks, {
                             template: [['core/gallery', { columns: attrs.columns || 3 }]],
