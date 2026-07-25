@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.1.82
+Version: 1.1.83
 License: GNU General Public License v2 or later
 Text Domain: ajnanda
 */
@@ -1479,6 +1479,28 @@ body.admin-bar .site-header {
 @media (min-width: 1200px) {
     .page-content-panel {
         max-width: min(860px, calc(100vw - 572px));
+    }
+}
+
+/* Full-width "builder canvas" templates (e.g. post grids) have no side
+   constraint of their own, so on wide screens their content runs edge to
+   edge and ends up underneath the fixed left/right floating panels. Reserve
+   the same side space .page-content-panel uses, just with a wider cap. */
+.posts-page-content > :not(.alignfull) {
+    max-width: min(1400px, calc(100vw - 36px));
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media (min-width: 922px) and (max-width: 1199px) {
+    .posts-page-content > :not(.alignfull) {
+        max-width: min(1400px, calc(100vw - 510px));
+    }
+}
+
+@media (min-width: 1200px) {
+    .posts-page-content > :not(.alignfull) {
+        max-width: min(1400px, calc(100vw - 572px));
     }
 }
 
