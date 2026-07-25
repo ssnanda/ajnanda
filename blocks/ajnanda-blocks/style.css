@@ -194,11 +194,20 @@
 }
 
 .aj-grid,
-.aj-posts,
-.aj-gallery {
+.aj-posts {
     display: grid;
     grid-template-columns: repeat(var(--aj-columns, auto-fit), minmax(220px, 1fr));
     gap: 1.25rem;
+}
+
+/*
+ * .aj-gallery wraps a single nested core/gallery block, so it is not a grid
+ * container itself - the photo grid comes from that inner block, which reads
+ * --wp--style--unstable-gallery-gap for spacing and its own columns-N class
+ * (kept in sync with this wrapper's Columns control by the block's JS).
+ */
+.aj-gallery {
+    width: 100%;
 }
 
 .aj-card,

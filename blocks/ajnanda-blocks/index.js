@@ -10,6 +10,7 @@
     var createBlock = wp.blocks.createBlock;
     var dispatch = wp.data && wp.data.dispatch;
     var useSelect = wp.data && wp.data.useSelect;
+    var useEffect = wp.element.useEffect;
     var InspectorControls = wp.blockEditor.InspectorControls;
     var InnerBlocks = wp.blockEditor.InnerBlocks;
     var MediaUpload = wp.blockEditor.MediaUpload;
@@ -592,6 +593,80 @@
             el(RangeControl, { label: __('Columns', 'ajnanda'), min: 1, max: 6, value: attrs.columns || 3, onChange: function(value) { props.setAttributes({ columns: value }); } }),
             el(RangeControl, { label: __('Gap', 'ajnanda'), min: 0, max: 80, value: attrs.gap || 20, onChange: function(value) { props.setAttributes({ gap: value }); } })
         ];
+    }
+
+    function galleryWrapperStyle(attrs) {
+        var style = blockStyle(attrs);
+        style['--wp--style--unstable-gallery-gap'] = (attrs.gap || 20) + 'px';
+        return style;
+    }
+
+    function galleryStyledProps(className, attrs, extraClass) {
+        var props = styledProps(className, attrs, extraClass);
+        props.style = galleryWrapperStyle(attrs);
+        return props;
+    }
+
+    // The actual photo grid comes from the nested core/gallery block, so the
+    // Columns control here only has visible effect once it is pushed onto
+    // that inner block's own `columns` attribute (WordPress renders columns
+    // as a literal `columns-N` class, not something a wrapper style can set).
+    // Gap can be set purely via CSS variable inheritance, since core/gallery's
+    // own stylesheet reads --wp--style--unstable-gallery-gap.
+    function registerGalleryBlock(name, title, description) {
+        registerBlockType(name, {
+            title: title,
+            description: description,
+            category: category,
+            icon: 'format-gallery',
+            supports: { align: ['wide', 'full'], anchor: true },
+            attributes: withStyleAttributes({
+                className: { type: 'string' },
+                columns: { type: 'number', default: 3 },
+                gap: { type: 'number', default: 20 }
+            }),
+            edit: function(props) {
+                var attrs = props.attributes;
+                var clientId = props.clientId;
+                var innerGallery = useSelect ? useSelect(function(select) {
+                    var block = select('core/block-editor').getBlock(clientId);
+                    var innerBlocks = block && block.innerBlocks ? block.innerBlocks : [];
+                    for (var i = 0; i < innerBlocks.length; i++) {
+                        if (innerBlocks[i].name === 'core/gallery') {
+                            return innerBlocks[i];
+                        }
+                    }
+                    return null;
+                }, [clientId]) : null;
+
+                if (useEffect) {
+                    useEffect(function() {
+                        if (!innerGallery || !dispatch) {
+                            return;
+                        }
+                        var columns = attrs.columns || 3;
+                        if (innerGallery.attributes.columns !== columns) {
+                            dispatch('core/block-editor').updateBlockAttributes(innerGallery.clientId, { columns: columns });
+                        }
+                    }, [innerGallery, attrs.columns]);
+                }
+
+                return el(Fragment, {},
+                    inspector(controlsWithCommon(props, gridControls(props))),
+                    el('div', galleryStyledProps('aj-gallery', attrs, attrs.className),
+                        el(InnerBlocks, {
+                            template: [['core/gallery', { columns: attrs.columns || 3 }]],
+                            templateLock: false,
+                            allowedBlocks: ['core/gallery']
+                        })
+                    )
+                );
+            },
+            save: function(props) {
+                var attrs = props.attributes;
+                return el('div', galleryStyledProps('aj-gallery', attrs, classNames(attrs.className)), el(InnerBlocks.Content));
+            }
+        });
     }
 
     function segmentedOptionContent(option) {
@@ -1767,8 +1842,8 @@
         },
         className: function(attrs) { return 'aj-media-' + attrs.iconPosition; }
     });
-    registerContainerBlock('ajnanda/basic-gallery', __('AJ Basic Gallery', 'ajnanda'), __('Simple image gallery wrapper.', 'ajnanda'), 'aj-gallery', [['core/gallery']], { attributes: { columns: { type: 'number', default: 3 }, gap: { type: 'number', default: 16 } }, controls: gridControls });
-    registerContainerBlock('ajnanda/image-gallery', __('AJ Image Gallery', 'ajnanda'), __('Simple image gallery wrapper.', 'ajnanda'), 'aj-gallery', [['core/gallery']], { attributes: { columns: { type: 'number', default: 3 }, gap: { type: 'number', default: 16 } }, controls: gridControls });
+    registerGalleryBlock('ajnanda/basic-gallery', __('AJ Basic Gallery', 'ajnanda'), __('Image gallery with adjustable columns and gap.', 'ajnanda'));
+    registerGalleryBlock('ajnanda/image-gallery', __('AJ Image Gallery', 'ajnanda'), __('Image gallery with adjustable columns and gap.', 'ajnanda'));
     registerBlockType('ajnanda/icon-list', {
         title: __('AJ Icon List', 'ajnanda'),
         description: __('Create a list highlighted with icons or images.', 'ajnanda'),
