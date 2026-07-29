@@ -54,7 +54,9 @@ $page_intro = strip_tags($page_intro);
                             <?php endif; ?>
 
                             <div class="blog-card-content">
+                                <?php if (get_theme_mod('post_meta_show_date', true)) : ?>
                                 <div class="blog-card-date"><?php echo esc_html(get_the_date()); ?></div>
+                                <?php endif; ?>
                                 <?php the_title('<h2 class="blog-card-title"><a href="' . esc_url(get_permalink()) . '">', '</a></h2>'); ?>
                                 <p><?php echo esc_html(wp_trim_words(get_the_excerpt(), 24)); ?></p>
                                 <a class="blog-card-link" href="<?php the_permalink(); ?>">

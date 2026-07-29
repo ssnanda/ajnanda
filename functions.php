@@ -2966,6 +2966,37 @@ function ajnanda_customize_register($wp_customize) {
         ));
     }
     
+    // ── Post Meta Display ───────────────────────────────────────────────────
+    // Theme-native replacement for the "WP Meta and Date Remover" plugin — same three toggles
+    // (date / author / read time), read via get_theme_mod() at the render sites in single.php and
+    // the blog listing date in index.php, instead of a third-party plugin filtering output at
+    // runtime. Defaults all true so removing the old plugin (which showed everything by default
+    // too) doesn't change what's currently on the site until someone actually unchecks one.
+    $wp_customize->add_section('ajnanda_post_meta', array(
+        'title'    => __('Post Meta Display', 'ajnanda'),
+        'priority' => 27,
+    ));
+
+    $post_meta_toggles = array(
+        'post_meta_show_date'      => __('Show Date', 'ajnanda'),
+        'post_meta_show_author'    => __('Show Author', 'ajnanda'),
+        'post_meta_show_read_time' => __('Show Read Time', 'ajnanda'),
+    );
+
+    foreach ($post_meta_toggles as $setting_id => $label) {
+        $wp_customize->add_setting($setting_id, array(
+            'default'           => true,
+            'sanitize_callback' => 'ajnanda_sanitize_checkbox',
+            'transport'         => 'refresh',
+        ));
+
+        $wp_customize->add_control($setting_id, array(
+            'label'   => $label,
+            'section' => 'ajnanda_post_meta',
+            'type'    => 'checkbox',
+        ));
+    }
+
     // Add live preview JavaScript
     if ($wp_customize->is_preview()) {
         add_action('wp_footer', 'ajnanda_customizer_live_preview', 21);
