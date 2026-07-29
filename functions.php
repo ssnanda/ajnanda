@@ -2970,8 +2970,8 @@ function ajnanda_customize_register($wp_customize) {
     // Theme-native replacement for the "WP Meta and Date Remover" plugin — same three toggles
     // (date / author / read time), read via get_theme_mod() at the render sites in single.php and
     // the blog listing date in index.php, instead of a third-party plugin filtering output at
-    // runtime. Defaults all true so removing the old plugin (which showed everything by default
-    // too) doesn't change what's currently on the site until someone actually unchecks one.
+    // runtime. Defaults all false (unchecked/hidden) — explicit decision to match the site's
+    // actual desired state (author/date/read-time hidden), matching what the old plugin enforced.
     $wp_customize->add_section('ajnanda_post_meta', array(
         'title'    => __('Post Meta Display', 'ajnanda'),
         'priority' => 27,
@@ -2985,7 +2985,7 @@ function ajnanda_customize_register($wp_customize) {
 
     foreach ($post_meta_toggles as $setting_id => $label) {
         $wp_customize->add_setting($setting_id, array(
-            'default'           => true,
+            'default'           => false,
             'sanitize_callback' => 'ajnanda_sanitize_checkbox',
             'transport'         => 'refresh',
         ));

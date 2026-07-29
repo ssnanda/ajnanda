@@ -17,12 +17,12 @@ get_header(); ?>
                 <header class="entry-header">
                     <h1 class="entry-title"><?php the_title(); ?></h1>
                     <div class="entry-meta">
-                        <?php if (get_theme_mod('post_meta_show_date', true)) : ?>
+                        <?php if (get_theme_mod('post_meta_show_date', false)) : ?>
                         <time class="entry-date" datetime="<?php echo esc_attr(get_the_date('c')); ?>">
                             <?php echo esc_html(get_the_date()); ?>
                         </time>
                         <?php endif; ?>
-                        <?php if (get_theme_mod('post_meta_show_author', true)) : ?>
+                        <?php if (get_theme_mod('post_meta_show_author', false)) : ?>
                         <span class="entry-author">
                             <?php
                             printf(
@@ -33,7 +33,7 @@ get_header(); ?>
                             ?>
                         </span>
                         <?php endif; ?>
-                        <?php if (get_theme_mod('post_meta_show_read_time', true)) :
+                        <?php if (get_theme_mod('post_meta_show_read_time', false)) :
                         $word_count = str_word_count(wp_strip_all_tags(get_the_content()));
                         $read_time  = max(1, (int) ceil($word_count / 200));
                         printf(
@@ -88,7 +88,7 @@ get_header(); ?>
                 // Author bio
                 $author_id          = get_the_author_meta('ID');
                 $author_description = get_the_author_meta('description');
-                if ($author_description && get_theme_mod('post_meta_show_author', true)) :
+                if ($author_description && get_theme_mod('post_meta_show_author', false)) :
                 ?>
                 <div class="author-bio">
                     <div class="author-bio-avatar">
@@ -128,7 +128,7 @@ get_header(); ?>
                                 <?php endif; ?>
                             </div>
                             <div class="related-post-info">
-                                <?php if (get_theme_mod('post_meta_show_date', true)) : ?>
+                                <?php if (get_theme_mod('post_meta_show_date', false)) : ?>
                                 <div class="related-post-date"><?php echo esc_html(get_the_date()); ?></div>
                                 <?php endif; ?>
                                 <p class="related-post-title"><?php the_title(); ?></p>
