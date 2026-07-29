@@ -4262,6 +4262,7 @@ function ajnanda_register_block_patterns() {
 add_action('init', 'ajnanda_register_block_patterns');
 require_once get_template_directory() . '/inc/github-theme-updater.php';
 require_once get_template_directory() . '/inc/duplicate-content.php';
+require_once get_template_directory() . '/inc/seo.php';
 require_once get_template_directory() . '/blocks/ajnanda-blocks/loader.php';
 
 // =============================================================================
