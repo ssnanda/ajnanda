@@ -243,6 +243,7 @@
         'hero-width-standard',
         'hero-width-wide',
         'hero-text-left',
+        'hero-text-right',
         'builder-section',
         'builder-section-soft',
         'builder-card',
@@ -261,6 +262,30 @@
         'hero-width-narrow',
         'hero-width-standard',
         'hero-width-wide'
+    ];
+
+    var HERO_TEXT_CLASSES = [
+        'hero-text-left',
+        'hero-text-right'
+    ];
+
+    var SECTION_WIDTH_CLASSES = [
+        'section-width-standard',
+        'section-width-wide',
+        'section-width-full'
+    ];
+
+    var SECTION_CONTENT_ALIGN_CLASSES = [
+        'has-content-align-left',
+        'has-content-align-center',
+        'has-content-align-right'
+    ];
+
+    var SECTION_DIVIDER_CLASSES = [
+        'section-divider-angle-top',
+        'section-divider-angle-bottom',
+        'section-divider-curve-top',
+        'section-divider-curve-bottom'
     ];
 
     function removeClasses(className, classes) {
@@ -388,11 +413,102 @@
         return className;
     }
 
+    function getHeroTextAlign(className) {
+        if (hasClass(className, 'hero-text-left')) {
+            return 'left';
+        }
+        if (hasClass(className, 'hero-text-right')) {
+            return 'right';
+        }
+
+        return 'center';
+    }
+
     function setHeroTextClass(className, value) {
-        className = removeClasses(className, ['hero-text-left']);
+        className = removeClasses(className, HERO_TEXT_CLASSES);
 
         if (value === 'left') {
             className = mergeClassName(className, 'hero-text-left');
+        }
+        if (value === 'right') {
+            className = mergeClassName(className, 'hero-text-right');
+        }
+
+        return className;
+    }
+
+    function getSectionWidth(className) {
+        if (hasClass(className, 'section-width-standard')) {
+            return 'standard';
+        }
+        if (hasClass(className, 'section-width-full')) {
+            return 'full';
+        }
+
+        return 'wide';
+    }
+
+    function setSectionWidth(props, value) {
+        var attrs = props.attributes || {};
+        var className = removeClasses(attrs.className || '', SECTION_WIDTH_CLASSES);
+        var update = {};
+
+        if (value === 'standard') {
+            className = mergeClassName(className, 'section-width-standard');
+            update.align = undefined;
+        } else if (value === 'full') {
+            className = mergeClassName(className, 'section-width-full');
+            update.align = 'full';
+        } else {
+            className = mergeClassName(className, 'section-width-wide');
+            update.align = 'full';
+        }
+
+        className = removeClasses(className, ['section-content-unconstrained']);
+        update.className = className;
+        props.setAttributes(update);
+    }
+
+    function getSectionContentAlign(className) {
+        if (hasClass(className, 'has-content-align-left')) {
+            return 'left';
+        }
+        if (hasClass(className, 'has-content-align-right')) {
+            return 'right';
+        }
+        if (hasClass(className, 'has-content-align-center')) {
+            return 'center';
+        }
+
+        return '';
+    }
+
+    function setSectionContentAlign(className, value) {
+        className = removeClasses(className, SECTION_CONTENT_ALIGN_CLASSES);
+
+        if (value) {
+            className = mergeClassName(className, 'has-content-align-' + value);
+        }
+
+        return className;
+    }
+
+    function getSectionDivider(className) {
+        var found = '';
+        SECTION_DIVIDER_CLASSES.forEach(function(item) {
+            if (hasClass(className, item)) {
+                found = item;
+            }
+        });
+
+        return found;
+    }
+
+    function setSectionDivider(className, value) {
+        className = removeClasses(className, SECTION_DIVIDER_CLASSES);
+
+        if (value) {
+            className = mergeClassName(className, value);
         }
 
         return className;
@@ -411,7 +527,8 @@
                 { label: 'Width: narrow content', value: 'hero-width-narrow' },
                 { label: 'Width: standard content', value: 'hero-width-standard' },
                 { label: 'Width: wide content', value: 'hero-width-wide' },
-                { label: 'Text: left aligned', value: 'hero-text-left' }
+                { label: 'Text: left aligned', value: 'hero-text-left' },
+                { label: 'Text: right aligned', value: 'hero-text-right' }
             ]
         },
         {
@@ -423,7 +540,18 @@
                 { label: 'Card grid wrapper', value: 'builder-card-grid' },
                 { label: 'Section intro text', value: 'builder-section-intro' },
                 { label: 'Split content layout', value: 'builder-split' },
-                { label: 'CTA panel', value: 'builder-cta-panel' }
+                { label: 'CTA panel', value: 'builder-cta-panel' },
+                { label: 'Section width: standard', value: 'section-width-standard' },
+                { label: 'Section width: wide', value: 'section-width-wide' },
+                { label: 'Section width: full', value: 'section-width-full' },
+                { label: 'Full-width section: also unconstrain content', value: 'section-content-unconstrained' },
+                { label: 'Content align: left', value: 'has-content-align-left' },
+                { label: 'Content align: center', value: 'has-content-align-center' },
+                { label: 'Content align: right', value: 'has-content-align-right' },
+                { label: 'Divider: angled top', value: 'section-divider-angle-top' },
+                { label: 'Divider: angled bottom', value: 'section-divider-angle-bottom' },
+                { label: 'Divider: curved top', value: 'section-divider-curve-top' },
+                { label: 'Divider: curved bottom', value: 'section-divider-curve-bottom' }
             ]
         }
     ];
@@ -437,6 +565,22 @@
 
         if (HERO_WIDTH_CLASSES.indexOf(cssClass) !== -1) {
             exclusiveClasses = HERO_WIDTH_CLASSES;
+        }
+
+        if (HERO_TEXT_CLASSES.indexOf(cssClass) !== -1) {
+            exclusiveClasses = HERO_TEXT_CLASSES;
+        }
+
+        if (SECTION_WIDTH_CLASSES.indexOf(cssClass) !== -1) {
+            exclusiveClasses = SECTION_WIDTH_CLASSES;
+        }
+
+        if (SECTION_CONTENT_ALIGN_CLASSES.indexOf(cssClass) !== -1) {
+            exclusiveClasses = SECTION_CONTENT_ALIGN_CLASSES;
+        }
+
+        if (SECTION_DIVIDER_CLASSES.indexOf(cssClass) !== -1) {
+            exclusiveClasses = SECTION_DIVIDER_CLASSES;
         }
 
         className = removeClasses(className, exclusiveClasses);
@@ -476,10 +620,75 @@
         });
     }
 
+    function getCoverWidth(attrs) {
+        if (attrs.align === 'full') {
+            return 'full';
+        }
+        if (attrs.align === 'wide') {
+            return 'wide';
+        }
+        if (attrs.layout && attrs.layout.contentSize) {
+            return 'narrow';
+        }
+
+        return 'standard';
+    }
+
+    function updateCoverWidth(props, value) {
+        var attrs = props.attributes || {};
+        var layout = Object.assign({ type: 'constrained' }, attrs.layout || {});
+        var update = {};
+
+        delete layout.contentSize;
+
+        if (value === 'narrow') {
+            update.align = undefined;
+            layout.contentSize = '640px';
+        } else if (value === 'wide') {
+            update.align = 'wide';
+        } else if (value === 'full') {
+            update.align = 'full';
+        } else {
+            update.align = undefined;
+        }
+
+        update.layout = layout;
+        props.setAttributes(update);
+    }
+
+    function coverPresetControls(props) {
+        var attrs = props.attributes || {};
+
+        return createElement(
+            PanelBody,
+            {
+                title: 'AJNanda Hero (Cover)',
+                initialOpen: true
+            },
+            createElement('p', { style: { fontSize: '12px', color: '#6b7280', marginBottom: '12px' } },
+                'Overlay strength, focal point and content position are controlled by the native Cover block settings above. This panel only adds the page-width control WordPress does not provide for Cover by default.'
+            ),
+            createElement(SelectControl, {
+                label: 'Content width',
+                value: getCoverWidth(attrs),
+                options: [
+                    { label: 'Narrow', value: 'narrow' },
+                    { label: 'Standard', value: 'standard' },
+                    { label: 'Wide', value: 'wide' },
+                    { label: 'Full page width', value: 'full' }
+                ],
+                onChange: function(value) {
+                    updateCoverWidth(props, value);
+                }
+            })
+        );
+    }
+
     function designPresetControls(props) {
         var attrs = props.attributes || {};
         var className = attrs.className || '';
         var preset = getDesignPreset(className);
+        var isSection = preset === 'section' || preset === 'soft-section';
 
         function updateClassName(callback) {
             props.setAttributes({ className: callback((props.attributes && props.attributes.className) || '') });
@@ -490,6 +699,10 @@
                 align: value === 'full' ? 'full' : undefined,
                 className: setHeroWidthClass((props.attributes && props.attributes.className) || '', value)
             });
+        }
+
+        if (props.name === 'core/cover') {
+            return coverPresetControls(props);
         }
 
         if (props.name !== 'core/group') {
@@ -554,14 +767,72 @@
             }) : null,
             preset === 'hero' ? createElement(SelectControl, {
                 label: 'Hero text alignment',
-                value: hasClass(className, 'hero-text-left') ? 'left' : 'center',
+                value: getHeroTextAlign(className),
                 options: [
                     { label: 'Center', value: 'center' },
-                    { label: 'Left', value: 'left' }
+                    { label: 'Left', value: 'left' },
+                    { label: 'Right', value: 'right' }
                 ],
                 onChange: function(value) {
                     updateClassName(function(currentClassName) {
                         return setHeroTextClass(currentClassName, value);
+                    });
+                }
+            }) : null,
+            isSection ? createElement(SelectControl, {
+                label: 'Section width',
+                help: 'Standard and Wide use the theme’s content/wide widths. Full lets you also unconstrain the inner content below.',
+                value: getSectionWidth(className),
+                options: [
+                    { label: 'Standard', value: 'standard' },
+                    { label: 'Wide (default)', value: 'wide' },
+                    { label: 'Full width', value: 'full' }
+                ],
+                onChange: function(value) {
+                    setSectionWidth(props, value);
+                }
+            }) : null,
+            isSection && getSectionWidth(className) === 'full' ? createElement(ToggleControl, {
+                label: 'Constrain inner content',
+                help: 'Off lets inner blocks (e.g. full-bleed images) reach the section edges too.',
+                checked: !hasClass(className, 'section-content-unconstrained'),
+                onChange: function(checked) {
+                    updateClassName(function(currentClassName) {
+                        return checked
+                            ? removeClasses(currentClassName, ['section-content-unconstrained'])
+                            : mergeClassName(currentClassName, 'section-content-unconstrained');
+                    });
+                }
+            }) : null,
+            isSection || preset === 'card' ? createElement(SelectControl, {
+                label: 'Content alignment',
+                value: getSectionContentAlign(className) || 'inherit',
+                options: [
+                    { label: 'Inherit from blocks', value: 'inherit' },
+                    { label: 'Left', value: 'left' },
+                    { label: 'Center', value: 'center' },
+                    { label: 'Right', value: 'right' }
+                ],
+                onChange: function(value) {
+                    updateClassName(function(currentClassName) {
+                        return setSectionContentAlign(currentClassName, value === 'inherit' ? '' : value);
+                    });
+                }
+            }) : null,
+            isSection ? createElement(SelectControl, {
+                label: 'Section divider',
+                help: 'Adds a soft visual transition to the section above/below it.',
+                value: getSectionDivider(className),
+                options: [
+                    { label: 'None', value: '' },
+                    { label: 'Angled top', value: 'section-divider-angle-top' },
+                    { label: 'Angled bottom', value: 'section-divider-angle-bottom' },
+                    { label: 'Curved top', value: 'section-divider-curve-top' },
+                    { label: 'Curved bottom', value: 'section-divider-curve-bottom' }
+                ],
+                onChange: function(value) {
+                    updateClassName(function(currentClassName) {
+                        return setSectionDivider(currentClassName, value);
                     });
                 }
             }) : null
@@ -1172,6 +1443,128 @@
     }
 
     registerButtonsBlockVariation();
+
+    /**
+     * Native block styles for cards, icon/initial tiles, checklists,
+     * eyebrows and equal-height grids. Registering these as WordPress
+     * block styles puts them in the block's own Styles panel so editors
+     * never have to type a CSS class by hand. CSS for every `is-style-*`
+     * class here lives in style.css (loaded on both frontend and editor
+     * via add_editor_style, so the two stay in sync automatically).
+     */
+    function registerAjnandaBlockStyles() {
+        if (!wp.blocks || !wp.blocks.registerBlockStyle) {
+            return;
+        }
+
+        var registerBlockStyle = wp.blocks.registerBlockStyle;
+
+        ['core/group', 'core/column'].forEach(function(blockName) {
+            registerBlockStyle(blockName, { name: 'ajnanda-card', label: 'AJNanda: Card' });
+            registerBlockStyle(blockName, { name: 'ajnanda-card-elevated', label: 'AJNanda: Elevated Card' });
+            registerBlockStyle(blockName, { name: 'ajnanda-card-bordered', label: 'AJNanda: Bordered Card' });
+            registerBlockStyle(blockName, { name: 'ajnanda-card-soft', label: 'AJNanda: Soft Card' });
+            registerBlockStyle(blockName, { name: 'ajnanda-card-linked', label: 'AJNanda: Linked Card' });
+        });
+
+        ['core/group', 'core/column', 'core/paragraph', 'core/heading'].forEach(function(blockName) {
+            registerBlockStyle(blockName, { name: 'ajnanda-icon-tile', label: 'AJNanda: Icon/Initial Tile' });
+            registerBlockStyle(blockName, { name: 'ajnanda-icon-tile-round', label: 'AJNanda: Icon/Initial Tile (Round)' });
+        });
+
+        registerBlockStyle('core/columns', { name: 'ajnanda-equal-height', label: 'AJNanda: Equal-Height Cards' });
+        registerBlockStyle('core/list', { name: 'ajnanda-checklist', label: 'AJNanda: Checklist' });
+        registerBlockStyle('core/list', { name: 'ajnanda-checklist-inline', label: 'AJNanda: Checklist (Inline Row)' });
+        registerBlockStyle('core/paragraph', { name: 'ajnanda-eyebrow', label: 'AJNanda: Eyebrow' });
+        registerBlockStyle('core/heading', { name: 'ajnanda-eyebrow', label: 'AJNanda: Eyebrow' });
+    }
+
+    registerAjnandaBlockStyles();
+
+    /**
+     * Cover-based hero variation. core/cover already provides overlay
+     * strength (dimRatio), focal point and 9-point content position
+     * natively, so this variation only supplies sensible defaults plus
+     * the same builder-hero-section treatment (typography, badge/eyebrow
+     * styling) used by the Group hero. Content width is controlled by
+     * coverPresetControls() above.
+     */
+    function registerCoverHeroVariation() {
+        if (!registerBlockVariation) {
+            return;
+        }
+
+        registerBlockVariation('core/cover', {
+            name: 'ajnanda-hero-cover',
+            title: 'AJNanda Hero (Image Background)',
+            description: 'A full-width marketing hero with a background image, overlay, eyebrow, headline, supporting copy and buttons.',
+            icon: 'cover-image',
+            keywords: ['hero', 'marketing hero', 'banner'],
+            attributes: {
+                align: 'full',
+                className: 'builder-hero-section',
+                dimRatio: 40,
+                minHeight: 420,
+                contentPosition: 'center center',
+                layout: { type: 'constrained' }
+            },
+            innerBlocks: [
+                ['core/paragraph', { align: 'center', className: 'is-style-ajnanda-eyebrow', content: 'Eyebrow label' }],
+                ['core/heading', { textAlign: 'center', level: 1, content: 'Marketing Hero Headline' }],
+                ['core/paragraph', { align: 'center', content: 'Add a sentence or two of supporting copy that explains the offer.' }],
+                ['core/buttons', { layout: { type: 'flex', justifyContent: 'center' } }, [
+                    ['core/button', { text: 'Primary Action' }],
+                    ['core/button', { text: 'Secondary Action', className: 'is-style-outline' }]
+                ]]
+            ],
+            scope: ['inserter'],
+            isActive: function(blockAttributes) {
+                var className = blockAttributes.className || '';
+                return className.split(/\s+/).indexOf('builder-hero-section') !== -1;
+            }
+        });
+    }
+
+    registerCoverHeroVariation();
+
+    /**
+     * Compact linked-tile grid, built on WordPress core's native CSS Grid
+     * layout for core/group (auto-responsive columns, no media queries or
+     * a custom grid system required).
+     */
+    function registerTileGridVariation() {
+        if (!registerBlockVariation) {
+            return;
+        }
+
+        function tile(number) {
+            return ['core/group', { className: 'is-style-ajnanda-card-linked is-style-ajnanda-card', layout: { type: 'constrained' } }, [
+                ['core/paragraph', { className: 'is-style-ajnanda-icon-tile', content: String(number) }],
+                ['core/heading', { level: 3, content: 'Tile ' + number }],
+                ['core/paragraph', { content: 'Short description of this resource or service.' }],
+                ['core/paragraph', { content: '<a href="#">Learn more</a>' }]
+            ]];
+        }
+
+        registerBlockVariation('core/group', {
+            name: 'ajnanda-tile-grid',
+            title: 'AJNanda Tile Grid',
+            description: 'A compact grid of linked tiles (4-8 items) using native WordPress Grid layout.',
+            icon: 'grid-view',
+            keywords: ['tiles', 'resources', 'grid'],
+            attributes: {
+                className: 'ajnanda-tile-grid',
+                layout: { type: 'grid', minimumColumnWidth: '14rem' }
+            },
+            innerBlocks: [tile(1), tile(2), tile(3), tile(4)],
+            scope: ['inserter'],
+            isActive: function(blockAttributes) {
+                return (blockAttributes.className || '').split(/\s+/).indexOf('ajnanda-tile-grid') !== -1;
+            }
+        });
+    }
+
+    registerTileGridVariation();
 
     addFilter('blocks.registerBlockType', 'ajn/block-layout-attributes', function(settings, name) {
         var blockName = name || settings.name;

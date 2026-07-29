@@ -924,13 +924,51 @@ function ajnanda_render_footer_lines($text) {
     echo '</ul>';
 }
 
-function ajnanda_render_builder_site_identity() {
-    if (has_custom_logo()) {
-        the_custom_logo();
+/**
+ * Optional badge/mark + tagline shown next to/under the logo. Both are
+ * opt-in (empty theme_mods by default), so sites that never touch these
+ * settings render nothing extra here — output stays identical to before
+ * these controls existed.
+ */
+function ajnanda_render_branding_extras() {
+    $badge   = trim((string) get_theme_mod('ajn_branding_badge_text', ''));
+    $tagline = get_theme_mod('ajn_branding_show_tagline', false) ? get_bloginfo('description') : '';
+
+    if ('' === $badge && '' === trim((string) $tagline)) {
         return;
     }
 
-    echo '<a href="' . esc_url(home_url('/')) . '" class="site-logo" rel="home">' . esc_html(get_bloginfo('name')) . '</a>';
+    if ('' !== $badge) {
+        echo '<span class="site-badge">' . esc_html($badge) . '</span>';
+    }
+
+    if ('' !== trim((string) $tagline)) {
+        echo '<span class="site-tagline">' . esc_html($tagline) . '</span>';
+    }
+}
+
+function ajnanda_render_builder_site_identity() {
+    $has_extras = '' !== trim((string) get_theme_mod('ajn_branding_badge_text', ''))
+        || get_theme_mod('ajn_branding_show_tagline', false);
+
+    if (!$has_extras) {
+        if (has_custom_logo()) {
+            the_custom_logo();
+            return;
+        }
+
+        echo '<a href="' . esc_url(home_url('/')) . '" class="site-logo" rel="home">' . esc_html(get_bloginfo('name')) . '</a>';
+        return;
+    }
+
+    echo '<span class="site-branding-group">';
+    if (has_custom_logo()) {
+        the_custom_logo();
+    } else {
+        echo '<a href="' . esc_url(home_url('/')) . '" class="site-logo" rel="home">' . esc_html(get_bloginfo('name')) . '</a>';
+    }
+    ajnanda_render_branding_extras();
+    echo '</span>';
 }
 
 function ajnanda_render_builder_menu($location, $class_name) {
@@ -966,6 +1004,22 @@ function ajnanda_social_icon_svg($url) {
     return '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>';
 }
 
+/**
+ * Maps the "Nav CTA style" Customizer choice to an additional CSS class.
+ * 'solid' (the historical default) adds nothing, so existing sites keep
+ * their current button look until they explicitly pick Outline or Pill.
+ */
+function ajnanda_get_cta_style_class($style) {
+    if ('outline' === $style) {
+        return ' ajn-cta-style-outline';
+    }
+    if ('pill' === $style) {
+        return ' ajn-cta-style-pill';
+    }
+
+    return '';
+}
+
 function ajnanda_render_builder_element($builder, $element) {
     switch ($element) {
         case 'site-logo':
@@ -982,9 +1036,11 @@ function ajnanda_render_builder_element($builder, $element) {
             break;
         case 'button':
         case 'button-1':
-            $button_text_setting = 'footer' === $builder ? 'ajn_footer_builder_button_text' : 'ajn_builder_button_text';
-            $button_url_setting = 'footer' === $builder ? 'ajn_footer_builder_button_url' : 'ajn_builder_button_url';
-            echo '<a class="btn btn-primary ajn-builder-button" href="' . esc_url(get_theme_mod($button_url_setting, home_url('/contact/'))) . '">' . esc_html(get_theme_mod($button_text_setting, __('Contact Us', 'ajnanda'))) . '</a>';
+            $button_text_setting  = 'footer' === $builder ? 'ajn_footer_builder_button_text' : 'ajn_builder_button_text';
+            $button_url_setting   = 'footer' === $builder ? 'ajn_footer_builder_button_url' : 'ajn_builder_button_url';
+            $button_style_setting = 'footer' === $builder ? 'ajn_footer_builder_button_style' : 'ajn_builder_button_style';
+            $button_style_class   = ajnanda_get_cta_style_class(get_theme_mod($button_style_setting, 'solid'));
+            echo '<a class="btn btn-primary ajn-builder-button' . esc_attr($button_style_class) . '" href="' . esc_url(get_theme_mod($button_url_setting, home_url('/contact/'))) . '">' . esc_html(get_theme_mod($button_text_setting, __('Contact Us', 'ajnanda'))) . '</a>';
             break;
         case 'button-2':
             echo '<a class="btn btn-secondary ajn-builder-button ajn-builder-button-secondary" href="' . esc_url(get_theme_mod('ajn_builder_button_2_url', home_url('/contact/'))) . '">' . esc_html(get_theme_mod('ajn_builder_button_2_text', __('Learn More', 'ajnanda'))) . '</a>';
@@ -1573,8 +1629,11 @@ function ajnanda_register_builder_controls($wp_customize, $builder, $section, $l
 function ajnanda_get_google_reviews() {
     $api_key = defined('NCLLC_GOOGLE_PLACES_API_KEY') ? NCLLC_GOOGLE_PLACES_API_KEY : '';
     $place_id = defined('NCLLC_GOOGLE_PLACE_ID') ? NCLLC_GOOGLE_PLACE_ID : '';
-    $profile_url = 'https://www.google.com/search?q=NC+LLC+Agents+Inc+Charlotte+NC+reviews#mpd=~9888847900513167101/customers/reviews';
-    $write_review_url = 'https://g.page/r/Cej2Nr9egmkYEAE/review';
+    // No site-specific fallback URL: every AJNanda site has a different
+    // Google Business Profile, so an unconfigured site shows no link
+    // rather than someone else's reviews page.
+    $profile_url = '';
+    $write_review_url = '';
 
     if (!$api_key || !$place_id) {
         return array(
@@ -1650,8 +1709,8 @@ function ajnanda_get_google_reviews() {
  */
 function ajnanda_google_reviews_shortcode() {
     $data = ajnanda_get_google_reviews();
-    $profile_url = !empty($data['url']) ? $data['url'] : 'https://www.google.com/search?q=NC+LLC+Agents+Inc+Charlotte+NC+reviews#mpd=~9888847900513167101/customers/reviews';
-    $write_review_url = !empty($data['write_review_url']) ? $data['write_review_url'] : 'https://g.page/r/Cej2Nr9egmkYEAE/review';
+    $profile_url = !empty($data['url']) ? $data['url'] : '';
+    $write_review_url = !empty($data['write_review_url']) ? $data['write_review_url'] : '';
 
     ob_start();
     ?>
@@ -1681,15 +1740,21 @@ function ajnanda_google_reviews_shortcode() {
             </div>
         <?php else : ?>
             <div class="google-review-empty">
-                <h3>Read our Google reviews</h3>
-                <p>See what clients are saying on Google, or share your experience with NC LLC Agents Inc.</p>
+                <h3><?php esc_html_e('Read our Google reviews', 'ajnanda'); ?></h3>
+                <p><?php esc_html_e('See what clients are saying on Google, or share your experience with us.', 'ajnanda'); ?></p>
             </div>
         <?php endif; ?>
 
+        <?php if ($profile_url || $write_review_url) : ?>
         <div class="google-review-actions">
-            <a class="button" href="<?php echo esc_url($profile_url); ?>" target="_blank" rel="noreferrer noopener">Read Google Reviews</a>
-            <a class="button button-secondary" href="<?php echo esc_url($write_review_url); ?>" target="_blank" rel="noreferrer noopener">Write a Review</a>
+            <?php if ($profile_url) : ?>
+                <a class="button" href="<?php echo esc_url($profile_url); ?>" target="_blank" rel="noreferrer noopener"><?php esc_html_e('Read Google Reviews', 'ajnanda'); ?></a>
+            <?php endif; ?>
+            <?php if ($write_review_url) : ?>
+                <a class="button button-secondary" href="<?php echo esc_url($write_review_url); ?>" target="_blank" rel="noreferrer noopener"><?php esc_html_e('Write a Review', 'ajnanda'); ?></a>
+            <?php endif; ?>
         </div>
+        <?php endif; ?>
     </div>
     <?php
 
@@ -2295,6 +2360,16 @@ function ajnanda_customize_register($wp_customize) {
         ));
     }
 
+    /*
+     * NOTE (architectural conflict, intentionally left as-is): this is one
+     * of two independent sticky-header switches in the theme. The other
+     * lives in Appearance -> Menus -> Menu Visibility Toggles
+     * (AJNANDA_MENU_TOGGLES_OPTION['top_navigation_sticky'], applied in
+     * ajnanda_menu_toggles_css()). Either one alone is enough to make the
+     * header sticky; turning this one off does not override the other.
+     * They were not merged here to avoid changing behavior on existing
+     * sites that already rely on one or the other.
+     */
     $wp_customize->add_setting('header_sticky', array(
         'default'           => true,
         'sanitize_callback' => 'ajnanda_sanitize_checkbox',
@@ -2305,6 +2380,23 @@ function ajnanda_customize_register($wp_customize) {
         'label'   => __('Sticky Header', 'ajnanda'),
         'section' => 'ajnanda_header',
         'type'    => 'checkbox',
+    ));
+
+    $wp_customize->add_setting('ajn_mobile_menu_style', array(
+        'default'           => 'slide',
+        'sanitize_callback' => 'ajnanda_sanitize_choice',
+        'transport'         => 'refresh',
+    ));
+
+    $wp_customize->add_control('ajn_mobile_menu_style', array(
+        'label'       => __('Mobile Menu Style', 'ajnanda'),
+        'description' => __('Slide Down opens a small panel under the header. Full Overlay opens a full-screen menu.', 'ajnanda'),
+        'section'     => 'ajnanda_header',
+        'type'        => 'select',
+        'choices'     => array(
+            'slide'   => __('Slide Down', 'ajnanda'),
+            'overlay' => __('Full Overlay', 'ajnanda'),
+        ),
     ));
 
     $wp_customize->add_setting('header_layout', array(
@@ -2377,6 +2469,43 @@ function ajnanda_customize_register($wp_customize) {
             'flex-end'   => __('Bottom', 'ajnanda'),
         ),
         'priority' => 22,
+    ));
+
+    /*
+     * Generic branding extras: an optional short badge/mark next to the
+     * logo, and an optional tagline under it. Both are opt-in (empty by
+     * default) so existing sites keep their current header/footer
+     * branding output until a site owner sets them. Rendered from
+     * ajnanda_render_builder_site_identity(), which is shared by the
+     * header, the header/footer builder "site-logo" cell, and the footer
+     * branding cell — one setting affects every place the logo appears.
+     */
+    $wp_customize->add_setting('ajn_branding_badge_text', array(
+        'default'           => '',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'refresh',
+    ));
+
+    $wp_customize->add_control('ajn_branding_badge_text', array(
+        'label'       => __('Branding Badge/Mark (optional)', 'ajnanda'),
+        'description' => __('A short mark shown next to the logo, e.g. initials or "Est. 2020". Leave blank to hide.', 'ajnanda'),
+        'section'     => 'title_tagline',
+        'type'        => 'text',
+        'priority'    => 23,
+    ));
+
+    $wp_customize->add_setting('ajn_branding_show_tagline', array(
+        'default'           => false,
+        'sanitize_callback' => 'ajnanda_sanitize_checkbox',
+        'transport'         => 'refresh',
+    ));
+
+    $wp_customize->add_control('ajn_branding_show_tagline', array(
+        'label'       => __('Show Site Tagline Under Logo', 'ajnanda'),
+        'description' => __('Uses the tagline set above (Site Identity).', 'ajnanda'),
+        'section'     => 'title_tagline',
+        'type'        => 'checkbox',
+        'priority'    => 24,
     ));
 
     foreach ($device_labels as $device => $label) {
@@ -2787,6 +2916,25 @@ function ajnanda_customize_register($wp_customize) {
         'active_callback' => 'ajnanda_header_builder_button_1_active',
     ));
 
+    $wp_customize->add_setting('ajn_builder_button_style', array(
+        'default'           => 'solid',
+        'sanitize_callback' => 'ajnanda_sanitize_choice',
+        'transport'         => 'refresh',
+    ));
+
+    $wp_customize->add_control('ajn_builder_button_style', array(
+        'label'           => __('Header Button Style', 'ajnanda'),
+        'description'     => __('Shown only when Button 1 is added to the Header Builder.', 'ajnanda'),
+        'section'         => 'ajnanda_header',
+        'type'            => 'select',
+        'choices'         => array(
+            'solid'   => __('Solid', 'ajnanda'),
+            'outline' => __('Outline', 'ajnanda'),
+            'pill'    => __('Pill', 'ajnanda'),
+        ),
+        'active_callback' => 'ajnanda_header_builder_button_1_active',
+    ));
+
     $wp_customize->add_setting('ajn_footer_builder_button_text', array(
         'default'           => __('Contact Us', 'ajnanda'),
         'sanitize_callback' => 'sanitize_text_field',
@@ -2810,6 +2958,24 @@ function ajnanda_customize_register($wp_customize) {
         'label'           => __('Button 1 URL', 'ajnanda'),
         'section'         => 'ajnanda_footer',
         'type'            => 'url',
+        'active_callback' => 'ajnanda_footer_builder_button_1_active',
+    ));
+
+    $wp_customize->add_setting('ajn_footer_builder_button_style', array(
+        'default'           => 'solid',
+        'sanitize_callback' => 'ajnanda_sanitize_choice',
+        'transport'         => 'refresh',
+    ));
+
+    $wp_customize->add_control('ajn_footer_builder_button_style', array(
+        'label'           => __('Button 1 Style', 'ajnanda'),
+        'section'         => 'ajnanda_footer',
+        'type'            => 'select',
+        'choices'         => array(
+            'solid'   => __('Solid', 'ajnanda'),
+            'outline' => __('Outline', 'ajnanda'),
+            'pill'    => __('Pill', 'ajnanda'),
+        ),
         'active_callback' => 'ajnanda_footer_builder_button_1_active',
     ));
 
@@ -4234,7 +4400,7 @@ function ajnanda_register_block_patterns() {
     }
 
     register_block_pattern_category('ajnanda-builder', array(
-        'label' => __('NCLLC Builder Sections', 'ajnanda'),
+        'label' => __('AJNanda Sections', 'ajnanda'),
     ));
 
     register_block_pattern('ajnanda-pro/editable-hero', array(
@@ -4256,7 +4422,95 @@ function ajnanda_register_block_patterns() {
         'title'       => __('Split Content CTA', 'ajnanda'),
         'description' => __('A two-column section with copy and a call to action.', 'ajnanda'),
         'categories'  => array('ajnanda-builder'),
-        'content'     => '<!-- wp:group {"align":"full","className":"builder-section","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull builder-section"><!-- wp:columns {"verticalAlignment":"center","className":"builder-split"} --><div class="wp-block-columns are-vertically-aligned-center builder-split"><!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center"><!-- wp:heading --><h2 class="wp-block-heading">Build Pages Visually</h2><!-- /wp:heading --><!-- wp:paragraph --><p>Select this section, duplicate it, drag it above or below other sections, and edit the text/buttons in place.</p><!-- /wp:paragraph --></div><!-- /wp:column --><!-- wp:column {"verticalAlignment":"center","className":"builder-cta-panel"} --><div class="wp-block-column is-vertically-aligned-center builder-cta-panel"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">Need a registered agent?</h3><!-- /wp:heading --><!-- wp:paragraph --><p>Keep your North Carolina LLC compliant with a reliable local registered agent.</p><!-- /wp:paragraph --><!-- wp:buttons --><div class="wp-block-buttons"><!-- wp:button --><div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="/contact/">Contact Us</a></div><!-- /wp:button --></div><!-- /wp:buttons --></div><!-- /wp:column --></div><!-- /wp:columns --></div><!-- /wp:group -->',
+        'content'     => '<!-- wp:group {"align":"full","className":"builder-section","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull builder-section"><!-- wp:columns {"verticalAlignment":"center","className":"builder-split"} --><div class="wp-block-columns are-vertically-aligned-center builder-split"><!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center"><!-- wp:heading --><h2 class="wp-block-heading">Build Pages Visually</h2><!-- /wp:heading --><!-- wp:paragraph --><p>Select this section, duplicate it, drag it above or below other sections, and edit the text/buttons in place.</p><!-- /wp:paragraph --></div><!-- /wp:column --><!-- wp:column {"verticalAlignment":"center","className":"builder-cta-panel"} --><div class="wp-block-column is-vertically-aligned-center builder-cta-panel"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">Ready to talk?</h3><!-- /wp:heading --><!-- wp:paragraph --><p>Add a short line about why visitors should reach out, then point them to your contact page.</p><!-- /wp:paragraph --><!-- wp:buttons --><div class="wp-block-buttons"><!-- wp:button --><div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="/contact/">Contact Us</a></div><!-- /wp:button --></div><!-- /wp:buttons --></div><!-- /wp:column --></div><!-- /wp:columns --></div><!-- /wp:group -->',
+    ));
+
+    register_block_pattern('ajnanda-pro/marketing-hero', array(
+        'title'       => __('Marketing Hero', 'ajnanda'),
+        'description' => __('A full-width hero with an eyebrow label, headline, supporting copy, and two buttons.', 'ajnanda'),
+        'categories'  => array('ajnanda-builder'),
+        'keywords'    => array(__('hero', 'ajnanda'), __('marketing', 'ajnanda'), __('banner', 'ajnanda')),
+        'content'     => '<!-- wp:group {"align":"full","className":"builder-hero-section hero-width-standard","layout":{"type":"flex","orientation":"vertical","justifyContent":"center","verticalAlignment":"center","flexWrap":"nowrap"}} --><div class="wp-block-group alignfull builder-hero-section hero-width-standard"><!-- wp:paragraph {"align":"center","className":"is-style-ajnanda-eyebrow"} --><p class="has-text-align-center is-style-ajnanda-eyebrow">Eyebrow Label</p><!-- /wp:paragraph --><!-- wp:heading {"textAlign":"center","level":1} --><h1 class="wp-block-heading has-text-align-center">Your Marketing Headline Goes Here</h1><!-- /wp:heading --><!-- wp:paragraph {"align":"center","className":"builder-hero-subtitle"} --><p class="has-text-align-center builder-hero-subtitle">Add one or two sentences of supporting copy that explain what you offer and why it matters.</p><!-- /wp:paragraph --><!-- wp:buttons {"layout":{"type":"flex","justifyContent":"center"}} --><div class="wp-block-buttons"><!-- wp:button --><div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="#">Primary Action</a></div><!-- /wp:button --><!-- wp:button {"className":"is-style-outline"} --><div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="#">Secondary Action</a></div><!-- /wp:button --></div><!-- /wp:buttons --></div><!-- /wp:group -->',
+    ));
+
+    register_block_pattern('ajnanda-pro/proof-points', array(
+        'title'       => __('Proof Points Row', 'ajnanda'),
+        'description' => __('A compact, wrapping row of three or four short trust statements with a check mark. Works well inside a hero section.', 'ajnanda'),
+        'categories'  => array('ajnanda-builder'),
+        'keywords'    => array(__('trust', 'ajnanda'), __('proof points', 'ajnanda'), __('badges', 'ajnanda')),
+        'content'     => '<!-- wp:list {"className":"is-style-ajnanda-checklist-inline"} --><ul class="wp-block-list is-style-ajnanda-checklist-inline"><!-- wp:list-item --><li>Trust statement one</li><!-- /wp:list-item --><!-- wp:list-item --><li>Trust statement two</li><!-- /wp:list-item --><!-- wp:list-item --><li>Trust statement three</li><!-- /wp:list-item --><!-- wp:list-item --><li>Trust statement four</li><!-- /wp:list-item --></ul><!-- /wp:list -->',
+    ));
+
+    register_block_pattern('ajnanda-pro/statistics-strip', array(
+        'title'       => __('Statistics Strip', 'ajnanda'),
+        'description' => __('An introductory statement followed by two to four statistics with a large value and a smaller label.', 'ajnanda'),
+        'categories'  => array('ajnanda-builder'),
+        'keywords'    => array(__('stats', 'ajnanda'), __('numbers', 'ajnanda'), __('metrics', 'ajnanda')),
+        'content'     => '<!-- wp:group {"align":"full","className":"builder-section","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull builder-section"><!-- wp:paragraph {"align":"center","className":"builder-section-intro"} --><p class="has-text-align-center builder-section-intro">A short introductory statement that sets up the numbers below.</p><!-- /wp:paragraph --><!-- wp:columns {"className":"is-style-ajnanda-equal-height"} --><div class="wp-block-columns is-style-ajnanda-equal-height"><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"ajnanda-stat-container is-style-ajnanda-card-bordered has-content-align-center","layout":{"type":"constrained"}} --><div class="wp-block-group ajnanda-stat-container is-style-ajnanda-card-bordered has-content-align-center"><!-- wp:paragraph {"align":"center","className":"ajnanda-stat-value"} --><p class="has-text-align-center ajnanda-stat-value"><strong>10,000+</strong></p><!-- /wp:paragraph --><!-- wp:paragraph {"align":"center","className":"ajnanda-stat-label"} --><p class="has-text-align-center ajnanda-stat-label">Short label describing this statistic</p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column --><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"ajnanda-stat-container is-style-ajnanda-card-bordered has-content-align-center","layout":{"type":"constrained"}} --><div class="wp-block-group ajnanda-stat-container is-style-ajnanda-card-bordered has-content-align-center"><!-- wp:paragraph {"align":"center","className":"ajnanda-stat-value"} --><p class="has-text-align-center ajnanda-stat-value"><strong>98%</strong></p><!-- /wp:paragraph --><!-- wp:paragraph {"align":"center","className":"ajnanda-stat-label"} --><p class="has-text-align-center ajnanda-stat-label">Short label describing this statistic</p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column --><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"ajnanda-stat-container is-style-ajnanda-card-bordered has-content-align-center","layout":{"type":"constrained"}} --><div class="wp-block-group ajnanda-stat-container is-style-ajnanda-card-bordered has-content-align-center"><!-- wp:paragraph {"align":"center","className":"ajnanda-stat-value"} --><p class="has-text-align-center ajnanda-stat-value"><strong>24/7</strong></p><!-- /wp:paragraph --><!-- wp:paragraph {"align":"center","className":"ajnanda-stat-label"} --><p class="has-text-align-center ajnanda-stat-label">Short label describing this statistic</p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column --></div><!-- /wp:columns --></div><!-- /wp:group -->',
+    ));
+
+    register_block_pattern('ajnanda-pro/three-step-process', array(
+        'title'       => __('Three-Step Process', 'ajnanda'),
+        'description' => __('Three (or four) numbered, equal-height steps with a heading and explanatory paragraph.', 'ajnanda'),
+        'categories'  => array('ajnanda-builder'),
+        'keywords'    => array(__('process', 'ajnanda'), __('steps', 'ajnanda'), __('how it works', 'ajnanda')),
+        'content'     => '<!-- wp:group {"align":"full","className":"builder-section builder-section-soft has-content-align-center","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull builder-section builder-section-soft has-content-align-center"><!-- wp:heading {"textAlign":"center"} --><h2 class="wp-block-heading has-text-align-center">How It Works</h2><!-- /wp:heading --><!-- wp:paragraph {"align":"center","className":"builder-section-intro"} --><p class="has-text-align-center builder-section-intro">Walk visitors through your process in a few simple steps.</p><!-- /wp:paragraph --><!-- wp:columns {"className":"is-style-ajnanda-equal-height"} --><div class="wp-block-columns is-style-ajnanda-equal-height"><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"is-style-ajnanda-card ajnanda-step-card has-content-align-center","layout":{"type":"constrained"}} --><div class="wp-block-group is-style-ajnanda-card ajnanda-step-card has-content-align-center"><!-- wp:paragraph {"align":"center","className":"is-style-ajnanda-icon-tile-round"} --><p class="has-text-align-center is-style-ajnanda-icon-tile-round">1</p><!-- /wp:paragraph --><!-- wp:heading {"textAlign":"center","level":3} --><h3 class="wp-block-heading has-text-align-center">Step One</h3><!-- /wp:heading --><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Explain what happens first and what the visitor needs to do.</p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column --><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"is-style-ajnanda-card ajnanda-step-card has-content-align-center","layout":{"type":"constrained"}} --><div class="wp-block-group is-style-ajnanda-card ajnanda-step-card has-content-align-center"><!-- wp:paragraph {"align":"center","className":"is-style-ajnanda-icon-tile-round"} --><p class="has-text-align-center is-style-ajnanda-icon-tile-round">2</p><!-- /wp:paragraph --><!-- wp:heading {"textAlign":"center","level":3} --><h3 class="wp-block-heading has-text-align-center">Step Two</h3><!-- /wp:heading --><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Explain what happens next in the process.</p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column --><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"is-style-ajnanda-card ajnanda-step-card has-content-align-center","layout":{"type":"constrained"}} --><div class="wp-block-group is-style-ajnanda-card ajnanda-step-card has-content-align-center"><!-- wp:paragraph {"align":"center","className":"is-style-ajnanda-icon-tile-round"} --><p class="has-text-align-center is-style-ajnanda-icon-tile-round">3</p><!-- /wp:paragraph --><!-- wp:heading {"textAlign":"center","level":3} --><h3 class="wp-block-heading has-text-align-center">Step Three</h3><!-- /wp:heading --><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Explain the final step and what the visitor gets.</p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column --></div><!-- /wp:columns --></div><!-- /wp:group -->',
+    ));
+
+    register_block_pattern('ajnanda-pro/service-overview-grid', array(
+        'title'       => __('Service Overview Grid', 'ajnanda'),
+        'description' => __('Two to four equal-height service cards with an icon/initial, heading, description, short list, and a whole-card link.', 'ajnanda'),
+        'categories'  => array('ajnanda-builder'),
+        'keywords'    => array(__('services', 'ajnanda'), __('cards', 'ajnanda'), __('grid', 'ajnanda')),
+        'content'     => '<!-- wp:group {"align":"full","className":"builder-section builder-section-soft","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull builder-section builder-section-soft"><!-- wp:heading {"textAlign":"center"} --><h2 class="wp-block-heading has-text-align-center">Our Services</h2><!-- /wp:heading --><!-- wp:paragraph {"align":"center","className":"builder-section-intro"} --><p class="has-text-align-center builder-section-intro">A quick overview of what you offer, with a clear next step for each service.</p><!-- /wp:paragraph --><!-- wp:columns {"className":"is-style-ajnanda-equal-height"} --><div class="wp-block-columns is-style-ajnanda-equal-height"><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"is-style-ajnanda-card-linked","layout":{"type":"constrained"}} --><div class="wp-block-group is-style-ajnanda-card-linked"><!-- wp:paragraph {"className":"is-style-ajnanda-icon-tile"} --><p class="is-style-ajnanda-icon-tile">A</p><!-- /wp:paragraph --><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">Service One</h3><!-- /wp:heading --><!-- wp:paragraph --><p>A short description of this service and who it helps.</p><!-- /wp:paragraph --><!-- wp:list --><ul class="wp-block-list"><!-- wp:list-item --><li>Key detail one</li><!-- /wp:list-item --><!-- wp:list-item --><li>Key detail two</li><!-- /wp:list-item --></ul><!-- /wp:list --><!-- wp:paragraph --><p><a href="#">Learn more</a></p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column --><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"is-style-ajnanda-card-linked","layout":{"type":"constrained"}} --><div class="wp-block-group is-style-ajnanda-card-linked"><!-- wp:paragraph {"className":"is-style-ajnanda-icon-tile"} --><p class="is-style-ajnanda-icon-tile">B</p><!-- /wp:paragraph --><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">Service Two</h3><!-- /wp:heading --><!-- wp:paragraph --><p>A short description of this service and who it helps.</p><!-- /wp:paragraph --><!-- wp:list --><ul class="wp-block-list"><!-- wp:list-item --><li>Key detail one</li><!-- /wp:list-item --><!-- wp:list-item --><li>Key detail two</li><!-- /wp:list-item --></ul><!-- /wp:list --><!-- wp:paragraph --><p><a href="#">Learn more</a></p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column --><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"is-style-ajnanda-card-linked","layout":{"type":"constrained"}} --><div class="wp-block-group is-style-ajnanda-card-linked"><!-- wp:paragraph {"className":"is-style-ajnanda-icon-tile"} --><p class="is-style-ajnanda-icon-tile">C</p><!-- /wp:paragraph --><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">Service Three</h3><!-- /wp:heading --><!-- wp:paragraph --><p>A short description of this service and who it helps.</p><!-- /wp:paragraph --><!-- wp:list --><ul class="wp-block-list"><!-- wp:list-item --><li>Key detail one</li><!-- /wp:list-item --><!-- wp:list-item --><li>Key detail two</li><!-- /wp:list-item --></ul><!-- /wp:list --><!-- wp:paragraph --><p><a href="#">Learn more</a></p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column --></div><!-- /wp:columns --></div><!-- /wp:group -->',
+    ));
+
+    register_block_pattern('ajnanda-pro/two-service-cards', array(
+        'title'       => __('Two Service Cards', 'ajnanda'),
+        'description' => __('A simple side-by-side comparison of two services or plans.', 'ajnanda'),
+        'categories'  => array('ajnanda-builder'),
+        'keywords'    => array(__('compare', 'ajnanda'), __('services', 'ajnanda'), __('plans', 'ajnanda')),
+        'content'     => '<!-- wp:group {"align":"full","className":"builder-section","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull builder-section"><!-- wp:heading {"textAlign":"center"} --><h2 class="wp-block-heading has-text-align-center">Compare Your Options</h2><!-- /wp:heading --><!-- wp:paragraph {"align":"center","className":"builder-section-intro"} --><p class="has-text-align-center builder-section-intro">Give visitors a quick, side-by-side look at two services or plans.</p><!-- /wp:paragraph --><!-- wp:columns {"className":"is-style-ajnanda-equal-height"} --><div class="wp-block-columns is-style-ajnanda-equal-height"><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"is-style-ajnanda-card","layout":{"type":"constrained"}} --><div class="wp-block-group is-style-ajnanda-card"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">Option A</h3><!-- /wp:heading --><!-- wp:paragraph --><p>Describe who this option is for and what is included.</p><!-- /wp:paragraph --><!-- wp:buttons --><div class="wp-block-buttons"><!-- wp:button --><div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="#">Learn More</a></div><!-- /wp:button --></div><!-- /wp:buttons --></div><!-- /wp:group --></div><!-- /wp:column --><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"is-style-ajnanda-card-elevated","layout":{"type":"constrained"}} --><div class="wp-block-group is-style-ajnanda-card-elevated"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">Option B</h3><!-- /wp:heading --><!-- wp:paragraph --><p>Describe who this option is for and what is included.</p><!-- /wp:paragraph --><!-- wp:buttons --><div class="wp-block-buttons"><!-- wp:button --><div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="#">Learn More</a></div><!-- /wp:button --></div><!-- /wp:buttons --></div><!-- /wp:group --></div><!-- /wp:column --></div><!-- /wp:columns --></div><!-- /wp:group -->',
+    ));
+
+    register_block_pattern('ajnanda-pro/split-content-location', array(
+        'title'       => __('Split Content / Location', 'ajnanda'),
+        'description' => __('A two-column section pairing copy with a place to add a map, image, or location details.', 'ajnanda'),
+        'categories'  => array('ajnanda-builder'),
+        'keywords'    => array(__('location', 'ajnanda'), __('map', 'ajnanda'), __('split content', 'ajnanda')),
+        'content'     => '<!-- wp:group {"align":"full","className":"builder-section","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull builder-section"><!-- wp:columns {"verticalAlignment":"center","className":"builder-split"} --><div class="wp-block-columns are-vertically-aligned-center builder-split"><!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center"><!-- wp:heading --><h2 class="wp-block-heading">Visit Us In Person</h2><!-- /wp:heading --><!-- wp:paragraph --><p>Add your address, hours, and directions, or describe this location in a sentence or two.</p><!-- /wp:paragraph --><!-- wp:buttons --><div class="wp-block-buttons"><!-- wp:button --><div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="#">Get Directions</a></div><!-- /wp:button --></div><!-- /wp:buttons --></div><!-- /wp:column --><!-- wp:column {"verticalAlignment":"center"} --><div class="wp-block-column is-vertically-aligned-center"><!-- wp:group {"className":"is-style-ajnanda-card-soft has-content-align-center","layout":{"type":"constrained"}} --><div class="wp-block-group is-style-ajnanda-card-soft has-content-align-center"><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Add a map embed, photo, or image here.</p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column --></div><!-- /wp:columns --></div><!-- /wp:group -->',
+    ));
+
+    register_block_pattern('ajnanda-pro/centered-final-cta', array(
+        'title'       => __('Centered Final CTA', 'ajnanda'),
+        'description' => __('A simple centered call-to-action panel for the end of a page.', 'ajnanda'),
+        'categories'  => array('ajnanda-builder'),
+        'keywords'    => array(__('cta', 'ajnanda'), __('call to action', 'ajnanda')),
+        'content'     => '<!-- wp:group {"align":"full","className":"builder-section has-content-align-center","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull builder-section has-content-align-center"><!-- wp:group {"className":"builder-cta-panel has-content-align-center","layout":{"type":"constrained"}} --><div class="wp-block-group builder-cta-panel has-content-align-center"><!-- wp:heading {"textAlign":"center"} --><h2 class="wp-block-heading has-text-align-center">Ready to Get Started?</h2><!-- /wp:heading --><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Add one more sentence encouraging visitors to take the next step.</p><!-- /wp:paragraph --><!-- wp:buttons {"layout":{"type":"flex","justifyContent":"center"}} --><div class="wp-block-buttons"><!-- wp:button --><div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="#">Contact Us</a></div><!-- /wp:button --></div><!-- /wp:buttons --></div><!-- /wp:group --></div><!-- /wp:group -->',
+    ));
+
+    register_block_pattern('ajnanda-pro/provider-comparison', array(
+        'title'       => __('Provider Comparison Cards', 'ajnanda'),
+        'description' => __('Two or three comparison cards, each with a heading, a short feature list, and a choice button. Useful for an About page.', 'ajnanda'),
+        'categories'  => array('ajnanda-builder'),
+        'keywords'    => array(__('comparison', 'ajnanda'), __('about', 'ajnanda'), __('pricing', 'ajnanda')),
+        'content'     => '<!-- wp:group {"align":"full","className":"builder-section builder-section-soft","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull builder-section builder-section-soft"><!-- wp:heading {"textAlign":"center"} --><h2 class="wp-block-heading has-text-align-center">Compare Your Options</h2><!-- /wp:heading --><!-- wp:paragraph {"align":"center","className":"builder-section-intro"} --><p class="has-text-align-center builder-section-intro">Help visitors choose between a few options by listing what each one includes.</p><!-- /wp:paragraph --><!-- wp:columns {"className":"is-style-ajnanda-equal-height"} --><div class="wp-block-columns is-style-ajnanda-equal-height"><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"is-style-ajnanda-card-bordered has-content-align-center","layout":{"type":"constrained"}} --><div class="wp-block-group is-style-ajnanda-card-bordered has-content-align-center"><!-- wp:heading {"textAlign":"center","level":3} --><h3 class="wp-block-heading has-text-align-center">Option A</h3><!-- /wp:heading --><!-- wp:list --><ul class="wp-block-list"><!-- wp:list-item --><li>Feature included</li><!-- /wp:list-item --><!-- wp:list-item --><li>Feature included</li><!-- /wp:list-item --></ul><!-- /wp:list --><!-- wp:buttons {"layout":{"type":"flex","justifyContent":"center"}} --><div class="wp-block-buttons"><!-- wp:button --><div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="#">Choose Option A</a></div><!-- /wp:button --></div><!-- /wp:buttons --></div><!-- /wp:group --></div><!-- /wp:column --><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"is-style-ajnanda-card-elevated has-content-align-center","layout":{"type":"constrained"}} --><div class="wp-block-group is-style-ajnanda-card-elevated has-content-align-center"><!-- wp:heading {"textAlign":"center","level":3} --><h3 class="wp-block-heading has-text-align-center">Option B</h3><!-- /wp:heading --><!-- wp:list --><ul class="wp-block-list"><!-- wp:list-item --><li>Feature included</li><!-- /wp:list-item --><!-- wp:list-item --><li>Feature included</li><!-- /wp:list-item --><!-- wp:list-item --><li>Additional feature</li><!-- /wp:list-item --></ul><!-- /wp:list --><!-- wp:buttons {"layout":{"type":"flex","justifyContent":"center"}} --><div class="wp-block-buttons"><!-- wp:button --><div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="#">Choose Option B</a></div><!-- /wp:button --></div><!-- /wp:buttons --></div><!-- /wp:group --></div><!-- /wp:column --></div><!-- /wp:columns --></div><!-- /wp:group -->',
+    ));
+
+    register_block_pattern('ajnanda-pro/contact-cards', array(
+        'title'       => __('Contact Cards', 'ajnanda'),
+        'description' => __('Two or three whole-card-linked contact options, each with an initial/icon tile, heading, and short description.', 'ajnanda'),
+        'categories'  => array('ajnanda-builder'),
+        'keywords'    => array(__('contact', 'ajnanda'), __('providers', 'ajnanda')),
+        'content'     => '<!-- wp:group {"align":"full","className":"builder-section","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull builder-section"><!-- wp:heading {"textAlign":"center"} --><h2 class="wp-block-heading has-text-align-center">Get In Touch</h2><!-- /wp:heading --><!-- wp:columns {"className":"is-style-ajnanda-equal-height"} --><div class="wp-block-columns is-style-ajnanda-equal-height"><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"is-style-ajnanda-card-linked has-content-align-center","layout":{"type":"constrained"}} --><div class="wp-block-group is-style-ajnanda-card-linked has-content-align-center"><!-- wp:paragraph {"align":"center","className":"is-style-ajnanda-icon-tile-round"} --><p class="has-text-align-center is-style-ajnanda-icon-tile-round">1</p><!-- /wp:paragraph --><!-- wp:heading {"textAlign":"center","level":3} --><h3 class="wp-block-heading has-text-align-center">General Inquiries</h3><!-- /wp:heading --><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Add a phone number, email, or short description of this contact option.</p><!-- /wp:paragraph --><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center"><a href="#">Contact Us</a></p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column --><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"is-style-ajnanda-card-linked has-content-align-center","layout":{"type":"constrained"}} --><div class="wp-block-group is-style-ajnanda-card-linked has-content-align-center"><!-- wp:paragraph {"align":"center","className":"is-style-ajnanda-icon-tile-round"} --><p class="has-text-align-center is-style-ajnanda-icon-tile-round">2</p><!-- /wp:paragraph --><!-- wp:heading {"textAlign":"center","level":3} --><h3 class="wp-block-heading has-text-align-center">Sales</h3><!-- /wp:heading --><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Add a phone number, email, or short description of this contact option.</p><!-- /wp:paragraph --><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center"><a href="#">Contact Sales</a></p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column --><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"is-style-ajnanda-card-linked has-content-align-center","layout":{"type":"constrained"}} --><div class="wp-block-group is-style-ajnanda-card-linked has-content-align-center"><!-- wp:paragraph {"align":"center","className":"is-style-ajnanda-icon-tile-round"} --><p class="has-text-align-center is-style-ajnanda-icon-tile-round">3</p><!-- /wp:paragraph --><!-- wp:heading {"textAlign":"center","level":3} --><h3 class="wp-block-heading has-text-align-center">Support</h3><!-- /wp:heading --><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Add a phone number, email, or short description of this contact option.</p><!-- /wp:paragraph --><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center"><a href="#">Contact Support</a></p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column --></div><!-- /wp:columns --></div><!-- /wp:group -->',
+    ));
+
+    register_block_pattern('ajnanda-pro/linked-tile-grid', array(
+        'title'       => __('Compact Linked Tile Grid', 'ajnanda'),
+        'description' => __('Four compact, whole-tile-clickable resource or service tiles in a responsive row.', 'ajnanda'),
+        'categories'  => array('ajnanda-builder'),
+        'keywords'    => array(__('tiles', 'ajnanda'), __('resources', 'ajnanda'), __('grid', 'ajnanda')),
+        'content'     => '<!-- wp:columns {"className":"is-style-ajnanda-equal-height"} --><div class="wp-block-columns is-style-ajnanda-equal-height"><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"is-style-ajnanda-card-linked has-content-align-center","layout":{"type":"constrained"}} --><div class="wp-block-group is-style-ajnanda-card-linked has-content-align-center"><!-- wp:paragraph {"align":"center","className":"is-style-ajnanda-icon-tile"} --><p class="has-text-align-center is-style-ajnanda-icon-tile">A</p><!-- /wp:paragraph --><!-- wp:heading {"textAlign":"center","level":4} --><h4 class="wp-block-heading has-text-align-center">Tile One</h4><!-- /wp:heading --><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Short description.</p><!-- /wp:paragraph --><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center"><a href="#">View</a></p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column --><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"is-style-ajnanda-card-linked has-content-align-center","layout":{"type":"constrained"}} --><div class="wp-block-group is-style-ajnanda-card-linked has-content-align-center"><!-- wp:paragraph {"align":"center","className":"is-style-ajnanda-icon-tile"} --><p class="has-text-align-center is-style-ajnanda-icon-tile">B</p><!-- /wp:paragraph --><!-- wp:heading {"textAlign":"center","level":4} --><h4 class="wp-block-heading has-text-align-center">Tile Two</h4><!-- /wp:heading --><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Short description.</p><!-- /wp:paragraph --><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center"><a href="#">View</a></p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column --><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"is-style-ajnanda-card-linked has-content-align-center","layout":{"type":"constrained"}} --><div class="wp-block-group is-style-ajnanda-card-linked has-content-align-center"><!-- wp:paragraph {"align":"center","className":"is-style-ajnanda-icon-tile"} --><p class="has-text-align-center is-style-ajnanda-icon-tile">C</p><!-- /wp:paragraph --><!-- wp:heading {"textAlign":"center","level":4} --><h4 class="wp-block-heading has-text-align-center">Tile Three</h4><!-- /wp:heading --><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Short description.</p><!-- /wp:paragraph --><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center"><a href="#">View</a></p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column --><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"is-style-ajnanda-card-linked has-content-align-center","layout":{"type":"constrained"}} --><div class="wp-block-group is-style-ajnanda-card-linked has-content-align-center"><!-- wp:paragraph {"align":"center","className":"is-style-ajnanda-icon-tile"} --><p class="has-text-align-center is-style-ajnanda-icon-tile">D</p><!-- /wp:paragraph --><!-- wp:heading {"textAlign":"center","level":4} --><h4 class="wp-block-heading has-text-align-center">Tile Four</h4><!-- /wp:heading --><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center">Short description.</p><!-- /wp:paragraph --><!-- wp:paragraph {"align":"center"} --><p class="has-text-align-center"><a href="#">View</a></p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column --></div><!-- /wp:columns -->',
     ));
 }
 add_action('init', 'ajnanda_register_block_patterns');

@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.2.0
+Version: 1.2.1
 License: GNU General Public License v2 or later
 Text Domain: ajnanda
 */
@@ -147,6 +147,47 @@ body.admin-bar .site-header {
     text-decoration: var(--ajn-header-text-decoration);
     display: flex;
     align-items: center;
+}
+
+/* Optional branding badge/mark + tagline (header, footer, and header/footer
+   builder "site-logo" cells all share ajnanda_render_builder_site_identity(),
+   so this one ruleset covers every place a logo can appear). */
+.site-branding-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.site-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    background: var(--gray-100, #f3f4f6);
+    color: var(--ajn-header-text-color, currentColor);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.site-tagline {
+    display: block;
+    color: var(--ajn-header-text-color, currentColor);
+    opacity: 0.75;
+    font-size: 0.8125rem;
+    font-weight: 500;
+}
+
+.footer-builder-container .site-badge {
+    background: rgba(255, 255, 255, 0.14);
+    color: var(--ajn-footer-text-color, inherit);
+}
+
+.footer-builder-container .site-tagline {
+    color: var(--ajn-footer-text-color, inherit);
 }
 
 .nav-menu {
@@ -459,6 +500,18 @@ body.admin-bar .site-header {
     background: transparent;
     color: white;
     border-color: white;
+}
+
+/* Nav CTA style options for the header/footer builder "button" cell. */
+.ajn-builder-button.ajn-cta-style-outline {
+    background: transparent;
+    color: inherit;
+    border-color: currentColor;
+    box-shadow: none;
+}
+
+.ajn-builder-button.ajn-cta-style-pill {
+    border-radius: 999px;
 }
 
 .btn-secondary:hover {
@@ -1587,6 +1640,25 @@ body.admin-bar .site-header {
     margin-right: auto;
 }
 
+/* Builder Canvas has no legacy .container wrapper of its own, so top-level
+   blocks placed directly on the canvas previously ran edge-to-edge with no
+   constraint at all. Contain them to theme.json's contentSize/wideSize the
+   same way core block themes do, so alignwide/alignfull stay predictable
+   and normal blocks never unexpectedly touch the viewport edges. Uses the
+   same CSS custom properties (with the same fallbacks) already relied on
+   by the hero width rules below, so editor and frontend stay in sync. */
+.builder-canvas-content > :not(.alignwide):not(.alignfull) {
+    max-width: var(--wp--style--global--content-size, 950px);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.builder-canvas-content > .alignwide {
+    max-width: var(--wp--style--global--wide-size, 1280px);
+    margin-left: auto;
+    margin-right: auto;
+}
+
 :where(.builder-hero-section) {
     position: relative;
     overflow: hidden;
@@ -1692,6 +1764,103 @@ body.admin-bar .site-header {
     justify-content: flex-start;
     text-align: left;
 }
+
+:where(.builder-hero-section.hero-text-right) {
+    text-align: right;
+}
+
+:where(.builder-hero-section.hero-text-right) .builder-hero-badge,
+:where(.builder-hero-section.hero-text-right) h1,
+:where(.builder-hero-section.hero-text-right) .builder-hero-subtitle,
+:where(.builder-hero-section.hero-text-right) .wp-block-buttons {
+    margin-left: auto;
+    margin-right: 0;
+    justify-content: flex-end;
+    text-align: right;
+}
+
+/* ==========================================================================
+   AJNanda Section width / alignment / divider controls (core/group presets)
+   Additive to the existing .builder-section system above — no class here
+   changes the meaning of previously-saved markup that has no width/align/
+   divider class, so existing pages keep their current 1180px look.
+   ========================================================================== */
+
+.builder-section.section-width-standard > .wp-block-group__inner-container,
+.editor-styles-wrapper .builder-section.section-width-standard > .wp-block-group__inner-container {
+    max-width: var(--wp--style--global--content-size, 950px);
+}
+
+.builder-section.section-width-wide > .wp-block-group__inner-container,
+.editor-styles-wrapper .builder-section.section-width-wide > .wp-block-group__inner-container {
+    max-width: var(--wp--style--global--wide-size, 1280px);
+}
+
+.builder-section.section-width-full.section-content-unconstrained > .wp-block-group__inner-container,
+.editor-styles-wrapper .builder-section.section-width-full.section-content-unconstrained > .wp-block-group__inner-container {
+    max-width: none;
+}
+
+.builder-section.has-content-align-left,
+.builder-card.has-content-align-left,
+.builder-card-grid.has-content-align-left {
+    text-align: left;
+}
+
+.builder-section.has-content-align-center,
+.builder-card.has-content-align-center,
+.builder-card-grid.has-content-align-center {
+    text-align: center;
+}
+
+.builder-section.has-content-align-right,
+.builder-card.has-content-align-right,
+.builder-card-grid.has-content-align-right {
+    text-align: right;
+}
+
+.builder-section[class*="section-divider-"] {
+    position: relative;
+}
+
+.builder-section.section-divider-angle-top,
+.builder-section.section-divider-curve-top {
+    margin-top: 3rem;
+}
+
+.builder-section.section-divider-angle-bottom,
+.builder-section.section-divider-curve-bottom {
+    margin-bottom: 3rem;
+}
+
+.section-divider-angle-top::before,
+.section-divider-curve-top::before {
+    content: '';
+    position: absolute;
+    top: -3rem;
+    left: 0;
+    width: 100%;
+    height: 3rem;
+    background-color: inherit;
+    pointer-events: none;
+}
+
+.section-divider-angle-bottom::after,
+.section-divider-curve-bottom::after {
+    content: '';
+    position: absolute;
+    bottom: -3rem;
+    left: 0;
+    width: 100%;
+    height: 3rem;
+    background-color: inherit;
+    pointer-events: none;
+}
+
+.section-divider-angle-top::before { clip-path: polygon(0 100%, 100% 0, 100% 100%); }
+.section-divider-angle-bottom::after { clip-path: polygon(0 0, 100% 0, 0 100%); }
+.section-divider-curve-top::before { border-radius: 0 0 50% 50% / 0 0 100% 100%; }
+.section-divider-curve-bottom::after { border-radius: 50% 50% 0 0 / 100% 100% 0 0; }
 
 /* Editor utility classes for blocks without native size controls. */
 .obj-width-25 { width: 25% !important; }
@@ -1885,6 +2054,251 @@ body.admin-bar .site-header {
     border-radius: 1rem;
     background: linear-gradient(135deg, rgba(37,99,235,0.08), rgba(245,158,11,0.12));
     box-shadow: 0 16px 36px rgba(15,23,42,0.08);
+}
+
+/* ==========================================================================
+   AJNanda native block styles: cards, icon/initial tiles, checklists,
+   eyebrow labels, equal-height grids.
+
+   These register as native WordPress "Styles" on core/group, core/column,
+   core/columns and core/list (see js/editor-controls.js) so editors pick
+   them from the block's Styles panel — no manual CSS classes required.
+   Visual language reuses the existing .builder-card / .aj-card tokens
+   (var(--gray-200), the same border-radius and shadow values) instead of
+   introducing a fourth card convention.
+   ========================================================================== */
+
+.is-style-ajnanda-card,
+.is-style-ajnanda-card-elevated,
+.is-style-ajnanda-card-bordered,
+.is-style-ajnanda-card-soft,
+.is-style-ajnanda-card-linked {
+    height: 100%;
+    padding: 1.75rem;
+    border-radius: 1rem;
+    background: var(--white, #ffffff);
+    transition: transform var(--transition, 300ms ease), box-shadow var(--transition, 300ms ease);
+}
+
+.is-style-ajnanda-card {
+    border: 1px solid var(--gray-200, #e5e7eb);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+.is-style-ajnanda-card-elevated {
+    border: 1px solid transparent;
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
+}
+
+.is-style-ajnanda-card-elevated:hover,
+.is-style-ajnanda-card-elevated:focus-within {
+    transform: translateY(-4px);
+    box-shadow: 0 28px 55px rgba(15, 23, 42, 0.16);
+}
+
+.is-style-ajnanda-card-bordered {
+    border: 1px solid var(--gray-200, #e5e7eb);
+    box-shadow: none;
+}
+
+.is-style-ajnanda-card-soft {
+    border: 1px solid transparent;
+    background: var(--gray-50, #f9fafb);
+    box-shadow: none;
+}
+
+.is-style-ajnanda-card:hover,
+.is-style-ajnanda-card:focus-within,
+.is-style-ajnanda-card-bordered:hover,
+.is-style-ajnanda-card-bordered:focus-within {
+    box-shadow: 0 16px 36px rgba(15, 23, 42, 0.1);
+}
+
+/* Linked card: makes the last link/button in the card clickable across its
+   entire surface while keeping a single, real, keyboard-focusable link
+   (the "stretched link" pattern) instead of layering a fake click target
+   over the whole block. */
+.is-style-ajnanda-card-linked {
+    position: relative;
+    border: 1px solid var(--gray-200, #e5e7eb);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+.is-style-ajnanda-card-linked a:last-of-type {
+    position: static;
+}
+
+.is-style-ajnanda-card-linked a:last-of-type::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+}
+
+.is-style-ajnanda-card-linked:hover,
+.is-style-ajnanda-card-linked:focus-within {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
+}
+
+.is-style-ajnanda-card-linked:focus-within {
+    outline: 2px solid var(--primary, #2563eb);
+    outline-offset: 2px;
+}
+
+/* Equal-height card grid: apply to the parent core/columns block so every
+   column (and the card inside it) stretches to match the tallest column.
+   WordPress core/columns already stacks responsively on its own. */
+.wp-block-columns.is-style-ajnanda-equal-height {
+    align-items: stretch;
+}
+
+.wp-block-columns.is-style-ajnanda-equal-height > .wp-block-column {
+    display: flex;
+}
+
+.wp-block-columns.is-style-ajnanda-equal-height > .wp-block-column > * {
+    width: 100%;
+}
+
+/* Icon / initial tile: a compact badge for a short text initial, emoji, or
+   an existing icon block/image. Background + text color come from the
+   block's native color supports (theme.json palette), so no new color
+   system is introduced. */
+.is-style-ajnanda-icon-tile,
+.is-style-ajnanda-icon-tile-round {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    min-width: 3rem;
+    margin-bottom: 1rem;
+    background: var(--gray-100, #f3f4f6);
+    color: var(--primary, #2563eb);
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+}
+
+.is-style-ajnanda-icon-tile {
+    border-radius: 0.75rem;
+}
+
+.is-style-ajnanda-icon-tile-round {
+    border-radius: 999px;
+}
+
+/* Eyebrow label: a small caps/badge line used above a headline (hero,
+   section intro, card). Generic — works on core/paragraph or core/heading. */
+.is-style-ajnanda-eyebrow {
+    display: inline-block;
+    margin-bottom: 0.75rem;
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    background: var(--gray-100, #f3f4f6);
+    color: var(--primary, #2563eb);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+:where(.builder-hero-section) .is-style-ajnanda-eyebrow,
+.wp-block-cover .is-style-ajnanda-eyebrow {
+    background: rgba(255, 255, 255, 0.16);
+    color: inherit;
+}
+
+/* Checklist: a native core/list style that swaps bullets for a check mark,
+   used by the proof-point pattern and reusable anywhere a short list of
+   confirmations is needed. The "-inline" sibling style keeps the same
+   check-mark treatment but wraps items into a compact, wrapping row
+   instead of a vertical list (used for the proof-point row pattern). */
+.wp-block-list.is-style-ajnanda-checklist,
+.wp-block-list.is-style-ajnanda-checklist-inline {
+    list-style: none;
+    margin-left: 0;
+    padding-left: 0;
+}
+
+.wp-block-list.is-style-ajnanda-checklist > li,
+.wp-block-list.is-style-ajnanda-checklist-inline > li {
+    position: relative;
+    padding-left: 1.75rem;
+}
+
+.wp-block-list.is-style-ajnanda-checklist > li::before,
+.wp-block-list.is-style-ajnanda-checklist-inline > li::before {
+    content: '\2713';
+    position: absolute;
+    left: 0;
+    top: 0.05em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 999px;
+    background: var(--gray-100, #f3f4f6);
+    color: var(--success, #059669);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.wp-block-list.is-style-ajnanda-checklist-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.75rem;
+}
+
+.wp-block-list.is-style-ajnanda-checklist-inline > li {
+    margin: 0;
+}
+
+:where(.builder-hero-section) .wp-block-list.is-style-ajnanda-checklist > li::before,
+:where(.builder-hero-section) .wp-block-list.is-style-ajnanda-checklist-inline > li::before,
+.wp-block-cover .wp-block-list.is-style-ajnanda-checklist > li::before,
+.wp-block-cover .wp-block-list.is-style-ajnanda-checklist-inline > li::before {
+    background: rgba(255, 255, 255, 0.2);
+    color: inherit;
+}
+
+/* Statistics row */
+.ajnanda-stat-value {
+    margin-bottom: 0.25rem;
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    line-height: 1.1;
+}
+
+.ajnanda-stat-label {
+    color: var(--gray-600, #4b5563);
+    font-size: 0.95rem;
+}
+
+.ajnanda-stat-container {
+    padding: 2rem;
+    border-radius: 1rem;
+}
+
+.ajnanda-stat-container.is-style-ajnanda-card-bordered,
+.ajnanda-stat-container.is-style-ajnanda-card-elevated {
+    text-align: center;
+}
+
+/* Native CSS Grid tile layout: WordPress writes the responsive
+   minmax()/auto-fit template inline based on minimumColumnWidth, this is
+   just a sensible gap fallback if blockGap is not customized. */
+.ajnanda-tile-grid {
+    gap: 1.5rem;
+}
+
+/* Process/steps: numbered badge sits above the heading in each column. */
+.ajnanda-step-card .is-style-ajnanda-icon-tile,
+.ajnanda-step-card .is-style-ajnanda-icon-tile-round {
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* Spectra/UAG fallback styles for pages edited after the plugin is removed. */
@@ -2897,6 +3311,30 @@ body.admin-bar .site-header {
         right: 1rem;
         z-index: 1001;
     }
+
+    /* Full-overlay mobile menu (Customizer: Header -> Mobile Menu Style).
+       Reuses the existing .nav-menu.mobile-active toggle from main.js —
+       only the open panel's position/size changes, not the JS. */
+    .mobile-nav-style-overlay .main-navigation,
+    .mobile-nav-style-overlay .ajn-builder-cell-primary-menu {
+        position: static;
+    }
+
+    .mobile-nav-style-overlay .nav-menu.mobile-active {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        width: 100vw;
+        height: 100vh;
+        overflow-y: auto;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        background: var(--ajn-header-background, #ffffff);
+        padding: 2rem 1.5rem;
+    }
+
     .header-builder-container {
         display: grid;
         grid-template-columns: minmax(0, 1fr) auto;

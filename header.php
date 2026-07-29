@@ -18,8 +18,15 @@
 <?php wp_body_open(); ?>
 <a class="skip-link screen-reader-text" href="#main-content"><?php esc_html_e('Skip to content', 'ajnanda'); ?></a>
 
-<?php $header_layout = ajnanda_get_header_layout(); ?>
-<header class="site-header header-layout-<?php echo esc_attr($header_layout); ?>" id="masthead">
+<?php
+$header_layout      = ajnanda_get_header_layout();
+$mobile_menu_style  = get_theme_mod('ajn_mobile_menu_style', 'slide');
+$header_classes     = array('site-header', 'header-layout-' . $header_layout);
+if ('overlay' === $mobile_menu_style) {
+    $header_classes[] = 'mobile-nav-style-overlay';
+}
+?>
+<header class="<?php echo esc_attr(implode(' ', $header_classes)); ?>" id="masthead">
     <?php if ('builder' === $header_layout) : ?>
         <div class="header-builder-container container">
             <?php ajnanda_render_builder_layout('header'); ?>
@@ -35,13 +42,7 @@
     <?php else : ?>
         <div class="header-container container">
             <div class="site-branding">
-                <?php if (has_custom_logo()) : ?>
-                    <?php the_custom_logo(); ?>
-                <?php else : ?>
-                    <a href="<?php echo esc_url(home_url('/')); ?>" class="site-logo" rel="home">
-                        <?php bloginfo('name'); ?>
-                    </a>
-                <?php endif; ?>
+                <?php ajnanda_render_builder_site_identity(); ?>
             </div>
 
             <nav class="main-navigation" id="site-navigation">
