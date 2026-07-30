@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.2.1
+Version: 1.2.2
 License: GNU General Public License v2 or later
 Text Domain: ajnanda
 */
@@ -163,14 +163,39 @@ body.admin-bar .site-header {
     display: inline-flex;
     align-items: center;
     padding: 0.2rem 0.65rem;
-    border-radius: 999px;
-    background: var(--gray-100, #f3f4f6);
-    color: var(--ajn-header-text-color, currentColor);
-    font-size: 0.75rem;
-    font-weight: 700;
+    border-radius: var(--ajn-badge-radius, 999px);
+    background: var(--ajn-badge-bg, var(--gray-100, #f3f4f6));
+    color: var(--ajn-badge-color, var(--ajn-header-text-color, currentColor));
+    font-size: var(--ajn-badge-font-size, 0.75rem);
+    font-weight: var(--ajn-badge-font-weight, 700);
     letter-spacing: 0.02em;
     text-transform: uppercase;
     white-space: nowrap;
+}
+
+.site-badge-compact-pill {
+    width: var(--ajn-badge-width, auto);
+    height: var(--ajn-badge-height, auto);
+}
+
+/* Circle/rounded-square badges are meant for a short initial (1-3
+   characters) rather than a full word, so they get a fixed square box
+   instead of the pill's auto/padding-based width. */
+.site-badge-circle,
+.site-badge-rounded-square {
+    justify-content: center;
+    width: var(--ajn-badge-width, 2rem);
+    height: var(--ajn-badge-height, 2rem);
+    padding: 0;
+    text-transform: none;
+}
+
+.site-badge-circle {
+    border-radius: var(--ajn-badge-radius, 999px);
+}
+
+.site-badge-rounded-square {
+    border-radius: var(--ajn-badge-radius, 0.5rem);
 }
 
 .site-tagline {
@@ -299,6 +324,136 @@ body.admin-bar .site-header {
     flex-shrink: 0;
 }
 
+/* ==========================================================================
+   Nav container style (Customizer: Header -> Nav Container: ...)
+   Desktop-only by design (min-width matches the theme's existing 768px
+   mobile breakpoint) so this never fights with the mobile dropdown panel,
+   which already has its own background/border/shadow for the open state.
+   ========================================================================== */
+@media (min-width: 769px) {
+    .nav-menu.ajn-nav-container-soft-panel,
+    .nav-menu.ajn-nav-container-rounded-rect,
+    .nav-menu.ajn-nav-container-pill {
+        background: var(--ajn-nav-container-bg, var(--gray-50, #f9fafb));
+        border-style: solid;
+        border-color: var(--ajn-nav-container-border-color, transparent);
+        border-width: var(--ajn-nav-container-border-width, 0px);
+        padding: var(--ajn-nav-container-padding-y, 0.4rem) var(--ajn-nav-container-padding-x, 0.6rem);
+        box-shadow: 0 10px 25px rgba(15, 23, 42, var(--ajn-nav-container-shadow-strength, 0));
+    }
+
+    .nav-menu.ajn-nav-container-soft-panel {
+        border-radius: var(--ajn-nav-container-border-radius, 0.75rem);
+    }
+
+    .nav-menu.ajn-nav-container-rounded-rect {
+        border-radius: var(--ajn-nav-container-border-radius, 0.5rem);
+    }
+
+    .nav-menu.ajn-nav-container-pill {
+        border-radius: var(--ajn-nav-container-border-radius, 999px);
+    }
+}
+
+/* ==========================================================================
+   Active menu item treatment (Customizer: Header -> Active Menu Item: ...)
+   Targets WordPress' own .current-menu-item / .current-menu-ancestor
+   classes — no custom "is this the active page" detection needed.
+   ========================================================================== */
+.nav-menu.ajn-active-style-text-color .current-menu-item > a,
+.nav-menu.ajn-active-style-text-color .current-menu-ancestor > a {
+    color: var(--ajn-active-menu-color, var(--primary)) !important;
+    font-weight: 700;
+}
+
+.nav-menu.ajn-active-style-underline .current-menu-item > a,
+.nav-menu.ajn-active-style-underline .current-menu-ancestor > a {
+    box-shadow: inset 0 -2px 0 var(--ajn-active-menu-color, var(--primary));
+}
+
+.nav-menu.ajn-active-style-background-highlight .current-menu-item > a,
+.nav-menu.ajn-active-style-background-highlight .current-menu-ancestor > a {
+    background: var(--ajn-active-menu-color, var(--primary));
+    color: #ffffff !important;
+    border-radius: 0.5rem;
+}
+
+.nav-menu.ajn-active-style-pill-highlight .current-menu-item > a,
+.nav-menu.ajn-active-style-pill-highlight .current-menu-ancestor > a {
+    background: var(--ajn-active-menu-color, var(--primary));
+    color: #ffffff !important;
+    border-radius: 999px;
+}
+
+/* ==========================================================================
+   Header navigation CTA (Customizer: Header -> Nav CTA: ...)
+   Applied via the nav_menu_css_class filter to one ordinary top-level
+   Primary Menu item, so it lives inside .nav-menu and is automatically
+   present (and visible) in the mobile dropdown/overlay too — no separate
+   markup for mobile.
+   ========================================================================== */
+.nav-menu .ajn-nav-cta > a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-inline: 0.25rem;
+    font-weight: 700;
+    box-shadow: 0 10px 20px rgba(15, 23, 42, var(--ajn-nav-cta-shadow-strength, 0));
+}
+
+.nav-menu .ajn-nav-cta.ajn-nav-cta-style-solid > a {
+    background: var(--ajn-nav-cta-bg, var(--primary)) !important;
+    color: var(--ajn-nav-cta-color, #ffffff) !important;
+    border: 2px solid transparent;
+    border-radius: var(--ajn-nav-cta-border-radius, 0.5rem);
+}
+
+.nav-menu .ajn-nav-cta.ajn-nav-cta-style-outline > a {
+    background: transparent !important;
+    color: var(--ajn-nav-cta-bg, var(--ajn-header-text-color, currentColor)) !important;
+    border: 2px solid var(--ajn-nav-cta-bg, currentColor);
+    border-radius: var(--ajn-nav-cta-border-radius, 0.5rem);
+}
+
+.nav-menu .ajn-nav-cta.ajn-nav-cta-style-pill > a {
+    background: var(--ajn-nav-cta-bg, var(--primary)) !important;
+    color: var(--ajn-nav-cta-color, #ffffff) !important;
+    border: 2px solid transparent;
+    border-radius: 999px;
+}
+
+.nav-menu .ajn-nav-cta.ajn-nav-cta-style-solid > a:hover,
+.nav-menu .ajn-nav-cta.ajn-nav-cta-style-pill > a:hover {
+    background: var(--ajn-nav-cta-hover-bg, var(--primary-dark)) !important;
+    color: var(--ajn-nav-cta-hover-color, var(--ajn-nav-cta-color, #ffffff)) !important;
+}
+
+.nav-menu .ajn-nav-cta.ajn-nav-cta-style-outline > a:hover {
+    background: var(--ajn-nav-cta-hover-bg, var(--ajn-nav-cta-bg, var(--primary))) !important;
+    color: var(--ajn-nav-cta-hover-color, #ffffff) !important;
+    border-color: var(--ajn-nav-cta-hover-bg, var(--ajn-nav-cta-bg, var(--primary)));
+}
+
+/* Keyboard focus must stay clearly visible regardless of CTA colors. */
+.nav-menu .ajn-nav-cta > a:focus-visible {
+    outline: 3px solid var(--primary-dark, #1e40af);
+    outline-offset: 2px;
+}
+
+/* ==========================================================================
+   Header accent strip (Customizer: Header -> Accent Strip: ...)
+   ========================================================================== */
+.ajn-header-accent {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: block;
+    height: var(--ajn-header-accent-height, 4px);
+    background: var(--ajn-header-accent-bg, var(--primary));
+    pointer-events: none;
+}
+
 .header-layout-centered-menu .header-container {
     justify-content: center;
 }
@@ -358,6 +513,14 @@ body.admin-bar .site-header {
 .ajn-builder-cell-primary-menu,
 .ajn-builder-cell-footer-menu {
     justify-content: flex-end;
+}
+
+/* Independent per-cell alignment override (Customizer: Header/Footer ->
+   Row N Cell N Alignment). Two classes beat the single-class element-type
+   defaults above regardless of source order, and this only applies at all
+   when a site owner explicitly picks something other than "Default". */
+.ajn-builder-cell.ajn-builder-cell-has-align {
+    justify-content: var(--ajn-builder-align);
 }
 
 .ajn-builder-cell-site-logo {

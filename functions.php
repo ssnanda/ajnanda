@@ -939,7 +939,8 @@ function ajnanda_render_branding_extras() {
     }
 
     if ('' !== $badge) {
-        echo '<span class="site-badge">' . esc_html($badge) . '</span>';
+        $shape = get_theme_mod('ajn_branding_badge_shape', 'compact-pill');
+        echo '<span class="site-badge site-badge-' . esc_attr($shape) . '">' . esc_html($badge) . '</span>';
     }
 
     if ('' !== trim((string) $tagline)) {
@@ -971,13 +972,35 @@ function ajnanda_render_builder_site_identity() {
     echo '</span>';
 }
 
+/**
+ * Appends the opt-in nav-container-style and active-menu-item-style
+ * classes to the Primary Menu's <ul> class list. Both default to "none",
+ * so existing sites keep their current, unstyled <ul class="nav-menu">
+ * output until a site owner picks a style in the Customizer.
+ */
+function ajnanda_get_primary_menu_class($base_class) {
+    $classes = array($base_class);
+
+    $container_style = get_theme_mod('ajn_nav_container_style', 'none');
+    if ('none' !== $container_style) {
+        $classes[] = 'ajn-nav-container-' . sanitize_html_class($container_style);
+    }
+
+    $active_style = get_theme_mod('ajn_active_menu_style', 'none');
+    if ('none' !== $active_style) {
+        $classes[] = 'ajn-active-style-' . sanitize_html_class($active_style);
+    }
+
+    return implode(' ', $classes);
+}
+
 function ajnanda_render_builder_menu($location, $class_name) {
     $menu_id = 'primary' === $location ? 'primary-menu' : 'footer-menu';
 
     wp_nav_menu(array(
         'theme_location' => $location,
         'menu_id'        => $menu_id,
-        'menu_class'     => $class_name,
+        'menu_class'     => 'primary' === $location ? ajnanda_get_primary_menu_class($class_name) : $class_name,
         'container'      => false,
         'fallback_cb'    => false,
         'depth'          => 3,
@@ -1019,6 +1042,118 @@ function ajnanda_get_cta_style_class($style) {
 
     return '';
 }
+
+/**
+ * Shared "theme palette" choices for header-builder Customizer controls
+ * (nav container, active menu item, nav CTA, branding badge, accent strip).
+ * Mirrors the 7 colors already declared in theme.json/editor-color-palette
+ * so every new color control stays limited to theme presets instead of a
+ * free-form picker. $none_label lets a control phrase the empty option to
+ * fit its own meaning (e.g. "Theme Default" vs "Same as text").
+ */
+function ajnanda_get_theme_palette_choices($include_none = true, $none_label = '') {
+    $choices = array();
+
+    if ($include_none) {
+        $choices[''] = $none_label ? $none_label : __('— Use style default —', 'ajnanda');
+    }
+
+    $choices['primary-blue'] = __('Primary Blue', 'ajnanda');
+    $choices['deep-blue']    = __('Deep Blue', 'ajnanda');
+    $choices['purple']       = __('Purple', 'ajnanda');
+    $choices['gold']         = __('Gold', 'ajnanda');
+    $choices['ink']          = __('Ink', 'ajnanda');
+    $choices['soft-gray']    = __('Soft Gray', 'ajnanda');
+    $choices['white']        = __('White', 'ajnanda');
+
+    return $choices;
+}
+
+function ajnanda_get_theme_palette_color($slug) {
+    $map = array(
+        'primary-blue' => '#2563eb',
+        'deep-blue'    => '#1e40af',
+        'purple'       => '#7c3aed',
+        'gold'         => '#f59e0b',
+        'ink'          => '#111827',
+        'soft-gray'    => '#f3f4f6',
+        'white'        => '#ffffff',
+    );
+
+    return isset($map[$slug]) ? $map[$slug] : '';
+}
+
+/**
+ * Top-level items of whatever menu is assigned to the "primary" theme
+ * location, keyed by menu item ID. Used to populate the Nav CTA "select a
+ * menu item" control — this only reads the ordinary WP nav menu, no
+ * separate CTA-only menu system.
+ */
+function ajnanda_get_primary_menu_top_level_items() {
+    $locations = get_nav_menu_locations();
+
+    if (empty($locations['primary'])) {
+        return array();
+    }
+
+    $items = wp_get_nav_menu_items($locations['primary']);
+
+    if (!$items) {
+        return array();
+    }
+
+    $top_level = array();
+    foreach ($items as $item) {
+        if (0 === (int) $item->menu_item_parent) {
+            $top_level[$item->ID] = $item->title;
+        }
+    }
+
+    return $top_level;
+}
+
+/**
+ * Optional thin accent strip along the top of the header. Off by default
+ * (opt-in); solid color or 2/3-color gradient, all from theme palette
+ * slugs so nothing site-specific is hard-coded here.
+ */
+function ajnanda_render_header_accent_strip() {
+    if (!get_theme_mod('ajn_header_accent_enable', false)) {
+        return;
+    }
+
+    echo '<span class="ajn-header-accent" aria-hidden="true"></span>';
+}
+
+function ajnanda_get_nav_cta_style_class($style) {
+    $style = in_array($style, array('solid', 'outline', 'pill'), true) ? $style : 'solid';
+
+    return 'ajn-nav-cta-style-' . $style;
+}
+
+/**
+ * Marks one ordinary Primary Menu top-level item as the Nav CTA by adding
+ * a class to it — no separate menu or menu-item post meta involved, so it
+ * keeps working with a plain WordPress navigation menu (including in the
+ * mobile menu, which reuses the same <ul>). Off by default (no item
+ * selected), so existing menus are unaffected until a site owner picks one
+ * in the Customizer.
+ */
+function ajnanda_apply_nav_cta_menu_class($classes, $item, $args) {
+    if (empty($args->theme_location) || 'primary' !== $args->theme_location) {
+        return $classes;
+    }
+
+    $cta_item_id = (int) get_theme_mod('ajn_nav_cta_menu_item', '');
+
+    if ($cta_item_id && (int) $item->ID === $cta_item_id) {
+        $classes[] = 'ajn-nav-cta';
+        $classes[] = ajnanda_get_nav_cta_style_class(get_theme_mod('ajn_nav_cta_style', 'solid'));
+    }
+
+    return $classes;
+}
+add_filter('nav_menu_css_class', 'ajnanda_apply_nav_cta_menu_class', 10, 3);
 
 function ajnanda_render_builder_element($builder, $element) {
     switch ($element) {
@@ -1110,10 +1245,17 @@ function ajnanda_render_builder_layout($builder, $start_row = 1, $end_row = null
             $width_desktop = ajnanda_get_builder_width($builder, $row, $cell, 'desktop');
             $width_tablet = ajnanda_get_builder_width($builder, $row, $cell, 'tablet');
             $width_mobile = ajnanda_get_builder_width($builder, $row, $cell, 'mobile');
+            $align = ajnanda_get_builder_align($builder, $row, $cell);
+            $cell_class = 'ajn-builder-cell ajn-builder-cell-' . esc_attr($element);
+            $cell_style = '--ajn-builder-width-desktop: ' . esc_attr($width_desktop) . '; --ajn-builder-width-tablet: ' . esc_attr($width_tablet) . '; --ajn-builder-width-mobile: ' . esc_attr($width_mobile) . ';';
+            if ($align) {
+                $cell_class .= ' ajn-builder-cell-has-align';
+                $cell_style .= ' --ajn-builder-align: ' . esc_attr(ajnanda_builder_align_to_justify_content($align)) . ';';
+            }
             ?>
             <div
-                class="ajn-builder-cell ajn-builder-cell-<?php echo esc_attr($element); ?>"
-                style="--ajn-builder-width-desktop: <?php echo esc_attr($width_desktop); ?>; --ajn-builder-width-tablet: <?php echo esc_attr($width_tablet); ?>; --ajn-builder-width-mobile: <?php echo esc_attr($width_mobile); ?>;"
+                class="<?php echo esc_attr($cell_class); ?>"
+                style="<?php echo esc_attr($cell_style); ?>"
             >
                 <?php ajnanda_render_builder_element($builder, $element); ?>
             </div>
@@ -1243,6 +1385,32 @@ function ajnanda_get_builder_row_columns($builder, $row) {
 
 function ajnanda_get_builder_width($builder, $row, $cell, $device) {
     return absint(get_theme_mod(ajnanda_builder_width_setting_id($builder, $row, $cell, $device), ajnanda_builder_width_default($builder, $row, $cell)));
+}
+
+function ajnanda_builder_align_setting_id($builder, $row, $cell) {
+    return 'ajn_' . $builder . '_builder_' . $row . '_' . $cell . '_align';
+}
+
+function ajnanda_get_builder_align($builder, $row, $cell) {
+    $align = get_theme_mod(ajnanda_builder_align_setting_id($builder, $row, $cell), '');
+    $valid = array('left', 'center', 'right', 'space-between');
+
+    return in_array($align, $valid, true) ? $align : '';
+}
+
+/**
+ * Maps the alignment choice to a justify-content value for
+ * .ajn-builder-cell (which is a flex item container).
+ */
+function ajnanda_builder_align_to_justify_content($align) {
+    $map = array(
+        'left'          => 'flex-start',
+        'center'        => 'center',
+        'right'         => 'flex-end',
+        'space-between' => 'space-between',
+    );
+
+    return isset($map[$align]) ? $map[$align] : '';
 }
 
 function ajnanda_builder_has_saved_layout($builder) {
@@ -1615,8 +1783,414 @@ function ajnanda_register_builder_controls($wp_customize, $builder, $section, $l
                     ));
                 }
             }
+
+            /*
+             * Independent cell alignment (e.g. for a row holding Site
+             * Identity + Primary Navigation + a CTA button). Defaults to ""
+             * (no override), which keeps every existing site's layout
+             * pixel-identical — .ajn-builder-cell-{element} rules in
+             * style.css already give each element type a sensible default
+             * alignment; this only overrides it when explicitly set.
+             */
+            $align_setting_id = ajnanda_builder_align_setting_id($builder, $row, $cell);
+
+            $wp_customize->add_setting($align_setting_id, array(
+                'default'           => '',
+                'sanitize_callback' => 'ajnanda_sanitize_choice',
+                'transport'         => 'refresh',
+            ));
+
+            $wp_customize->add_control($align_setting_id, array(
+                'label'       => sprintf(
+                    /* translators: 1: builder label, 2: row number, 3: cell number. */
+                    __('%1$s Row %2$d Cell %3$d Alignment', 'ajnanda'),
+                    $label_prefix,
+                    $row,
+                    $cell
+                ),
+                'description' => __('Leave as Default to keep this cell\'s built-in alignment for its element type.', 'ajnanda'),
+                'section'     => $section,
+                'type'        => 'select',
+                'choices'     => array(
+                    ''              => __('Default', 'ajnanda'),
+                    'left'          => __('Left', 'ajnanda'),
+                    'center'        => __('Center', 'ajnanda'),
+                    'right'         => __('Right', 'ajnanda'),
+                    'space-between' => __('Space Between', 'ajnanda'),
+                ),
+            ));
         }
     }
+}
+
+/**
+ * Generic header-builder controls: navigation container style, active
+ * menu item treatment, navigation CTA (built on an ordinary WP nav menu),
+ * branding badge shape/color, and the optional accent strip. Everything
+ * here is opt-in — every new setting defaults to "none"/"" so an existing
+ * AJNanda header renders exactly as it did before these controls existed.
+ * All colors are restricted to the theme.json palette (no hard-coded
+ * hex values, no business-specific defaults).
+ */
+function ajnanda_register_header_builder_extras($wp_customize) {
+    $palette = ajnanda_get_theme_palette_choices();
+
+    // 1. Navigation container style.
+    $wp_customize->add_setting('ajn_nav_container_style', array(
+        'default'           => 'none',
+        'sanitize_callback' => 'ajnanda_sanitize_choice',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ajn_nav_container_style', array(
+        'label'   => __('Nav Container: Style', 'ajnanda'),
+        'section' => 'ajnanda_header',
+        'type'    => 'select',
+        'choices' => array(
+            'none'         => __('None', 'ajnanda'),
+            'soft-panel'   => __('Soft Panel', 'ajnanda'),
+            'rounded-rect' => __('Rounded Rectangle', 'ajnanda'),
+            'pill'         => __('Pill', 'ajnanda'),
+        ),
+    ));
+
+    $wp_customize->add_setting('ajn_nav_container_bg', array(
+        'default'           => '',
+        'sanitize_callback' => 'ajnanda_sanitize_choice',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ajn_nav_container_bg', array(
+        'label'       => __('Nav Container: Background Color', 'ajnanda'),
+        'description' => __('Only used when Style above is not None.', 'ajnanda'),
+        'section'     => 'ajnanda_header',
+        'type'        => 'select',
+        'choices'     => $palette,
+    ));
+
+    $wp_customize->add_setting('ajn_nav_container_border_color', array(
+        'default'           => '',
+        'sanitize_callback' => 'ajnanda_sanitize_choice',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ajn_nav_container_border_color', array(
+        'label'   => __('Nav Container: Border Color', 'ajnanda'),
+        'section' => 'ajnanda_header',
+        'type'    => 'select',
+        'choices' => $palette,
+    ));
+
+    $wp_customize->add_setting('ajn_nav_container_border_width', array(
+        'default'           => '',
+        'sanitize_callback' => 'ajnanda_sanitize_css_size',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ajn_nav_container_border_width', array(
+        'label'       => __('Nav Container: Border Width', 'ajnanda'),
+        'description' => __('Example: 1px. Leave blank for the style default.', 'ajnanda'),
+        'section'     => 'ajnanda_header',
+        'type'        => 'text',
+    ));
+
+    $wp_customize->add_setting('ajn_nav_container_border_radius', array(
+        'default'           => '',
+        'sanitize_callback' => 'ajnanda_sanitize_css_size',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ajn_nav_container_border_radius', array(
+        'label'       => __('Nav Container: Border Radius', 'ajnanda'),
+        'description' => __('Example: 0.75rem or 999px for a full pill. Leave blank for the style default.', 'ajnanda'),
+        'section'     => 'ajnanda_header',
+        'type'        => 'text',
+    ));
+
+    $wp_customize->add_setting('ajn_nav_container_padding_x', array(
+        'default'           => '',
+        'sanitize_callback' => 'ajnanda_sanitize_css_size',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ajn_nav_container_padding_x', array(
+        'label'       => __('Nav Container: Horizontal Padding', 'ajnanda'),
+        'description' => __('Leave blank for the style default.', 'ajnanda'),
+        'section'     => 'ajnanda_header',
+        'type'        => 'text',
+    ));
+
+    $wp_customize->add_setting('ajn_nav_container_padding_y', array(
+        'default'           => '',
+        'sanitize_callback' => 'ajnanda_sanitize_css_size',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ajn_nav_container_padding_y', array(
+        'label'       => __('Nav Container: Vertical Padding', 'ajnanda'),
+        'description' => __('Leave blank for the style default.', 'ajnanda'),
+        'section'     => 'ajnanda_header',
+        'type'        => 'text',
+    ));
+
+    $wp_customize->add_setting('ajn_nav_container_shadow', array(
+        'default'           => 0,
+        'sanitize_callback' => 'ajnanda_sanitize_opacity',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ajn_nav_container_shadow', array(
+        'label'       => __('Nav Container: Shadow Strength', 'ajnanda'),
+        'description' => __('0 = no shadow, 1 = strongest.', 'ajnanda'),
+        'section'     => 'ajnanda_header',
+        'type'        => 'number',
+        'input_attrs' => array('min' => 0, 'max' => 1, 'step' => 0.05),
+    ));
+
+    // 2. Active menu item treatment.
+    $wp_customize->add_setting('ajn_active_menu_style', array(
+        'default'           => 'none',
+        'sanitize_callback' => 'ajnanda_sanitize_choice',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ajn_active_menu_style', array(
+        'label'       => __('Active Menu Item: Treatment', 'ajnanda'),
+        'description' => __('Applies to whichever menu item matches the current page (WordPress\' own "current-menu-item" state).', 'ajnanda'),
+        'section'     => 'ajnanda_header',
+        'type'        => 'select',
+        'choices'     => array(
+            'none'                => __('None', 'ajnanda'),
+            'text-color'          => __('Text Color', 'ajnanda'),
+            'underline'           => __('Underline', 'ajnanda'),
+            'background-highlight'=> __('Background Highlight', 'ajnanda'),
+            'pill-highlight'      => __('Pill Highlight', 'ajnanda'),
+        ),
+    ));
+
+    $wp_customize->add_setting('ajn_active_menu_color', array(
+        'default'           => '',
+        'sanitize_callback' => 'ajnanda_sanitize_choice',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ajn_active_menu_color', array(
+        'label'       => __('Active Menu Item: Color', 'ajnanda'),
+        'description' => __('Only used when Treatment above is not None. Defaults to the theme primary color.', 'ajnanda'),
+        'section'     => 'ajnanda_header',
+        'type'        => 'select',
+        'choices'     => $palette,
+    ));
+
+    // 3. Header navigation CTA (an ordinary top-level Primary Menu item).
+    $cta_choices = array('' => __('None', 'ajnanda'));
+    foreach (ajnanda_get_primary_menu_top_level_items() as $item_id => $item_title) {
+        $cta_choices[$item_id] = $item_title;
+    }
+
+    $wp_customize->add_setting('ajn_nav_cta_menu_item', array(
+        'default'           => '',
+        'sanitize_callback' => 'ajnanda_sanitize_choice',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ajn_nav_cta_menu_item', array(
+        'label'       => __('Nav CTA: Menu Item', 'ajnanda'),
+        'description' => __('Choose a top-level item from your Primary Menu to style as a call-to-action. Add/edit items in Appearance -> Menus.', 'ajnanda'),
+        'section'     => 'ajnanda_header',
+        'type'        => 'select',
+        'choices'     => $cta_choices,
+    ));
+
+    $wp_customize->add_setting('ajn_nav_cta_style', array(
+        'default'           => 'solid',
+        'sanitize_callback' => 'ajnanda_sanitize_choice',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ajn_nav_cta_style', array(
+        'label'   => __('Nav CTA: Style', 'ajnanda'),
+        'section' => 'ajnanda_header',
+        'type'    => 'select',
+        'choices' => array(
+            'solid'   => __('Solid', 'ajnanda'),
+            'outline' => __('Outline', 'ajnanda'),
+            'pill'    => __('Pill', 'ajnanda'),
+        ),
+    ));
+
+    $nav_cta_color_fields = array(
+        'ajn_nav_cta_bg'          => __('Nav CTA: Background Color', 'ajnanda'),
+        'ajn_nav_cta_color'       => __('Nav CTA: Text Color', 'ajnanda'),
+        'ajn_nav_cta_hover_bg'    => __('Nav CTA: Hover Background', 'ajnanda'),
+        'ajn_nav_cta_hover_color' => __('Nav CTA: Hover Text Color', 'ajnanda'),
+    );
+    foreach ($nav_cta_color_fields as $setting_id => $label) {
+        $wp_customize->add_setting($setting_id, array(
+            'default'           => '',
+            'sanitize_callback' => 'ajnanda_sanitize_choice',
+            'transport'         => 'refresh',
+        ));
+        $wp_customize->add_control($setting_id, array(
+            'label'   => $label,
+            'section' => 'ajnanda_header',
+            'type'    => 'select',
+            'choices' => $palette,
+        ));
+    }
+
+    $wp_customize->add_setting('ajn_nav_cta_border_radius', array(
+        'default'           => '',
+        'sanitize_callback' => 'ajnanda_sanitize_css_size',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ajn_nav_cta_border_radius', array(
+        'label'       => __('Nav CTA: Border Radius', 'ajnanda'),
+        'description' => __('Ignored when Style is Pill (always fully rounded).', 'ajnanda'),
+        'section'     => 'ajnanda_header',
+        'type'        => 'text',
+    ));
+
+    $wp_customize->add_setting('ajn_nav_cta_shadow', array(
+        'default'           => 0,
+        'sanitize_callback' => 'ajnanda_sanitize_opacity',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ajn_nav_cta_shadow', array(
+        'label'       => __('Nav CTA: Shadow Strength', 'ajnanda'),
+        'description' => __('0 = no shadow, 1 = strongest.', 'ajnanda'),
+        'section'     => 'ajnanda_header',
+        'type'        => 'number',
+        'input_attrs' => array('min' => 0, 'max' => 1, 'step' => 0.05),
+    ));
+
+    // 4. Branding badge styling (extends the badge text/tagline controls
+    // already registered in the Site Identity section).
+    $wp_customize->add_setting('ajn_branding_badge_shape', array(
+        'default'           => 'compact-pill',
+        'sanitize_callback' => 'ajnanda_sanitize_choice',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ajn_branding_badge_shape', array(
+        'label'       => __('Branding Badge: Shape', 'ajnanda'),
+        'description' => __('Only shown when a Branding Badge/Mark is set in Site Identity.', 'ajnanda'),
+        'section'     => 'title_tagline',
+        'type'        => 'select',
+        'choices'     => array(
+            'compact-pill'   => __('Compact Pill', 'ajnanda'),
+            'circle'         => __('Circle', 'ajnanda'),
+            'rounded-square' => __('Rounded Square', 'ajnanda'),
+        ),
+        'priority'    => 25,
+    ));
+
+    $badge_color_fields = array(
+        'ajn_branding_badge_bg'    => __('Branding Badge: Background Color', 'ajnanda'),
+        'ajn_branding_badge_color' => __('Branding Badge: Text Color', 'ajnanda'),
+    );
+    $badge_priority = 26;
+    foreach ($badge_color_fields as $setting_id => $label) {
+        $wp_customize->add_setting($setting_id, array(
+            'default'           => '',
+            'sanitize_callback' => 'ajnanda_sanitize_choice',
+            'transport'         => 'refresh',
+        ));
+        $wp_customize->add_control($setting_id, array(
+            'label'    => $label,
+            'section'  => 'title_tagline',
+            'type'     => 'select',
+            'choices'  => $palette,
+            'priority' => $badge_priority++,
+        ));
+    }
+
+    $badge_size_fields = array(
+        'ajn_branding_badge_width'  => array(__('Branding Badge: Width', 'ajnanda'), 'ajnanda_sanitize_css_size'),
+        'ajn_branding_badge_height' => array(__('Branding Badge: Height', 'ajnanda'), 'ajnanda_sanitize_css_size'),
+        'ajn_branding_badge_radius' => array(__('Branding Badge: Border Radius', 'ajnanda'), 'ajnanda_sanitize_css_size'),
+        'ajn_branding_badge_font_size' => array(__('Branding Badge: Font Size', 'ajnanda'), 'ajnanda_sanitize_css_size'),
+    );
+    foreach ($badge_size_fields as $setting_id => $field) {
+        $wp_customize->add_setting($setting_id, array(
+            'default'           => '',
+            'sanitize_callback' => $field[1],
+            'transport'         => 'refresh',
+        ));
+        $wp_customize->add_control($setting_id, array(
+            'label'       => $field[0],
+            'description' => __('Leave blank for the shape default.', 'ajnanda'),
+            'section'     => 'title_tagline',
+            'type'        => 'text',
+            'priority'    => $badge_priority++,
+        ));
+    }
+
+    $wp_customize->add_setting('ajn_branding_badge_font_weight', array(
+        'default'           => '',
+        'sanitize_callback' => 'ajnanda_sanitize_choice',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ajn_branding_badge_font_weight', array(
+        'label'       => __('Branding Badge: Font Weight', 'ajnanda'),
+        'description' => __('Leave blank for the shape default.', 'ajnanda'),
+        'section'     => 'title_tagline',
+        'type'        => 'select',
+        'choices'     => array(
+            ''     => __('— Shape Default —', 'ajnanda'),
+            '400'  => '400',
+            '500'  => '500',
+            '600'  => '600',
+            '700'  => '700',
+            '800'  => '800',
+        ),
+        'priority'    => $badge_priority++,
+    ));
+
+    // 5. Header accent strip.
+    $wp_customize->add_setting('ajn_header_accent_enable', array(
+        'default'           => false,
+        'sanitize_callback' => 'ajnanda_sanitize_checkbox',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ajn_header_accent_enable', array(
+        'label'   => __('Accent Strip: Enable', 'ajnanda'),
+        'section' => 'ajnanda_header',
+        'type'    => 'checkbox',
+    ));
+
+    $wp_customize->add_setting('ajn_header_accent_type', array(
+        'default'           => 'solid',
+        'sanitize_callback' => 'ajnanda_sanitize_choice',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ajn_header_accent_type', array(
+        'label'   => __('Accent Strip: Type', 'ajnanda'),
+        'section' => 'ajnanda_header',
+        'type'    => 'select',
+        'choices' => array(
+            'solid'      => __('Solid Color', 'ajnanda'),
+            'gradient-2' => __('Two-Color Gradient', 'ajnanda'),
+            'gradient-3' => __('Three-Color Gradient', 'ajnanda'),
+        ),
+    ));
+
+    $accent_color_fields = array(
+        'ajn_header_accent_color_1' => array(__('Accent Strip: Color 1', 'ajnanda'), 'primary-blue'),
+        'ajn_header_accent_color_2' => array(__('Accent Strip: Color 2', 'ajnanda'), 'purple'),
+        'ajn_header_accent_color_3' => array(__('Accent Strip: Color 3', 'ajnanda'), 'gold'),
+    );
+    foreach ($accent_color_fields as $setting_id => $field) {
+        $wp_customize->add_setting($setting_id, array(
+            'default'           => $field[1],
+            'sanitize_callback' => 'ajnanda_sanitize_choice',
+            'transport'         => 'refresh',
+        ));
+        $wp_customize->add_control($setting_id, array(
+            'label'   => $field[0],
+            'section' => 'ajnanda_header',
+            'type'    => 'select',
+            'choices' => ajnanda_get_theme_palette_choices(false),
+        ));
+    }
+
+    $wp_customize->add_setting('ajn_header_accent_height', array(
+        'default'           => '4px',
+        'sanitize_callback' => 'ajnanda_sanitize_css_size',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ajn_header_accent_height', array(
+        'label'   => __('Accent Strip: Height', 'ajnanda'),
+        'section' => 'ajnanda_header',
+        'type'    => 'text',
+    ));
 }
 
 /**
@@ -2596,6 +3170,7 @@ function ajnanda_customize_register($wp_customize) {
     }
 
     ajnanda_register_builder_controls($wp_customize, 'header', 'ajnanda_header', __('Header', 'ajnanda'));
+    ajnanda_register_header_builder_extras($wp_customize);
 
     // Navigation panel settings moved to Appearance → Menus (ajnanda_menu_toggles option).
 
@@ -4189,6 +4764,51 @@ function ajnanda_customizer_css() {
     $hero_padding_bottom_tablet = ajnanda_theme_mod_with_legacy_default('hero_padding_bottom_tablet', '1rem', array('3.5rem'));
     $hero_padding_top_mobile = ajnanda_theme_mod_with_legacy_default('hero_padding_top_mobile', '1rem', array('5rem', '6rem'));
     $hero_padding_bottom_mobile = ajnanda_theme_mod_with_legacy_default('hero_padding_bottom_mobile', '1rem', array('3rem'));
+
+    // Nav container style.
+    $nav_container_bg = ajnanda_get_theme_palette_color(get_theme_mod('ajn_nav_container_bg', ''));
+    $nav_container_border_color = ajnanda_get_theme_palette_color(get_theme_mod('ajn_nav_container_border_color', ''));
+    $nav_container_border_width = get_theme_mod('ajn_nav_container_border_width', '');
+    $nav_container_border_radius = get_theme_mod('ajn_nav_container_border_radius', '');
+    $nav_container_padding_x = get_theme_mod('ajn_nav_container_padding_x', '');
+    $nav_container_padding_y = get_theme_mod('ajn_nav_container_padding_y', '');
+    $nav_container_shadow = (float) get_theme_mod('ajn_nav_container_shadow', 0);
+
+    // Active menu item treatment.
+    $active_menu_color = ajnanda_get_theme_palette_color(get_theme_mod('ajn_active_menu_color', ''));
+
+    // Nav CTA.
+    $nav_cta_bg = ajnanda_get_theme_palette_color(get_theme_mod('ajn_nav_cta_bg', ''));
+    $nav_cta_color = ajnanda_get_theme_palette_color(get_theme_mod('ajn_nav_cta_color', ''));
+    $nav_cta_hover_bg = ajnanda_get_theme_palette_color(get_theme_mod('ajn_nav_cta_hover_bg', ''));
+    $nav_cta_hover_color = ajnanda_get_theme_palette_color(get_theme_mod('ajn_nav_cta_hover_color', ''));
+    $nav_cta_border_radius = get_theme_mod('ajn_nav_cta_border_radius', '');
+    $nav_cta_shadow = (float) get_theme_mod('ajn_nav_cta_shadow', 0);
+
+    // Branding badge.
+    $badge_bg = ajnanda_get_theme_palette_color(get_theme_mod('ajn_branding_badge_bg', ''));
+    $badge_color = ajnanda_get_theme_palette_color(get_theme_mod('ajn_branding_badge_color', ''));
+    $badge_width = get_theme_mod('ajn_branding_badge_width', '');
+    $badge_height = get_theme_mod('ajn_branding_badge_height', '');
+    $badge_radius = get_theme_mod('ajn_branding_badge_radius', '');
+    $badge_font_size = get_theme_mod('ajn_branding_badge_font_size', '');
+    $badge_font_weight = get_theme_mod('ajn_branding_badge_font_weight', '');
+
+    // Header accent strip.
+    $accent_enabled = get_theme_mod('ajn_header_accent_enable', false);
+    $accent_type = get_theme_mod('ajn_header_accent_type', 'solid');
+    $accent_color_1 = ajnanda_get_theme_palette_color(get_theme_mod('ajn_header_accent_color_1', 'primary-blue'));
+    $accent_color_2 = ajnanda_get_theme_palette_color(get_theme_mod('ajn_header_accent_color_2', 'purple'));
+    $accent_color_3 = ajnanda_get_theme_palette_color(get_theme_mod('ajn_header_accent_color_3', 'gold'));
+    $accent_height = get_theme_mod('ajn_header_accent_height', '4px');
+
+    if ($accent_enabled && 'gradient-3' === $accent_type) {
+        $accent_background = sprintf('linear-gradient(90deg, %s, %s, %s)', $accent_color_1, $accent_color_2, $accent_color_3);
+    } elseif ($accent_enabled && 'gradient-2' === $accent_type) {
+        $accent_background = sprintf('linear-gradient(90deg, %s, %s)', $accent_color_1, $accent_color_2);
+    } else {
+        $accent_background = $accent_color_1;
+    }
     ?>
     <style type="text/css">
         :root {
@@ -4267,6 +4887,34 @@ function ajnanda_customizer_css() {
             --ajn-hero-padding-bottom-tablet: <?php echo esc_attr($hero_padding_bottom_tablet); ?>;
             --ajn-hero-padding-top-mobile: <?php echo esc_attr($hero_padding_top_mobile); ?>;
             --ajn-hero-padding-bottom-mobile: <?php echo esc_attr($hero_padding_bottom_mobile); ?>;
+
+            <?php if ($nav_container_bg) : ?>--ajn-nav-container-bg: <?php echo esc_attr($nav_container_bg); ?>;<?php endif; ?>
+            <?php if ($nav_container_border_color) : ?>--ajn-nav-container-border-color: <?php echo esc_attr($nav_container_border_color); ?>;<?php endif; ?>
+            <?php if ($nav_container_border_width) : ?>--ajn-nav-container-border-width: <?php echo esc_attr($nav_container_border_width); ?>;<?php endif; ?>
+            <?php if ($nav_container_border_radius) : ?>--ajn-nav-container-border-radius: <?php echo esc_attr($nav_container_border_radius); ?>;<?php endif; ?>
+            <?php if ($nav_container_padding_x) : ?>--ajn-nav-container-padding-x: <?php echo esc_attr($nav_container_padding_x); ?>;<?php endif; ?>
+            <?php if ($nav_container_padding_y) : ?>--ajn-nav-container-padding-y: <?php echo esc_attr($nav_container_padding_y); ?>;<?php endif; ?>
+            --ajn-nav-container-shadow-strength: <?php echo esc_attr($nav_container_shadow); ?>;
+
+            <?php if ($active_menu_color) : ?>--ajn-active-menu-color: <?php echo esc_attr($active_menu_color); ?>;<?php endif; ?>
+
+            <?php if ($nav_cta_bg) : ?>--ajn-nav-cta-bg: <?php echo esc_attr($nav_cta_bg); ?>;<?php endif; ?>
+            <?php if ($nav_cta_color) : ?>--ajn-nav-cta-color: <?php echo esc_attr($nav_cta_color); ?>;<?php endif; ?>
+            <?php if ($nav_cta_hover_bg) : ?>--ajn-nav-cta-hover-bg: <?php echo esc_attr($nav_cta_hover_bg); ?>;<?php endif; ?>
+            <?php if ($nav_cta_hover_color) : ?>--ajn-nav-cta-hover-color: <?php echo esc_attr($nav_cta_hover_color); ?>;<?php endif; ?>
+            <?php if ($nav_cta_border_radius) : ?>--ajn-nav-cta-border-radius: <?php echo esc_attr($nav_cta_border_radius); ?>;<?php endif; ?>
+            --ajn-nav-cta-shadow-strength: <?php echo esc_attr($nav_cta_shadow); ?>;
+
+            <?php if ($badge_bg) : ?>--ajn-badge-bg: <?php echo esc_attr($badge_bg); ?>;<?php endif; ?>
+            <?php if ($badge_color) : ?>--ajn-badge-color: <?php echo esc_attr($badge_color); ?>;<?php endif; ?>
+            <?php if ($badge_width) : ?>--ajn-badge-width: <?php echo esc_attr($badge_width); ?>;<?php endif; ?>
+            <?php if ($badge_height) : ?>--ajn-badge-height: <?php echo esc_attr($badge_height); ?>;<?php endif; ?>
+            <?php if ($badge_radius) : ?>--ajn-badge-radius: <?php echo esc_attr($badge_radius); ?>;<?php endif; ?>
+            <?php if ($badge_font_size) : ?>--ajn-badge-font-size: <?php echo esc_attr($badge_font_size); ?>;<?php endif; ?>
+            <?php if ($badge_font_weight) : ?>--ajn-badge-font-weight: <?php echo esc_attr($badge_font_weight); ?>;<?php endif; ?>
+
+            --ajn-header-accent-bg: <?php echo esc_attr($accent_background); ?>;
+            --ajn-header-accent-height: <?php echo esc_attr($accent_height); ?>;
         }
 
         .site-branding,

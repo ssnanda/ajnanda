@@ -27,6 +27,7 @@ if ('overlay' === $mobile_menu_style) {
 }
 ?>
 <header class="<?php echo esc_attr(implode(' ', $header_classes)); ?>" id="masthead">
+    <?php ajnanda_render_header_accent_strip(); ?>
     <?php if ('builder' === $header_layout) : ?>
         <div class="header-builder-container container">
             <?php ajnanda_render_builder_layout('header'); ?>
@@ -51,7 +52,7 @@ if ('overlay' === $mobile_menu_style) {
                     'theme_location' => 'primary',
                     'menu_id'        => 'primary-menu',
                     'container'      => false,
-                    'menu_class'     => 'nav-menu',
+                    'menu_class'     => ajnanda_get_primary_menu_class('nav-menu'),
                     'fallback_cb'    => false,
                 ));
                 ?>
