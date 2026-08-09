@@ -70,6 +70,58 @@ Text Domain: ajnanda
     --ast-global-color-8: #0f172a;
 }
 
+/* ==========================================================================
+   AJNanda color schemes.
+
+   Each scheme overrides only the small set of brand tokens already used
+   throughout the theme (--primary, --primary-dark, --secondary, --accent).
+   Every existing pattern, page design, and starter site already styles
+   itself from these same variables (buttons, links, cards, the eyebrow
+   label, stat values, etc. — see .builder-*/.is-style-ajnanda-* above and
+   theme.json's button element), so applying one of these classes recolors
+   the entire existing pattern library with no markup changes and no
+   duplicated CSS. Primary/secondary/accent values are the theme's existing
+   theme.json palette colors (primary-blue, deep-blue, purple, gold, ink);
+   only the "-dark" hover shades are new, matching the theme's existing
+   practice of keeping hover shades in style.css rather than theme.json.
+
+   Applied site-wide via a body class from the Customizer ("AJNanda" panel
+   → Color Scheme) or per-page by wrapping a single page's content in a
+   matching class from the Page Library admin screen. See
+   inc/color-schemes.php.
+   ========================================================================== */
+
+.ajnanda-scheme-blue {
+    /* Explicit reset back to the theme's default blue tokens — needed when
+       a single page uses "Blue" while the site-wide scheme is something
+       else, since nesting an unstyled class wouldn't override an ancestor. */
+    --primary: #2563eb;
+    --primary-dark: #1e40af;
+    --secondary: #7c3aed;
+    --accent: #f59e0b;
+}
+
+.ajnanda-scheme-purple {
+    --primary: #7c3aed;
+    --primary-dark: #6d28d9;
+    --secondary: #2563eb;
+    --accent: #f59e0b;
+}
+
+.ajnanda-scheme-gold {
+    --primary: #f59e0b;
+    --primary-dark: #b45309;
+    --secondary: #111827;
+    --accent: #2563eb;
+}
+
+.ajnanda-scheme-dark {
+    --primary: #111827;
+    --primary-dark: #000000;
+    --secondary: #f59e0b;
+    --accent: #f59e0b;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { scroll-behavior: smooth; }

@@ -20,6 +20,7 @@ if (!defined('ABSPATH')) {
 }
 
 require_once __DIR__ . '/patterns.php';
+require_once __DIR__ . '/color-schemes.php';
 require_once __DIR__ . '/page-designs.php';
 require_once __DIR__ . '/starter-sites/class-ajnanda-starter-sites.php';
 require_once __DIR__ . '/starter-sites/class-ajnanda-starter-importer.php';

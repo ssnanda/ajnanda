@@ -118,18 +118,24 @@ class AJNanda_CLI_PageDesign_Command {
      * [--status=<status>]
      * : Page status: draft (default) or publish.
      *
+     * [--color-scheme=<scheme>]
+     * : Optional color scheme slug (blue, purple, gold, dark — see `wp ajnanda color-scheme list`).
+     *   Defaults to the site-wide scheme, in which case no per-page override is added.
+     *
      * ## EXAMPLES
      *
      *     wp ajnanda page-design insert ajnanda/page-home-super-bold --title="Home" --status=draft
+     *     wp ajnanda page-design insert ajnanda/page-home-super-bold --title="Home" --color-scheme=gold
      *
      * @when after_wp_load
      */
     public function insert($args, $assoc_args) {
         list($slug) = $args;
-        $title  = isset($assoc_args['title']) ? $assoc_args['title'] : __('New Page', 'ajnanda');
-        $status = isset($assoc_args['status']) && 'publish' === $assoc_args['status'] ? 'publish' : 'draft';
+        $title         = isset($assoc_args['title']) ? $assoc_args['title'] : __('New Page', 'ajnanda');
+        $status        = isset($assoc_args['status']) && 'publish' === $assoc_args['status'] ? 'publish' : 'draft';
+        $color_scheme  = isset($assoc_args['color-scheme']) ? sanitize_key($assoc_args['color-scheme']) : '';
 
-        $post_id = ajnanda_insert_page_design($slug, $title, $status);
+        $post_id = ajnanda_insert_page_design($slug, $title, $status, $color_scheme);
 
         if (is_wp_error($post_id)) {
             WP_CLI::error($post_id->get_error_message());
@@ -263,6 +269,61 @@ class AJNanda_CLI_Starter_Command {
     }
 }
 
+/**
+ * Inspect and set the site-wide AJNanda color scheme.
+ */
+class AJNanda_CLI_ColorScheme_Command {
+
+    /**
+     * List available color schemes.
+     *
+     * ## OPTIONS
+     *
+     * [--format=<format>]
+     * : Render output as table, csv, json, or count. Default: table.
+     *
+     * @when after_wp_load
+     */
+    public function list($args, $assoc_args) {
+        $active = ajnanda_get_active_color_scheme_slug();
+        $rows = array();
+
+        foreach (ajnanda_get_color_schemes() as $slug => $scheme) {
+            $rows[] = array(
+                'slug'   => $slug,
+                'label'  => $scheme['label'],
+                'swatch' => $scheme['swatch'],
+                'active' => $slug === $active ? 'yes' : '',
+            );
+        }
+
+        \WP_CLI\Utils\format_items($assoc_args['format'] ?? 'table', $rows, array('slug', 'label', 'swatch', 'active'));
+    }
+
+    /**
+     * Set the site-wide color scheme.
+     *
+     * ## OPTIONS
+     *
+     * <slug>
+     * : Color scheme slug: blue, purple, gold, or dark.
+     *
+     * @when after_wp_load
+     */
+    public function set($args, $assoc_args) {
+        list($slug) = $args;
+        $schemes = ajnanda_get_color_schemes();
+
+        if (!isset($schemes[$slug])) {
+            WP_CLI::error(sprintf('Unknown color scheme "%s". Available: %s', $slug, implode(', ', array_keys($schemes))));
+        }
+
+        set_theme_mod('ajnanda_color_scheme', $slug);
+        WP_CLI::success(sprintf('Site-wide color scheme set to "%s".', $slug));
+    }
+}
+
 WP_CLI::add_command('ajnanda pattern', 'AJNanda_CLI_Pattern_Command');
 WP_CLI::add_command('ajnanda page-design', 'AJNanda_CLI_PageDesign_Command');
 WP_CLI::add_command('ajnanda starter', 'AJNanda_CLI_Starter_Command');
+WP_CLI::add_command('ajnanda color-scheme', 'AJNanda_CLI_ColorScheme_Command');

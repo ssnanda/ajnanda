@@ -110,12 +110,14 @@ function ajnanda_get_page_designs() {
  * Shared by the Page Library admin screen and the
  * `wp ajnanda page-design insert` CLI command.
  *
- * @param string $slug   Page design pattern slug.
- * @param string $title  Title for the new page.
- * @param string $status 'draft' or 'publish'.
+ * @param string $slug          Page design pattern slug.
+ * @param string $title         Title for the new page.
+ * @param string $status        'draft' or 'publish'.
+ * @param string $color_scheme  Optional color scheme slug (see inc/color-schemes.php). Defaults
+ *                               to the site-wide scheme, in which case no per-page wrapper is added.
  * @return int|WP_Error New page ID, or WP_Error on failure.
  */
-function ajnanda_insert_page_design($slug, $title, $status = 'draft') {
+function ajnanda_insert_page_design($slug, $title, $status = 'draft', $color_scheme = '') {
     if (!class_exists('WP_Block_Patterns_Registry') || !WP_Block_Patterns_Registry::get_instance()->is_registered($slug)) {
         return new WP_Error('ajnanda_unknown_page_design', __('Unknown page design.', 'ajnanda'));
     }
@@ -126,6 +128,10 @@ function ajnanda_insert_page_design($slug, $title, $status = 'draft') {
 
     $content = ajnanda_get_pattern_content($slug);
 
+    if ($color_scheme && function_exists('ajnanda_wrap_content_with_color_scheme')) {
+        $content = ajnanda_wrap_content_with_color_scheme($content, $color_scheme);
+    }
+
     $post_id = wp_insert_post(array(
         'post_type'    => 'page',
         'post_title'   => $title,
@@ -135,6 +141,9 @@ function ajnanda_insert_page_design($slug, $title, $status = 'draft') {
 
     if (!is_wp_error($post_id)) {
         update_post_meta($post_id, '_ajnanda_page_design', $slug);
+        if ($color_scheme) {
+            update_post_meta($post_id, '_ajnanda_color_scheme', $color_scheme);
+        }
     }
 
     return $post_id;

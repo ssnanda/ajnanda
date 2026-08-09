@@ -119,6 +119,35 @@ a fresh install). Where a pattern needs an image, it uses a styled
 4. `wp ajnanda pattern list` (see `docs/development.md`) to confirm it
    registered.
 
+## Color schemes
+
+AJNanda ships 4 color schemes (Blue/default, Purple, Gold, Dark) — see
+`inc/color-schemes.php`. Each is just an override of the same 4 brand CSS
+custom properties every pattern already styles itself from (`--primary`,
+`--primary-dark`, `--secondary`, `--accent`), so **no pattern markup ever
+needs to change or be duplicated per color** — the whole library recolors
+from one source.
+
+- **Site-wide**: Customizer → AJNanda: Color Scheme. Applied via
+  `wp_add_inline_style()` on the frontend and classic editor stylesheet,
+  and via the `block_editor_settings_all` filter for the iframed editor —
+  all three are required; a stylesheet-only override (as some individual
+  AJNanda sites have hand-rolled via an inline `wp_head` `:root` block)
+  never reaches the block editor's iframe, which is why "Choose a pattern"
+  previews on such a site kept showing the theme's default blue regardless
+  of the site's actual brand color. Confirmed by testing against a real
+  site with exactly that setup.
+- **Per page**: the Page Library admin screen's "Color scheme" picker
+  defaults to the site-wide scheme (so new pages match by default) and,
+  when a different scheme is deliberately chosen, wraps that one page's
+  content in a single `<!-- wp:group className="ajnanda-scheme-{slug}" -->`
+  — an ordinary, fully editable group block, not a special mechanism —
+  and shows an inline warning explaining the page will look different from
+  the rest of the site.
+- `wp ajnanda color-scheme list` / `wp ajnanda color-scheme set <slug>` for
+  the site-wide setting; `wp ajnanda page-design insert ... --color-scheme=<slug>`
+  for a single page.
+
 ## AJCore forms
 
 AJNanda has no form system of its own. Where a pattern needs a form

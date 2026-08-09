@@ -37,6 +37,7 @@ detail.
 | `inc/starter-sites/manifests/*.php` | One starter site per file |
 | `inc/admin/class-ajnanda-admin.php` | Top-level "AJNanda" admin menu + form handlers |
 | `inc/admin/views/*.php` | Admin screen templates |
+| `inc/color-schemes.php` | Color scheme registry, Customizer control, frontend/editor/iframe CSS injection, per-page wrap helper |
 | `inc/cli/class-ajnanda-cli.php` | WP-CLI commands (loaded only when `WP_CLI` is defined) |
 | `inc/site-builder.php` | Loader that wires the above together, required once from `functions.php` |
 
@@ -69,6 +70,8 @@ wp ajnanda page-design insert <slug> --title=<title> [--status=draft|publish]
 wp ajnanda starter list [--format=table|json]
 wp ajnanda starter preview <slug>
 wp ajnanda starter import <slug> [--pages=<comma-list>|all] [--status=draft|publish] [--set-homepage] [--overwrite-menu] [--no-menu]
+wp ajnanda color-scheme list [--format=table|json]
+wp ajnanda color-scheme set <slug>
 ```
 
 Every command calls the same registry/importer functions/classes the admin

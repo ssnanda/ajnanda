@@ -166,11 +166,12 @@ class AJNanda_Admin {
         }
         check_admin_referer(self::NONCE_ACTION);
 
-        $slug   = isset($_POST['page_design']) ? sanitize_text_field(wp_unslash($_POST['page_design'])) : '';
-        $title  = isset($_POST['title']) ? sanitize_text_field(wp_unslash($_POST['title'])) : __('New Page', 'ajnanda');
-        $status = (isset($_POST['status']) && 'publish' === $_POST['status']) ? 'publish' : 'draft';
+        $slug          = isset($_POST['page_design']) ? sanitize_text_field(wp_unslash($_POST['page_design'])) : '';
+        $title         = isset($_POST['title']) ? sanitize_text_field(wp_unslash($_POST['title'])) : __('New Page', 'ajnanda');
+        $status        = (isset($_POST['status']) && 'publish' === $_POST['status']) ? 'publish' : 'draft';
+        $color_scheme  = isset($_POST['color_scheme']) ? sanitize_key(wp_unslash($_POST['color_scheme'])) : '';
 
-        $post_id = ajnanda_insert_page_design($slug, $title, $status);
+        $post_id = ajnanda_insert_page_design($slug, $title, $status, $color_scheme);
 
         if (is_wp_error($post_id)) {
             self::store_notice('ajnanda_insert_result', array('error' => $post_id->get_error_message()));
