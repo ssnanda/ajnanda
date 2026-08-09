@@ -3794,10 +3794,14 @@ function ajnanda_customize_register($wp_customize) {
 add_action('customize_register', 'ajnanda_customize_register');
 
 // Remove the built-in Menus panel — all menu settings live in Appearance → Menus.
-// Priority 30 ensures this runs after WP registers the panel at priority 10.
-add_action('customize_register', function($wp_customize): void {
-    $wp_customize->remove_panel('nav_menus');
-}, 30);
+// Filtering out the nav_menus component before it loads (WordPress core's
+// recommended approach) rather than calling remove_panel() after
+// registration, which WP_Customize_Manager flags as incorrect usage
+// because the nav_menus component has already hooked its own JS/behavior
+// expecting the panel to exist.
+add_filter('customize_loaded_components', function(array $components): array {
+    return array_diff($components, array('nav_menus'));
+});
 
 function ajnanda_save_footer_color_scheme_settings($wp_customize) {
     $scheme_id = '';
