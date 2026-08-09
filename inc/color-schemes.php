@@ -172,12 +172,10 @@ function ajnanda_get_active_color_scheme_slug() {
 }
 
 /**
- * @return string A `:root{...}` CSS custom-property override for the
- *                theme's 4 real brand-color settings, from their current
- *                saved values (not tied to a preset).
+ * @param array{primary:string,primary_dark:string,secondary:string,accent:string} $c
+ * @return string A `:root{...}` CSS custom-property override.
  */
-function ajnanda_get_active_brand_colors_css() {
-    $c = ajnanda_get_active_brand_colors();
+function ajnanda_format_brand_colors_css(array $c) {
     return sprintf(
         ':root{--primary:%1$s;--primary-dark:%2$s;--secondary:%3$s;--accent:%4$s;}',
         esc_attr($c['primary']),
@@ -185,6 +183,32 @@ function ajnanda_get_active_brand_colors_css() {
         esc_attr($c['secondary']),
         esc_attr($c['accent'])
     );
+}
+
+/**
+ * @return string A `:root{...}` CSS custom-property override for the
+ *                theme's 4 real brand-color settings, from their current
+ *                saved values (not tied to a preset).
+ */
+function ajnanda_get_active_brand_colors_css() {
+    return ajnanda_format_brand_colors_css(ajnanda_get_active_brand_colors());
+}
+
+/**
+ * Same idea as ajnanda_get_active_brand_colors_css(), but for any named
+ * preset regardless of what's currently saved — used by the non-destructive
+ * preview system (inc/preview.php) so a scheme can be previewed without
+ * changing the site's actual colors.
+ *
+ * @param string $slug A key from ajnanda_get_color_schemes().
+ * @return string `:root{...}` CSS, or '' for an unknown slug.
+ */
+function ajnanda_get_color_scheme_preset_css($slug) {
+    $schemes = ajnanda_get_color_schemes();
+    if (!isset($schemes[$slug])) {
+        return '';
+    }
+    return ajnanda_format_brand_colors_css($schemes[$slug]);
 }
 
 /**

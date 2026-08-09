@@ -85,6 +85,15 @@ $site_scheme_label = isset($color_schemes[$site_scheme]) ? $color_schemes[$site_
                             <?php endif; ?>
                             <div class="ajnanda-admin-actions">
                                 <button type="submit" class="button button-primary"><?php esc_html_e('Add as New Page', 'ajnanda'); ?></button>
+                                <?php if (function_exists('ajnanda_get_preview_url')) : ?>
+                                    <a
+                                        class="button ajnanda-preview-link"
+                                        target="_blank"
+                                        rel="noopener"
+                                        data-preview-base="<?php echo esc_url(ajnanda_get_preview_url($slug)); ?>"
+                                        href="<?php echo esc_url(ajnanda_get_preview_url($slug, $site_scheme)); ?>"
+                                    ><?php esc_html_e('Preview', 'ajnanda'); ?> ↗</a>
+                                <?php endif; ?>
                             </div>
                         </form>
                     </div>
@@ -101,15 +110,23 @@ $site_scheme_label = isset($color_schemes[$site_scheme]) ? $color_schemes[$site_
     document.querySelectorAll('.ajnanda-page-design-form').forEach(function (form) {
         var select = form.querySelector('.ajnanda-scheme-select');
         var warning = form.querySelector('.ajnanda-scheme-warning');
-        if (!select || !warning) {
+        var previewLink = form.querySelector('.ajnanda-preview-link');
+        if (!select) {
             return;
         }
         var siteScheme = select.getAttribute('data-site-scheme');
-        var toggle = function () {
-            warning.hidden = (select.value === siteScheme);
+        var update = function () {
+            if (warning) {
+                warning.hidden = (select.value === siteScheme);
+            }
+            if (previewLink) {
+                var url = new URL(previewLink.getAttribute('data-preview-base'), window.location.href);
+                url.searchParams.set('scheme', select.value);
+                previewLink.href = url.toString();
+            }
         };
-        select.addEventListener('change', toggle);
-        toggle();
+        select.addEventListener('change', update);
+        update();
     });
 })();
 </script>

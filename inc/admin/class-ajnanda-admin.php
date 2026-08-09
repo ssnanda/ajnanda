@@ -45,6 +45,7 @@ class AJNanda_Admin {
         add_submenu_page('ajnanda', __('Starter Sites', 'ajnanda'), __('Starter Sites', 'ajnanda'), self::CAPABILITY, 'ajnanda-starter-sites', array(__CLASS__, 'render_starter_sites'));
         add_submenu_page('ajnanda', __('Page Library', 'ajnanda'), __('Page Library', 'ajnanda'), self::CAPABILITY, 'ajnanda-page-library', array(__CLASS__, 'render_page_library'));
         add_submenu_page('ajnanda', __('Patterns', 'ajnanda'), __('Patterns', 'ajnanda'), self::CAPABILITY, 'ajnanda-patterns', array(__CLASS__, 'render_patterns'));
+        add_submenu_page('ajnanda', __('Color Schemes', 'ajnanda'), __('Color Schemes', 'ajnanda'), self::CAPABILITY, 'ajnanda-color-schemes', array(__CLASS__, 'render_color_schemes'));
         add_submenu_page('ajnanda', __('Theme Settings', 'ajnanda'), __('Theme Settings', 'ajnanda'), self::CAPABILITY, 'ajnanda-settings', array(__CLASS__, 'render_settings'));
     }
 
@@ -109,8 +110,28 @@ class AJNanda_Admin {
     }
 
     /**
-     * All registered patterns except the ones tagged as Page Designs —
-     * i.e. the section library shown on the read-only Patterns screen.
+     * Representative page design used for the "Preview" link on each
+     * Color Schemes swatch. Any page design can be previewed in any color
+     * from the Page Library screen — this just needs one sensible default
+     * so the swatch grid has something concrete to show.
+     */
+    const PREVIEW_DEFAULT_PAGE_DESIGN = 'ajnanda/page-home-corporate';
+
+    public static function render_color_schemes() {
+        self::view('color-schemes', array(
+            'schemes'      => function_exists('ajnanda_get_color_schemes') ? ajnanda_get_color_schemes() : array(),
+            'active_slug'  => function_exists('ajnanda_get_active_color_scheme_slug') ? ajnanda_get_active_color_scheme_slug() : '',
+            'preview_page' => self::PREVIEW_DEFAULT_PAGE_DESIGN,
+        ));
+    }
+
+    /**
+     * AJNanda's own registered section patterns (ajnanda/* and the legacy
+     * ajnanda-pro/* slugs) except the ones tagged as Page Designs — i.e.
+     * the section library shown on the read-only Patterns screen. Core's
+     * own bundled patterns (query loop variations, etc.) are deliberately
+     * excluded — this screen is a reference for AJNanda's library, not
+     * every pattern registered on the site.
      */
     private static function all_section_patterns() {
         if (!class_exists('WP_Block_Patterns_Registry')) {
@@ -118,7 +139,14 @@ class AJNanda_Admin {
         }
 
         $patterns = array();
-        foreach (WP_Block_Patterns_Registry::get_instance()->get_all_registered() as $slug => $pattern) {
+        // get_all_registered() returns array_values()'d entries — the
+        // array key is NOT the slug (that's a common trap). The real
+        // slug is $pattern['name'].
+        foreach (WP_Block_Patterns_Registry::get_instance()->get_all_registered() as $pattern) {
+            $slug = isset($pattern['name']) ? $pattern['name'] : '';
+            if (!$slug || 0 !== strpos($slug, 'ajnanda')) {
+                continue;
+            }
             $categories = isset($pattern['categories']) ? (array) $pattern['categories'] : array();
             if (!in_array('ajnanda-page-designs', $categories, true)) {
                 $patterns[$slug] = $pattern;

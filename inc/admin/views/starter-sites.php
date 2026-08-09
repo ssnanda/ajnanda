@@ -52,7 +52,17 @@ if (!defined('ABSPATH')) {
                 <?php foreach ($starter['pages'] as $page) : ?>
                     <li>
                         <span><?php echo esc_html($page['title']); ?> <code>/<?php echo esc_html($page['slug']); ?>/</code></span>
-                        <span class="description"><?php echo esc_html($page['page_design']); ?></span>
+                        <span style="display:flex;align-items:center;gap:10px;">
+                            <span class="description"><?php echo esc_html($page['page_design']); ?></span>
+                            <?php if (function_exists('ajnanda_get_preview_url')) : ?>
+                                <a
+                                    class="button button-small"
+                                    target="_blank"
+                                    rel="noopener"
+                                    href="<?php echo esc_url(ajnanda_get_preview_url($page['page_design'])); ?>"
+                                ><?php esc_html_e('Preview', 'ajnanda'); ?> ↗</a>
+                            <?php endif; ?>
+                        </span>
                     </li>
                 <?php endforeach; ?>
             </ul>

@@ -94,7 +94,14 @@ function ajnanda_get_page_designs() {
     $registry = WP_Block_Patterns_Registry::get_instance();
     $designs  = array();
 
-    foreach ($registry->get_all_registered() as $slug => $pattern) {
+    // get_all_registered() returns array_values()'d entries — the array
+    // key is NOT the slug (that's a common trap). The real slug is
+    // $pattern['name'].
+    foreach ($registry->get_all_registered() as $pattern) {
+        $slug = isset($pattern['name']) ? $pattern['name'] : '';
+        if (!$slug) {
+            continue;
+        }
         $categories = isset($pattern['categories']) ? (array) $pattern['categories'] : array();
         if (in_array('ajnanda-page-designs', $categories, true)) {
             $designs[$slug] = $pattern;

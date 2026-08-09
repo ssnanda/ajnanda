@@ -250,6 +250,7 @@ build_zip() {
     --exclude='SETUP-GUIDE.md' \
     --exclude='IMPROVEMENTS-SUMMARY.md' \
     --exclude='QUICK-SETUP.sh' \
+    --exclude='docs' \
     --exclude='*.zip' \
     --exclude='.vscode' \
     --exclude='.idea' \
@@ -313,6 +314,16 @@ git_commit_release_files() {
       *) git add "$file" ;;
     esac
   done < <(git ls-files --others --exclude-standard)
+
+  # Explicit, in addition to the generic sweep above: documentation in
+  # docs/ (AJNANDA-CAPABILITIES.md, patterns.md, page-designs.md,
+  # starter-sites.md, development.md, etc.) always rides along with a
+  # release commit, whether it's a change to an existing file or a brand
+  # new one. It's excluded from the shipped theme zip (see build_zip)
+  # but still belongs in the git history on GitHub.
+  if [[ -d "$ROOT_DIR/docs" ]]; then
+    git add docs/
+  fi
 
   if git diff --cached --quiet; then
     echo "Git: nothing to commit"

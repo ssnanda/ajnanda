@@ -122,12 +122,24 @@ when explicitly asked.
 
 - **AJNanda** admin menu (top-level, `inc/admin/class-ajnanda-admin.php`):
   Overview, Starter Sites (preview/import UI), Page Library (browse + "Add
-  as New Page"), Patterns (read-only reference), Theme Settings (links out
-  to the Customizer and the existing theme updater screen).
+  as New Page"), Patterns (read-only reference), Color Schemes (visual
+  reference), Theme Settings (links out to the Customizer and the
+  existing theme updater screen).
 - **Native "Choose a pattern" modal** (Pages → Add New): shows Page
   Designs automatically — no custom UI, this is core WordPress behavior
   triggered by the `Block Types: core/post-content` pattern header.
 - **WP-CLI** (`inc/cli/class-ajnanda-cli.php`): `wp ajnanda pattern|page-design|starter|color-scheme ...` — thin wrappers around the same PHP functions/classes the admin screens use.
+
+### Non-destructive preview
+
+`inc/preview.php` renders any registered pattern (a Section Pattern, a
+Page Design, or a Starter Site page — the latter two are just pattern
+slugs) as a real front-end page — real header/footer, real CSS — without
+writing anything to the database. Optionally previews with any Color
+Scheme applied. Reached via "Preview" links on the Starter Sites, Page
+Library, and Color Schemes admin screens; built from an in-memory
+`WP_Post` that's never `wp_insert_post()`-ed. Detail in
+`docs/development.md` ("Preview").
 
 ---
 
@@ -407,7 +419,8 @@ dead code — the `NCLLC_Pro_*` naming is legacy, see Legacy notes below):
 
 | Tool | What it does | Where |
 |---|---|---|
-| **AJNanda admin menu** | Top-level wp-admin menu surfacing the site-builder system: Overview, Starter Sites, Page Library, Patterns, Theme Settings | `inc/admin/class-ajnanda-admin.php`, `inc/admin/views/*.php` |
+| **AJNanda admin menu** | Top-level wp-admin menu surfacing the site-builder system: Overview, Starter Sites, Page Library, Patterns, Color Schemes, Theme Settings | `inc/admin/class-ajnanda-admin.php`, `inc/admin/views/*.php` |
+| **Non-destructive preview** | Renders any pattern/page design (optionally in any color scheme) as a real page — no database writes | `inc/preview.php` |
 | **GitHub theme updater** | Self-hosted update mechanism — polls the `ssnanda/ajnanda` GitHub repo's latest Release, compares versions, hooks WordPress's native theme-update machinery plus a direct admin-post "update now" action. Screen lives at **Appearance → Update AJNanda** (a submenu under `themes.php`, not the new top-level AJNanda menu), and its sidebar link is rewritten to perform the update directly | `inc/github-theme-updater.php`, `inc/theme-details-updater-button.php` (adds a matching button to the native theme-details modal) |
 | **Duplicate Post/Page** | "Duplicate" row action on Posts and Pages (only those two post types). Copies content/title(+" Copy")/excerpt/taxonomies/meta (except `_wp_old_slug`) into a new `draft`, then redirects to edit it | `inc/duplicate-content.php` |
 | **WP-CLI** | `wp ajnanda pattern/page-design/starter/color-scheme ...` — scriptable access to the site-builder system, same code paths as the admin UI | `inc/cli/class-ajnanda-cli.php` (only loaded when `WP_CLI` is defined) |
@@ -541,6 +554,8 @@ inc/
   patterns.php                Pattern category registration
   page-designs.php             Page Design composer/insert helpers
   color-schemes.php            Preset swatches + editor color-gap fix
+  preview.php                  Non-destructive live preview (any pattern,
+                                any color scheme, no DB writes)
   seo.php                      SEO meta box, schema, llms.txt
   duplicate-content.php        "Duplicate" row action
   github-theme-updater.php     Self-hosted theme updater

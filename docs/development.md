@@ -40,6 +40,7 @@ detail.
 | `inc/admin/class-ajnanda-admin.php` | Top-level "AJNanda" admin menu + form handlers |
 | `inc/admin/views/*.php` | Admin screen templates |
 | `inc/color-schemes.php` | Preset registry, one-click preset swatches for the native Colors panel, editor/iframe CSS injection (closes the gap in the theme's existing `wp_head`-only color output), per-page wrap helper |
+| `inc/preview.php` | Non-destructive live preview (any pattern, optionally any color scheme) — see "Preview" below |
 | `inc/cli/class-ajnanda-cli.php` | WP-CLI commands (loaded only when `WP_CLI` is defined) |
 | `inc/site-builder.php` | Loader that wires the above together, required once from `functions.php` |
 
@@ -49,9 +50,16 @@ detail.
 Pages, Appearance:
 
 - **Overview** — counts and quick links.
-- **Starter Sites** — preview/import UI described in `docs/starter-sites.md`.
-- **Page Library** — browse Page Designs, "Add as New Page".
-- **Patterns** — read-only reference of section patterns.
+- **Starter Sites** — preview/import UI described in `docs/starter-sites.md`;
+  each page also links to a full visual preview (see "Preview" below).
+- **Page Library** — browse Page Designs, "Add as New Page", and preview
+  any design in any color scheme before inserting it.
+- **Patterns** — read-only reference of AJNanda's own section patterns
+  (core-bundled patterns are filtered out).
+- **Color Schemes** — visual reference of the 20 presets in
+  `ajnanda_get_color_schemes()`, each with a live preview link. Read-only —
+  to actually apply a scheme, use the Customizer (site-wide) or the Page
+  Library picker (single page).
 - **Theme Settings** — links to the existing Customizer and the existing
   Appearance → Update AJNanda screen (`inc/github-theme-updater.php`),
   which are intentionally **not** re-implemented or re-parented here so
@@ -62,6 +70,34 @@ Pages, Appearance:
 Admin CSS/JS (`inc/admin/assets/admin.css`) is only enqueued on AJNanda's
 own screens (checked via `$_GET['page']` starting with `ajnanda`) — nothing
 loads on other wp-admin screens or the front end.
+
+## Preview
+
+`inc/preview.php` renders any registered pattern — a Section Pattern, a
+Page Design, or (since a Starter Site page is just a page_design
+reference) any Starter Site page — as a real front-end page, optionally
+in any Color Scheme, without creating anything in the database.
+
+`ajnanda_get_preview_url( $pattern_slug, $color_scheme = '' )` builds a
+nonce-protected link (`admin-post.php?action=ajnanda_preview&slug=...`,
+capability `edit_theme_options`). The handler builds an in-memory
+`WP_Post` (ID `0`, never `wp_insert_post()`-ed), points `$wp_query` /
+`$wp_the_query` at it, and includes the theme's own `page.php` — the same
+builder-canvas detection and template a real page gets — rather than
+reimplementing a simplified renderer. A color scheme override, if any, is
+applied as an `ajnanda-scheme-{slug}` body class, reusing the exact CSS
+`style.css` already defines for the Page Library's per-page override — no
+new styling is generated for preview. A sticky banner (injected via the
+`wp_body_open` hook) makes clear nothing is saved.
+
+Two WordPress internals needed explicit handling to get a clean preview
+under `wp-admin/admin-post.php` (which never calls `set_current_screen()`
+or runs the normal main-query bootstrap the way a real page load does):
+the admin toolbar's edit-link builder assumes `get_current_screen()` is
+non-null, and `WP_Query::the_post()` reads `query_vars['update_post_term_cache']`/
+`['update_post_meta_cache']`, which are normally defaulted inside
+`WP_Query::get_posts()` — never called here since the "query" is a single
+hand-built post, not a real query. Both are set explicitly in the handler.
 
 ## WP-CLI
 
@@ -104,6 +140,20 @@ agent) can drive it without reading theme source first:
 In all three cases: add one new file, reuse existing categories/classes/
 slugs where they fit, and nothing else needs to change — there's no
 central registration list to update by hand.
+
+### A `WP_Block_Patterns_Registry` gotcha to know before touching any of this
+
+`WP_Block_Patterns_Registry::get_all_registered()` returns its result
+through `array_values()` — **the array key is never the slug**, even
+though iterating `as $slug => $pattern` looks correct and won't error.
+The real slug is `$pattern['name']`. This bit every place in the codebase
+that listed patterns (`ajnanda_get_page_designs()`, the Patterns admin
+screen, `wp ajnanda pattern list`) until it was caught by actually
+clicking through the admin UI, not just reading the code — CLI/table
+output showed plausible-looking sequential numbers instead of slugs.
+Single-slug lookups (`is_registered( $slug )`, `get_registered( $slug )`)
+are unaffected; only code that iterates *all* registered patterns needs
+this in mind.
 
 ## Testing checklist
 

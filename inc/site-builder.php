@@ -25,10 +25,13 @@ require_once __DIR__ . '/page-designs.php';
 require_once __DIR__ . '/starter-sites/class-ajnanda-starter-sites.php';
 require_once __DIR__ . '/starter-sites/class-ajnanda-starter-importer.php';
 
-// Admin screens are only needed in wp-admin — nothing here touches the
-// front end, so it's kept out of the frontend request entirely.
+// Admin screens (and the preview engine — its request also lands under
+// wp-admin/admin-post.php, so is_admin() is true there too) are only
+// needed in wp-admin — nothing here touches the front end, so it's kept
+// out of the frontend request entirely.
 if (is_admin()) {
     require_once __DIR__ . '/admin/class-ajnanda-admin.php';
+    require_once __DIR__ . '/preview.php';
 }
 
 // The CLI command file self-guards on WP_CLI, but there's no reason to

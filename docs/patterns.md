@@ -174,6 +174,12 @@ CLI: `wp ajnanda color-scheme list` / `wp ajnanda color-scheme set <slug>`
 (sets the 4 real color settings from a preset); `wp ajnanda page-design
 insert ... --color-scheme=<slug>` for a single page.
 
+**Preview before applying**: AJNanda → Color Schemes shows every preset
+with a "Preview" link that renders a real page with that scheme applied —
+no setting is changed, nothing is saved (see `docs/development.md`,
+"Preview"). The Page Library screen's color picker has the same live
+preview link, tied to whichever scheme is currently selected there.
+
 ## AJCore forms
 
 AJNanda has no form system of its own. Where a pattern needs a form

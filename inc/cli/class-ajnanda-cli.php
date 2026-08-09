@@ -50,7 +50,15 @@ class AJNanda_CLI_Pattern_Command {
         $category = isset($assoc_args['category']) ? $assoc_args['category'] : '';
         $rows = array();
 
-        foreach (WP_Block_Patterns_Registry::get_instance()->get_all_registered() as $slug => $pattern) {
+        // get_all_registered() returns array_values()'d entries — the
+        // array key is NOT the slug (that's a common trap). The real
+        // slug is $pattern['name'].
+        foreach (WP_Block_Patterns_Registry::get_instance()->get_all_registered() as $pattern) {
+            $slug = isset($pattern['name']) ? $pattern['name'] : '';
+            if (!$slug || 0 !== strpos($slug, 'ajnanda')) {
+                continue; // AJNanda's own patterns only, not core's bundled ones.
+            }
+
             $categories = !empty($pattern['categories']) ? (array) $pattern['categories'] : array();
 
             if (in_array('ajnanda-page-designs', $categories, true)) {
