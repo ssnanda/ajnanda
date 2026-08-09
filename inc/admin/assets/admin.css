@@ -1,0 +1,186 @@
+/**
+ * AJNanda admin screens (Overview, Starter Sites, Page Library, Patterns,
+ * Theme Settings). Only enqueued on AJNanda's own admin pages — see
+ * AJNanda_Admin::enqueue_assets(). Visual language intentionally matches
+ * the existing Appearance → Update AJNanda screen (same radii, borders,
+ * and gradient hero treatment) so the whole admin area reads as one
+ * product; class names are namespaced ajnanda-admin-* to avoid colliding
+ * with that screen's own ajnanda-update-* classes.
+ */
+
+.ajnanda-admin-wrap {
+    max-width: 1180px;
+}
+
+.ajnanda-admin-hero {
+    margin: 20px 0 22px;
+    padding: 28px 30px;
+    border: 1px solid #dcdcde;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #ffffff 0%, #f6f8ff 100%);
+    box-shadow: 0 14px 35px rgba(15, 23, 42, 0.08);
+}
+
+.ajnanda-admin-eyebrow {
+    margin: 0 0 8px;
+    color: #3858e9;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.ajnanda-admin-hero h1 {
+    margin: 0;
+    color: #111827;
+    font-size: 30px;
+    line-height: 1.15;
+}
+
+.ajnanda-admin-hero p {
+    max-width: 720px;
+    margin: 10px 0 0;
+    color: #4b5563;
+    font-size: 15px;
+}
+
+.ajnanda-admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.ajnanda-admin-card {
+    padding: 20px;
+    border: 1px solid #dcdcde;
+    border-radius: 14px;
+    background: #fff;
+}
+
+.ajnanda-admin-card h2 {
+    margin: 0 0 8px;
+    color: #111827;
+    font-size: 16px;
+}
+
+.ajnanda-admin-card p {
+    margin: 0 0 12px;
+    color: #4b5563;
+    font-size: 13px;
+}
+
+.ajnanda-admin-card .description {
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.ajnanda-admin-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.ajnanda-admin-pill.is-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.ajnanda-admin-pill.is-success {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.ajnanda-admin-section {
+    margin: 24px 0;
+    padding: 20px;
+    border: 1px solid #dcdcde;
+    border-radius: 14px;
+    background: #fff;
+}
+
+.ajnanda-admin-section h2 {
+    margin-top: 0;
+}
+
+.ajnanda-admin-page-list {
+    margin: 12px 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ajnanda-admin-page-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f1;
+    font-size: 13px;
+}
+
+.ajnanda-admin-page-list li:last-child {
+    border-bottom: none;
+}
+
+.ajnanda-admin-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-top: 14px;
+}
+
+.ajnanda-admin-actions .button {
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.ajnanda-admin-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin: 14px 0;
+    padding: 14px;
+    border-radius: 10px;
+    background: #f9fafb;
+    font-size: 13px;
+}
+
+.ajnanda-admin-options label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ajnanda-admin-diff-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+}
+
+.ajnanda-admin-diff-table th,
+.ajnanda-admin-diff-table td {
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+.ajnanda-admin-status-create { color: #1d4ed8; }
+.ajnanda-admin-status-already_imported,
+.ajnanda-admin-status-skipped_existing { color: #047857; }
+.ajnanda-admin-status-slug_conflict,
+.ajnanda-admin-status-error { color: #b91c1c; }
+.ajnanda-admin-status-created { color: #047857; font-weight: 600; }
+
+@media (max-width: 900px) {
+    .ajnanda-admin-grid {
+        grid-template-columns: 1fr;
+    }
+}

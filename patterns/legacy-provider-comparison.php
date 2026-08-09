@@ -1,0 +1,15 @@
+<?php
+/**
+ * Title: Provider Comparison Cards
+ * Slug: ajnanda-pro/provider-comparison
+ * Categories: ajnanda-builder, ajnanda-content
+ * Keywords: comparison, about, pricing
+ * Description: Two or three comparison cards, each with a heading, a short feature list, and a choice button. Useful for an About page.
+ *
+ * @package AJNanda
+ *
+ * Legacy pattern — migrated verbatim from the pre-1.3.0 functions.php pattern
+ * array. See docs/patterns.md.
+ */
+?>
+<!-- wp:group {"align":"full","className":"builder-section builder-section-soft","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull builder-section builder-section-soft"><!-- wp:heading {"textAlign":"center"} --><h2 class="wp-block-heading has-text-align-center">Compare Your Options</h2><!-- /wp:heading --><!-- wp:paragraph {"align":"center","className":"builder-section-intro"} --><p class="has-text-align-center builder-section-intro">Help visitors choose between a few options by listing what each one includes.</p><!-- /wp:paragraph --><!-- wp:columns {"className":"is-style-ajnanda-equal-height"} --><div class="wp-block-columns is-style-ajnanda-equal-height"><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"is-style-ajnanda-card-bordered has-content-align-center","layout":{"type":"constrained"}} --><div class="wp-block-group is-style-ajnanda-card-bordered has-content-align-center"><!-- wp:heading {"textAlign":"center","level":3} --><h3 class="wp-block-heading has-text-align-center">Option A</h3><!-- /wp:heading --><!-- wp:list --><ul class="wp-block-list"><!-- wp:list-item --><li>Feature included</li><!-- /wp:list-item --><!-- wp:list-item --><li>Feature included</li><!-- /wp:list-item --></ul><!-- /wp:list --><!-- wp:buttons {"layout":{"type":"flex","justifyContent":"center"}} --><div class="wp-block-buttons"><!-- wp:button --><div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="#">Choose Option A</a></div><!-- /wp:button --></div><!-- /wp:buttons --></div><!-- /wp:group --></div><!-- /wp:column --><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"is-style-ajnanda-card-elevated has-content-align-center","layout":{"type":"constrained"}} --><div class="wp-block-group is-style-ajnanda-card-elevated has-content-align-center"><!-- wp:heading {"textAlign":"center","level":3} --><h3 class="wp-block-heading has-text-align-center">Option B</h3><!-- /wp:heading --><!-- wp:list --><ul class="wp-block-list"><!-- wp:list-item --><li>Feature included</li><!-- /wp:list-item --><!-- wp:list-item --><li>Feature included</li><!-- /wp:list-item --><!-- wp:list-item --><li>Additional feature</li><!-- /wp:list-item --></ul><!-- /wp:list --><!-- wp:buttons {"layout":{"type":"flex","justifyContent":"center"}} --><div class="wp-block-buttons"><!-- wp:button --><div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="#">Choose Option B</a></div><!-- /wp:button --></div><!-- /wp:buttons --></div><!-- /wp:group --></div><!-- /wp:column --></div><!-- /wp:columns --></div><!-- /wp:group -->

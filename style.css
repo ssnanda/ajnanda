@@ -2046,6 +2046,65 @@ body.admin-bar .site-header {
 .section-divider-curve-top::before { border-radius: 0 0 50% 50% / 0 0 100% 100%; }
 .section-divider-curve-bottom::after { border-radius: 50% 50% 0 0 / 100% 100% 0 0; }
 
+/* ==========================================================================
+   AJNanda section/hero "dark" tone modifier.
+
+   Follows the existing plain-className-modifier convention already used by
+   hero-width-*/hero-height-*/hero-text-* above (rather than introducing a
+   second, competing block-style-variation system) and reuses the theme's
+   existing --gray-900/--white/--gray-300 tokens — no new colors. Applies to
+   .builder-section and .builder-hero-section wrappers; nested AJNanda cards
+   keep their own light background by design (see the .builder-cta-panel
+   comment above), so a dark section with a card in it still reads clearly.
+   ========================================================================== */
+
+.builder-section.section-tone-dark,
+.builder-hero-section.hero-tone-dark {
+    background-color: var(--gray-900);
+    color: var(--white);
+}
+
+.builder-section.section-tone-dark h1,
+.builder-section.section-tone-dark h2,
+.builder-section.section-tone-dark h3,
+.builder-section.section-tone-dark h4,
+.builder-section.section-tone-dark h5,
+.builder-section.section-tone-dark h6,
+.builder-hero-section.hero-tone-dark h1,
+.builder-hero-section.hero-tone-dark h2,
+.builder-hero-section.hero-tone-dark h3 {
+    color: var(--white);
+}
+
+.builder-section.section-tone-dark p,
+.builder-section.section-tone-dark li,
+.builder-hero-section.hero-tone-dark p,
+.builder-hero-section.hero-tone-dark li {
+    color: var(--gray-300);
+}
+
+.builder-section.section-tone-dark a:not(.wp-block-button__link),
+.builder-hero-section.hero-tone-dark a:not(.wp-block-button__link) {
+    color: var(--white);
+}
+
+.builder-section.section-tone-dark .wp-block-button:not(.is-style-outline) .wp-block-button__link,
+.builder-hero-section.hero-tone-dark .wp-block-button:not(.is-style-outline) .wp-block-button__link {
+    background: var(--white);
+    color: var(--gray-900);
+}
+
+.builder-section.section-tone-dark .wp-block-button.is-style-outline .wp-block-button__link,
+.builder-hero-section.hero-tone-dark .wp-block-button.is-style-outline .wp-block-button__link {
+    border-color: var(--white);
+    color: var(--white);
+}
+
+.builder-section.section-tone-dark .is-style-ajnanda-eyebrow,
+.builder-hero-section.hero-tone-dark .is-style-ajnanda-eyebrow {
+    color: var(--accent);
+}
+
 /* Editor utility classes for blocks without native size controls. */
 .obj-width-25 { width: 25% !important; }
 .obj-width-33 { width: 33.333% !important; }

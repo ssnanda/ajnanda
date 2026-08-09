@@ -1,0 +1,15 @@
+<?php
+/**
+ * Title: Statistics Strip
+ * Slug: ajnanda-pro/statistics-strip
+ * Categories: ajnanda-builder, ajnanda-data
+ * Keywords: stats, numbers, metrics
+ * Description: An introductory statement followed by two to four statistics with a large value and a smaller label.
+ *
+ * @package AJNanda
+ *
+ * Legacy pattern — migrated verbatim from the pre-1.3.0 functions.php pattern
+ * array. See docs/patterns.md.
+ */
+?>
+<!-- wp:group {"align":"full","className":"builder-section","layout":{"type":"constrained"}} --><div class="wp-block-group alignfull builder-section"><!-- wp:paragraph {"align":"center","className":"builder-section-intro"} --><p class="has-text-align-center builder-section-intro">A short introductory statement that sets up the numbers below.</p><!-- /wp:paragraph --><!-- wp:columns {"className":"is-style-ajnanda-equal-height"} --><div class="wp-block-columns is-style-ajnanda-equal-height"><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"ajnanda-stat-container is-style-ajnanda-card-bordered has-content-align-center","layout":{"type":"constrained"}} --><div class="wp-block-group ajnanda-stat-container is-style-ajnanda-card-bordered has-content-align-center"><!-- wp:paragraph {"align":"center","className":"ajnanda-stat-value"} --><p class="has-text-align-center ajnanda-stat-value"><strong>10,000+</strong></p><!-- /wp:paragraph --><!-- wp:paragraph {"align":"center","className":"ajnanda-stat-label"} --><p class="has-text-align-center ajnanda-stat-label">Short label describing this statistic</p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column --><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"ajnanda-stat-container is-style-ajnanda-card-bordered has-content-align-center","layout":{"type":"constrained"}} --><div class="wp-block-group ajnanda-stat-container is-style-ajnanda-card-bordered has-content-align-center"><!-- wp:paragraph {"align":"center","className":"ajnanda-stat-value"} --><p class="has-text-align-center ajnanda-stat-value"><strong>98%</strong></p><!-- /wp:paragraph --><!-- wp:paragraph {"align":"center","className":"ajnanda-stat-label"} --><p class="has-text-align-center ajnanda-stat-label">Short label describing this statistic</p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column --><!-- wp:column --><div class="wp-block-column"><!-- wp:group {"className":"ajnanda-stat-container is-style-ajnanda-card-bordered has-content-align-center","layout":{"type":"constrained"}} --><div class="wp-block-group ajnanda-stat-container is-style-ajnanda-card-bordered has-content-align-center"><!-- wp:paragraph {"align":"center","className":"ajnanda-stat-value"} --><p class="has-text-align-center ajnanda-stat-value"><strong>24/7</strong></p><!-- /wp:paragraph --><!-- wp:paragraph {"align":"center","className":"ajnanda-stat-label"} --><p class="has-text-align-center ajnanda-stat-label">Short label describing this statistic</p><!-- /wp:paragraph --></div><!-- /wp:group --></div><!-- /wp:column --></div><!-- /wp:columns --></div><!-- /wp:group -->
