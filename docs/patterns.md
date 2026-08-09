@@ -152,13 +152,21 @@ duplicate it with a second setting. It adds three things on top:
    fully editable group block — with an inline warning that the page will
    look different from the rest of the site.
 
-Gradients: theme.json registers 4 AJNanda gradient presets (e.g. "Primary
-to Dark") built from `linear-gradient(135deg, var(--primary) 0%,
-var(--primary-dark) 100%)` — because they reference the live CSS variables
-rather than fixed hex values, they automatically follow whatever colors are
-currently active (preset or fully custom), with zero extra plumbing. They
-appear in the native Gradient Picker on any block with gradient support
-(Cover, Buttons, Group background, etc.).
+Gradients: theme.json registers 12 AJNanda gradient presets (Primary↔Dark,
+Primary↔Secondary, Primary→Accent, Secondary→Accent, Brand Spectrum,
+Dark↔Dim, two radial glows, and a light Soft Fade) built from e.g.
+`linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)` —
+because they reference the live CSS variables rather than fixed hex
+values, they automatically follow whatever colors are currently active
+(preset or fully custom), with zero extra plumbing. They appear in the
+native Gradient Picker on any block with gradient support (Cover, Buttons,
+Group background, etc.). Two section patterns already use one — **Hero —
+Gradient** and **CTA — Gradient** — both pair the gradient background with
+the existing `hero-tone-dark`/`section-tone-dark` class for readable white
+text/buttons rather than hand-coloring individual blocks (core/button
+skip-serializes color the same way it skip-serializes font-size, so its
+color is always driven by a className/context, never a backgroundColor/
+textColor attribute, in every AJNanda pattern).
 
 CLI: `wp ajnanda color-scheme list` / `wp ajnanda color-scheme set <slug>`
 (sets the 4 real color settings from a preset); `wp ajnanda page-design

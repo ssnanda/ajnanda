@@ -127,9 +127,34 @@
           "gradient": "linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)"
         },
         {
+          "name": "AJNanda: Dark to Primary",
+          "slug": "ajnanda-dark-to-primary",
+          "gradient": "linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%)"
+        },
+        {
           "name": "AJNanda: Primary to Secondary",
           "slug": "ajnanda-primary-to-secondary",
           "gradient": "linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)"
+        },
+        {
+          "name": "AJNanda: Secondary to Primary",
+          "slug": "ajnanda-secondary-to-primary",
+          "gradient": "linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%)"
+        },
+        {
+          "name": "AJNanda: Primary to Accent",
+          "slug": "ajnanda-primary-to-accent",
+          "gradient": "linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%)"
+        },
+        {
+          "name": "AJNanda: Secondary to Accent",
+          "slug": "ajnanda-secondary-to-accent",
+          "gradient": "linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%)"
+        },
+        {
+          "name": "AJNanda: Brand Spectrum",
+          "slug": "ajnanda-brand-spectrum",
+          "gradient": "linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%)"
         },
         {
           "name": "AJNanda: Dark to Dim",
@@ -137,9 +162,24 @@
           "gradient": "linear-gradient(135deg, var(--primary-dark) 0%, var(--gray-900) 100%)"
         },
         {
+          "name": "AJNanda: Dim to Dark",
+          "slug": "ajnanda-dim-to-dark",
+          "gradient": "linear-gradient(135deg, var(--gray-900) 0%, var(--primary-dark) 100%)"
+        },
+        {
           "name": "AJNanda: Primary Glow",
           "slug": "ajnanda-primary-glow",
           "gradient": "radial-gradient(circle, var(--primary) 0%, var(--primary-dark) 100%)"
+        },
+        {
+          "name": "AJNanda: Accent Glow",
+          "slug": "ajnanda-accent-glow",
+          "gradient": "radial-gradient(circle, var(--accent) 0%, var(--primary-dark) 100%)"
+        },
+        {
+          "name": "AJNanda: Soft Fade",
+          "slug": "ajnanda-soft-fade",
+          "gradient": "linear-gradient(135deg, var(--white) 0%, var(--gray-100) 100%)"
         }
       ],
       "palette": [
