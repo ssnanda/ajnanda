@@ -550,6 +550,14 @@ function ajnanda_sanitize_header_font_preset($value) {
     return in_array($value, $allowed, true) ? $value : 'normal';
 }
 
+function ajnanda_sanitize_footer_font_style($value) {
+    return 'italic' === $value ? 'italic' : 'normal';
+}
+
+function ajnanda_sanitize_footer_text_decoration($value) {
+    return 'underline' === $value ? 'underline' : 'none';
+}
+
 function ajnanda_sanitize_checkbox($value) {
     return (bool) $value;
 }
@@ -2542,6 +2550,12 @@ function ajnanda_footer_settings_from_header_scheme($scheme_id) {
         'footer_font_family'              => $scheme['font'][1],
         'footer_font_size'                => $scheme['font'][2],
         'footer_font_weight'              => in_array($scheme['font'][3], array('bold', 'bold-italic', 'bold-underline'), true) ? '700' : '400',
+        // font[3] is the same preset vocabulary as header_font_preset
+        // (e.g. "bold-underline"); previously only the bold/700 half was
+        // read out of it here, silently dropping any italic/underline the
+        // scheme specified.
+        'footer_font_style'               => in_array($scheme['font'][3], array('italic', 'bold-italic'), true) ? 'italic' : 'normal',
+        'footer_text_decoration'          => in_array($scheme['font'][3], array('underline', 'bold-underline'), true) ? 'underline' : 'none',
     );
 }
 
@@ -3362,6 +3376,25 @@ function ajnanda_customize_register($wp_customize) {
             'sanitize' => 'ajnanda_sanitize_font_weight',
             'choices'  => array('400' => '400', '500' => '500', '600' => '600', '700' => '700', '800' => '800'),
         ),
+        // No standalone control: like the other compact keys below, these
+        // are only ever set by picking a Footer Color Scheme (its font[3]
+        // preset, e.g. "bold-underline", now carries italic/underline
+        // through instead of that part being silently dropped) — see
+        // ajnanda_footer_settings_from_header_scheme(). Manual entry isn't
+        // exposed yet, so they default to matching the header's own
+        // pre-preset defaults (normal / none).
+        'footer_font_style' => array(
+            'label'    => __('Footer Font Style', 'ajnanda'),
+            'default'  => 'normal',
+            'type'     => 'hidden',
+            'sanitize' => 'ajnanda_sanitize_footer_font_style',
+        ),
+        'footer_text_decoration' => array(
+            'label'    => __('Footer Text Decoration', 'ajnanda'),
+            'default'  => 'none',
+            'type'     => 'hidden',
+            'sanitize' => 'ajnanda_sanitize_footer_text_decoration',
+        ),
         'footer_menu_gap' => array(
             'label'    => __('Footer Menu Gap', 'ajnanda'),
             'default'  => '1.4rem',
@@ -3376,7 +3409,7 @@ function ajnanda_customize_register($wp_customize) {
         ),
     );
 
-    $footer_font_compact_keys = array('footer_font_family', 'footer_font_size', 'footer_font_weight');
+    $footer_font_compact_keys = array('footer_font_family', 'footer_font_size', 'footer_font_weight', 'footer_font_style', 'footer_text_decoration');
 
     foreach ($footer_typography_controls as $setting_id => $control) {
         $wp_customize->add_setting($setting_id, array(
@@ -4718,6 +4751,8 @@ function ajnanda_customizer_css() {
     $footer_font_family = get_theme_mod('footer_font_family', 'inherit');
     $footer_font_size = get_theme_mod('footer_font_size', '1rem');
     $footer_font_weight = get_theme_mod('footer_font_weight', '400');
+    $footer_font_style = get_theme_mod('footer_font_style', 'normal');
+    $footer_text_decoration = get_theme_mod('footer_text_decoration', 'none');
     $footer_menu_gap = get_theme_mod('footer_menu_gap', '1.4rem');
     $footer_container_width = get_theme_mod('footer_container_width', '1280px');
     $footer_padding_top_desktop    = get_theme_mod('footer_padding_top_desktop',    '4rem');
@@ -4742,6 +4777,8 @@ function ajnanda_customizer_css() {
         $footer_font_family = $footer_scheme['font'][1];
         $footer_font_size = $footer_scheme['font'][2];
         $footer_font_weight = in_array($footer_scheme['font'][3], array('bold', 'bold-italic', 'bold-underline'), true) ? '700' : '400';
+        $footer_font_style = in_array($footer_scheme['font'][3], array('italic', 'bold-italic'), true) ? 'italic' : 'normal';
+        $footer_text_decoration = in_array($footer_scheme['font'][3], array('underline', 'bold-underline'), true) ? 'underline' : 'none';
     }
 
     $old_logo_height = get_theme_mod('logo_height', '50');
@@ -4858,6 +4895,8 @@ function ajnanda_customizer_css() {
             --ajn-footer-font-family: <?php echo esc_attr($footer_font_family); ?>;
             --ajn-footer-font-size: <?php echo esc_attr($footer_font_size); ?>;
             --ajn-footer-font-weight: <?php echo esc_attr($footer_font_weight); ?>;
+            --ajn-footer-font-style: <?php echo esc_attr($footer_font_style); ?>;
+            --ajn-footer-text-decoration: <?php echo esc_attr($footer_text_decoration); ?>;
             --ajn-footer-menu-gap: <?php echo esc_attr($footer_menu_gap); ?>;
             --ajn-footer-container-width: <?php echo esc_attr($footer_container_width); ?>;
             --ajn-footer-padding-top-desktop: <?php echo esc_attr($footer_padding_top_desktop); ?>;

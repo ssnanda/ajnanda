@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.2.6
+Version: 1.2.7
 License: GNU General Public License v2 or later
 Text Domain: ajnanda
 */
@@ -151,12 +151,15 @@ body.admin-bar .site-header {
 
 /* ajnanda_render_builder_site_identity() (see comment below) renders this
    same .site-logo text link in the footer builder too, but the rule above
-   hardcodes the header's text color — on a dark footer color scheme the
-   brand name renders as dark-gray-on-near-black and is effectively
-   invisible. Override with the footer scheme's own text color when this
-   cell is inside the footer builder. */
+   hardcodes the header's text color/style/decoration — on a dark footer
+   color scheme the brand name renders as dark-gray-on-near-black and is
+   effectively invisible, and picking a footer scheme with an italic or
+   underline font preset had no visible effect on it. Override with the
+   footer scheme's own values when this cell is inside the footer builder. */
 .footer-builder-container .site-logo {
     color: var(--ajn-footer-text-color);
+    font-style: var(--ajn-footer-font-style);
+    text-decoration: var(--ajn-footer-text-decoration);
 }
 
 /* Optional branding badge/mark + tagline (header, footer, and header/footer
