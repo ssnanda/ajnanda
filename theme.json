@@ -69,7 +69,45 @@
     "typography": {
       "customFontSize": true,
       "lineHeight": true,
-      "fluid": true
+      "fluid": true,
+      "fontSizes": [
+        {
+          "name": "Small",
+          "slug": "small",
+          "size": "0.875rem",
+          "fluid": { "min": "0.8125rem", "max": "0.9375rem" }
+        },
+        {
+          "name": "Medium",
+          "slug": "medium",
+          "size": "1rem",
+          "fluid": { "min": "1rem", "max": "1.125rem" }
+        },
+        {
+          "name": "Large",
+          "slug": "large",
+          "size": "1.5rem",
+          "fluid": { "min": "1.25rem", "max": "1.75rem" }
+        },
+        {
+          "name": "X-Large",
+          "slug": "x-large",
+          "size": "2rem",
+          "fluid": { "min": "1.625rem", "max": "2.25rem" }
+        },
+        {
+          "name": "XX-Large",
+          "slug": "xx-large",
+          "size": "2.75rem",
+          "fluid": { "min": "2.125rem", "max": "3.25rem" }
+        },
+        {
+          "name": "Huge",
+          "slug": "huge",
+          "size": "3.75rem",
+          "fluid": { "min": "2.75rem", "max": "4.5rem" }
+        }
+      ]
     },
     "color": {
       "background": true,

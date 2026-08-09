@@ -1321,8 +1321,13 @@ function ajnanda_builder_default($builder, $row, $cell) {
             2 => array(1 => 'none', 2 => 'none', 3 => 'none', 4 => 'none'),
             3 => array(1 => 'none', 2 => 'none', 3 => 'none', 4 => 'none'),
         ),
+        // Row 1 mirrors the header's non-empty default (brand, nav, and a
+        // closing element) instead of shipping every cell as 'none' — a
+        // fresh site otherwise renders a completely blank <footer> until
+        // someone manually configures it, since ajnanda_render_builder_layout()
+        // skips 'none' cells and empty rows outright.
         'footer' => array(
-            1 => array(1 => 'none', 2 => 'none', 3 => 'none', 4 => 'none'),
+            1 => array(1 => 'site-logo', 2 => 'footer-menu', 3 => 'copyright', 4 => 'none'),
             2 => array(1 => 'none', 2 => 'none', 3 => 'none', 4 => 'none'),
             3 => array(1 => 'none', 2 => 'none', 3 => 'none', 4 => 'none'),
         ),
@@ -1345,6 +1350,10 @@ function ajnanda_builder_row_count_default($builder) {
 
 function ajnanda_builder_row_columns_default($builder, $row) {
     if ('header' === $builder && 1 === (int) $row) {
+        return 3;
+    }
+
+    if ('footer' === $builder && 1 === (int) $row) {
         return 3;
     }
 
@@ -3181,9 +3190,14 @@ function ajnanda_customize_register($wp_customize) {
         'description' => __('Default hero design for editable page/post hero blocks.', 'ajnanda'),
     ));
 
+    // Hero bg defaults follow the site's own brand colors (falling back to the
+    // theme's stock blue/purple only if those are untouched too), so a site
+    // that customized theme_primary_color/theme_secondary_color doesn't get a
+    // hero that silently stays on the stock palette until hero_bg_1/hero_bg_2
+    // are set explicitly.
     $hero_color_controls = array(
-        'hero_bg_1' => array('label' => __('Hero Background Color 1', 'ajnanda'), 'default' => '#2563eb'),
-        'hero_bg_2' => array('label' => __('Hero Background Color 2', 'ajnanda'), 'default' => '#7c3aed'),
+        'hero_bg_1' => array('label' => __('Hero Background Color 1', 'ajnanda'), 'default' => get_theme_mod('theme_primary_color', '#2563eb')),
+        'hero_bg_2' => array('label' => __('Hero Background Color 2', 'ajnanda'), 'default' => get_theme_mod('theme_secondary_color', '#7c3aed')),
         'hero_heading_color' => array('label' => __('Hero Heading Color', 'ajnanda'), 'default' => '#ffffff'),
         'hero_subtitle_color' => array('label' => __('Hero Subtitle Color', 'ajnanda'), 'default' => 'rgba(255,255,255,0.94)'),
         'hero_badge_bg' => array('label' => __('Hero Badge Background', 'ajnanda'), 'default' => 'rgba(255,255,255,0.16)'),
@@ -4746,8 +4760,8 @@ function ajnanda_customizer_css() {
     $header_height_tablet = get_theme_mod('header_height_tablet', 'auto');
     $header_height_mobile = get_theme_mod('header_height_mobile', 'auto');
 
-    $hero_bg_1 = get_theme_mod('hero_bg_1', '#2563eb');
-    $hero_bg_2 = get_theme_mod('hero_bg_2', '#7c3aed');
+    $hero_bg_1 = get_theme_mod('hero_bg_1', $theme_primary_color);
+    $hero_bg_2 = get_theme_mod('hero_bg_2', $theme_secondary_color);
     $hero_heading_color = get_theme_mod('hero_heading_color', '#ffffff');
     $hero_subtitle_color = get_theme_mod('hero_subtitle_color', 'rgba(255,255,255,0.94)');
     $hero_badge_bg = get_theme_mod('hero_badge_bg', 'rgba(255,255,255,0.16)');

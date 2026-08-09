@@ -142,16 +142,11 @@ get_header(); ?>
             </div>
         </article>
 
-        <div class="container">
-            <?php
-            the_post_navigation(array(
-                'prev_text' => '<span class="nav-subtitle">Previous:</span> <span class="nav-title">%title</span>',
-                'next_text' => '<span class="nav-subtitle">Next:</span> <span class="nav-title">%title</span>',
-            ));
-            ?>
-        </div>
-
         <?php
+        the_post_navigation(array(
+            'prev_text' => '<span class="nav-subtitle">Previous:</span> <span class="nav-title">%title</span>',
+            'next_text' => '<span class="nav-subtitle">Next:</span> <span class="nav-title">%title</span>',
+        ));
 
         if (comments_open() || get_comments_number()) :
             comments_template();

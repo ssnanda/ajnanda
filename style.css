@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.2.4
+Version: 1.2.5
 License: GNU General Public License v2 or later
 Text Domain: ajnanda
 */
@@ -1827,6 +1827,14 @@ body.admin-bar .site-header {
     overflow: hidden;
     min-height: 50px;
     display: flex;
+    /* The registered "Marketing Hero" pattern sets its own block-level
+       layout:{"orientation":"vertical"}, which generates a higher-specificity
+       flex-direction:column rule scoped to that block instance. Any other
+       hero built by hand-adding this class (or a pattern edited to drop that
+       layout attribute) falls back to flex's row default, collapsing badge/
+       heading/subtitle/buttons into a single line. Declare column here so
+       stacking is the default regardless of how the class was applied. */
+    flex-direction: column;
     align-items: center;
     padding: 1rem 1.5rem;
     background:
@@ -2192,6 +2200,11 @@ body.admin-bar .site-header {
     border-top: 4px solid var(--primary);
     border-radius: 1rem;
     background: white;
+    /* Set explicitly, not left to inherit — a card can be placed inside a
+       section that sets color:white (e.g. .builder-hero-section), and
+       without its own color the card's white background would swallow
+       any text that doesn't have its own override. */
+    color: var(--gray-800);
     box-shadow: 0 12px 30px rgba(15,23,42,0.07);
 }
 
@@ -2216,6 +2229,10 @@ body.admin-bar .site-header {
     border: 1px solid rgba(37,99,235,0.12);
     border-radius: 1rem;
     background: linear-gradient(135deg, rgba(37,99,235,0.08), rgba(245,158,11,0.12));
+    /* See .builder-card above: set explicitly so a light-on-dark ancestor
+       (e.g. .builder-hero-section) can't leave this light-background panel
+       with inherited white text. */
+    color: var(--gray-800);
     box-shadow: 0 16px 36px rgba(15,23,42,0.08);
 }
 
@@ -2240,6 +2257,11 @@ body.admin-bar .site-header {
     padding: 1.75rem;
     border-radius: 1rem;
     background: var(--white, #ffffff);
+    /* Set explicitly, not left to inherit — same white-on-white trap as
+       .builder-card above: these light-background cards need their own
+       text color so a dark/light-text ancestor section can't leave their
+       contents unreadable. */
+    color: var(--gray-800, #1f2937);
     transition: transform var(--transition, 300ms ease), box-shadow var(--transition, 300ms ease);
 }
 
@@ -4433,6 +4455,16 @@ textarea.error {
     color: var(--gray-600);
 }
 .entry-footer-label { font-weight: 600; color: var(--gray-700); }
+
+/* single.php's prev/next link (the_post_navigation()) renders as a sibling of
+   <article>, outside its .container, so it needs its own copy of the same
+   800px reading-column constraint .single-entry-content/.single-entry-footer
+   use, plus the horizontal edge padding .container would otherwise provide. */
+.post-navigation {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 1.5rem 3rem;
+}
 
 /* Feature card — icon animates on hover via CSS (not JS) */
 .feature-card:hover .feature-icon { transform: scale(1.1) rotate(5deg); }
