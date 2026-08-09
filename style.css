@@ -129,6 +129,111 @@ Text Domain: ajnanda
     --accent: #f59e0b;
 }
 
+.ajnanda-scheme-teal {
+    --primary: #0d9488;
+    --primary-dark: #0f766e;
+    --secondary: #111827;
+    --accent: #f59e0b;
+}
+
+.ajnanda-scheme-emerald {
+    --primary: #059669;
+    --primary-dark: #047857;
+    --secondary: #111827;
+    --accent: #f59e0b;
+}
+
+.ajnanda-scheme-red {
+    --primary: #dc2626;
+    --primary-dark: #b91c1c;
+    --secondary: #111827;
+    --accent: #f59e0b;
+}
+
+.ajnanda-scheme-rose {
+    --primary: #e11d48;
+    --primary-dark: #be123c;
+    --secondary: #111827;
+    --accent: #f59e0b;
+}
+
+.ajnanda-scheme-pink {
+    --primary: #db2777;
+    --primary-dark: #be185d;
+    --secondary: #111827;
+    --accent: #f59e0b;
+}
+
+.ajnanda-scheme-orange {
+    --primary: #ea580c;
+    --primary-dark: #c2410c;
+    --secondary: #111827;
+    --accent: #2563eb;
+}
+
+.ajnanda-scheme-indigo {
+    --primary: #4f46e5;
+    --primary-dark: #4338ca;
+    --secondary: #7c3aed;
+    --accent: #f59e0b;
+}
+
+.ajnanda-scheme-sky {
+    --primary: #0284c7;
+    --primary-dark: #0369a1;
+    --secondary: #111827;
+    --accent: #f59e0b;
+}
+
+.ajnanda-scheme-cyan {
+    --primary: #0891b2;
+    --primary-dark: #0e7490;
+    --secondary: #111827;
+    --accent: #f59e0b;
+}
+
+.ajnanda-scheme-violet {
+    --primary: #6d28d9;
+    --primary-dark: #5b21b6;
+    --secondary: #2563eb;
+    --accent: #f59e0b;
+}
+
+.ajnanda-scheme-fuchsia {
+    --primary: #c026d3;
+    --primary-dark: #a21caf;
+    --secondary: #111827;
+    --accent: #f59e0b;
+}
+
+.ajnanda-scheme-lime {
+    --primary: #65a30d;
+    --primary-dark: #4d7c0f;
+    --secondary: #111827;
+    --accent: #f59e0b;
+}
+
+.ajnanda-scheme-slate {
+    --primary: #334155;
+    --primary-dark: #1e293b;
+    --secondary: #64748b;
+    --accent: #f59e0b;
+}
+
+.ajnanda-scheme-navy {
+    --primary: #1e3a8a;
+    --primary-dark: #172554;
+    --secondary: #2563eb;
+    --accent: #f59e0b;
+}
+
+.ajnanda-scheme-crimson {
+    --primary: #991b1b;
+    --primary-dark: #7f1d1d;
+    --secondary: #111827;
+    --accent: #f59e0b;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { scroll-behavior: smooth; }

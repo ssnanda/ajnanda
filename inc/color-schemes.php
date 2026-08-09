@@ -66,6 +66,66 @@ function ajnanda_get_color_schemes() {
             'label' => __('Amber', 'ajnanda'), 'swatch' => '#b45309',
             'primary' => '#b45309', 'primary_dark' => '#92400e', 'secondary' => '#111827', 'accent' => '#f59e0b',
         ),
+        'teal' => array(
+            'label' => __('Teal', 'ajnanda'), 'swatch' => '#0d9488',
+            'primary' => '#0d9488', 'primary_dark' => '#0f766e', 'secondary' => '#111827', 'accent' => '#f59e0b',
+        ),
+        'emerald' => array(
+            'label' => __('Emerald', 'ajnanda'), 'swatch' => '#059669',
+            'primary' => '#059669', 'primary_dark' => '#047857', 'secondary' => '#111827', 'accent' => '#f59e0b',
+        ),
+        'red' => array(
+            'label' => __('Red', 'ajnanda'), 'swatch' => '#dc2626',
+            'primary' => '#dc2626', 'primary_dark' => '#b91c1c', 'secondary' => '#111827', 'accent' => '#f59e0b',
+        ),
+        'rose' => array(
+            'label' => __('Rose', 'ajnanda'), 'swatch' => '#e11d48',
+            'primary' => '#e11d48', 'primary_dark' => '#be123c', 'secondary' => '#111827', 'accent' => '#f59e0b',
+        ),
+        'pink' => array(
+            'label' => __('Pink', 'ajnanda'), 'swatch' => '#db2777',
+            'primary' => '#db2777', 'primary_dark' => '#be185d', 'secondary' => '#111827', 'accent' => '#f59e0b',
+        ),
+        'orange' => array(
+            'label' => __('Orange', 'ajnanda'), 'swatch' => '#ea580c',
+            'primary' => '#ea580c', 'primary_dark' => '#c2410c', 'secondary' => '#111827', 'accent' => '#2563eb',
+        ),
+        'indigo' => array(
+            'label' => __('Indigo', 'ajnanda'), 'swatch' => '#4f46e5',
+            'primary' => '#4f46e5', 'primary_dark' => '#4338ca', 'secondary' => '#7c3aed', 'accent' => '#f59e0b',
+        ),
+        'sky' => array(
+            'label' => __('Sky', 'ajnanda'), 'swatch' => '#0284c7',
+            'primary' => '#0284c7', 'primary_dark' => '#0369a1', 'secondary' => '#111827', 'accent' => '#f59e0b',
+        ),
+        'cyan' => array(
+            'label' => __('Cyan', 'ajnanda'), 'swatch' => '#0891b2',
+            'primary' => '#0891b2', 'primary_dark' => '#0e7490', 'secondary' => '#111827', 'accent' => '#f59e0b',
+        ),
+        'violet' => array(
+            'label' => __('Violet', 'ajnanda'), 'swatch' => '#6d28d9',
+            'primary' => '#6d28d9', 'primary_dark' => '#5b21b6', 'secondary' => '#2563eb', 'accent' => '#f59e0b',
+        ),
+        'fuchsia' => array(
+            'label' => __('Fuchsia', 'ajnanda'), 'swatch' => '#c026d3',
+            'primary' => '#c026d3', 'primary_dark' => '#a21caf', 'secondary' => '#111827', 'accent' => '#f59e0b',
+        ),
+        'lime' => array(
+            'label' => __('Lime', 'ajnanda'), 'swatch' => '#65a30d',
+            'primary' => '#65a30d', 'primary_dark' => '#4d7c0f', 'secondary' => '#111827', 'accent' => '#f59e0b',
+        ),
+        'slate' => array(
+            'label' => __('Slate', 'ajnanda'), 'swatch' => '#334155',
+            'primary' => '#334155', 'primary_dark' => '#1e293b', 'secondary' => '#64748b', 'accent' => '#f59e0b',
+        ),
+        'navy' => array(
+            'label' => __('Navy', 'ajnanda'), 'swatch' => '#1e3a8a',
+            'primary' => '#1e3a8a', 'primary_dark' => '#172554', 'secondary' => '#2563eb', 'accent' => '#f59e0b',
+        ),
+        'crimson' => array(
+            'label' => __('Crimson', 'ajnanda'), 'swatch' => '#991b1b',
+            'primary' => '#991b1b', 'primary_dark' => '#7f1d1d', 'secondary' => '#111827', 'accent' => '#f59e0b',
+        ),
     );
 }
 
