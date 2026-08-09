@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.2.5
+Version: 1.2.6
 License: GNU General Public License v2 or later
 Text Domain: ajnanda
 */
@@ -147,6 +147,16 @@ body.admin-bar .site-header {
     text-decoration: var(--ajn-header-text-decoration);
     display: flex;
     align-items: center;
+}
+
+/* ajnanda_render_builder_site_identity() (see comment below) renders this
+   same .site-logo text link in the footer builder too, but the rule above
+   hardcodes the header's text color — on a dark footer color scheme the
+   brand name renders as dark-gray-on-near-black and is effectively
+   invisible. Override with the footer scheme's own text color when this
+   cell is inside the footer builder. */
+.footer-builder-container .site-logo {
+    color: var(--ajn-footer-text-color);
 }
 
 /* Optional branding badge/mark + tagline (header, footer, and header/footer
@@ -4456,14 +4466,17 @@ textarea.error {
 }
 .entry-footer-label { font-weight: 600; color: var(--gray-700); }
 
-/* single.php's prev/next link (the_post_navigation()) renders as a sibling of
-   <article>, outside its .container, so it needs its own copy of the same
-   800px reading-column constraint .single-entry-content/.single-entry-footer
-   use, plus the horizontal edge padding .container would otherwise provide. */
+/* single.php now wraps the_post_navigation() in its own .container (for
+   mobile edge spacing), same as .entry-header/.single-entry-content's parent.
+   Match those exactly: self-constrain to the 800px reading column with NO
+   horizontal padding of its own — a rule with both max-width:800px AND its
+   own horizontal padding shifts its text ~1.5rem right of the flush-left
+   text in .entry-header/.single-entry-content, which sit inside the same
+   .container without any padding of their own. */
 .post-navigation {
     max-width: 800px;
     margin: 0 auto;
-    padding: 0 1.5rem 3rem;
+    padding: 0 0 3rem;
 }
 
 /* Feature card — icon animates on hover via CSS (not JS) */
