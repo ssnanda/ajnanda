@@ -119,8 +119,8 @@ class AJNanda_CLI_PageDesign_Command {
      * : Page status: draft (default) or publish.
      *
      * [--color-scheme=<scheme>]
-     * : Optional color scheme slug (blue, purple, gold, dark — see `wp ajnanda color-scheme list`).
-     *   Defaults to the site-wide scheme, in which case no per-page override is added.
+     * : Optional color scheme slug (blue, purple, gold, dark, amber — see `wp ajnanda color-scheme list`).
+     *   Defaults to the site's current brand colors, in which case no per-page override is added.
      *
      * ## EXAMPLES
      *
@@ -301,12 +301,14 @@ class AJNanda_CLI_ColorScheme_Command {
     }
 
     /**
-     * Set the site-wide color scheme.
+     * Fill in the theme's 4 real color settings (Primary/Primary Hover/
+     * Secondary/Accent — Appearance → Customize → Colors) from a named
+     * preset. Equivalent to clicking the preset swatch in the Customizer.
      *
      * ## OPTIONS
      *
      * <slug>
-     * : Color scheme slug: blue, purple, gold, or dark.
+     * : Color scheme slug: blue, purple, gold, dark, or amber.
      *
      * @when after_wp_load
      */
@@ -318,8 +320,13 @@ class AJNanda_CLI_ColorScheme_Command {
             WP_CLI::error(sprintf('Unknown color scheme "%s". Available: %s', $slug, implode(', ', array_keys($schemes))));
         }
 
-        set_theme_mod('ajnanda_color_scheme', $slug);
-        WP_CLI::success(sprintf('Site-wide color scheme set to "%s".', $slug));
+        $scheme = $schemes[$slug];
+        set_theme_mod('theme_primary_color', $scheme['primary']);
+        set_theme_mod('theme_primary_dark_color', $scheme['primary_dark']);
+        set_theme_mod('theme_secondary_color', $scheme['secondary']);
+        set_theme_mod('theme_accent_color', $scheme['accent']);
+
+        WP_CLI::success(sprintf('Primary/Secondary/Accent colors set to the "%s" preset.', $slug));
     }
 }
 

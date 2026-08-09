@@ -122,6 +122,13 @@ Text Domain: ajnanda
     --accent: #f59e0b;
 }
 
+.ajnanda-scheme-amber {
+    --primary: #b45309;
+    --primary-dark: #92400e;
+    --secondary: #111827;
+    --accent: #f59e0b;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { scroll-behavior: smooth; }

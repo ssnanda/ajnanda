@@ -120,6 +120,28 @@
       "heading": true,
       "link": true,
       "text": true,
+      "gradients": [
+        {
+          "name": "AJNanda: Primary to Dark",
+          "slug": "ajnanda-primary-to-dark",
+          "gradient": "linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)"
+        },
+        {
+          "name": "AJNanda: Primary to Secondary",
+          "slug": "ajnanda-primary-to-secondary",
+          "gradient": "linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)"
+        },
+        {
+          "name": "AJNanda: Dark to Dim",
+          "slug": "ajnanda-dark-to-dim",
+          "gradient": "linear-gradient(135deg, var(--primary-dark) 0%, var(--gray-900) 100%)"
+        },
+        {
+          "name": "AJNanda: Primary Glow",
+          "slug": "ajnanda-primary-glow",
+          "gradient": "radial-gradient(circle, var(--primary) 0%, var(--primary-dark) 100%)"
+        }
+      ],
       "palette": [
         {
           "name": "Primary Blue",

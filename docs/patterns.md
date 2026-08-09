@@ -121,32 +121,48 @@ a fresh install). Where a pattern needs an image, it uses a styled
 
 ## Color schemes
 
-AJNanda ships 4 color schemes (Blue/default, Purple, Gold, Dark) — see
-`inc/color-schemes.php`. Each is just an override of the same 4 brand CSS
-custom properties every pattern already styles itself from (`--primary`,
-`--primary-dark`, `--secondary`, `--accent`), so **no pattern markup ever
-needs to change or be duplicated per color** — the whole library recolors
-from one source.
+AJNanda already has a real, native color system: 4 `WP_Customize_Color_Control`
+pickers — Primary Color, Primary Hover Color, Secondary Color, Accent Color
+(`theme_primary_color` / `theme_primary_dark_color` / `theme_secondary_color`
+/ `theme_accent_color`) — registered under the built-in
+**Appearance → Customize → Colors** panel, output as `:root` CSS custom
+properties by `ajnanda_customizer_css()` on `wp_head`. That system already
+gives unlimited custom colors natively; `inc/color-schemes.php` does **not**
+duplicate it with a second setting. It adds three things on top:
 
-- **Site-wide**: Customizer → AJNanda: Color Scheme. Applied via
-  `wp_add_inline_style()` on the frontend and classic editor stylesheet,
-  and via the `block_editor_settings_all` filter for the iframed editor —
-  all three are required; a stylesheet-only override (as some individual
-  AJNanda sites have hand-rolled via an inline `wp_head` `:root` block)
-  never reaches the block editor's iframe, which is why "Choose a pattern"
-  previews on such a site kept showing the theme's default blue regardless
-  of the site's actual brand color. Confirmed by testing against a real
-  site with exactly that setup.
-- **Per page**: the Page Library admin screen's "Color scheme" picker
-  defaults to the site-wide scheme (so new pages match by default) and,
-  when a different scheme is deliberately chosen, wraps that one page's
-  content in a single `<!-- wp:group className="ajnanda-scheme-{slug}" -->`
-  — an ordinary, fully editable group block, not a special mechanism —
-  and shows an inline warning explaining the page will look different from
-  the rest of the site.
-- `wp ajnanda color-scheme list` / `wp ajnanda color-scheme set <slug>` for
-  the site-wide setting; `wp ajnanda page-design insert ... --color-scheme=<slug>`
-  for a single page.
+1. **Closes the editor gap**: `ajnanda_customizer_css()` only hooks
+   `wp_head`, so a site's real brand colors never reached the block
+   editor's iframe — confirmed against a real AJNanda site whose actual
+   brand color was correctly live on the frontend while "Choose a pattern"
+   still previewed default blue, because that modal's previews render
+   inside the iframed editor. `enqueue_block_editor_assets` and the
+   `block_editor_settings_all` filter now push the same saved colors into
+   both.
+2. **One-click preset swatches** (Blue/Purple/Gold/Dark/Amber) added to the
+   top of the native Colors panel — clicking one just fills in the 4
+   existing color pickers via the Customizer JS API (`wp.customize(id).set()`).
+   It does not introduce a new stored setting; `wp ajnanda color-scheme list`
+   reports `custom` whenever the saved colors don't exactly match a preset
+   (e.g. hand-picked in the color pickers), which is expected and fine.
+3. **Per-page override**: the Page Library admin screen's "Color scheme"
+   picker defaults to the site's current colors (so new pages match by
+   default) and, when a different preset is deliberately chosen, wraps
+   that one page's content in a single
+   `<!-- wp:group className="ajnanda-scheme-{slug}" -->` — an ordinary,
+   fully editable group block — with an inline warning that the page will
+   look different from the rest of the site.
+
+Gradients: theme.json registers 4 AJNanda gradient presets (e.g. "Primary
+to Dark") built from `linear-gradient(135deg, var(--primary) 0%,
+var(--primary-dark) 100%)` — because they reference the live CSS variables
+rather than fixed hex values, they automatically follow whatever colors are
+currently active (preset or fully custom), with zero extra plumbing. They
+appear in the native Gradient Picker on any block with gradient support
+(Cover, Buttons, Group background, etc.).
+
+CLI: `wp ajnanda color-scheme list` / `wp ajnanda color-scheme set <slug>`
+(sets the 4 real color settings from a preset); `wp ajnanda page-design
+insert ... --color-scheme=<slug>` for a single page.
 
 ## AJCore forms
 

@@ -37,7 +37,7 @@ detail.
 | `inc/starter-sites/manifests/*.php` | One starter site per file |
 | `inc/admin/class-ajnanda-admin.php` | Top-level "AJNanda" admin menu + form handlers |
 | `inc/admin/views/*.php` | Admin screen templates |
-| `inc/color-schemes.php` | Color scheme registry, Customizer control, frontend/editor/iframe CSS injection, per-page wrap helper |
+| `inc/color-schemes.php` | Preset registry, one-click preset swatches for the native Colors panel, editor/iframe CSS injection (closes the gap in the theme's existing `wp_head`-only color output), per-page wrap helper |
 | `inc/cli/class-ajnanda-cli.php` | WP-CLI commands (loaded only when `WP_CLI` is defined) |
 | `inc/site-builder.php` | Loader that wires the above together, required once from `functions.php` |
 

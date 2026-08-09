@@ -23,7 +23,7 @@ ksort($groups);
 
 $color_schemes = function_exists('ajnanda_get_color_schemes') ? ajnanda_get_color_schemes() : array();
 $site_scheme    = function_exists('ajnanda_get_active_color_scheme_slug') ? ajnanda_get_active_color_scheme_slug() : 'blue';
-$site_scheme_label = isset($color_schemes[$site_scheme]) ? $color_schemes[$site_scheme]['label'] : $site_scheme;
+$site_scheme_label = isset($color_schemes[$site_scheme]) ? $color_schemes[$site_scheme]['label'] : __('Custom', 'ajnanda');
 ?>
 <div class="wrap ajnanda-admin-wrap">
     <div class="ajnanda-admin-hero">
@@ -34,10 +34,10 @@ $site_scheme_label = isset($color_schemes[$site_scheme]) ? $color_schemes[$site_
             <p>
                 <?php
                 printf(
-                    /* translators: 1: current site-wide color scheme label, 2: link to Customizer */
-                    esc_html__('Your site-wide color scheme is currently %1$s. New pages below default to it. %2$s', 'ajnanda'),
+                    /* translators: 1: current site brand colors label, 2: link to Customizer */
+                    esc_html__('Your site\'s current brand colors are %1$s. New pages below default to matching them. %2$s', 'ajnanda'),
                     '<strong>' . esc_html($site_scheme_label) . '</strong>',
-                    '<a href="' . esc_url(admin_url('customize.php?autofocus[section]=ajnanda_color_scheme')) . '">' . esc_html__('Change it in the Customizer', 'ajnanda') . '</a>'
+                    '<a href="' . esc_url(admin_url('customize.php?autofocus[section]=colors')) . '">' . esc_html__('Change them in the Customizer', 'ajnanda') . '</a>'
                 );
                 ?>
             </p>
