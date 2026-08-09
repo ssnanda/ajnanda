@@ -138,12 +138,14 @@ duplicate it with a second setting. It adds three things on top:
    inside the iframed editor. `enqueue_block_editor_assets` and the
    `block_editor_settings_all` filter now push the same saved colors into
    both.
-2. **One-click preset swatches** (Blue/Purple/Gold/Dark/Amber) added to the
-   top of the native Colors panel — clicking one just fills in the 4
-   existing color pickers via the Customizer JS API (`wp.customize(id).set()`).
-   It does not introduce a new stored setting; `wp ajnanda color-scheme list`
-   reports `custom` whenever the saved colors don't exactly match a preset
-   (e.g. hand-picked in the color pickers), which is expected and fine.
+2. **One-click preset swatches** (20 named presets — see
+   `ajnanda_get_color_schemes()` in `inc/color-schemes.php` for the full
+   list) added to the top of the native Colors panel — clicking one just
+   fills in the 4 existing color pickers via the Customizer JS API
+   (`wp.customize(id).set()`). It does not introduce a new stored setting;
+   `wp ajnanda color-scheme list` reports `custom` whenever the saved
+   colors don't exactly match a preset (e.g. hand-picked in the color
+   pickers), which is expected and fine.
 3. **Per-page override**: the Page Library admin screen's "Color scheme"
    picker defaults to the site's current colors (so new pages match by
    default) and, when a different preset is deliberately chosen, wraps

@@ -2,8 +2,10 @@
 
 This covers the pattern/page-design/starter-site system added in 1.3.0
 ("the site builder"). For everything else about the theme (Customizer,
-header/footer builder, custom blocks, SEO, theme updater), see the existing
-`README.md`, `SETUP-GUIDE.md`, and `INSTALLATION.md`.
+header/footer builder, custom blocks, SEO, theme updater, AJCore
+integration, legacy/compatibility notes), see `docs/AJNANDA-CAPABILITIES.md`
+— the root `README.md`, `SETUP-GUIDE.md`, and `INSTALLATION.md` predate
+that document and are not kept in sync with the current theme.
 
 ## Architecture
 
