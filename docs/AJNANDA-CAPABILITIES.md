@@ -503,8 +503,9 @@ codebase, treat it as worth double-checking against this list.
   is); they still work as ordinary `Template Name:` templates but are not
   part of the current pattern/page-design system — don't extend them, use
   a Page Design instead.
-- **Legacy Section Patterns**: the 14 patterns that predate the 1.3.0
-  site-builder work (`patterns/legacy-*.php`, `ajnanda-pro/*` slugs) were
+- **Legacy Section Patterns**: the 14 patterns that predate the site-builder
+  work (added starting at version 1.2.7; `patterns/legacy-*.php`,
+  `ajnanda-pro/*` slugs) were
   migrated as-is into the new `/patterns` auto-registration mechanism with
   unchanged slugs, for backward compatibility — see `docs/patterns.md`.
 - **Legacy/hidden custom block**: `ajnanda/buttons` (`blocks/ajnanda-blocks/index.js`)
@@ -587,6 +588,9 @@ bin/                         Release tooling (build-release.sh etc.)
 
 ---
 
-*This document reflects a direct code read at theme version 1.2.12. If
-behavior looks different than described, verify against the code — this
+*This document reflects a direct code read as of 2026-08-09 (branch
+`feature/site-builder-system`). This repo bumps its patch version on
+almost every release regardless of change size, so a specific version
+number here goes stale immediately — a date is more durable. If behavior
+looks different than described, verify against the code — this
 document should be corrected, not the other way around.*

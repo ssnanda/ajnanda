@@ -72,10 +72,24 @@ is the single import engine used by:
 - **Selective import**: pass specific page keys (`--pages=home,about,contact`
   on the CLI, or checkboxes in the admin screen) instead of the whole
   starter site.
-- **Preview before you commit**: `AJNanda_Starter_Importer::preview($slug)` /
+- **Preview the import plan**: `AJNanda_Starter_Importer::preview($slug)` /
   `wp ajnanda starter preview <slug>` / the "Preview Import" button report
   create / already-imported / slug-conflict for every page without changing
-  anything.
+  anything. This is a *status* preview — what will happen — not what the
+  pages will look like; see "Visual preview" below for that.
+
+## Visual preview
+
+Separate from the import-plan preview above: every page listed under a
+starter site on the Starter Sites admin screen has its own "Preview"
+link, which opens a real, fully rendered page — actual header, footer,
+and CSS — in a new tab. Nothing is saved; it's the same non-destructive
+preview engine (`inc/preview.php`) used by the Page Library and Color
+Schemes screens, since a starter site's page is just a reference to a
+Page Design slug. Use it to see what a page will actually look like
+*before* deciding whether to import it — the status preview above only
+tells you whether it would be created, not what it contains. See
+`docs/development.md` ("Preview") for how the engine works.
 
 ## Current starter sites
 

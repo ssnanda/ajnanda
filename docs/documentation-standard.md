@@ -18,6 +18,16 @@ commit/PR.
 Use the existing subsystem document whenever one applies. Most changes fit
 one of the rows above — reach for a new file only when none does.
 
+## Don't hardcode a specific version number
+
+AJNanda's release process bumps the patch version on almost every release
+regardless of change size (`bin/build-release.sh --default` is the normal
+flow), so a doc that says "as of version 1.2.12" or "added in 1.3.0" goes
+stale within days — both happened in this doc set already. If a doc needs
+to reference "when," use a date or describe the change structurally
+("added starting at 1.2.7," "the site-builder work") rather than pinning
+to whatever the current version happens to be.
+
 ## What doesn't need documentation
 
 Trivial implementation details: renaming a private helper, reformatting,

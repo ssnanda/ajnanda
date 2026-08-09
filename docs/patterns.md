@@ -42,7 +42,8 @@ composer helper relies on (see `docs/page-designs.md`).
 
 - **Slug prefix**: new section patterns use `ajnanda/section-{category}-{name}`,
   e.g. `ajnanda/section-hero-super-bold`, `ajnanda/section-cta-dark`.
-- **Legacy patterns**: the 14 patterns that existed before 1.3.0 keep their
+- **Legacy patterns**: the 14 patterns that existed before the site-builder
+  work (started at version 1.2.7) keep their
   original `ajnanda-pro/*` slugs unchanged (`patterns/legacy-*.php`) — slugs
   are treated as stable public identifiers (see "Future automation" below),
   so they are never renamed, only added to.

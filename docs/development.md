@@ -1,7 +1,7 @@
 # AJNanda Site Builder — Developer Guide
 
-This covers the pattern/page-design/starter-site system added in 1.3.0
-("the site builder"). For everything else about the theme (Customizer,
+This covers the pattern/page-design/starter-site system added starting at
+version 1.2.7 ("the site builder"). For everything else about the theme (Customizer,
 header/footer builder, custom blocks, SEO, theme updater, AJCore
 integration, legacy/compatibility notes), see `docs/AJNANDA-CAPABILITIES.md`
 — the root `README.md`, `SETUP-GUIDE.md`, and `INSTALLATION.md` predate
