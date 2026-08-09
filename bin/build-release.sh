@@ -10,6 +10,7 @@ BLOCK_LOADER_FILE="$ROOT_DIR/blocks/ajnanda-blocks/loader.php"
 
 GITHUB_REPO="ssnanda/ajnanda"
 TAG_PREFIX="v"
+SITES_ROOT="/Users/sandip/Projects/sites"
 
 GITHUB_RELEASE="true"
 GIT_COMMIT="ask"
@@ -43,6 +44,7 @@ Interactive flow:
   1. Choose version bump
   2. Build releases/<slug>-<version>.zip
   3. Ask once whether to commit, push, and publish the GitHub Release
+  4. Deploy to local ddev sites under /Users/sandip/Projects/sites
 
 Options:
   --default, -default
@@ -365,6 +367,53 @@ publish_github_release() {
   fi
 }
 
+find_local_sites_with_theme() {
+  local site_dir
+  [[ -d "$SITES_ROOT" ]] || return 0
+
+  for site_dir in "$SITES_ROOT"/*/; do
+    [[ -d "$site_dir" ]] || continue
+    [[ -d "${site_dir}wp-content/themes/$THEME_SLUG" ]] || continue
+    basename "$site_dir"
+  done
+}
+
+deploy_to_local_site() {
+  local site_name="$1"
+  local themes_dir="$SITES_ROOT/$site_name/wp-content/themes"
+  echo "  → $site_name ..."
+  rm -rf "${themes_dir:?}/$THEME_SLUG"
+  unzip -q "$VERSIONED_ZIP" -d "$themes_dir/"
+  echo "  ✓ $site_name"
+}
+
+local_deploy_step() {
+  local available_sites=()
+  local site
+  while IFS= read -r site; do
+    [[ -n "$site" ]] && available_sites+=("$site")
+  done < <(find_local_sites_with_theme)
+
+  if [[ ${#available_sites[@]} -eq 0 ]]; then
+    echo ""
+    echo "Local deploy: no local sites with $THEME_SLUG found under $SITES_ROOT"
+    return 0
+  fi
+
+  echo ""
+  echo "Local deploy: updating AJNanda $VERSION in all matching local sites under $SITES_ROOT"
+  for site in "${available_sites[@]}"; do
+    echo "  • $site"
+  done
+  echo ""
+
+  for site in "${available_sites[@]}"; do
+    deploy_to_local_site "$site"
+  done
+  echo ""
+  echo "Local deploy complete: AJNanda $VERSION installed in ${#available_sites[@]} site(s)"
+}
+
 VERSION_OVERRIDE=""
 BUMP_PART=""
 NO_BUMP="false"
@@ -507,3 +556,5 @@ echo "  $THEME_SLUG/blocks/ajnanda-blocks/frontend.js"
 echo ""
 echo "Verify manually with:"
 echo "  unzip -l \"$VERSIONED_ZIP\" | head"
+
+local_deploy_step

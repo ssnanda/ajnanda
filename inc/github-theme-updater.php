@@ -324,7 +324,7 @@ function ajnanda_updater_handle_update_now() {
 add_action('admin_post_ajnanda_theme_update_now', 'ajnanda_updater_handle_update_now');
 
 function ajnanda_updater_admin_menu() {
-    add_submenu_page(
+    $hook = add_submenu_page(
         'themes.php',
         'Update AJNanda',
         'Update AJNanda',
@@ -333,8 +333,26 @@ function ajnanda_updater_admin_menu() {
         'ajnanda_updater_admin_page',
         1
     );
+
+    // ajnanda_updater_make_menu_item_direct_update() below rewrites this page's
+    // $submenu entry (index 2, normally the menu slug) to a direct admin-post.php
+    // action URL so the sidebar link performs the update immediately. That means
+    // core's get_admin_page_title() can no longer match the current page against
+    // $submenu to resolve a title, so it falls through and $title stays null,
+    // producing a strip_tags(null) deprecation notice in admin-header.php on
+    // PHP 8.1+ when this settings page is loaded (e.g. after the post-update
+    // redirect). Set $title ourselves before core computes it so the lookup is
+    // short-circuited.
+    if ($hook) {
+        add_action("load-$hook", 'ajnanda_updater_set_admin_page_title');
+    }
 }
 add_action('admin_menu', 'ajnanda_updater_admin_menu');
+
+function ajnanda_updater_set_admin_page_title() {
+    global $title;
+    $title = 'Update AJNanda';
+}
 
 function ajnanda_updater_make_menu_item_direct_update(): void {
     global $submenu;
