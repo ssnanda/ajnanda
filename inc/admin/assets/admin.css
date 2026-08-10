@@ -184,3 +184,139 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* -----------------------------------------------------------------
+ * "Your site" status list (Overview)
+ * ------------------------------------------------------------- */
+
+.ajnanda-admin-status-list {
+    margin: 14px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ajnanda-admin-status-list li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 0;
+    font-size: 13px;
+    color: #1f2937;
+}
+
+.ajnanda-admin-status-icon {
+    font-size: 15px;
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+/* -----------------------------------------------------------------
+ * Live filter (Page Library, Patterns)
+ * ------------------------------------------------------------- */
+
+.ajnanda-admin-search {
+    margin: 0 0 18px;
+}
+
+.ajnanda-admin-search input[type="search"] {
+    width: 100%;
+    max-width: 420px;
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+
+.ajnanda-filtered-out {
+    display: none !important;
+}
+
+/* -----------------------------------------------------------------
+ * Preview modal — an in-page overlay for .ajnanda-preview-link
+ * (inc/admin/assets/admin.js). Same non-destructive preview URL a new
+ * tab would load; this is purely presentational.
+ * ------------------------------------------------------------- */
+
+body.ajnanda-modal-open {
+    overflow: hidden;
+}
+
+.ajnanda-preview-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4vh 4vw;
+    background: rgba(15, 23, 42, 0.6);
+}
+
+.ajnanda-preview-modal {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    max-width: 1200px;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 25px 60px rgba(15, 23, 42, 0.35);
+}
+
+.ajnanda-preview-modal-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 16px;
+    background: #111827;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.ajnanda-preview-modal-bar-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.ajnanda-preview-modal-newtab {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.ajnanda-preview-modal-newtab:hover {
+    text-decoration: underline;
+}
+
+.ajnanda-preview-modal-close {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 2px;
+}
+
+.ajnanda-preview-modal-close:hover {
+    opacity: 0.8;
+}
+
+.ajnanda-preview-modal iframe {
+    flex: 1;
+    width: 100%;
+    border: none;
+}
+
+@media (max-width: 782px) {
+    .ajnanda-preview-modal-overlay {
+        padding: 0;
+    }
+    .ajnanda-preview-modal {
+        border-radius: 0;
+    }
+}

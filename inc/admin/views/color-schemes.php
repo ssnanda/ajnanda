@@ -61,7 +61,7 @@ if (!defined('ABSPATH')) {
 
                 <div class="ajnanda-admin-actions">
                     <a
-                        class="button button-primary"
+                        class="button button-primary ajnanda-preview-link"
                         target="_blank"
                         rel="noopener"
                         href="<?php echo esc_url(ajnanda_get_preview_url($preview_page, $slug)); ?>"

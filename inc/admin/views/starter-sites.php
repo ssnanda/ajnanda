@@ -4,6 +4,7 @@
  *
  * @package AJNanda
  * @var array<string,array> $starters
+ * @var array<string,array> $reports Starter slug => AJNanda_Starter_Importer::preview() report, computed for every starter up front so "already imported" is visible without an extra click.
  * @var array{slug:string,report:array}|null $preview
  * @var array|null $notice
  */
@@ -49,14 +50,34 @@ if (!defined('ABSPATH')) {
             <p><?php echo esc_html($starter['description']); ?></p>
 
             <ul class="ajnanda-admin-page-list">
-                <?php foreach ($starter['pages'] as $page) : ?>
+                <?php foreach ($starter['pages'] as $page) :
+                    $status = isset($reports[$slug][$page['key']]['status']) ? $reports[$slug][$page['key']]['status'] : '';
+                ?>
                     <li>
-                        <span><?php echo esc_html($page['title']); ?> <code>/<?php echo esc_html($page['slug']); ?>/</code></span>
+                        <span>
+                            <?php echo esc_html($page['title']); ?> <code>/<?php echo esc_html($page['slug']); ?>/</code>
+                            <?php if ($status) : ?>
+                                <span class="ajnanda-admin-pill <?php echo esc_attr('already_imported' === $status ? 'is-success' : ('slug_conflict' === $status ? 'is-warning' : '')); ?>">
+                                    <?php
+                                    switch ($status) {
+                                        case 'already_imported':
+                                            esc_html_e('Already imported', 'ajnanda');
+                                            break;
+                                        case 'slug_conflict':
+                                            esc_html_e('URL conflict', 'ajnanda');
+                                            break;
+                                        default:
+                                            esc_html_e('Not imported yet', 'ajnanda');
+                                    }
+                                    ?>
+                                </span>
+                            <?php endif; ?>
+                        </span>
                         <span style="display:flex;align-items:center;gap:10px;">
                             <span class="description"><?php echo esc_html($page['page_design']); ?></span>
                             <?php if (function_exists('ajnanda_get_preview_url')) : ?>
                                 <a
-                                    class="button button-small"
+                                    class="button button-small ajnanda-preview-link"
                                     target="_blank"
                                     rel="noopener"
                                     href="<?php echo esc_url(ajnanda_get_preview_url($page['page_design'])); ?>"
@@ -135,6 +156,16 @@ if (!defined('ABSPATH')) {
                         <label><input type="checkbox" name="set_homepage" value="1"> <?php esc_html_e('Set as site homepage (only if homepage is unset or AJNanda-created)', 'ajnanda'); ?></label>
                     </div>
                 </div>
+
+                <p class="description">
+                    <?php
+                    printf(
+                        /* translators: %s: link to Color Schemes screen */
+                        esc_html__('Tip: pick your colors first — every page below automatically follows whatever scheme is active, so there\'s nothing to recolor after importing. %s', 'ajnanda'),
+                        '<a href="' . esc_url(admin_url('admin.php?page=ajnanda-color-schemes')) . '">' . esc_html__('Browse Color Schemes', 'ajnanda') . '</a>'
+                    );
+                    ?>
+                </p>
 
                 <div class="ajnanda-admin-actions">
                     <button type="submit" class="button button-primary"><?php esc_html_e('Import', 'ajnanda'); ?></button>

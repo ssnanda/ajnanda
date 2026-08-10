@@ -49,27 +49,51 @@ detail.
 **AJNanda** top-level admin menu (`dashicons-layout`), alongside Posts,
 Pages, Appearance:
 
-- **Overview** — counts and quick links.
-- **Starter Sites** — preview/import UI described in `docs/starter-sites.md`;
-  each page also links to a full visual preview (see "Preview" below).
-- **Page Library** — browse Page Designs, "Add as New Page", and preview
-  any design in any color scheme before inserting it.
+- **Overview** — library counts (patterns/designs/starters available) plus
+  a "Your site" status block (current color scheme, whether a starter site
+  has been imported, how many pages were built with AJNanda, whether the
+  primary menu is set up) so the screen reflects this install's actual
+  state, not just what's available. The "Getting started" list starts with
+  picking a color scheme, since every page/starter automatically follows
+  whatever is active — no separate recoloring step afterward.
+- **Starter Sites** — preview/import UI described in `docs/starter-sites.md`.
+  Every starter's page list shows an inline "Already imported" / "Not
+  imported yet" / "URL conflict" badge per page by default (computed from
+  `AJNanda_Starter_Importer::preview()` for every starter on page load) —
+  the explicit "Preview Import" button still exists for the full diff
+  table. Each page also links to a full visual preview (see "Preview"
+  below), and a note above the Import button links to Color Schemes.
+- **Page Library** — browse Page Designs (with a live text filter), "Add as
+  New Page", and preview any design in any color scheme before inserting
+  it.
 - **Patterns** — read-only reference of AJNanda's own section patterns
-  (core-bundled patterns are filtered out).
+  (core-bundled patterns are filtered out), with the same live text filter
+  and a preview link per pattern.
 - **Color Schemes** — visual reference of the 20 presets in
   `ajnanda_get_color_schemes()`, each with a live preview link. Read-only —
   to actually apply a scheme, use the Customizer (site-wide) or the Page
   Library picker (single page).
-- **Theme Settings** — links to the existing Customizer and the existing
-  Appearance → Update AJNanda screen (`inc/github-theme-updater.php`),
-  which are intentionally **not** re-implemented or re-parented here so
-  their existing behavior (including the Customizer's header/footer
-  builder and the updater's "direct update" sidebar link) is left
-  untouched.
+- **Theme Settings** — links to the existing Customizer (including a
+  dedicated "Colors" card, since that's where AJNanda's Colors panel
+  actually lives) and the existing Appearance → Update AJNanda screen
+  (`inc/github-theme-updater.php`), which are intentionally **not**
+  re-implemented or re-parented here so their existing behavior (including
+  the Customizer's header/footer builder and the updater's "direct update"
+  sidebar link) is left untouched.
 
-Admin CSS/JS (`inc/admin/assets/admin.css`) is only enqueued on AJNanda's
-own screens (checked via `$_GET['page']` starting with `ajnanda`) — nothing
-loads on other wp-admin screens or the front end.
+Admin CSS/JS is only enqueued on AJNanda's own screens (checked via
+`$_GET['page']` starting with `ajnanda`) — nothing loads on other
+wp-admin screens or the front end:
+
+- `inc/admin/assets/admin.css` — shared visual language (hero card, card
+  grid, pills, status list, search box, preview modal).
+- `inc/admin/assets/admin.js` — two small, opt-in-by-markup behaviors
+  shared across views instead of repeated per-view `<script>` blocks: any
+  `.ajnanda-preview-link` opens in an in-page iframe modal instead of a new
+  tab (with an "Open in new tab" fallback — same non-destructive preview
+  URL either way), and any `input[data-ajnanda-filter]` live-filters
+  `[data-ajnanda-filter-item]` elements by their `data-ajnanda-filter-text`
+  attribute, hiding `[data-ajnanda-filter-group]` wrappers left empty.
 
 ## Preview
 

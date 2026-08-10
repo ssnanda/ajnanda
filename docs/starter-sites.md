@@ -83,13 +83,20 @@ is the single import engine used by:
 Separate from the import-plan preview above: every page listed under a
 starter site on the Starter Sites admin screen has its own "Preview"
 link, which opens a real, fully rendered page — actual header, footer,
-and CSS — in a new tab. Nothing is saved; it's the same non-destructive
-preview engine (`inc/preview.php`) used by the Page Library and Color
-Schemes screens, since a starter site's page is just a reference to a
-Page Design slug. Use it to see what a page will actually look like
-*before* deciding whether to import it — the status preview above only
-tells you whether it would be created, not what it contains. See
-`docs/development.md` ("Preview") for how the engine works.
+and CSS — in an in-page modal (with a fallback link to open it in a new
+tab). Nothing is saved; it's the same non-destructive preview engine
+(`inc/preview.php`) used by the Page Library, Patterns, and Color Schemes
+screens, since a starter site's page is just a reference to a Page Design
+slug. Use it to see what a page will actually look like *before* deciding
+whether to import it — the status preview above only tells you whether it
+would be created, not what it contains. See `docs/development.md`
+("Preview") for how the engine works.
+
+Each page in the list also shows an inline "Already imported" / "Not
+imported yet" / "URL conflict" badge, computed the same way as the status
+preview above but shown by default — no need to click "Preview Import"
+just to check whether a starter site (or one of its pages) has already
+been imported.
 
 ## Current starter sites
 

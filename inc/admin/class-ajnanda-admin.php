@@ -63,6 +63,19 @@ class AJNanda_Admin {
             array(),
             ajnanda_asset_version('inc/admin/assets/admin.css')
         );
+
+        // Shared vanilla-JS behavior for every AJNanda admin screen: turns
+        // any .ajnanda-preview-link into an in-page modal instead of a new
+        // tab, and powers the live text filters on Page Library/Patterns.
+        // No build step, no dependency — matches the inline-<script> style
+        // already used on individual views, just shared instead of repeated.
+        wp_enqueue_script(
+            'ajnanda-admin',
+            get_template_directory_uri() . '/inc/admin/assets/admin.js',
+            array(),
+            ajnanda_asset_version('inc/admin/assets/admin.js'),
+            true
+        );
     }
 
     private static function view($file, array $vars = array()) {
@@ -75,6 +88,7 @@ class AJNanda_Admin {
             'patterns_count'      => count(self::all_section_patterns()),
             'page_designs_count'  => count(function_exists('ajnanda_get_page_designs') ? ajnanda_get_page_designs() : array()),
             'starter_sites_count' => count(AJNanda_Starter_Sites::get_all()),
+            'site_status'         => self::get_site_status(),
         ));
     }
 
@@ -85,8 +99,18 @@ class AJNanda_Admin {
             $preview = array('slug' => $preview_slug, 'report' => AJNanda_Starter_Importer::preview($preview_slug));
         }
 
+        // Compact "already imported" badges shown inline on every starter's
+        // page list by default, so that's answered without an extra click —
+        // the explicit "Preview Import" button still exists for the full
+        // create/skip/conflict table when someone wants the detail.
+        $reports = array();
+        foreach (AJNanda_Starter_Sites::get_all() as $slug => $starter) {
+            $reports[$slug] = AJNanda_Starter_Importer::preview($slug);
+        }
+
         self::view('starter-sites', array(
             'starters' => AJNanda_Starter_Sites::get_all(),
+            'reports'  => $reports,
             'preview'  => $preview,
             'notice'   => self::consume_notice('ajnanda_import_result'),
         ));
@@ -157,6 +181,54 @@ class AJNanda_Admin {
 
     private static function all_page_designs() {
         return function_exists('ajnanda_get_page_designs') ? ajnanda_get_page_designs() : array();
+    }
+
+    /**
+     * "Your site" status shown on Overview — distinct from the library
+     * counts above (what's *available*), this is what's actually been
+     * *done* on this install: current color scheme, whether a starter site
+     * has been imported, how many pages AJNanda has built, and whether the
+     * primary menu is set up. Cheap: two aggregate postmeta queries plus
+     * two theme_mod reads, no per-post loading.
+     *
+     * @return array{scheme_label:string,pages_created:int,starter_labels:string[],primary_menu_set:bool}
+     */
+    private static function get_site_status() {
+        global $wpdb;
+
+        $pages_created = class_exists('AJNanda_Starter_Importer')
+            ? (int) $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(DISTINCT post_id) FROM {$wpdb->postmeta} WHERE meta_key = %s",
+                AJNanda_Starter_Importer::META_DESIGN
+            ))
+            : 0;
+
+        $starter_labels = array();
+        if (class_exists('AJNanda_Starter_Importer')) {
+            $imported_slugs = $wpdb->get_col($wpdb->prepare(
+                "SELECT DISTINCT meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s",
+                AJNanda_Starter_Importer::META_STARTER
+            ));
+            $all_starters = AJNanda_Starter_Sites::get_all();
+            foreach ($imported_slugs as $imported_slug) {
+                if (isset($all_starters[$imported_slug])) {
+                    $starter_labels[] = $all_starters[$imported_slug]['label'];
+                }
+            }
+        }
+
+        $locations = get_nav_menu_locations();
+
+        $scheme_slug  = function_exists('ajnanda_get_active_color_scheme_slug') ? ajnanda_get_active_color_scheme_slug() : '';
+        $schemes      = function_exists('ajnanda_get_color_schemes') ? ajnanda_get_color_schemes() : array();
+        $scheme_label = isset($schemes[$scheme_slug]) ? $schemes[$scheme_slug]['label'] : __('Custom', 'ajnanda');
+
+        return array(
+            'scheme_label'     => $scheme_label,
+            'pages_created'    => $pages_created,
+            'starter_labels'   => $starter_labels,
+            'primary_menu_set' => !empty($locations['primary']),
+        );
     }
 
     /* -----------------------------------------------------------------

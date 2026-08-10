@@ -48,14 +48,29 @@ $site_scheme_label = isset($color_schemes[$site_scheme]) ? $color_schemes[$site_
         <div class="notice notice-error"><p><?php echo esc_html($notice['error']); ?></p></div>
     <?php endif; ?>
 
+    <p class="ajnanda-admin-search">
+        <input
+            type="search"
+            class="regular-text"
+            placeholder="<?php esc_attr_e('Filter by title, slug, or description…', 'ajnanda'); ?>"
+            aria-label="<?php esc_attr_e('Filter page designs', 'ajnanda'); ?>"
+            data-ajnanda-filter
+            data-ajnanda-filter-scope="#ajnanda-page-library-list"
+        >
+    </p>
+
+    <div id="ajnanda-page-library-list">
     <?php foreach ($groups as $group_label => $group_designs) : ?>
-        <div class="ajnanda-admin-section">
+        <div class="ajnanda-admin-section" data-ajnanda-filter-group>
             <h2><?php echo esc_html($group_label); ?></h2>
             <div class="ajnanda-admin-grid">
-                <?php foreach ($group_designs as $slug => $pattern) : ?>
-                    <div class="ajnanda-admin-card">
+                <?php foreach ($group_designs as $slug => $pattern) :
+                    $title = $pattern['title'];
+                    $description = isset($pattern['description']) ? $pattern['description'] : '';
+                ?>
+                    <div class="ajnanda-admin-card" data-ajnanda-filter-item data-ajnanda-filter-text="<?php echo esc_attr(strtolower($title . ' ' . $slug . ' ' . $description)); ?>">
                         <h2><?php echo esc_html($pattern['title']); ?></h2>
-                        <p><?php echo esc_html(isset($pattern['description']) ? $pattern['description'] : ''); ?></p>
+                        <p><?php echo esc_html($description); ?></p>
                         <p class="description"><code><?php echo esc_html($slug); ?></code></p>
                         <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="ajnanda-page-design-form">
                             <?php wp_nonce_field(AJNanda_Admin::NONCE_ACTION); ?>
@@ -101,6 +116,7 @@ $site_scheme_label = isset($color_schemes[$site_scheme]) ? $color_schemes[$site_
             </div>
         </div>
     <?php endforeach; ?>
+    </div>
 </div>
 <script>
 (function () {

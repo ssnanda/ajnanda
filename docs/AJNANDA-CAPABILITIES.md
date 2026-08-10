@@ -121,9 +121,13 @@ when explicitly asked.
 ### How they're surfaced
 
 - **AJNanda** admin menu (top-level, `inc/admin/class-ajnanda-admin.php`):
-  Overview, Starter Sites (preview/import UI), Page Library (browse + "Add
-  as New Page"), Patterns (read-only reference), Color Schemes (visual
-  reference), Theme Settings (links out to the Customizer and the
+  Overview (library counts plus a "Your site" status block — current color
+  scheme, starter site imported, pages built, primary menu set up),
+  Starter Sites (preview/import UI, with inline per-page "already
+  imported" badges shown by default), Page Library (browse with a live
+  text filter + "Add as New Page"), Patterns (read-only reference with the
+  same live filter), Color Schemes (visual reference), Theme Settings
+  (links out to the Customizer — including a direct Colors card — and the
   existing theme updater screen).
 - **Native "Choose a pattern" modal** (Pages → Add New): shows Page
   Designs automatically — no custom UI, this is core WordPress behavior
@@ -136,8 +140,10 @@ when explicitly asked.
 Page Design, or a Starter Site page — the latter two are just pattern
 slugs) as a real front-end page — real header/footer, real CSS — without
 writing anything to the database. Optionally previews with any Color
-Scheme applied. Reached via "Preview" links on the Starter Sites, Page
-Library, and Color Schemes admin screens; built from an in-memory
+Scheme applied. Reached via "Preview" links on the Patterns, Starter
+Sites, Page Library, and Color Schemes admin screens, all of which open in
+an in-page modal by default (`inc/admin/assets/admin.js`, with an "Open in
+new tab" fallback) rather than navigating away; built from an in-memory
 `WP_Post` that's never `wp_insert_post()`-ed. Detail in
 `docs/development.md` ("Preview").
 
@@ -569,6 +575,7 @@ inc/
     class-ajnanda-admin.php    Top-level AJNanda admin menu + handlers
     views/*.php                 Admin screen templates
     assets/admin.css            Admin-only stylesheet
+    assets/admin.js             Preview modal + live-filter behavior
   cli/
     class-ajnanda-cli.php       WP-CLI commands
   site-builder.php             Loader wiring inc/patterns.php,

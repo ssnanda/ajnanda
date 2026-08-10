@@ -179,7 +179,10 @@ insert ... --color-scheme=<slug>` for a single page.
 with a "Preview" link that renders a real page with that scheme applied —
 no setting is changed, nothing is saved (see `docs/development.md`,
 "Preview"). The Page Library screen's color picker has the same live
-preview link, tied to whichever scheme is currently selected there.
+preview link, tied to whichever scheme is currently selected there. Every
+Preview link across the AJNanda admin screens (Patterns, Page Library,
+Starter Sites, Color Schemes) opens in an in-page modal by default rather
+than a new tab, with a fallback link to open it in a new tab anyway.
 
 ## AJCore forms
 

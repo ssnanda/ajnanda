@@ -29,6 +29,15 @@ if (!defined('ABSPATH')) {
         </div>
 
         <div class="ajnanda-admin-card">
+            <h2><?php esc_html_e('Colors', 'ajnanda'); ?></h2>
+            <p><?php esc_html_e('Apply a color scheme site-wide, or browse the 20 presets first.', 'ajnanda'); ?></p>
+            <div class="ajnanda-admin-actions">
+                <a class="button" href="<?php echo esc_url(admin_url('customize.php?autofocus[section]=colors')); ?>"><?php esc_html_e('Open Colors', 'ajnanda'); ?></a>
+                <a class="button" href="<?php echo esc_url(admin_url('admin.php?page=ajnanda-color-schemes')); ?>"><?php esc_html_e('Browse Color Schemes', 'ajnanda'); ?></a>
+            </div>
+        </div>
+
+        <div class="ajnanda-admin-card">
             <h2><?php esc_html_e('Theme Updates', 'ajnanda'); ?></h2>
             <p><?php esc_html_e('Check for and install AJNanda theme updates.', 'ajnanda'); ?></p>
             <a class="button" href="<?php echo esc_url(admin_url('themes.php?page=ajnanda-theme-updater')); ?>"><?php esc_html_e('Open Update AJNanda', 'ajnanda'); ?></a>
