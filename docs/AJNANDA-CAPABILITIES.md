@@ -106,10 +106,11 @@ when explicitly asked.
 - **Main implementation**:
   `inc/starter-sites/class-ajnanda-starter-sites.php` (manifest registry),
   `inc/starter-sites/class-ajnanda-starter-importer.php` (import engine),
-  `inc/starter-sites/manifests/*.php` (11 starter sites today: corporate,
+  `inc/starter-sites/manifests/*.php` (12 starter sites today: corporate,
   technology, professional-services, product-reseller,
   property-management, insurance-financial, minimal-business,
-  music-artist, personal-creative, baby-announcement, family-blog)
+  music-artist, personal-creative, baby-announcement, family-blog,
+  developer-portfolio)
 - **Related systems**: each manifest page references a Page Design slug;
   the importer calls the same `ajnanda_get_pattern_content()` /
   `wp_insert_post()` path as manual insertion

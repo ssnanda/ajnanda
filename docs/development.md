@@ -77,8 +77,8 @@ Pages, Appearance:
   `ajnanda_get_color_schemes()`, each with a live preview link. Read-only —
   to actually apply a scheme, use the Customizer (site-wide) or the Page
   Library picker (single page).
-- **Site Kits** — visual reference of 10 color-scheme + font-pairing
-  bundles, plus the 5 font pairings alone underneath. Read-only — apply
+- **Site Kits** — visual reference of 11 color-scheme + font-pairing
+  bundles, plus the 6 font pairings alone underneath. Read-only — apply
   from the Customizer's "Quick Kits" control. See `docs/site-kits.md`.
 - **Theme Settings** — links to the existing Customizer (including a
   dedicated "Colors" card, since that's where AJNanda's Colors panel

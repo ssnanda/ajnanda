@@ -29,14 +29,15 @@ pairing is deliberately chosen — same backward-compatibility guarantee
 
 ### Presets
 
-`ajnanda_get_font_pairings()` returns 5: **Classic** (Poppins/Inter, the
+`ajnanda_get_font_pairings()` returns 6: **Classic** (Poppins/Inter, the
 default), **Modern Sans** (Manrope), **Elegant Serif** (Playfair
 Display/Lora), **Bold Display** (Bebas Neue/Inter — loud, poster-style
-headings), **Playful Rounded** (Baloo 2/Nunito — soft, kid/hobby-friendly).
-The 8 underlying font families are also registered in
-`theme.json` (`settings.typography.fontFamilies`), so every one of them is
-also selectable per-block in the native block editor Typography panel,
-independent of the site-wide pairing.
+headings), **Playful Rounded** (Baloo 2/Nunito — soft, kid/hobby-friendly),
+**Developer Mono** (JetBrains Mono/Inter — code-editor headings, clean
+body — developer portfolios). The 9 underlying font families are also
+registered in `theme.json` (`settings.typography.fontFamilies`), so every
+one of them is also selectable per-block in the native block editor
+Typography panel, independent of the site-wide pairing.
 
 ### How it's applied
 
@@ -72,9 +73,10 @@ independent of the site-wide pairing.
 ## Site Kits (`inc/site-kits.php`)
 
 A **kit** is a color scheme slug + a font pairing slug, bundled under one
-name — nothing more. `ajnanda_get_site_kits()` returns 10: Corporate Blue,
+name — nothing more. `ajnanda_get_site_kits()` returns 11: Corporate Blue,
 Elegant Gold, Modern Tech, Bold Startup, Minimal Slate, Dark Premium,
-Neon Night, Bubblegum Pop, Little One, Family Warmth.
+Neon Night, Bubblegum Pop, Little One, Family Warmth, Developer
+Portfolio.
 
 - **"Quick Kits"** — a control at the very top of the native Colors panel
   (above the color-only "Quick presets" swatches), each button setting all

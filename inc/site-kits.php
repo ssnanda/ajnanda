@@ -82,6 +82,12 @@ function ajnanda_get_site_kits() {
             'font_pairing' => 'elegant-serif',
             'mood'         => __('Warm and personal, journal-like — family blogs, updates, community pages.', 'ajnanda'),
         ),
+        'developer-portfolio' => array(
+            'label'        => __('Developer Portfolio', 'ajnanda'),
+            'color_scheme' => 'sky',
+            'font_pairing' => 'developer-mono',
+            'mood'         => __('Clean, spacious, tech-forward — developer portfolios, technical/coding sites.', 'ajnanda'),
+        ),
     );
 }
 

@@ -78,7 +78,8 @@
         { "name": "Lora", "slug": "lora", "fontFamily": "'Lora', serif" },
         { "name": "Bebas Neue", "slug": "bebas-neue", "fontFamily": "'Bebas Neue', sans-serif" },
         { "name": "Baloo 2", "slug": "baloo-2", "fontFamily": "'Baloo 2', sans-serif" },
-        { "name": "Nunito", "slug": "nunito", "fontFamily": "'Nunito', sans-serif" }
+        { "name": "Nunito", "slug": "nunito", "fontFamily": "'Nunito', sans-serif" },
+        { "name": "JetBrains Mono", "slug": "jetbrains-mono", "fontFamily": "'JetBrains Mono', 'Courier New', monospace" }
       ],
       "fontSizes": [
         {

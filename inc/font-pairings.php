@@ -76,6 +76,15 @@ function ajnanda_get_font_pairings() {
             'google_families' => 'Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;500;600;700',
             'mood'            => __('Soft, rounded, friendly — kids, hobby, community sites.', 'ajnanda'),
         ),
+        'developer-mono' => array(
+            'label'           => __('Developer Mono', 'ajnanda'),
+            'heading_font'    => 'JetBrains Mono',
+            'body_font'       => 'Inter',
+            'heading_stack'   => "'JetBrains Mono', 'Courier New', monospace",
+            'body_stack'      => "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+            'google_families' => 'JetBrains+Mono:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800',
+            'mood'            => __('Code-editor headings, clean readable body — developer portfolios, technical blogs.', 'ajnanda'),
+        ),
     );
 }
 
