@@ -13,6 +13,8 @@ Text Domain: ajnanda
     --primary-dark: #1e40af;
     --secondary: #7c3aed;
     --accent: #f59e0b;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-heading: 'Poppins', sans-serif;
     --gray-50: #f9fafb;
     --gray-100: #f3f4f6;
     --gray-200: #e5e7eb;
@@ -234,19 +236,40 @@ Text Domain: ajnanda
     --accent: #f59e0b;
 }
 
+.ajnanda-scheme-neon-funk {
+    --primary: #d946ef;
+    --primary-dark: #a21caf;
+    --secondary: #22d3ee;
+    --accent: #facc15;
+}
+
+.ajnanda-scheme-bubblegum {
+    --primary: #f472b6;
+    --primary-dark: #db2777;
+    --secondary: #a78bfa;
+    --accent: #fbbf24;
+}
+
+.ajnanda-scheme-nursery {
+    --primary: #a5b4fc;
+    --primary-dark: #818cf8;
+    --secondary: #86efac;
+    --accent: #fde047;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { scroll-behavior: smooth; }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--font-body, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
     line-height: 1.6;
     color: var(--gray-800);
     overflow-x: hidden;
 }
 
 h1, h2, h3, h4, h5, h6 {
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-heading, 'Poppins', sans-serif);
     font-weight: 700;
     line-height: 1.2;
     color: var(--gray-900);
@@ -1598,15 +1621,66 @@ body.admin-bar .site-header {
     to { opacity: 1; transform: translateY(0); }
 }
 
-.animate-on-scroll {
+/* Scroll-reveal animation classes. Progressive enhancement: content is
+ * visible by default (e.g. no-JS, JS error) and only hidden pending reveal
+ * once document.documentElement has the .js class (added at the very top
+ * of main.js, before anything can fail) — same pattern already used for
+ * .js .process-step. js/main.js toggles .animated via IntersectionObserver
+ * when an element scrolls into view. All variants are inert (no visual
+ * effect at all) under prefers-reduced-motion, further down. */
+.js .animate-on-scroll,
+.js .animate-fade-in,
+.js .animate-slide-left,
+.js .animate-slide-right,
+.js .animate-scale-in {
     opacity: 0;
-    transform: translateY(30px);
-    transition: all 500ms ease-out;
+    transition: opacity 500ms ease-out, transform 500ms ease-out;
 }
 
-.animate-on-scroll.animated {
+.js .animate-on-scroll { transform: translateY(30px); }
+.js .animate-slide-left { transform: translateX(-40px); }
+.js .animate-slide-right { transform: translateX(40px); }
+.js .animate-scale-in { transform: scale(0.94); }
+
+.animate-on-scroll.animated,
+.animate-fade-in.animated,
+.animate-slide-left.animated,
+.animate-slide-right.animated,
+.animate-scale-in.animated {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
+}
+
+/* Stagger a grid/columns block's direct children one after another instead
+ * of all revealing at once — add .animate-stagger to the parent (e.g. a
+ * columns/group block) and .animate-on-scroll (or another variant above)
+ * to each child. Purely a transition-delay ladder, no JS changes needed. */
+.animate-stagger > .animate-on-scroll:nth-child(1),
+.animate-stagger > .animate-fade-in:nth-child(1),
+.animate-stagger > .animate-scale-in:nth-child(1) { transition-delay: 0ms; }
+.animate-stagger > .animate-on-scroll:nth-child(2),
+.animate-stagger > .animate-fade-in:nth-child(2),
+.animate-stagger > .animate-scale-in:nth-child(2) { transition-delay: 100ms; }
+.animate-stagger > .animate-on-scroll:nth-child(3),
+.animate-stagger > .animate-fade-in:nth-child(3),
+.animate-stagger > .animate-scale-in:nth-child(3) { transition-delay: 200ms; }
+.animate-stagger > .animate-on-scroll:nth-child(4),
+.animate-stagger > .animate-fade-in:nth-child(4),
+.animate-stagger > .animate-scale-in:nth-child(4) { transition-delay: 300ms; }
+.animate-stagger > .animate-on-scroll:nth-child(5),
+.animate-stagger > .animate-fade-in:nth-child(5),
+.animate-stagger > .animate-scale-in:nth-child(5) { transition-delay: 400ms; }
+
+@media (prefers-reduced-motion: reduce) {
+    .animate-on-scroll,
+    .animate-fade-in,
+    .animate-slide-left,
+    .animate-slide-right,
+    .animate-scale-in {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
 }
 
 /* Additional Animations */

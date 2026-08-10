@@ -126,6 +126,18 @@ function ajnanda_get_color_schemes() {
             'label' => __('Crimson', 'ajnanda'), 'swatch' => '#991b1b',
             'primary' => '#991b1b', 'primary_dark' => '#7f1d1d', 'secondary' => '#111827', 'accent' => '#f59e0b',
         ),
+        'neon-funk' => array(
+            'label' => __('Neon Funk', 'ajnanda'), 'swatch' => '#d946ef',
+            'primary' => '#d946ef', 'primary_dark' => '#a21caf', 'secondary' => '#22d3ee', 'accent' => '#facc15',
+        ),
+        'bubblegum' => array(
+            'label' => __('Bubblegum', 'ajnanda'), 'swatch' => '#f472b6',
+            'primary' => '#f472b6', 'primary_dark' => '#db2777', 'secondary' => '#a78bfa', 'accent' => '#fbbf24',
+        ),
+        'nursery' => array(
+            'label' => __('Nursery', 'ajnanda'), 'swatch' => '#a5b4fc',
+            'primary' => '#a5b4fc', 'primary_dark' => '#818cf8', 'secondary' => '#86efac', 'accent' => '#fde047',
+        ),
     );
 }
 

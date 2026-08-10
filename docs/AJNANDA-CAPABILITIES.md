@@ -106,16 +106,20 @@ when explicitly asked.
 - **Main implementation**:
   `inc/starter-sites/class-ajnanda-starter-sites.php` (manifest registry),
   `inc/starter-sites/class-ajnanda-starter-importer.php` (import engine),
-  `inc/starter-sites/manifests/*.php` (7 starter sites today: corporate,
+  `inc/starter-sites/manifests/*.php` (11 starter sites today: corporate,
   technology, professional-services, product-reseller,
-  property-management, insurance-financial, minimal-business)
+  property-management, insurance-financial, minimal-business,
+  music-artist, personal-creative, baby-announcement, family-blog)
 - **Related systems**: each manifest page references a Page Design slug;
   the importer calls the same `ajnanda_get_pattern_content()` /
   `wp_insert_post()` path as manual insertion
 - **Current limitations**: a starter site only creates pages + a primary
-  menu + optionally sets the homepage/posts page — it does not configure
-  the header/footer builder, Colors, or any Customizer setting; those
-  remain the site owner's job after import.
+  menu + optionally sets the homepage/posts page — it does not itself
+  apply a Color Scheme/Font Pairing/Site Kit or any other Customizer
+  setting, even the 4 starters (see `docs/starter-sites.md`) written to
+  pair with a specific Site Kit; applying that kit remains a separate,
+  manual step (Customizer or `wp ajnanda site-kit set`) before or after
+  import.
 - **Detailed docs**: `docs/starter-sites.md`
 
 ### How they're surfaced
@@ -126,13 +130,14 @@ when explicitly asked.
   Starter Sites (preview/import UI, with inline per-page "already
   imported" badges shown by default), Page Library (browse with a live
   text filter + "Add as New Page"), Patterns (read-only reference with the
-  same live filter), Color Schemes (visual reference), Theme Settings
-  (links out to the Customizer — including a direct Colors card — and the
-  existing theme updater screen).
+  same live filter), Color Schemes (visual reference), Site Kits (visual
+  reference of color+font bundles, plus font pairings alone), Theme
+  Settings (links out to the Customizer — including a direct Colors
+  card — and the existing theme updater screen).
 - **Native "Choose a pattern" modal** (Pages → Add New): shows Page
   Designs automatically — no custom UI, this is core WordPress behavior
   triggered by the `Block Types: core/post-content` pattern header.
-- **WP-CLI** (`inc/cli/class-ajnanda-cli.php`): `wp ajnanda pattern|page-design|starter|color-scheme ...` — thin wrappers around the same PHP functions/classes the admin screens use.
+- **WP-CLI** (`inc/cli/class-ajnanda-cli.php`): `wp ajnanda pattern|page-design|starter|color-scheme|font-pairing|site-kit ...` — thin wrappers around the same PHP functions/classes the admin screens use.
 
 ### Non-destructive preview
 
@@ -140,12 +145,13 @@ when explicitly asked.
 Page Design, or a Starter Site page — the latter two are just pattern
 slugs) as a real front-end page — real header/footer, real CSS — without
 writing anything to the database. Optionally previews with any Color
-Scheme applied. Reached via "Preview" links on the Patterns, Starter
-Sites, Page Library, and Color Schemes admin screens, all of which open in
-an in-page modal by default (`inc/admin/assets/admin.js`, with an "Open in
-new tab" fallback) rather than navigating away; built from an in-memory
-`WP_Post` that's never `wp_insert_post()`-ed. Detail in
-`docs/development.md` ("Preview").
+Scheme and/or Font Pairing applied (i.e. any Site Kit). Reached via
+"Preview" links on the Patterns, Starter Sites, Page Library, Color
+Schemes, and Site Kits admin screens, all of which open in an in-page
+modal by default (`inc/admin/assets/admin.js`, with an "Open in new tab"
+fallback) rather than navigating away; built from an in-memory `WP_Post`
+that's never `wp_insert_post()`-ed. Detail in `docs/development.md`
+("Preview") and `docs/site-kits.md`.
 
 ---
 
@@ -315,7 +321,7 @@ styled in `style.css`).
   system (does not duplicate it): (1) pushes the same saved colors into
   the block editor's iframe/pattern previews via
   `enqueue_block_editor_assets` + `block_editor_settings_all` — the
-  original system only reached the frontend; (2) 20 one-click preset
+  original system only reached the frontend; (2) 23 one-click preset
   swatches in the Colors panel that fill in the 4 real settings via the
   Customizer JS API; (3) a per-page color-scheme override used by the Page
   Library screen (wraps a page's content in an `.ajnanda-scheme-{slug}`
@@ -332,12 +338,25 @@ pattern library; there's no separate colors-only doc.
 
 ### Typography
 
-Font families are loaded via Google Fonts `<link>` tags in `header.php`
-(Inter/Poppins) — not declared in `theme.json`. Font-size presets come
-from `theme.json`. Per-element typography (header/footer nav font, post
-meta) is separately controlled via the Customizer header/footer builder
-settings below, output as `--ajn-header-font-*`/`--ajn-footer-font-*` CSS
-variables.
+Site-wide heading/body fonts are driven by two CSS custom properties,
+`--font-heading`/`--font-body` (`style.css`), which `header.php`'s Google
+Fonts `<link>` and a `wp_head`-hooked `<style>` override both follow —
+**not** hardcoded anymore. `inc/font-pairings.php` (mirrors
+`inc/color-schemes.php`'s shape exactly) adds a real `theme_font_pairing`
+Customizer setting under a new **Typography** section, 5 named presets
+(Classic — the original Inter/Poppins default, Modern Sans, Elegant
+Serif, Bold Display, Playful Rounded), and the same editor-iframe-gap
+closing the color system already had. The 8 underlying font families are
+also registered in `theme.json` (`settings.typography.fontFamilies`), so
+each is independently selectable per-block in the native block editor
+Typography panel. `inc/site-kits.php` bundles a color scheme + a font
+pairing under one name (10 presets, e.g. "Neon Night," "Bubblegum Pop") as
+a "Quick Kits" Customizer control. **Detailed docs**: `docs/site-kits.md`.
+
+Font-size presets come from `theme.json`. Per-element typography
+(header/footer nav font, post meta) is separately controlled via the
+Customizer header/footer builder settings below, output as
+`--ajn-header-font-*`/`--ajn-footer-font-*` CSS variables.
 
 ---
 
@@ -425,11 +444,11 @@ dead code — the `NCLLC_Pro_*` naming is legacy, see Legacy notes below):
 
 | Tool | What it does | Where |
 |---|---|---|
-| **AJNanda admin menu** | Top-level wp-admin menu surfacing the site-builder system: Overview, Starter Sites, Page Library, Patterns, Color Schemes, Theme Settings | `inc/admin/class-ajnanda-admin.php`, `inc/admin/views/*.php` |
-| **Non-destructive preview** | Renders any pattern/page design (optionally in any color scheme) as a real page — no database writes | `inc/preview.php` |
+| **AJNanda admin menu** | Top-level wp-admin menu surfacing the site-builder system: Overview, Starter Sites, Page Library, Patterns, Color Schemes, Site Kits, Theme Settings | `inc/admin/class-ajnanda-admin.php`, `inc/admin/views/*.php` |
+| **Non-destructive preview** | Renders any pattern/page design (optionally in any color scheme and/or font pairing) as a real page — no database writes | `inc/preview.php` |
 | **GitHub theme updater** | Self-hosted update mechanism — polls the `ssnanda/ajnanda` GitHub repo's latest Release, compares versions, hooks WordPress's native theme-update machinery plus a direct admin-post "update now" action. Screen lives at **Appearance → Update AJNanda** (a submenu under `themes.php`, not the new top-level AJNanda menu), and its sidebar link is rewritten to perform the update directly | `inc/github-theme-updater.php`, `inc/theme-details-updater-button.php` (adds a matching button to the native theme-details modal) |
 | **Duplicate Post/Page** | "Duplicate" row action on Posts and Pages (only those two post types). Copies content/title(+" Copy")/excerpt/taxonomies/meta (except `_wp_old_slug`) into a new `draft`, then redirects to edit it | `inc/duplicate-content.php` |
-| **WP-CLI** | `wp ajnanda pattern/page-design/starter/color-scheme ...` — scriptable access to the site-builder system, same code paths as the admin UI | `inc/cli/class-ajnanda-cli.php` (only loaded when `WP_CLI` is defined) |
+| **WP-CLI** | `wp ajnanda pattern/page-design/starter/color-scheme/font-pairing/site-kit ...` — scriptable access to the site-builder system, same code paths as the admin UI | `inc/cli/class-ajnanda-cli.php` (only loaded when `WP_CLI` is defined) |
 | **SEO** | Per-post meta box (title/description/social image/noindex — `add_meta_boxes`, since the Customizer can't edit per-post data); site-wide `<title>`/meta/OG/Twitter tags (`pre_get_document_title`, `wp_head`); JSON-LD schema (Organization/LocalBusiness, Article, FAQ extracted from FAQ-style content); `robots.txt` filter explicitly allow-listing GPTBot/ClaudeBot/PerplexityBot/Google-Extended/CCBot; optional generated `/llms.txt` on `template_redirect`; and a read-only note pointing to WordPress core's own automatic `/wp-sitemap.xml` (no custom sitemap generator) | `inc/seo.php` |
 
 The AJNanda admin menu's **Theme Settings** submenu links to the
@@ -561,8 +580,11 @@ inc/
   patterns.php                Pattern category registration
   page-designs.php             Page Design composer/insert helpers
   color-schemes.php            Preset swatches + editor color-gap fix
+  font-pairings.php            Font pairing presets, Typography Customizer
+                                control, --font-heading/--font-body CSS vars
+  site-kits.php                Color scheme + font pairing bundles ("Quick Kits")
   preview.php                  Non-destructive live preview (any pattern,
-                                any color scheme, no DB writes)
+                                any color scheme and/or font pairing, no DB writes)
   seo.php                      SEO meta box, schema, llms.txt
   duplicate-content.php        "Duplicate" row action
   github-theme-updater.php     Self-hosted theme updater
@@ -573,13 +595,14 @@ inc/
     manifests/*.php                     One starter site per file
   admin/
     class-ajnanda-admin.php    Top-level AJNanda admin menu + handlers
-    views/*.php                 Admin screen templates
+    views/*.php                 Admin screen templates (incl. site-kits.php)
     assets/admin.css            Admin-only stylesheet
     assets/admin.js             Preview modal + live-filter behavior
   cli/
     class-ajnanda-cli.php       WP-CLI commands
   site-builder.php             Loader wiring inc/patterns.php,
                                 page-designs.php, color-schemes.php,
+                                font-pairings.php, site-kits.php,
                                 starter-sites/, admin/, cli/ together
 
 js/

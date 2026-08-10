@@ -97,6 +97,19 @@ Patterns are built entirely from:
   added in `style.css`), following the same plain-className-modifier
   convention as `hero-width-*` rather than introducing a second styling
   system.
+- **Scroll-reveal animation classes** (`animate-on-scroll`, `animate-fade-in`,
+  `animate-slide-left`, `animate-slide-right`, `animate-scale-in`, plus
+  `animate-stagger` on a parent to delay its children one after another) —
+  plain className modifiers again, toggled via `js/main.js`
+  (`IntersectionObserver`, one shared observer, progressive enhancement:
+  content stays visible with no JS and under `prefers-reduced-motion`).
+  Every current AJNanda section pattern except "CTA — Minimal" (no
+  top-level wrapper block to attach a class to) already carries one of
+  these on its outer section wrapper — heroes use `animate-fade-in`
+  (avoids a layout-shifty vertical pop-in above the fold), everything else
+  uses `animate-on-scroll`. Add the same class to a new pattern's outer
+  `wp:group`/`wp:columns` className (both the JSON attribute and the
+  rendered HTML class, kept in sync) to opt in.
 - **WordPress core blocks only** inside pattern content: group, columns,
   heading, paragraph, buttons, list, quote, details (native accordion,
   WP 6.4+), query/post-template (native post loop), shortcode. No custom
@@ -139,7 +152,7 @@ duplicate it with a second setting. It adds three things on top:
    inside the iframed editor. `enqueue_block_editor_assets` and the
    `block_editor_settings_all` filter now push the same saved colors into
    both.
-2. **One-click preset swatches** (20 named presets — see
+2. **One-click preset swatches** (23 named presets — see
    `ajnanda_get_color_schemes()` in `inc/color-schemes.php` for the full
    list) added to the top of the native Colors panel — clicking one just
    fills in the 4 existing color pickers via the Customizer JS API
@@ -181,8 +194,16 @@ no setting is changed, nothing is saved (see `docs/development.md`,
 "Preview"). The Page Library screen's color picker has the same live
 preview link, tied to whichever scheme is currently selected there. Every
 Preview link across the AJNanda admin screens (Patterns, Page Library,
-Starter Sites, Color Schemes) opens in an in-page modal by default rather
-than a new tab, with a fallback link to open it in a new tab anyway.
+Starter Sites, Color Schemes, Site Kits) opens in an in-page modal by
+default rather than a new tab, with a fallback link to open it in a new
+tab anyway.
+
+**Fonts and Site Kits**: color is one half of a look — `inc/font-pairings.php`
+adds the same kind of system for typography (a `theme_font_pairing`
+setting, 5 presets, a Customizer control under a new Typography section),
+and `inc/site-kits.php` bundles a color scheme with a font pairing under
+one name (e.g. "Neon Night," "Bubblegum Pop") as a "Quick Kits" control
+above the color presets. See `docs/site-kits.md` for both.
 
 ## AJCore forms
 

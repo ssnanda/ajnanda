@@ -338,7 +338,136 @@ class AJNanda_CLI_ColorScheme_Command {
     }
 }
 
+/**
+ * See docs/site-kits.md.
+ */
+class AJNanda_CLI_FontPairing_Command {
+
+    /**
+     * List available font pairings.
+     *
+     * ## OPTIONS
+     *
+     * [--format=<format>]
+     * : Render output as table, csv, json, or count. Default: table.
+     *
+     * @when after_wp_load
+     */
+    public function list($args, $assoc_args) {
+        $active = ajnanda_get_active_font_pairing_slug();
+        $rows = array();
+
+        foreach (ajnanda_get_font_pairings() as $slug => $pairing) {
+            $rows[] = array(
+                'slug'    => $slug,
+                'label'   => $pairing['label'],
+                'heading' => $pairing['heading_font'],
+                'body'    => $pairing['body_font'],
+                'active'  => $slug === $active ? 'yes' : '',
+            );
+        }
+
+        \WP_CLI\Utils\format_items($assoc_args['format'] ?? 'table', $rows, array('slug', 'label', 'heading', 'body', 'active'));
+    }
+
+    /**
+     * Set the site-wide font pairing (Appearance → Customize → Typography).
+     * Equivalent to picking it in that control.
+     *
+     * ## OPTIONS
+     *
+     * <slug>
+     * : Font pairing slug — see `wp ajnanda font-pairing list`.
+     *
+     * @when after_wp_load
+     */
+    public function set($args, $assoc_args) {
+        list($slug) = $args;
+        $pairings = ajnanda_get_font_pairings();
+
+        if (!isset($pairings[$slug])) {
+            WP_CLI::error(sprintf('Unknown font pairing "%s". Available: %s', $slug, implode(', ', array_keys($pairings))));
+        }
+
+        set_theme_mod('theme_font_pairing', $slug);
+
+        WP_CLI::success(sprintf('Font pairing set to "%s".', $slug));
+    }
+}
+
+/**
+ * See docs/site-kits.md.
+ */
+class AJNanda_CLI_SiteKit_Command {
+
+    /**
+     * List available site kits (color scheme + font pairing bundles).
+     *
+     * ## OPTIONS
+     *
+     * [--format=<format>]
+     * : Render output as table, csv, json, or count. Default: table.
+     *
+     * @when after_wp_load
+     */
+    public function list($args, $assoc_args) {
+        $active = ajnanda_get_active_site_kit_slug();
+        $rows = array();
+
+        foreach (ajnanda_get_site_kits() as $slug => $kit) {
+            $rows[] = array(
+                'slug'         => $slug,
+                'label'        => $kit['label'],
+                'color_scheme' => $kit['color_scheme'],
+                'font_pairing' => $kit['font_pairing'],
+                'active'       => $slug === $active ? 'yes' : '',
+            );
+        }
+
+        \WP_CLI\Utils\format_items($assoc_args['format'] ?? 'table', $rows, array('slug', 'label', 'color_scheme', 'font_pairing', 'active'));
+    }
+
+    /**
+     * Apply a site kit: sets the 4 color settings and the font pairing
+     * together. Equivalent to clicking its "Quick Kits" swatch in the
+     * Customizer.
+     *
+     * ## OPTIONS
+     *
+     * <slug>
+     * : Site kit slug — see `wp ajnanda site-kit list`.
+     *
+     * @when after_wp_load
+     */
+    public function set($args, $assoc_args) {
+        list($slug) = $args;
+        $kits = ajnanda_get_site_kits();
+
+        if (!isset($kits[$slug])) {
+            WP_CLI::error(sprintf('Unknown site kit "%s". Available: %s', $slug, implode(', ', array_keys($kits))));
+        }
+
+        $kit     = $kits[$slug];
+        $schemes = ajnanda_get_color_schemes();
+
+        if (!isset($schemes[$kit['color_scheme']])) {
+            WP_CLI::error(sprintf('Site kit "%s" references unknown color scheme "%s".', $slug, $kit['color_scheme']));
+        }
+
+        $scheme = $schemes[$kit['color_scheme']];
+        set_theme_mod('theme_primary_color', $scheme['primary']);
+        set_theme_mod('theme_primary_dark_color', $scheme['primary_dark']);
+        set_theme_mod('theme_secondary_color', $scheme['secondary']);
+        set_theme_mod('theme_accent_color', $scheme['accent']);
+        set_theme_mod('theme_font_pairing', $kit['font_pairing']);
+
+        WP_CLI::success(sprintf('Site kit "%s" applied (%s colors + %s fonts).', $slug, $kit['color_scheme'], $kit['font_pairing']));
+    }
+}
+
 WP_CLI::add_command('ajnanda pattern', 'AJNanda_CLI_Pattern_Command');
 WP_CLI::add_command('ajnanda page-design', 'AJNanda_CLI_PageDesign_Command');
 WP_CLI::add_command('ajnanda starter', 'AJNanda_CLI_Starter_Command');
 WP_CLI::add_command('ajnanda color-scheme', 'AJNanda_CLI_ColorScheme_Command');
+WP_CLI::add_command('ajnanda font-pairing', 'AJNanda_CLI_FontPairing_Command');
+WP_CLI::add_command('ajnanda site-kit', 'AJNanda_CLI_SiteKit_Command');

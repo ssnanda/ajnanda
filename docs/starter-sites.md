@@ -101,10 +101,22 @@ been imported.
 ## Current starter sites
 
 `corporate`, `technology`, `professional-services`, `product-reseller`,
-`property-management`, `insurance-financial`, `minimal-business` — see
-`wp ajnanda starter list` or the Starter Sites admin screen for each one's
-page list. Slugs are stable identifiers (see docs/development.md's
+`property-management`, `insurance-financial`, `minimal-business`,
+`music-artist`, `personal-creative`, `baby-announcement`, `family-blog` —
+see `wp ajnanda starter list` or the Starter Sites admin screen for each
+one's page list. Slugs are stable identifiers (see docs/development.md's
 Future Automation note) and are never renamed.
+
+Four of these are also each written to pair with a specific Site Kit
+(`docs/site-kits.md`): `music-artist` → "Neon Night", `personal-creative`
+→ "Bubblegum Pop", `baby-announcement` → "Little One", `family-blog` →
+"Family Warmth" — though nothing enforces that; a starter site's pages
+just follow whatever color scheme/font pairing happen to be active, same
+as any other page. `family-blog` is a good example of composition at the
+starter-site level, not just within a page design: it reuses the exact
+same 4 page designs `personal-creative` uses (`page-home-personal`,
+`page-blog-landing`, `page-gallery`, `page-about-story`) — the two
+starters differ in curation/audience and default Site Kit, not markup.
 
 ## Adding a new starter site
 

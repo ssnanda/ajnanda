@@ -9,8 +9,8 @@
  * @package AJNanda
  */
 ?>
-<!-- wp:group {"align":"full","className":"builder-section","layout":{"type":"constrained"}} -->
-<div class="wp-block-group alignfull builder-section"><!-- wp:heading {"textAlign":"center"} -->
+<!-- wp:group {"align":"full","className":"builder-section animate-on-scroll","layout":{"type":"constrained"}} -->
+<div class="wp-block-group alignfull builder-section animate-on-scroll"><!-- wp:heading {"textAlign":"center"} -->
 <h2 class="wp-block-heading has-text-align-center">Meet the Team</h2>
 <!-- /wp:heading -->
 

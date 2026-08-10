@@ -26,14 +26,24 @@ if (!defined('ABSPATH')) {
         <ul class="ajnanda-admin-status-list">
             <li>
                 <span class="ajnanda-admin-status-icon" aria-hidden="true">🎨</span>
-                <?php
-                printf(
-                    /* translators: %s: color scheme label */
-                    esc_html__('Color scheme: %s', 'ajnanda'),
-                    '<strong>' . esc_html($site_status['scheme_label']) . '</strong>'
-                );
-                ?>
-                — <a href="<?php echo esc_url(admin_url('admin.php?page=ajnanda-color-schemes')); ?>"><?php esc_html_e('browse schemes', 'ajnanda'); ?></a>
+                <?php if (!empty($site_status['kit_label'])) : ?>
+                    <?php
+                    printf(
+                        /* translators: %s: site kit label */
+                        esc_html__('Site Kit: %s', 'ajnanda'),
+                        '<strong>' . esc_html($site_status['kit_label']) . '</strong>'
+                    );
+                    ?>
+                <?php else : ?>
+                    <?php
+                    printf(
+                        /* translators: %s: color scheme label */
+                        esc_html__('Color scheme: %s', 'ajnanda'),
+                        '<strong>' . esc_html($site_status['scheme_label']) . '</strong>'
+                    );
+                    ?>
+                <?php endif; ?>
+                — <a href="<?php echo esc_url(admin_url('admin.php?page=ajnanda-site-kits')); ?>"><?php esc_html_e('browse Site Kits', 'ajnanda'); ?></a>
             </li>
             <li>
                 <span class="ajnanda-admin-status-icon" aria-hidden="true"><?php echo empty($site_status['starter_labels']) ? '⬜' : '✅'; ?></span>
@@ -95,6 +105,12 @@ if (!defined('ABSPATH')) {
         </div>
 
         <div class="ajnanda-admin-card">
+            <h2><?php esc_html_e('Site Kits', 'ajnanda'); ?></h2>
+            <p><?php esc_html_e('A color scheme and a font pairing, bundled — a complete look in one click.', 'ajnanda'); ?></p>
+            <a class="button button-primary" href="<?php echo esc_url(admin_url('admin.php?page=ajnanda-site-kits')); ?>"><?php esc_html_e('Browse Site Kits', 'ajnanda'); ?></a>
+        </div>
+
+        <div class="ajnanda-admin-card">
             <h2><?php esc_html_e('Section Patterns', 'ajnanda'); ?></h2>
             <p><?php
                 printf(
@@ -116,7 +132,7 @@ if (!defined('ABSPATH')) {
     <div class="ajnanda-admin-section">
         <h2><?php esc_html_e('Getting started', 'ajnanda'); ?></h2>
         <ol>
-            <li><?php esc_html_e('Pick your colors first: browse Color Schemes and either apply one site-wide from the Customizer\'s Colors panel, or just note which one you like — every page and starter site automatically follows whatever is active, so choosing first means nothing needs recoloring later.', 'ajnanda'); ?></li>
+            <li><?php esc_html_e('Pick a look first: browse Site Kits (colors + fonts together) or Color Schemes alone, and apply one from the Customizer\'s Colors panel — every page and starter site automatically follows whatever is active, so choosing first means nothing needs restyling later.', 'ajnanda'); ?></li>
             <li><?php esc_html_e('New site: go to Starter Sites, review the pages it will create, then import.', 'ajnanda'); ?></li>
             <li><?php esc_html_e('One new page: go to Pages → Add New — AJNanda page designs appear automatically in the "Choose a pattern" screen — or use the Page Library screen here.', 'ajnanda'); ?></li>
             <li><?php esc_html_e('One new section: open the block inserter on any page and search "AJNanda" — sections are grouped by type (Hero, Services, CTA, etc.).', 'ajnanda'); ?></li>

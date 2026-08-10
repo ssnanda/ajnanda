@@ -128,13 +128,10 @@ add_action('wp_enqueue_scripts', 'ajnanda_scripts');
  * Load the same page-section styling inside the block editor.
  */
 function ajnanda_block_editor_assets() {
-    wp_enqueue_style(
-        'ajnanda-pro-editor-fonts',
-        'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800;900&display=swap',
-        array(),
-        null
-    );
-
+    // Editor Google Fonts (all registered pairings, not just the active
+    // one — so a manual per-block font choice always renders) are enqueued
+    // by inc/font-pairings.php's own enqueue_block_editor_assets hook,
+    // not here — one place responsible for font loading instead of two.
     wp_enqueue_style('ajnanda-pro-editor-style', get_stylesheet_uri(), array(), ajnanda_asset_version('style.css'));
     wp_enqueue_script(
         'ajnanda-pro-editor-controls',

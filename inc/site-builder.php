@@ -2,10 +2,11 @@
 /**
  * AJNanda Site Builder — loader.
  *
- * Wires together the pattern/page-design/starter-site system added in
- * 1.3.0. This is the single place that knows the load order; individual
- * pieces stay in their own small files. See docs/development.md for the
- * architecture and how to extend each layer.
+ * Wires together the pattern/page-design/starter-site system (the
+ * site-builder work, started at version 1.2.7). This is the single place
+ * that knows the load order; individual pieces stay in their own small
+ * files. See docs/development.md for the architecture and how to extend
+ * each layer.
  *
  * Note: files under /patterns are NOT required here — WordPress core
  * auto-registers every *.php file in a theme's /patterns directory from
@@ -21,6 +22,8 @@ if (!defined('ABSPATH')) {
 
 require_once __DIR__ . '/patterns.php';
 require_once __DIR__ . '/color-schemes.php';
+require_once __DIR__ . '/font-pairings.php';
+require_once __DIR__ . '/site-kits.php';
 require_once __DIR__ . '/page-designs.php';
 require_once __DIR__ . '/starter-sites/class-ajnanda-starter-sites.php';
 require_once __DIR__ . '/starter-sites/class-ajnanda-starter-importer.php';

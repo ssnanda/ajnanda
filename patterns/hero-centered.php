@@ -9,8 +9,8 @@
  * @package AJNanda
  */
 ?>
-<!-- wp:group {"align":"full","className":"builder-hero-section hero-width-standard hero-height-standard","layout":{"type":"flex","orientation":"vertical","justifyContent":"center","verticalAlignment":"center","flexWrap":"nowrap"}} -->
-<div class="wp-block-group alignfull builder-hero-section hero-width-standard hero-height-standard"><!-- wp:heading {"textAlign":"center","level":1,"fontSize":"xx-large"} -->
+<!-- wp:group {"align":"full","className":"builder-hero-section hero-width-standard hero-height-standard animate-fade-in","layout":{"type":"flex","orientation":"vertical","justifyContent":"center","verticalAlignment":"center","flexWrap":"nowrap"}} -->
+<div class="wp-block-group alignfull builder-hero-section hero-width-standard hero-height-standard animate-fade-in"><!-- wp:heading {"textAlign":"center","level":1,"fontSize":"xx-large"} -->
 <h1 class="wp-block-heading has-text-align-center has-xx-large-font-size">A clear, confident headline about what you do</h1>
 <!-- /wp:heading -->
 

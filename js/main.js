@@ -39,25 +39,39 @@ document.documentElement.classList.add('js');
             lastScroll = currentScroll;
         });
 
-        // Animate elements on scroll
-        function animateOnScroll() {
-            $('.animate-on-scroll').each(function() {
-                const elementTop = $(this).offset().top;
-                const elementBottom = elementTop + $(this).outerHeight();
-                const viewportTop = $(window).scrollTop();
-                const viewportBottom = viewportTop + $(window).height();
-                
-                if (elementBottom > viewportTop && elementTop < viewportBottom) {
-                    $(this).addClass('animated');
-                }
-            });
+        // Reveal-on-scroll: any element with .animate-on-scroll (or the
+        // .animate-fade-in / .animate-slide-left / .animate-slide-right /
+        // .animate-scale-in variants — see style.css) gets .animated added
+        // once it enters the viewport. IntersectionObserver instead of a
+        // scroll-position poll — no per-scroll-event layout reads, and it
+        // still fires correctly for elements already in view on load.
+        // CSS handles prefers-reduced-motion (elements are simply visible
+        // from the start there), so this doesn't need to special-case it.
+        var revealSelector = '.animate-on-scroll, .animate-fade-in, .animate-slide-left, .animate-slide-right, .animate-scale-in';
+        var revealTargets = document.querySelectorAll(revealSelector);
+
+        if (revealTargets.length) {
+            if ('IntersectionObserver' in window) {
+                var revealObserver = new IntersectionObserver(function (entries, observer) {
+                    entries.forEach(function (entry) {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('animated');
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.15, rootMargin: '0px 0px -10% 0px' });
+
+                revealTargets.forEach(function (el) {
+                    revealObserver.observe(el);
+                });
+            } else {
+                // No IntersectionObserver support: reveal immediately
+                // rather than leaving content stuck hidden.
+                revealTargets.forEach(function (el) {
+                    el.classList.add('animated');
+                });
+            }
         }
-        
-        // Run on scroll
-        $(window).on('scroll', animateOnScroll);
-        
-        // Run on page load
-        animateOnScroll();
 
         // Mobile menu toggle
         let menuScrollY = 0;

@@ -9,8 +9,8 @@
  * @package AJNanda
  */
 ?>
-<!-- wp:group {"align":"full","className":"builder-section section-tone-dark has-content-align-center","layout":{"type":"constrained"}} -->
-<div class="wp-block-group alignfull builder-section section-tone-dark has-content-align-center"><!-- wp:heading {"textAlign":"center","level":2} -->
+<!-- wp:group {"align":"full","className":"builder-section section-tone-dark has-content-align-center animate-on-scroll","layout":{"type":"constrained"}} -->
+<div class="wp-block-group alignfull builder-section section-tone-dark has-content-align-center animate-on-scroll"><!-- wp:heading {"textAlign":"center","level":2} -->
 <h2 class="wp-block-heading has-text-align-center">See it for yourself.</h2>
 <!-- /wp:heading -->
 

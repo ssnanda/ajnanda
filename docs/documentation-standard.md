@@ -11,6 +11,7 @@ commit/PR.
 | A section pattern (`patterns/*.php`, not `page-*`) | `docs/patterns.md` |
 | A page design (`patterns/page-*.php`) | `docs/page-designs.md` |
 | A starter site manifest or the importer | `docs/starter-sites.md` |
+| A font pairing or a site kit | `docs/site-kits.md` |
 | The overall site-builder architecture, WP-CLI, or how the pattern/page-design/starter-site layers connect | `docs/development.md` |
 | Anything that changes the answer to "what does AJNanda do and where does it live" for a major system | `docs/AJNANDA-CAPABILITIES.md` |
 | A genuinely new major subsystem with nowhere else to document it | Create a new file in `docs/`, then add it to `docs/README.md` |

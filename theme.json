@@ -70,6 +70,16 @@
       "customFontSize": true,
       "lineHeight": true,
       "fluid": true,
+      "fontFamilies": [
+        { "name": "Inter", "slug": "inter", "fontFamily": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" },
+        { "name": "Poppins", "slug": "poppins", "fontFamily": "'Poppins', sans-serif" },
+        { "name": "Manrope", "slug": "manrope", "fontFamily": "'Manrope', sans-serif" },
+        { "name": "Playfair Display", "slug": "playfair-display", "fontFamily": "'Playfair Display', serif" },
+        { "name": "Lora", "slug": "lora", "fontFamily": "'Lora', serif" },
+        { "name": "Bebas Neue", "slug": "bebas-neue", "fontFamily": "'Bebas Neue', sans-serif" },
+        { "name": "Baloo 2", "slug": "baloo-2", "fontFamily": "'Baloo 2', sans-serif" },
+        { "name": "Nunito", "slug": "nunito", "fontFamily": "'Nunito', sans-serif" }
+      ],
       "fontSizes": [
         {
           "name": "Small",

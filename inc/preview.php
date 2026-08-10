@@ -33,15 +33,21 @@ if (!defined('ABSPATH')) {
  * @param string $pattern_slug  A slug registered in WP_Block_Patterns_Registry.
  * @param string $color_scheme  Optional color scheme slug (see ajnanda_get_color_schemes()).
  *                                Omit to preview with the site's real, current colors.
+ * @param string $font_pairing  Optional font pairing slug (see ajnanda_get_font_pairings()).
+ *                                Omit to preview with the site's real, current fonts. Combine
+ *                                with $color_scheme to preview a full Site Kit (inc/site-kits.php).
  * @return string
  */
-function ajnanda_get_preview_url($pattern_slug, $color_scheme = '') {
+function ajnanda_get_preview_url($pattern_slug, $color_scheme = '', $font_pairing = '') {
     $args = array(
         'action' => 'ajnanda_preview',
         'slug'   => $pattern_slug,
     );
     if ($color_scheme) {
         $args['scheme'] = $color_scheme;
+    }
+    if ($font_pairing) {
+        $args['font'] = $font_pairing;
     }
     return wp_nonce_url(
         add_query_arg($args, admin_url('admin-post.php')),
@@ -91,6 +97,21 @@ function ajnanda_handle_preview_request() {
     $scheme_slug = isset($_GET['scheme']) ? sanitize_key(wp_unslash($_GET['scheme'])) : '';
     if ($scheme_slug && !isset($schemes[$scheme_slug])) {
         $scheme_slug = '';
+    }
+
+    // Font override: unlike color (4 separate settings, so a body-class +
+    // CSS-class override), font pairing is a single theme_mod, so
+    // filtering it directly is simpler and automatically flows through to
+    // every place that reads it (header.php's font <link>, the wp_head
+    // CSS var output) — no separate preview-only code path needed there.
+    $pairings     = function_exists('ajnanda_get_font_pairings') ? ajnanda_get_font_pairings() : array();
+    $pairing_slug = isset($_GET['font']) ? sanitize_key(wp_unslash($_GET['font'])) : '';
+    if ($pairing_slug && isset($pairings[$pairing_slug])) {
+        add_filter('theme_mod_theme_font_pairing', function () use ($pairing_slug) {
+            return $pairing_slug;
+        });
+    } else {
+        $pairing_slug = '';
     }
 
     if ($scheme_slug) {
@@ -163,10 +184,10 @@ function ajnanda_handle_preview_request() {
     // wp_body_open hook, header.php's own extension point for exactly
     // this kind of "right after <body>" insertion, instead of calling
     // get_header() a second time.
-    add_action('wp_body_open', function () use ($title, $scheme_slug, $schemes) {
+    add_action('wp_body_open', function () use ($title, $scheme_slug, $schemes, $pairing_slug, $pairings) {
         ?>
         <div style="position:sticky;top:0;z-index:99999;background:#111827;color:#fff;padding:10px 20px;font:600 13px/1.4 -apple-system,BlinkMacSystemFont,sans-serif;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;">
-            <span>🔍 <?php esc_html_e('AJNanda Preview', 'ajnanda'); ?> — <?php echo esc_html($title); ?><?php if ($scheme_slug) : ?> — <?php echo esc_html($schemes[$scheme_slug]['label']); ?> <?php esc_html_e('colors', 'ajnanda'); ?><?php endif; ?> — <?php esc_html_e('nothing here is saved', 'ajnanda'); ?></span>
+            <span>🔍 <?php esc_html_e('AJNanda Preview', 'ajnanda'); ?> — <?php echo esc_html($title); ?><?php if ($scheme_slug) : ?> — <?php echo esc_html($schemes[$scheme_slug]['label']); ?> <?php esc_html_e('colors', 'ajnanda'); ?><?php endif; ?><?php if ($pairing_slug) : ?> — <?php echo esc_html($pairings[$pairing_slug]['label']); ?> <?php esc_html_e('fonts', 'ajnanda'); ?><?php endif; ?> — <?php esc_html_e('nothing here is saved', 'ajnanda'); ?></span>
             <a href="<?php echo esc_url(admin_url('admin.php?page=ajnanda')); ?>" style="color:#fff;">← <?php esc_html_e('Back to AJNanda', 'ajnanda'); ?></a>
         </div>
         <?php

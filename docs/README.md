@@ -6,6 +6,7 @@
 | [`patterns.md`](patterns.md) | Section Patterns — reusable page sections, how they're registered, naming conventions, categories, colors/gradients | You're adding, changing, or removing a Section Pattern |
 | [`page-designs.md`](page-designs.md) | Page Designs — complete pages composed from Section Patterns | You're adding or changing a Page Design |
 | [`starter-sites.md`](starter-sites.md) | Starter Sites — manifest schema, the import engine, safety guarantees | You're adding a Starter Site or changing importer behavior |
+| [`site-kits.md`](site-kits.md) | Font Pairings and Site Kits — the typography equivalent of Color Schemes, and the color+font bundles built on top of both | You're adding a font pairing or a site kit, or changing how either is applied/previewed |
 | [`development.md`](development.md) | Overall site-builder architecture, file map, admin UI, WP-CLI, testing checklist | You're changing how the Patterns → Page Designs → Starter Sites layers connect, or the admin/CLI interfaces to them |
 | [`documentation-standard.md`](documentation-standard.md) | The rule for keeping these docs in sync with code changes | You're not sure which doc a change should update |
 

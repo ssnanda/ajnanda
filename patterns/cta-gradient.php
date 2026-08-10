@@ -9,8 +9,8 @@
  * @package AJNanda
  */
 ?>
-<!-- wp:group {"align":"full","gradient":"ajnanda-primary-to-accent","className":"builder-section section-tone-dark has-content-align-center","layout":{"type":"constrained"}} -->
-<div class="wp-block-group alignfull builder-section section-tone-dark has-content-align-center has-ajnanda-primary-to-accent-gradient-background has-background"><!-- wp:heading {"textAlign":"center","level":2} -->
+<!-- wp:group {"align":"full","gradient":"ajnanda-primary-to-accent","className":"builder-section section-tone-dark has-content-align-center animate-on-scroll","layout":{"type":"constrained"}} -->
+<div class="wp-block-group alignfull builder-section section-tone-dark has-content-align-center has-ajnanda-primary-to-accent-gradient-background has-background animate-on-scroll"><!-- wp:heading {"textAlign":"center","level":2} -->
 <h2 class="wp-block-heading has-text-align-center">Ready to get started?</h2>
 <!-- /wp:heading -->
 

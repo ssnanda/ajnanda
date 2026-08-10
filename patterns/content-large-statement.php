@@ -9,8 +9,8 @@
  * @package AJNanda
  */
 ?>
-<!-- wp:group {"align":"full","className":"builder-section has-content-align-center","layout":{"type":"constrained"}} -->
-<div class="wp-block-group alignfull builder-section has-content-align-center"><!-- wp:paragraph {"align":"center","fontSize":"x-large"} -->
+<!-- wp:group {"align":"full","className":"builder-section has-content-align-center animate-on-scroll","layout":{"type":"constrained"}} -->
+<div class="wp-block-group alignfull builder-section has-content-align-center animate-on-scroll"><!-- wp:paragraph {"align":"center","fontSize":"x-large"} -->
 <p class="has-text-align-center has-x-large-font-size">"Replace this with a bold, one-sentence statement about your mission, approach, or point of view."</p>
 <!-- /wp:paragraph --></div>
 <!-- /wp:group -->

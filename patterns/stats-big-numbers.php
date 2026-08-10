@@ -9,8 +9,8 @@
  * @package AJNanda
  */
 ?>
-<!-- wp:group {"align":"full","className":"builder-section builder-section-soft has-content-align-center","layout":{"type":"constrained"}} -->
-<div class="wp-block-group alignfull builder-section builder-section-soft has-content-align-center"><!-- wp:columns -->
+<!-- wp:group {"align":"full","className":"builder-section builder-section-soft has-content-align-center animate-on-scroll","layout":{"type":"constrained"}} -->
+<div class="wp-block-group alignfull builder-section builder-section-soft has-content-align-center animate-on-scroll"><!-- wp:columns -->
 <div class="wp-block-columns"><!-- wp:column {"className":"has-content-align-center"} -->
 <div class="wp-block-column has-content-align-center"><!-- wp:paragraph {"align":"center","fontSize":"huge"} -->
 <p class="has-text-align-center has-huge-font-size"><strong>250%</strong></p>

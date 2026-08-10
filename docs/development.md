@@ -40,7 +40,9 @@ detail.
 | `inc/admin/class-ajnanda-admin.php` | Top-level "AJNanda" admin menu + form handlers |
 | `inc/admin/views/*.php` | Admin screen templates |
 | `inc/color-schemes.php` | Preset registry, one-click preset swatches for the native Colors panel, editor/iframe CSS injection (closes the gap in the theme's existing `wp_head`-only color output), per-page wrap helper |
-| `inc/preview.php` | Non-destructive live preview (any pattern, optionally any color scheme) — see "Preview" below |
+| `inc/font-pairings.php` | Font pairing registry, `theme_font_pairing` Customizer setting/control, `--font-heading`/`--font-body` CSS var output, editor font loading — see `docs/site-kits.md` |
+| `inc/site-kits.php` | Color scheme + font pairing bundles ("Quick Kits" control, admin reference screen) — see `docs/site-kits.md` |
+| `inc/preview.php` | Non-destructive live preview (any pattern, optionally any color scheme and/or font pairing) — see "Preview" below |
 | `inc/cli/class-ajnanda-cli.php` | WP-CLI commands (loaded only when `WP_CLI` is defined) |
 | `inc/site-builder.php` | Loader that wires the above together, required once from `functions.php` |
 
@@ -69,10 +71,13 @@ Pages, Appearance:
 - **Patterns** — read-only reference of AJNanda's own section patterns
   (core-bundled patterns are filtered out), with the same live text filter
   and a preview link per pattern.
-- **Color Schemes** — visual reference of the 20 presets in
+- **Color Schemes** — visual reference of the 23 presets in
   `ajnanda_get_color_schemes()`, each with a live preview link. Read-only —
   to actually apply a scheme, use the Customizer (site-wide) or the Page
   Library picker (single page).
+- **Site Kits** — visual reference of 10 color-scheme + font-pairing
+  bundles, plus the 5 font pairings alone underneath. Read-only — apply
+  from the Customizer's "Quick Kits" control. See `docs/site-kits.md`.
 - **Theme Settings** — links to the existing Customizer (including a
   dedicated "Colors" card, since that's where AJNanda's Colors panel
   actually lives) and the existing Appearance → Update AJNanda screen
@@ -100,10 +105,11 @@ wp-admin screens or the front end:
 `inc/preview.php` renders any registered pattern — a Section Pattern, a
 Page Design, or (since a Starter Site page is just a page_design
 reference) any Starter Site page — as a real front-end page, optionally
-in any Color Scheme, without creating anything in the database.
+in any Color Scheme and/or Font Pairing (i.e. any Site Kit), without
+creating anything in the database.
 
-`ajnanda_get_preview_url( $pattern_slug, $color_scheme = '' )` builds a
-nonce-protected link (`admin-post.php?action=ajnanda_preview&slug=...`,
+`ajnanda_get_preview_url( $pattern_slug, $color_scheme = '', $font_pairing = '' )`
+builds a nonce-protected link (`admin-post.php?action=ajnanda_preview&slug=...`,
 capability `edit_theme_options`). The handler builds an in-memory
 `WP_Post` (ID `0`, never `wp_insert_post()`-ed), points `$wp_query` /
 `$wp_the_query` at it, and includes the theme's own `page.php` — the same
@@ -111,8 +117,12 @@ builder-canvas detection and template a real page gets — rather than
 reimplementing a simplified renderer. A color scheme override, if any, is
 applied as an `ajnanda-scheme-{slug}` body class, reusing the exact CSS
 `style.css` already defines for the Page Library's per-page override — no
-new styling is generated for preview. A sticky banner (injected via the
-`wp_body_open` hook) makes clear nothing is saved.
+new styling is generated for preview. A font pairing override, if any, is
+applied by filtering `theme_mod_theme_font_pairing` directly for the
+request — simpler than the color approach since it's one setting, not
+four, and it automatically flows through to everywhere that already reads
+that theme_mod. A sticky banner (injected via the `wp_body_open` hook)
+makes clear nothing is saved.
 
 Two WordPress internals needed explicit handling to get a clean preview
 under `wp-admin/admin-post.php` (which never calls `set_current_screen()`
@@ -134,6 +144,10 @@ wp ajnanda starter preview <slug>
 wp ajnanda starter import <slug> [--pages=<comma-list>|all] [--status=draft|publish] [--set-homepage] [--overwrite-menu] [--no-menu]
 wp ajnanda color-scheme list [--format=table|json]
 wp ajnanda color-scheme set <slug>
+wp ajnanda font-pairing list [--format=table|json]
+wp ajnanda font-pairing set <slug>
+wp ajnanda site-kit list [--format=table|json]
+wp ajnanda site-kit set <slug>
 ```
 
 Every command calls the same registry/importer functions/classes the admin
@@ -160,10 +174,13 @@ agent) can drive it without reading theme source first:
 - **A pattern** → `docs/patterns.md`
 - **A page design** → `docs/page-designs.md`
 - **A starter site** → `docs/starter-sites.md`
+- **A font pairing or a site kit** → `docs/site-kits.md`
 
-In all three cases: add one new file, reuse existing categories/classes/
-slugs where they fit, and nothing else needs to change — there's no
-central registration list to update by hand.
+In the first three cases: add one new file, reuse existing
+categories/classes/slugs where they fit, and nothing else needs to
+change — there's no central registration list to update by hand. Font
+pairings and site kits are each one array entry in an existing file
+(`inc/font-pairings.php` / `inc/site-kits.php`) rather than a new file.
 
 ### A `WP_Block_Patterns_Registry` gotcha to know before touching any of this
 

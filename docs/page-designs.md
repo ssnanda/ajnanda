@@ -73,11 +73,13 @@ sections freely.
 ## Current page designs
 
 Grouped by type (see `wp ajnanda page-design list` or the Page Library
-admin screen for the live list): Home (6 variants, including a "Super
-Bold" high-contrast design and a Technology/SaaS design), About (3),
-Services (4), Products (3), Marketing/Landing (3), Company — Team,
-Partners, Careers, FAQ, Contact, Locations (6), Content — Blog Landing,
-Resource Center (2).
+admin screen for the live list): Home (9 variants, including a "Super
+Bold" high-contrast design, a Technology/SaaS design, a Music Artist/DJ
+design, a Personal design, and a Baby Announcement design), About (4,
+including an Artist bio variant), Services (4), Products (3),
+Marketing/Landing (3), Company — Team, Partners, Careers, FAQ, Contact,
+Locations (6), Content — Blog Landing, Resource Center, Gallery (3),
+Music — Releases, Tour Dates (2).
 
 ## Adding a new page design
 

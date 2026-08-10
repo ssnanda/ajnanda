@@ -9,8 +9,8 @@
  * @package AJNanda
  */
 ?>
-<!-- wp:group {"align":"full","gradient":"ajnanda-primary-to-secondary","className":"builder-hero-section hero-width-full hero-height-standard hero-tone-dark","layout":{"type":"flex","orientation":"vertical","justifyContent":"center","verticalAlignment":"center","flexWrap":"nowrap"}} -->
-<div class="wp-block-group alignfull builder-hero-section hero-width-full hero-height-standard hero-tone-dark has-ajnanda-primary-to-secondary-gradient-background has-background"><!-- wp:paragraph {"align":"center","className":"is-style-ajnanda-eyebrow"} -->
+<!-- wp:group {"align":"full","gradient":"ajnanda-primary-to-secondary","className":"builder-hero-section hero-width-full hero-height-standard hero-tone-dark animate-fade-in","layout":{"type":"flex","orientation":"vertical","justifyContent":"center","verticalAlignment":"center","flexWrap":"nowrap"}} -->
+<div class="wp-block-group alignfull builder-hero-section hero-width-full hero-height-standard hero-tone-dark has-ajnanda-primary-to-secondary-gradient-background has-background animate-fade-in"><!-- wp:paragraph {"align":"center","className":"is-style-ajnanda-eyebrow"} -->
 <p class="has-text-align-center is-style-ajnanda-eyebrow">Your Company</p>
 <!-- /wp:paragraph -->
 

@@ -46,6 +46,7 @@ class AJNanda_Admin {
         add_submenu_page('ajnanda', __('Page Library', 'ajnanda'), __('Page Library', 'ajnanda'), self::CAPABILITY, 'ajnanda-page-library', array(__CLASS__, 'render_page_library'));
         add_submenu_page('ajnanda', __('Patterns', 'ajnanda'), __('Patterns', 'ajnanda'), self::CAPABILITY, 'ajnanda-patterns', array(__CLASS__, 'render_patterns'));
         add_submenu_page('ajnanda', __('Color Schemes', 'ajnanda'), __('Color Schemes', 'ajnanda'), self::CAPABILITY, 'ajnanda-color-schemes', array(__CLASS__, 'render_color_schemes'));
+        add_submenu_page('ajnanda', __('Site Kits', 'ajnanda'), __('Site Kits', 'ajnanda'), self::CAPABILITY, 'ajnanda-site-kits', array(__CLASS__, 'render_site_kits'));
         add_submenu_page('ajnanda', __('Theme Settings', 'ajnanda'), __('Theme Settings', 'ajnanda'), self::CAPABILITY, 'ajnanda-settings', array(__CLASS__, 'render_settings'));
     }
 
@@ -149,6 +150,16 @@ class AJNanda_Admin {
         ));
     }
 
+    public static function render_site_kits() {
+        self::view('site-kits', array(
+            'kits'          => function_exists('ajnanda_get_site_kits') ? ajnanda_get_site_kits() : array(),
+            'pairings'      => function_exists('ajnanda_get_font_pairings') ? ajnanda_get_font_pairings() : array(),
+            'active_kit'    => function_exists('ajnanda_get_active_site_kit_slug') ? ajnanda_get_active_site_kit_slug() : '',
+            'active_font'   => function_exists('ajnanda_get_active_font_pairing_slug') ? ajnanda_get_active_font_pairing_slug() : '',
+            'preview_page'  => self::PREVIEW_DEFAULT_PAGE_DESIGN,
+        ));
+    }
+
     /**
      * AJNanda's own registered section patterns (ajnanda/* and the legacy
      * ajnanda-pro/* slugs) except the ones tagged as Page Designs — i.e.
@@ -223,8 +234,13 @@ class AJNanda_Admin {
         $schemes      = function_exists('ajnanda_get_color_schemes') ? ajnanda_get_color_schemes() : array();
         $scheme_label = isset($schemes[$scheme_slug]) ? $schemes[$scheme_slug]['label'] : __('Custom', 'ajnanda');
 
+        $kit_slug  = function_exists('ajnanda_get_active_site_kit_slug') ? ajnanda_get_active_site_kit_slug() : '';
+        $kits      = function_exists('ajnanda_get_site_kits') ? ajnanda_get_site_kits() : array();
+        $kit_label = isset($kits[$kit_slug]) ? $kits[$kit_slug]['label'] : '';
+
         return array(
             'scheme_label'     => $scheme_label,
+            'kit_label'        => $kit_label,
             'pages_created'    => $pages_created,
             'starter_labels'   => $starter_labels,
             'primary_menu_set' => !empty($locations['primary']),
