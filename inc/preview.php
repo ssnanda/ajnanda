@@ -33,12 +33,17 @@ if (!defined('ABSPATH')) {
  * @param string $pattern_slug  A slug registered in WP_Block_Patterns_Registry.
  * @param string $color_scheme  Optional color scheme slug (see ajnanda_get_color_schemes()).
  *                                Omit to preview with the site's real, current colors.
- * @param string $font_pairing  Optional font pairing slug (see ajnanda_get_font_pairings()).
- *                                Omit to preview with the site's real, current fonts. Combine
- *                                with $color_scheme to preview a full Site Kit (inc/site-kits.php).
+ * @param string $font_pairing    Optional font pairing slug (see ajnanda_get_font_pairings()).
+ *                                  Omit to preview with the site's real, current fonts. Combine
+ *                                  with $color_scheme to preview a full Site Kit (inc/site-kits.php).
+ * @param array|null $starter_context  Optional array{starter:string,page_key:string}. When set,
+ *                                       the rendered preview gets a connected click-through nav
+ *                                       listing every other page in that Starter Site — see
+ *                                       ajnanda_get_starter_preview_url(), the normal way to build
+ *                                       this rather than passing it by hand.
  * @return string
  */
-function ajnanda_get_preview_url($pattern_slug, $color_scheme = '', $font_pairing = '') {
+function ajnanda_get_preview_url($pattern_slug, $color_scheme = '', $font_pairing = '', $starter_context = null) {
     $args = array(
         'action' => 'ajnanda_preview',
         'slug'   => $pattern_slug,
@@ -49,10 +54,56 @@ function ajnanda_get_preview_url($pattern_slug, $color_scheme = '', $font_pairin
     if ($font_pairing) {
         $args['font'] = $font_pairing;
     }
+    if (is_array($starter_context) && !empty($starter_context['starter']) && !empty($starter_context['page_key'])) {
+        $args['starter']  = $starter_context['starter'];
+        $args['page_key'] = $starter_context['page_key'];
+    }
     return wp_nonce_url(
         add_query_arg($args, admin_url('admin-post.php')),
         'ajnanda_preview_' . $pattern_slug
     );
+}
+
+/**
+ * Build the preview URL for one page within a Starter Site, pre-wired
+ * into the connected click-through nav (every page in the starter links
+ * to every other one while previewing). Omit $page_key to start on the
+ * starter's home page.
+ *
+ * @param string $starter_slug  A slug from AJNanda_Starter_Sites::get_all().
+ * @param string $page_key      A page 'key' from that starter's manifest, or '' for its home page.
+ * @param string $color_scheme  Optional color scheme slug, carried to every page as you click through.
+ * @param string $font_pairing  Optional font pairing slug, carried to every page as you click through.
+ * @return string|null Null if the starter slug or page key doesn't exist.
+ */
+function ajnanda_get_starter_preview_url($starter_slug, $page_key = '', $color_scheme = '', $font_pairing = '') {
+    if (!class_exists('AJNanda_Starter_Sites')) {
+        return null;
+    }
+
+    $manifest = AJNanda_Starter_Sites::get($starter_slug);
+    if (!$manifest || empty($manifest['pages'])) {
+        return null;
+    }
+
+    if (!$page_key) {
+        $page_key = !empty($manifest['home_page_key'])
+            ? $manifest['home_page_key']
+            : (isset($manifest['pages'][0]['key']) ? $manifest['pages'][0]['key'] : '');
+    }
+
+    foreach ($manifest['pages'] as $page) {
+        if ($page['key'] === $page_key) {
+            return ajnanda_get_preview_url(
+                $page['page_design'],
+                $color_scheme,
+                $font_pairing,
+                array('starter' => $starter_slug, 'page_key' => $page_key)
+            );
+        }
+    }
+
+    return null;
 }
 
 /**
@@ -112,6 +163,31 @@ function ajnanda_handle_preview_request() {
         });
     } else {
         $pairing_slug = '';
+    }
+
+    // Connected click-through nav: if this preview was reached via a
+    // Starter Site's page (ajnanda_get_starter_preview_url()), build a
+    // link to every other page in that same starter, carrying the same
+    // scheme/font overrides forward — lets someone click Home → Music →
+    // Shows → About like a real visitor before anything is imported.
+    $starter_slug     = isset($_GET['starter']) ? sanitize_key(wp_unslash($_GET['starter'])) : '';
+    $starter_page_key = isset($_GET['page_key']) ? sanitize_key(wp_unslash($_GET['page_key'])) : '';
+    $starter_manifest = ($starter_slug && class_exists('AJNanda_Starter_Sites')) ? AJNanda_Starter_Sites::get($starter_slug) : null;
+    $starter_nav       = array();
+
+    if ($starter_manifest) {
+        foreach ($starter_manifest['pages'] as $starter_page) {
+            $starter_nav[] = array(
+                'title'  => $starter_page['title'],
+                'active' => $starter_page['key'] === $starter_page_key,
+                'url'    => ajnanda_get_preview_url(
+                    $starter_page['page_design'],
+                    $scheme_slug,
+                    $pairing_slug,
+                    array('starter' => $starter_slug, 'page_key' => $starter_page['key'])
+                ),
+            );
+        }
     }
 
     if ($scheme_slug) {
@@ -184,11 +260,34 @@ function ajnanda_handle_preview_request() {
     // wp_body_open hook, header.php's own extension point for exactly
     // this kind of "right after <body>" insertion, instead of calling
     // get_header() a second time.
-    add_action('wp_body_open', function () use ($title, $scheme_slug, $schemes, $pairing_slug, $pairings) {
+    add_action('wp_body_open', function () use ($title, $scheme_slug, $schemes, $pairing_slug, $pairings, $starter_manifest, $starter_nav) {
+        $back_url = admin_url($starter_manifest ? 'admin.php?page=ajnanda-starter-sites' : 'admin.php?page=ajnanda');
         ?>
-        <div style="position:sticky;top:0;z-index:99999;background:#111827;color:#fff;padding:10px 20px;font:600 13px/1.4 -apple-system,BlinkMacSystemFont,sans-serif;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;">
-            <span>🔍 <?php esc_html_e('AJNanda Preview', 'ajnanda'); ?> — <?php echo esc_html($title); ?><?php if ($scheme_slug) : ?> — <?php echo esc_html($schemes[$scheme_slug]['label']); ?> <?php esc_html_e('colors', 'ajnanda'); ?><?php endif; ?><?php if ($pairing_slug) : ?> — <?php echo esc_html($pairings[$pairing_slug]['label']); ?> <?php esc_html_e('fonts', 'ajnanda'); ?><?php endif; ?> — <?php esc_html_e('nothing here is saved', 'ajnanda'); ?></span>
-            <a href="<?php echo esc_url(admin_url('admin.php?page=ajnanda')); ?>" style="color:#fff;">← <?php esc_html_e('Back to AJNanda', 'ajnanda'); ?></a>
+        <div style="position:sticky;top:0;z-index:99999;background:#111827;color:#fff;font:600 13px/1.4 -apple-system,BlinkMacSystemFont,sans-serif;">
+            <div style="padding:10px 20px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;">
+                <span>
+                    🔍 <?php esc_html_e('AJNanda Preview', 'ajnanda'); ?> —
+                    <?php if ($starter_manifest) : ?>
+                        <?php echo esc_html($starter_manifest['label']); ?> — <?php echo esc_html($title); ?>
+                    <?php else : ?>
+                        <?php echo esc_html($title); ?>
+                    <?php endif; ?>
+                    <?php if ($scheme_slug) : ?> — <?php echo esc_html($schemes[$scheme_slug]['label']); ?> <?php esc_html_e('colors', 'ajnanda'); ?><?php endif; ?>
+                    <?php if ($pairing_slug) : ?> — <?php echo esc_html($pairings[$pairing_slug]['label']); ?> <?php esc_html_e('fonts', 'ajnanda'); ?><?php endif; ?>
+                    — <?php esc_html_e('nothing here is saved', 'ajnanda'); ?>
+                </span>
+                <a href="<?php echo esc_url($back_url); ?>" style="color:#fff;">← <?php esc_html_e('Back to AJNanda', 'ajnanda'); ?></a>
+            </div>
+            <?php if (!empty($starter_nav)) : ?>
+                <div style="padding:6px 20px 10px;display:flex;flex-wrap:wrap;gap:8px;border-top:1px solid rgba(255,255,255,0.15);">
+                    <?php foreach ($starter_nav as $nav_page) : ?>
+                        <a
+                            href="<?php echo esc_url($nav_page['url']); ?>"
+                            style="text-decoration:none;font-weight:700;padding:4px 12px;border-radius:999px;<?php echo $nav_page['active'] ? 'color:#111827;background:#fbbf24;' : 'color:#fff;background:rgba(255,255,255,0.12);'; ?>"
+                        ><?php echo esc_html($nav_page['title']); ?></a>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </div>
         <?php
     });

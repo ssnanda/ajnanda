@@ -98,6 +98,19 @@ preview above but shown by default — no need to click "Preview Import"
 just to check whether a starter site (or one of its pages) has already
 been imported.
 
+**Preview Whole Site**: the per-page Preview links above are independent —
+each renders one page with no way to get to the others. "Preview Whole
+Site" (`ajnanda_get_starter_preview_url()`, `inc/preview.php`) instead
+opens the starter's home page with a connected click-through nav bar
+added to the sticky preview banner, listing every other page in that
+starter (current page highlighted). Click through Home → Music → Shows →
+About like a real visitor would — still nothing saved, still no real nav
+menu or real pages involved; each click is just another
+`ajnanda_get_preview_url()` call carrying the same page list forward. Any
+color scheme/font pairing override on the starting page is carried to
+every page you click through to, so you can preview a whole starter site
+in a specific Site Kit before deciding to import it or apply that kit.
+
 ## Current starter sites
 
 `corporate`, `technology`, `professional-services`, `product-reseller`,

@@ -80,7 +80,7 @@ if (!defined('ABSPATH')) {
                                     class="button button-small ajnanda-preview-link"
                                     target="_blank"
                                     rel="noopener"
-                                    href="<?php echo esc_url(ajnanda_get_preview_url($page['page_design'])); ?>"
+                                    href="<?php echo esc_url(ajnanda_get_preview_url($page['page_design'], '', '', array('starter' => $slug, 'page_key' => $page['key']))); ?>"
                                 ><?php esc_html_e('Preview', 'ajnanda'); ?> ↗</a>
                             <?php endif; ?>
                         </span>
@@ -88,11 +88,21 @@ if (!defined('ABSPATH')) {
                 <?php endforeach; ?>
             </ul>
 
-            <p>
+            <p style="display:flex;flex-wrap:wrap;gap:10px;">
+                <?php if (function_exists('ajnanda_get_starter_preview_url')) :
+                    $whole_site_url = ajnanda_get_starter_preview_url($slug);
+                ?>
+                    <?php if ($whole_site_url) : ?>
+                        <a href="<?php echo esc_url($whole_site_url); ?>" class="button button-primary ajnanda-preview-link" target="_blank" rel="noopener">
+                            <?php esc_html_e('Preview Whole Site', 'ajnanda'); ?> ↗
+                        </a>
+                    <?php endif; ?>
+                <?php endif; ?>
                 <a href="<?php echo esc_url(add_query_arg(array('page' => 'ajnanda-starter-sites', 'ajnanda_preview' => $slug), admin_url('admin.php')) . '#starter-' . $slug); ?>" class="button">
                     <?php esc_html_e('Preview Import (no changes made)', 'ajnanda'); ?>
                 </a>
             </p>
+            <p class="description"><?php esc_html_e('"Preview Whole Site" opens a connected, click-through preview — every page links to every other page, just like a real visitor would navigate, before anything is imported.', 'ajnanda'); ?></p>
 
             <?php if ($preview && $preview['slug'] === $slug) : ?>
                 <table class="ajnanda-admin-diff-table">

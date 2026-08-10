@@ -64,7 +64,9 @@ Pages, Appearance:
   `AJNanda_Starter_Importer::preview()` for every starter on page load) —
   the explicit "Preview Import" button still exists for the full diff
   table. Each page also links to a full visual preview (see "Preview"
-  below), and a note above the Import button links to Color Schemes.
+  below), a "Preview Whole Site" button opens a connected click-through
+  preview across every page in the starter, and a note above the Import
+  button links to Color Schemes.
 - **Page Library** — browse Page Designs (with a live text filter), "Add as
   New Page", and preview any design in any color scheme before inserting
   it.
@@ -108,7 +110,7 @@ reference) any Starter Site page — as a real front-end page, optionally
 in any Color Scheme and/or Font Pairing (i.e. any Site Kit), without
 creating anything in the database.
 
-`ajnanda_get_preview_url( $pattern_slug, $color_scheme = '', $font_pairing = '' )`
+`ajnanda_get_preview_url( $pattern_slug, $color_scheme = '', $font_pairing = '', $starter_context = null )`
 builds a nonce-protected link (`admin-post.php?action=ajnanda_preview&slug=...`,
 capability `edit_theme_options`). The handler builds an in-memory
 `WP_Post` (ID `0`, never `wp_insert_post()`-ed), points `$wp_query` /
@@ -123,6 +125,14 @@ request — simpler than the color approach since it's one setting, not
 four, and it automatically flows through to everywhere that already reads
 that theme_mod. A sticky banner (injected via the `wp_body_open` hook)
 makes clear nothing is saved.
+
+`$starter_context` (`array{starter, page_key}`, normally built via
+`ajnanda_get_starter_preview_url( $starter_slug, $page_key = '' )` rather
+than passed by hand) adds a second row to that banner: a link to every
+other page in the same Starter Site, current one highlighted, each link
+carrying the same color scheme/font pairing forward — a connected
+click-through preview of a whole starter site, still entirely built from
+per-request `ajnanda_get_preview_url()` calls with no session state.
 
 Two WordPress internals needed explicit handling to get a clean preview
 under `wp-admin/admin-post.php` (which never calls `set_current_screen()`
