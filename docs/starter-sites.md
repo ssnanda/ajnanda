@@ -8,6 +8,13 @@ path from "activate AJNanda" to a launchable site:
 Appearance-level: activate AJNanda → AJNanda → Starter Sites → pick one → Import → replace placeholder content → launch
 ```
 
+The admin screen shows one starter at a time, chosen from a dropdown,
+instead of every starter's full detail stacked on one long page. Each
+page in the selected starter is a card with a live thumbnail — a
+scaled-down iframe of the same non-destructive preview URL "Preview"
+already opens, not a separate screenshot system — that only loads once
+that starter's panel is actually selected.
+
 ## Manifest schema
 
 Each starter site is one file in `inc/starter-sites/manifests/*.php`,

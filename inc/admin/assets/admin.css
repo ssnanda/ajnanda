@@ -212,6 +212,69 @@
 }
 
 /* -----------------------------------------------------------------
+ * Select-driven panel switcher + thumbnail tiles (Starter Sites)
+ * ------------------------------------------------------------- */
+
+.ajnanda-starter-select-wrap {
+    margin: 0 0 20px;
+}
+
+.ajnanda-starter-select-wrap select {
+    width: 100%;
+    max-width: 460px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 15px;
+}
+
+.ajnanda-starter-panel {
+    display: none;
+}
+
+.ajnanda-starter-panel.is-active {
+    display: block;
+}
+
+.ajnanda-starter-page-tile {
+    padding: 0;
+    overflow: hidden;
+}
+
+.ajnanda-thumb {
+    position: relative;
+    height: 170px;
+    background: #f3f4f6;
+    overflow: hidden;
+    border-bottom: 1px solid #dcdcde;
+}
+
+.ajnanda-thumb iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 400%;
+    height: 400%;
+    border: 0;
+    transform: scale(0.25);
+    transform-origin: top left;
+    pointer-events: none;
+}
+
+.ajnanda-thumb-overlay {
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+}
+
+.ajnanda-starter-page-tile-body {
+    padding: 14px 16px 16px;
+}
+
+.ajnanda-starter-page-tile-body .description {
+    margin: 6px 0 10px;
+}
+
+/* -----------------------------------------------------------------
  * Live filter (Page Library, Patterns)
  * ------------------------------------------------------------- */
 

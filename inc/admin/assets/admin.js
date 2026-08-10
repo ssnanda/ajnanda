@@ -4,12 +4,17 @@
  * than repeated per-view inline <script> blocks like the earlier one-off
  * scripts on Page Library/Starter Sites.
  *
- * Two independent, opt-in-by-markup behaviors:
+ * Three independent, opt-in-by-markup behaviors:
  *  1. Preview modal — any `.ajnanda-preview-link` opens in an in-page
  *     iframe overlay instead of a new tab, reusing the exact same
  *     non-destructive preview URL (inc/preview.php) either way; the
  *     modal keeps an "Open in new tab" link so nothing is lost.
- *  2. Live filter — any `input[data-ajnanda-filter]` filters elements
+ *  2. Select-driven panel switcher — a `select[data-ajnanda-panel-select]`
+ *     shows the `[data-ajnanda-panel]` matching its value inside the
+ *     container its data attribute points at; `iframe[data-src]` elements
+ *     inside a panel only get their real `src` set the first time that
+ *     panel becomes active (Starter Sites' thumbnail previews).
+ *  3. Live filter — any `input[data-ajnanda-filter]` filters elements
  *     tagged `[data-ajnanda-filter-item]` inside the container named by
  *     its `data-ajnanda-filter-scope` selector, and hides
  *     `[data-ajnanda-filter-group]` wrappers left with no visible items.
@@ -73,7 +78,46 @@
     });
 
     /* ---------------------------------------------------------------
-     * 2. Live filter
+     * 2. Select-driven panel switcher (Starter Sites: one starter's
+     *    panel visible at a time instead of every starter stacked on
+     *    one long page) — any select[data-ajnanda-panel-select] shows
+     *    the [data-ajnanda-panel] whose value matches, inside the
+     *    container its data attribute points at. Thumbnail iframes
+     *    inside a panel (iframe[data-src]) only get their real src set
+     *    the first time that panel becomes active, so switching the
+     *    dropdown doesn't fetch every starter's pages up front.
+     * ------------------------------------------------------------- */
+
+    document.querySelectorAll('[data-ajnanda-panel-select]').forEach(function (select) {
+        var container = document.querySelector(select.getAttribute('data-ajnanda-panel-select'));
+        if (!container) {
+            return;
+        }
+        var panels = container.querySelectorAll('[data-ajnanda-panel]');
+
+        function activate(key) {
+            panels.forEach(function (panel) {
+                var isMatch = panel.getAttribute('data-ajnanda-panel') === key;
+                panel.classList.toggle('is-active', isMatch);
+                if (isMatch) {
+                    panel.querySelectorAll('iframe[data-src]').forEach(function (iframe) {
+                        if (!iframe.getAttribute('src')) {
+                            iframe.setAttribute('src', iframe.getAttribute('data-src'));
+                        }
+                    });
+                }
+            });
+        }
+
+        select.addEventListener('change', function () {
+            activate(select.value);
+        });
+
+        activate(select.value);
+    });
+
+    /* ---------------------------------------------------------------
+     * 3. Live filter
      * ------------------------------------------------------------- */
 
     document.querySelectorAll('[data-ajnanda-filter]').forEach(function (input) {

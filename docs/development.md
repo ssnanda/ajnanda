@@ -94,11 +94,14 @@ wp-admin screens or the front end:
 
 - `inc/admin/assets/admin.css` — shared visual language (hero card, card
   grid, pills, status list, search box, preview modal).
-- `inc/admin/assets/admin.js` — two small, opt-in-by-markup behaviors
+- `inc/admin/assets/admin.js` — three small, opt-in-by-markup behaviors
   shared across views instead of repeated per-view `<script>` blocks: any
   `.ajnanda-preview-link` opens in an in-page iframe modal instead of a new
   tab (with an "Open in new tab" fallback — same non-destructive preview
-  URL either way), and any `input[data-ajnanda-filter]` live-filters
+  URL either way); a `select[data-ajnanda-panel-select]` shows the
+  `[data-ajnanda-panel]` matching its value and lazy-loads that panel's
+  `iframe[data-src]` thumbnails the first time it becomes active (Starter
+  Sites); and any `input[data-ajnanda-filter]` live-filters
   `[data-ajnanda-filter-item]` elements by their `data-ajnanda-filter-text`
   attribute, hiding `[data-ajnanda-filter-group]` wrappers left empty.
 

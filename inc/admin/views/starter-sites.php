@@ -2,6 +2,17 @@
 /**
  * AJNanda admin: Starter Sites screen.
  *
+ * One starter site's panel is shown at a time, chosen from a dropdown
+ * (data-ajnanda-panel-select, inc/admin/assets/admin.js) instead of every
+ * starter's full detail stacked on one very long page. Each page within
+ * the active panel is a card with a live thumbnail — a scaled-down
+ * iframe of the exact same non-destructive preview URL the "Preview"
+ * button already opens (inc/preview.php) — not a new screenshot system,
+ * just the existing preview engine shown small instead of full-size.
+ * Thumbnails only load for the currently active panel (lazy, via
+ * iframe[data-src]) so switching the dropdown doesn't fetch every
+ * starter's pages at once.
+ *
  * @package AJNanda
  * @var array<string,array> $starters
  * @var array<string,array> $reports Starter slug => AJNanda_Starter_Importer::preview() report, computed for every starter up front so "already imported" is visible without an extra click.
@@ -12,6 +23,11 @@
 if (!defined('ABSPATH')) {
     exit;
 }
+
+// Default to whichever starter's status-preview diff table is being shown
+// (so following "Preview Import" from elsewhere doesn't land on a hidden
+// panel), otherwise the first starter in the list.
+$initial_slug = ($preview && isset($starters[$preview['slug']])) ? $preview['slug'] : (string) array_key_first($starters);
 ?>
 <div class="wrap ajnanda-admin-wrap">
     <div class="ajnanda-admin-hero">
@@ -44,49 +60,76 @@ if (!defined('ABSPATH')) {
         <?php endif; ?>
     <?php endif; ?>
 
+    <div class="ajnanda-starter-select-wrap">
+        <label for="ajnanda-starter-select"><strong><?php esc_html_e('Choose a starter site', 'ajnanda'); ?></strong></label><br>
+        <select id="ajnanda-starter-select" data-ajnanda-panel-select="#ajnanda-starter-panels">
+            <?php foreach ($starters as $slug => $starter) : ?>
+                <option value="<?php echo esc_attr($slug); ?>" <?php selected($slug, $initial_slug); ?>><?php echo esc_html($starter['label']); ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+
+    <div id="ajnanda-starter-panels">
     <?php foreach ($starters as $slug => $starter) : ?>
-        <div class="ajnanda-admin-section" id="starter-<?php echo esc_attr($slug); ?>">
+        <div
+            class="ajnanda-starter-panel<?php echo $slug === $initial_slug ? ' is-active' : ''; ?>"
+            data-ajnanda-panel="<?php echo esc_attr($slug); ?>"
+            id="starter-<?php echo esc_attr($slug); ?>"
+        >
+        <div class="ajnanda-admin-section">
             <h2><?php echo esc_html($starter['label']); ?> <span class="ajnanda-admin-pill"><?php echo esc_html($slug); ?></span></h2>
             <p><?php echo esc_html($starter['description']); ?></p>
 
-            <ul class="ajnanda-admin-page-list">
+            <div class="ajnanda-admin-grid">
                 <?php foreach ($starter['pages'] as $page) :
-                    $status = isset($reports[$slug][$page['key']]['status']) ? $reports[$slug][$page['key']]['status'] : '';
+                    $status    = isset($reports[$slug][$page['key']]['status']) ? $reports[$slug][$page['key']]['status'] : '';
+                    $thumb_url = function_exists('ajnanda_get_preview_url')
+                        ? ajnanda_get_preview_url($page['page_design'], '', '', array('starter' => $slug, 'page_key' => $page['key']))
+                        : '';
                 ?>
-                    <li>
-                        <span>
-                            <?php echo esc_html($page['title']); ?> <code>/<?php echo esc_html($page['slug']); ?>/</code>
-                            <?php if ($status) : ?>
-                                <span class="ajnanda-admin-pill <?php echo esc_attr('already_imported' === $status ? 'is-success' : ('slug_conflict' === $status ? 'is-warning' : '')); ?>">
-                                    <?php
-                                    switch ($status) {
-                                        case 'already_imported':
-                                            esc_html_e('Already imported', 'ajnanda');
-                                            break;
-                                        case 'slug_conflict':
-                                            esc_html_e('URL conflict', 'ajnanda');
-                                            break;
-                                        default:
-                                            esc_html_e('Not imported yet', 'ajnanda');
-                                    }
-                                    ?>
-                                </span>
-                            <?php endif; ?>
-                        </span>
-                        <span style="display:flex;align-items:center;gap:10px;">
-                            <span class="description"><?php echo esc_html($page['page_design']); ?></span>
-                            <?php if (function_exists('ajnanda_get_preview_url')) : ?>
+                    <div class="ajnanda-admin-card ajnanda-starter-page-tile">
+                        <?php if ($thumb_url) : ?>
+                            <div class="ajnanda-thumb">
+                                <iframe data-src="<?php echo esc_url($thumb_url); ?>" title="<?php echo esc_attr($page['title']); ?>" tabindex="-1"></iframe>
                                 <a
-                                    class="button button-small ajnanda-preview-link"
+                                    class="ajnanda-thumb-overlay ajnanda-preview-link"
+                                    href="<?php echo esc_url($thumb_url); ?>"
                                     target="_blank"
                                     rel="noopener"
-                                    href="<?php echo esc_url(ajnanda_get_preview_url($page['page_design'], '', '', array('starter' => $slug, 'page_key' => $page['key']))); ?>"
-                                ><?php esc_html_e('Preview', 'ajnanda'); ?> ↗</a>
+                                    aria-label="<?php echo esc_attr(sprintf(__('Preview %s', 'ajnanda'), $page['title'])); ?>"
+                                ></a>
+                            </div>
+                        <?php endif; ?>
+                        <div class="ajnanda-starter-page-tile-body">
+                            <strong><?php echo esc_html($page['title']); ?></strong> <code>/<?php echo esc_html($page['slug']); ?>/</code>
+                            <?php if ($status) : ?>
+                                <div style="margin-top:6px;">
+                                    <span class="ajnanda-admin-pill <?php echo esc_attr('already_imported' === $status ? 'is-success' : ('slug_conflict' === $status ? 'is-warning' : '')); ?>">
+                                        <?php
+                                        switch ($status) {
+                                            case 'already_imported':
+                                                esc_html_e('Already imported', 'ajnanda');
+                                                break;
+                                            case 'slug_conflict':
+                                                esc_html_e('URL conflict', 'ajnanda');
+                                                break;
+                                            default:
+                                                esc_html_e('Not imported yet', 'ajnanda');
+                                        }
+                                        ?>
+                                    </span>
+                                </div>
                             <?php endif; ?>
-                        </span>
-                    </li>
+                            <p class="description"><?php echo esc_html($page['page_design']); ?></p>
+                            <?php if ($thumb_url) : ?>
+                                <a class="button button-small ajnanda-preview-link" target="_blank" rel="noopener" href="<?php echo esc_url($thumb_url); ?>">
+                                    <?php esc_html_e('Preview', 'ajnanda'); ?> ↗
+                                </a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                 <?php endforeach; ?>
-            </ul>
+            </div>
 
             <p style="display:flex;flex-wrap:wrap;gap:10px;">
                 <?php if (function_exists('ajnanda_get_starter_preview_url')) :
@@ -182,5 +225,7 @@ if (!defined('ABSPATH')) {
                 </div>
             </form>
         </div>
+        </div>
     <?php endforeach; ?>
+    </div>
 </div>
