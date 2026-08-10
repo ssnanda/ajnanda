@@ -27,6 +27,7 @@ return array(
     'slug'        => 'corporate',                 // stable identifier — never rename, only add new ones
     'label'       => __('Corporate / Business', 'ajnanda'),
     'description' => __('...', 'ajnanda'),
+    'site_kit'    => 'corporate-blue',             // optional — a slug from ajnanda_get_site_kits(); if set, previews of this starter default to that kit's colors/fonts, and the Import form gets an opt-in "apply site-wide" checkbox (see docs/site-kits.md)
     'pages'       => array(
         array(
             'key'         => 'home',               // stable per-manifest identifier, used for tracking/idempotency

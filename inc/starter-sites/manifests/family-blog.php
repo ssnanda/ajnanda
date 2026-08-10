@@ -18,6 +18,7 @@ if (!defined('ABSPATH')) {
 return array(
     'slug'        => 'family-blog',
     'label'       => __('Nanda - Family Blog', 'ajnanda'),
+    'site_kit'    => 'family-warmth',
     'description' => __('A 4-page site for sharing family updates: Home, Blog, Gallery, and About. Pairs well with the "Family Warmth" Site Kit (AJNanda → Site Kits) — apply that before importing for a warm, journal-like look.', 'ajnanda'),
     'pages'       => array(
         array('key' => 'home',    'title' => __('Home', 'ajnanda'),    'slug' => 'home',    'page_design' => 'ajnanda/page-home-personal', 'menu_order' => 1),

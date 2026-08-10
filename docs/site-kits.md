@@ -116,6 +116,35 @@ Portfolio.
    Typography and in AJNanda → Site Kits' font table, and its Preview link
    renders the fonts correctly.
 
+## Pairing a Starter Site with a Site Kit
+
+A starter site manifest (`inc/starter-sites/manifests/*.php`) can set an
+optional `'site_kit'` key naming a slug from `ajnanda_get_site_kits()`.
+When set:
+
+- **Preview defaults to it.** `ajnanda_get_starter_preview_url()` and
+  every "Preview" link/thumbnail on the Starter Sites admin screen use
+  that kit's color scheme + font pairing automatically, instead of the
+  site's real saved colors (which is usually just the default blue until
+  someone applies a kit) — otherwise every starter previews identically
+  regardless of what look it was actually designed around.
+- **Import stays opt-in.** The Import form shows an unchecked "Also apply
+  the '{Kit}' Site Kit site-wide" checkbox — checking it calls
+  `ajnanda_apply_site_kit()` as part of the same import
+  (`AJNanda_Starter_Importer::import()`'s `apply_kit` arg). This is the
+  one thing on this screen that changes site-wide settings rather than
+  just the starter's own pages, so unlike everything else here it is
+  never on by default. No equivalent CLI flag exists yet — run `wp
+  ajnanda site-kit set <slug>` as a separate command instead.
+
+`ajnanda_apply_site_kit( $kit_slug )` (`inc/site-kits.php`) is the single
+implementation that actually writes the 4 color theme_mods + the font
+pairing theme_mod — used by `wp ajnanda site-kit set`, the Starter Sites
+import checkbox, and nowhere else. The "Quick Kits" Customizer control
+deliberately does not use it — that one only fills in the Customizer's
+own controls client-side, still requiring Publish, like every other
+quick-preset in this theme.
+
 ## Adding a new site kit
 
 1. Pick an existing color scheme slug (`inc/color-schemes.php`) and font

@@ -105,6 +105,7 @@ class AJNanda_Starter_Importer {
             'set_homepage'   => false,
             'create_menu'    => true,
             'overwrite_menu' => false,
+            'apply_kit'      => false,
         ));
 
         if (!in_array($args['status'], array('draft', 'publish'), true)) {
@@ -170,6 +171,14 @@ class AJNanda_Starter_Importer {
 
         if ($args['set_homepage']) {
             self::maybe_set_homepage($manifest, $created_ids);
+        }
+
+        // Opt-in only: unlike everything else this method does, this
+        // changes site-wide settings (colors/fonts), not just this
+        // starter's own pages — so it's never on by default, only when
+        // explicitly requested (admin screen checkbox / --apply-kit).
+        if ($args['apply_kit'] && !empty($manifest['site_kit']) && function_exists('ajnanda_apply_site_kit')) {
+            ajnanda_apply_site_kit($manifest['site_kit']);
         }
 
         return $results;

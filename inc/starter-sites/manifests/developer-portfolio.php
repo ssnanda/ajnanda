@@ -12,6 +12,7 @@ if (!defined('ABSPATH')) {
 return array(
     'slug'        => 'developer-portfolio',
     'label'       => __('Aad - Linux Coder', 'ajnanda'),
+    'site_kit'    => 'developer-portfolio',
     'description' => __('A 4-page site for a developer/coder portfolio: Home, Projects, About, and Contact. Pairs well with the "Developer Portfolio" Site Kit (AJNanda → Site Kits) — apply that before importing for a clean, spacious, tech-forward look.', 'ajnanda'),
     'pages'       => array(
         array('key' => 'home',     'title' => __('Home', 'ajnanda'),     'slug' => 'home',     'page_design' => 'ajnanda/page-home-developer', 'menu_order' => 1),

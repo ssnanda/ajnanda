@@ -18,6 +18,7 @@ if (!defined('ABSPATH')) {
 return array(
     'slug'        => 'personal-creative',
     'label'       => __('Jasna - Hello Kitty', 'ajnanda'),
+    'site_kit'    => 'bubblegum-pop',
     'description' => __('A 4-page site for a personal, hobby, or fan page: Home, Blog, Gallery, and About. Pairs well with the "Bubblegum Pop" Site Kit (AJNanda → Site Kits) — apply that before importing for a soft, playful, pastel look.', 'ajnanda'),
     'pages'       => array(
         array('key' => 'home',    'title' => __('Home', 'ajnanda'),    'slug' => 'home',    'page_design' => 'ajnanda/page-home-personal', 'menu_order' => 1),

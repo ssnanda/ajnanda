@@ -112,6 +112,41 @@ function ajnanda_get_active_site_kit_slug() {
     return 'custom';
 }
 
+/**
+ * Apply a kit's underlying color scheme + font pairing to the real, saved
+ * site settings — the one implementation used by `wp ajnanda site-kit
+ * set` and the Starter Sites import form's opt-in "Apply this Site Kit"
+ * checkbox. NOT used by the "Quick Kits" Customizer control below, which
+ * deliberately stays client-side/non-committal (fills in the controls,
+ * still requires Publish) like every other quick-preset in this theme —
+ * this function is for the two places that *do* mean to commit the
+ * change immediately.
+ *
+ * @param string $kit_slug A key from ajnanda_get_site_kits().
+ * @return bool True on success, false for an unknown kit or color scheme.
+ */
+function ajnanda_apply_site_kit($kit_slug) {
+    $kits = ajnanda_get_site_kits();
+    if (!isset($kits[$kit_slug])) {
+        return false;
+    }
+
+    $kit     = $kits[$kit_slug];
+    $schemes = function_exists('ajnanda_get_color_schemes') ? ajnanda_get_color_schemes() : array();
+    if (!isset($schemes[$kit['color_scheme']])) {
+        return false;
+    }
+
+    $scheme = $schemes[$kit['color_scheme']];
+    set_theme_mod('theme_primary_color', $scheme['primary']);
+    set_theme_mod('theme_primary_dark_color', $scheme['primary_dark']);
+    set_theme_mod('theme_secondary_color', $scheme['secondary']);
+    set_theme_mod('theme_accent_color', $scheme['accent']);
+    set_theme_mod('theme_font_pairing', $kit['font_pairing']);
+
+    return true;
+}
+
 /* -----------------------------------------------------------------------
  * "Quick Kits" — one more control at the very top of the native Colors
  * panel (above the existing color-only "Quick presets" swatches), whose

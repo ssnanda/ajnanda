@@ -12,6 +12,7 @@ if (!defined('ABSPATH')) {
 return array(
     'slug'        => 'baby-announcement',
     'label'       => __('Anad - Baby Announcement', 'ajnanda'),
+    'site_kit'    => 'little-one',
     'description' => __('A 4-page site for a birth announcement, nursery, or new-arrival page: Home, Gallery, About, and Contact. Pairs well with the "Little One" Site Kit (AJNanda → Site Kits) — apply that before importing for a soft, gender-neutral pastel look.', 'ajnanda'),
     'pages'       => array(
         array('key' => 'home',    'title' => __('Home', 'ajnanda'),    'slug' => 'home',    'page_design' => 'ajnanda/page-home-baby-announcement', 'menu_order' => 1),

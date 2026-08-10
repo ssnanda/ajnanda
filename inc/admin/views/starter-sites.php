@@ -76,15 +76,45 @@ $initial_slug = ($preview && isset($starters[$preview['slug']])) ? $preview['slu
             data-ajnanda-panel="<?php echo esc_attr($slug); ?>"
             id="starter-<?php echo esc_attr($slug); ?>"
         >
+        <?php
+        // Every thumbnail/preview link for this starter defaults to its
+        // paired Site Kit's colors/fonts (if it has one) instead of the
+        // site's real current colors — otherwise every starter previews
+        // identically in whatever's actually saved (usually the default
+        // blue), which defeats the point of a starter designed around a
+        // specific look.
+        $kit_colors   = '';
+        $kit_font     = '';
+        $kit_label    = '';
+        if (!empty($starter['site_kit']) && function_exists('ajnanda_get_site_kits')) {
+            $all_kits = ajnanda_get_site_kits();
+            if (isset($all_kits[$starter['site_kit']])) {
+                $kit_colors = $all_kits[$starter['site_kit']]['color_scheme'];
+                $kit_font   = $all_kits[$starter['site_kit']]['font_pairing'];
+                $kit_label  = $all_kits[$starter['site_kit']]['label'];
+            }
+        }
+        ?>
         <div class="ajnanda-admin-section">
             <h2><?php echo esc_html($starter['label']); ?> <span class="ajnanda-admin-pill"><?php echo esc_html($slug); ?></span></h2>
             <p><?php echo esc_html($starter['description']); ?></p>
+            <?php if ($kit_label) : ?>
+                <p class="description">
+                    <?php
+                    printf(
+                        /* translators: %s: site kit label */
+                        esc_html__('🎨 Previews below default to the "%s" Site Kit\'s colors and fonts.', 'ajnanda'),
+                        esc_html($kit_label)
+                    );
+                    ?>
+                </p>
+            <?php endif; ?>
 
             <div class="ajnanda-admin-grid">
                 <?php foreach ($starter['pages'] as $page) :
                     $status    = isset($reports[$slug][$page['key']]['status']) ? $reports[$slug][$page['key']]['status'] : '';
                     $thumb_url = function_exists('ajnanda_get_preview_url')
-                        ? ajnanda_get_preview_url($page['page_design'], '', '', array('starter' => $slug, 'page_key' => $page['key']))
+                        ? ajnanda_get_preview_url($page['page_design'], $kit_colors, $kit_font, array('starter' => $slug, 'page_key' => $page['key']))
                         : '';
                 ?>
                     <div class="ajnanda-admin-card ajnanda-starter-page-tile">
@@ -207,6 +237,20 @@ $initial_slug = ($preview && isset($starters[$preview['slug']])) ? $preview['slu
                         <label><input type="checkbox" name="create_menu" value="1" checked> <?php esc_html_e('Build primary navigation menu (only if empty)', 'ajnanda'); ?></label><br>
                         <label><input type="checkbox" name="overwrite_menu" value="1"> <?php esc_html_e('Replace an existing primary menu', 'ajnanda'); ?></label><br>
                         <label><input type="checkbox" name="set_homepage" value="1"> <?php esc_html_e('Set as site homepage (only if homepage is unset or AJNanda-created)', 'ajnanda'); ?></label>
+                        <?php if ($kit_label) : ?>
+                            <br>
+                            <label>
+                                <input type="checkbox" name="apply_kit" value="1">
+                                <?php
+                                printf(
+                                    /* translators: %s: site kit label */
+                                    esc_html__('Also apply the "%s" Site Kit site-wide', 'ajnanda'),
+                                    esc_html($kit_label)
+                                );
+                                ?>
+                            </label>
+                            <br><span class="description"><?php esc_html_e('⚠️ This changes your whole site\'s colors and fonts, not just this starter\'s pages — leave unchecked to only import the pages, then apply a kit yourself later if you want.', 'ajnanda'); ?></span>
+                        <?php endif; ?>
                     </div>
                 </div>
 

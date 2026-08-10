@@ -73,7 +73,10 @@ function ajnanda_get_preview_url($pattern_slug, $color_scheme = '', $font_pairin
  * @param string $starter_slug  A slug from AJNanda_Starter_Sites::get_all().
  * @param string $page_key      A page 'key' from that starter's manifest, or '' for its home page.
  * @param string $color_scheme  Optional color scheme slug, carried to every page as you click through.
+ *                                 Omit to use the starter's own paired Site Kit (manifest 'site_kit'
+ *                                 key), if it has one — otherwise the site's real current colors.
  * @param string $font_pairing  Optional font pairing slug, carried to every page as you click through.
+ *                                 Same paired-kit default as $color_scheme.
  * @return string|null Null if the starter slug or page key doesn't exist.
  */
 function ajnanda_get_starter_preview_url($starter_slug, $page_key = '', $color_scheme = '', $font_pairing = '') {
@@ -84,6 +87,20 @@ function ajnanda_get_starter_preview_url($starter_slug, $page_key = '', $color_s
     $manifest = AJNanda_Starter_Sites::get($starter_slug);
     if (!$manifest || empty($manifest['pages'])) {
         return null;
+    }
+
+    // Default to the starter's own paired Site Kit, if it has one and the
+    // caller didn't explicitly ask for something else — otherwise every
+    // starter previews in whatever the site's real saved colors happen to
+    // be (usually the default blue, until a kit is actually applied),
+    // which defeats the point of a starter that was designed around a
+    // specific look (e.g. "Neon Night" for a dark, high-energy DJ site).
+    if (!$color_scheme && !$font_pairing && !empty($manifest['site_kit']) && function_exists('ajnanda_get_site_kits')) {
+        $kits = ajnanda_get_site_kits();
+        if (isset($kits[$manifest['site_kit']])) {
+            $color_scheme = $kits[$manifest['site_kit']]['color_scheme'];
+            $font_pairing = $kits[$manifest['site_kit']]['font_pairing'];
+        }
     }
 
     if (!$page_key) {

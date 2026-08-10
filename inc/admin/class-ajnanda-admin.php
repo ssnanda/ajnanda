@@ -268,6 +268,7 @@ class AJNanda_Admin {
             'set_homepage'   => !empty($_POST['set_homepage']),
             'create_menu'    => !empty($_POST['create_menu']),
             'overwrite_menu' => !empty($_POST['overwrite_menu']),
+            'apply_kit'      => !empty($_POST['apply_kit']),
         ));
 
         self::store_notice('ajnanda_import_result', array('slug' => $slug, 'results' => $results));

@@ -12,6 +12,7 @@ if (!defined('ABSPATH')) {
 return array(
     'slug'        => 'music-artist',
     'label'       => __('Aad - Music Artist / DJ', 'ajnanda'),
+    'site_kit'    => 'neon-night',
     'description' => __('A 5-page site for a musician, DJ, or band: Home, Music/Releases, Shows, About, and Contact/Booking. Pairs well with the "Neon Night" Site Kit (AJNanda → Site Kits) — apply that before importing for the full dark, high-energy look.', 'ajnanda'),
     'pages'       => array(
         array('key' => 'home',    'title' => __('Home', 'ajnanda'),    'slug' => 'home',    'page_design' => 'ajnanda/page-home-music-artist', 'menu_order' => 1),

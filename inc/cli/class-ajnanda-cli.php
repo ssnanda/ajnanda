@@ -447,21 +447,11 @@ class AJNanda_CLI_SiteKit_Command {
             WP_CLI::error(sprintf('Unknown site kit "%s". Available: %s', $slug, implode(', ', array_keys($kits))));
         }
 
-        $kit     = $kits[$slug];
-        $schemes = ajnanda_get_color_schemes();
-
-        if (!isset($schemes[$kit['color_scheme']])) {
-            WP_CLI::error(sprintf('Site kit "%s" references unknown color scheme "%s".', $slug, $kit['color_scheme']));
+        if (!ajnanda_apply_site_kit($slug)) {
+            WP_CLI::error(sprintf('Site kit "%s" references an unknown color scheme.', $slug));
         }
 
-        $scheme = $schemes[$kit['color_scheme']];
-        set_theme_mod('theme_primary_color', $scheme['primary']);
-        set_theme_mod('theme_primary_dark_color', $scheme['primary_dark']);
-        set_theme_mod('theme_secondary_color', $scheme['secondary']);
-        set_theme_mod('theme_accent_color', $scheme['accent']);
-        set_theme_mod('theme_font_pairing', $kit['font_pairing']);
-
-        WP_CLI::success(sprintf('Site kit "%s" applied (%s colors + %s fonts).', $slug, $kit['color_scheme'], $kit['font_pairing']));
+        WP_CLI::success(sprintf('Site kit "%s" applied (%s colors + %s fonts).', $slug, $kits[$slug]['color_scheme'], $kits[$slug]['font_pairing']));
     }
 }
 
