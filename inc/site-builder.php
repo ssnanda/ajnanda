@@ -22,6 +22,7 @@ if (!defined('ABSPATH')) {
 
 require_once __DIR__ . '/patterns.php';
 require_once __DIR__ . '/color-schemes.php';
+require_once __DIR__ . '/dark-surface-mode.php';
 require_once __DIR__ . '/font-pairings.php';
 require_once __DIR__ . '/site-kits.php';
 require_once __DIR__ . '/page-designs.php';

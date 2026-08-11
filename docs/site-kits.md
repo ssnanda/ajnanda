@@ -70,13 +70,62 @@ Typography panel, independent of the site-wide pairing.
   active pairing's CSS vars into the iframed editor/pattern previews —
   same two-hook pattern `color-schemes.php` already uses for color.
 
+## Dark Surface Mode (`inc/dark-surface-mode.php`)
+
+A second, independent Customizer toggle in the native Colors panel —
+`ajnanda_dark_surface_mode`, a plain checkbox (`ajnanda_sanitize_checkbox`,
+native `'type' => 'checkbox'` control, no custom control class needed).
+Where Color Schemes only ever touch 4 brand tokens
+(`--primary`/`--primary-dark`/`--secondary`/`--accent`) — so even the
+existing "Dark" color scheme just makes buttons and hero gradients dark —
+this instead redefines the *neutral* ramp
+(`--white`, `--gray-50`…`--gray-900`) that page backgrounds, card
+surfaces (`.builder-section`, `.is-style-ajnanda-card-*`, `.feature-card`,
+`.builder-card`, and body text) are actually built from. Turning it on
+gets a genuinely dark site with whichever Color Scheme is active; turning
+it off is a no-op (the ramp stays exactly the light-mode defaults already
+in `style.css`).
+
+**Mirrored-lightness ramp**: each dark value is chosen by *lightness
+rank*, not just "make it dark" — `--gray-50` (the darkest of the 9 in dark
+mode, since it was the "page canvas, slightly duller than white" role in
+light mode) stays darker than `--white` (the "card, one step lighter than
+the canvas" role), preserving the existing light-mode section-alternation
+rhythm (`.builder-section` vs. `.builder-section-soft`) without touching
+either rule. The one pre-existing fixed-dark modifier (`.section-tone-dark`
+/ `.hero-tone-dark`, `style.css`) still reads `--gray-900` background +
+`--white`/`--gray-300` text either way — inverted, it renders as a bright
+highlight panel against an otherwise-dark site rather than a dark panel
+against a light one, which is the correct emergent behavior (still the
+highest-contrast section on the page), not a bug. Full value table and
+reasoning: `inc/dark-surface-mode.php` doc comment.
+
+Same `wp_head`-output + editor-iframe-gap (`enqueue_block_editor_assets` +
+`block_editor_settings_all`) mechanism `inc/color-schemes.php` already
+established — this file doesn't introduce a new integration pattern, just
+applies the existing one to a second set of tokens.
+
+**Preview**: `inc/preview.php` has no separate `?dark=` URL param. Instead,
+previewing a `scheme` + `font` combination that exactly matches a
+registered Site Kit with `'dark_surface' => true` (below) previews dark
+automatically — a bare Color Scheme preview (no kit involved) always stays
+light, matching its real (non-preview) behavior.
+
+**Known limitation**: no WP-CLI command yet (`wp ajnanda site-kit set
+ubuntu-terminal` sets it as part of a kit; toggling it alone currently
+needs the Customizer checkbox or `set_theme_mod('ajnanda_dark_surface_mode', true)`).
+
 ## Site Kits (`inc/site-kits.php`)
 
 A **kit** is a color scheme slug + a font pairing slug, bundled under one
-name — nothing more. `ajnanda_get_site_kits()` returns 11: Corporate Blue,
-Elegant Gold, Modern Tech, Bold Startup, Minimal Slate, Dark Premium,
-Neon Night, Bubblegum Pop, Little One, Family Warmth, Developer
-Portfolio.
+name — plus, since Dark Surface Mode above was added, an optional third
+`'dark_surface' => true` key. `ajnanda_get_site_kits()` returns 12:
+Corporate Blue, Elegant Gold, Modern Tech, Bold Startup, Minimal Slate,
+Dark Premium, Neon Night, Bubblegum Pop, Little One, Family Warmth,
+Developer Portfolio, Ubuntu Terminal (the one kit with `dark_surface` set —
+pairs the new "Aubergine" color scheme with "Developer Mono" and a fully
+dark UI: warm terminal-orange on deep charcoal, a Linux/open-source-desktop
+look).
 
 - **"Quick Kits"** — a control at the very top of the native Colors panel
   (above the color-only "Quick presets" swatches), each button setting all
@@ -150,10 +199,13 @@ quick-preset in this theme.
 1. Pick an existing color scheme slug (`inc/color-schemes.php`) and font
    pairing slug (`inc/font-pairings.php`) — add new ones first if neither
    fits.
-2. Add an entry to `ajnanda_get_site_kits()` in `inc/site-kits.php`.
+2. Add an entry to `ajnanda_get_site_kits()` in `inc/site-kits.php`. Set
+   `'dark_surface' => true` if the kit should also turn on Dark Surface
+   Mode (above); omit the key entirely for a light-surface kit — every
+   pre-existing kit relies on that default.
 3. Verify: the kit appears in AJNanda → Site Kits and in the Customizer's
    "Quick Kits" control, and its Preview link shows both overrides
-   applied.
+   (and dark surfaces, if set) applied.
 
 ## WP-CLI
 
@@ -165,7 +217,8 @@ wp ajnanda site-kit set <slug>
 ```
 
 `site-kit set` does the same thing the "Quick Kits" Customizer control
-does — sets all 5 underlying values (4 colors + font pairing) in one call
-— which also makes it the fastest way to apply a kit to a starter site
-right before importing it (`wp ajnanda site-kit set little-one && wp
-ajnanda starter import baby-announcement --status=publish`).
+does — sets all 5 or 6 underlying values (4 colors + font pairing, plus
+Dark Surface Mode when the kit sets `dark_surface`) in one call — which
+also makes it the fastest way to apply a kit to a starter site right
+before importing it (`wp ajnanda site-kit set ubuntu-terminal && wp
+ajnanda starter import ubuntu-portfolio --status=publish`).

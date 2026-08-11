@@ -322,11 +322,21 @@ styled in `style.css`).
   system (does not duplicate it): (1) pushes the same saved colors into
   the block editor's iframe/pattern previews via
   `enqueue_block_editor_assets` + `block_editor_settings_all` — the
-  original system only reached the frontend; (2) 23 one-click preset
+  original system only reached the frontend; (2) 24 one-click preset
   swatches in the Colors panel that fill in the 4 real settings via the
   Customizer JS API; (3) a per-page color-scheme override used by the Page
   Library screen (wraps a page's content in an `.ajnanda-scheme-{slug}`
   group block).
+- **`inc/dark-surface-mode.php`** is a second, independent toggle in the
+  same Colors panel — a boolean Customizer checkbox
+  (`ajnanda_dark_surface_mode`) that redefines the *neutral* ramp
+  (`--white`, `--gray-50`…`--gray-900`) to a mirrored-lightness dark ramp,
+  leaving `--primary`/`--secondary`/`--accent` untouched. Where the color
+  scheme system only ever changes buttons/hero gradients/links, this
+  changes page backgrounds, card surfaces, and text — a genuinely dark UI
+  that any Color Scheme can be combined with. Same `:root{...}`-on-`wp_head`
+  mechanism and editor-iframe-gap pattern as the color scheme system;
+  `docs/site-kits.md` has the mirrored-lightness rationale.
 - **Gradients**: 12 named presets in `theme.json`
   (`settings.color.gradients`), built from `var(--primary)` etc. so they
   automatically follow whichever colors are active. Appear in the native
@@ -581,6 +591,7 @@ inc/
   patterns.php                Pattern category registration
   page-designs.php             Page Design composer/insert helpers
   color-schemes.php            Preset swatches + editor color-gap fix
+  dark-surface-mode.php        Site-wide dark UI toggle (neutral-ramp override)
   font-pairings.php            Font pairing presets, Typography Customizer
                                 control, --font-heading/--font-body CSS vars
   site-kits.php                Color scheme + font pairing bundles ("Quick Kits")

@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.4.5
+Version: 1.4.6
 License: GNU General Public License v2 or later
 Text Domain: ajnanda
 */
@@ -257,6 +257,19 @@ Text Domain: ajnanda
     --accent: #fde047;
 }
 
+/* Warm terminal-orange primary against a deep aubergine secondary — a
+   Linux/open-source-desktop-inspired scheme (pairs well with Dark Surface
+   Mode below and the "developer-mono" font pairing, bundled together as
+   the "Ubuntu Terminal" Site Kit — see inc/site-kits.php). Just another
+   color-name preset like its 23 siblings above: nothing site-specific
+   lives here. */
+.ajnanda-scheme-aubergine {
+    --primary: #e9541d;
+    --primary-dark: #c2410c;
+    --secondary: #3b0764;
+    --accent: #f59e0b;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { scroll-behavior: smooth; }
@@ -265,6 +278,10 @@ body {
     font-family: var(--font-body, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
     line-height: 1.6;
     color: var(--gray-800);
+    /* Token-based, not a hardcoded white — so Dark Surface Mode (see
+       inc/dark-surface-mode.php) can flip the page canvas along with
+       every --white/--gray-* consumer, not just accent colors. */
+    background: var(--gray-50, #f9fafb);
     overflow-x: hidden;
 }
 
@@ -906,7 +923,7 @@ body.admin-bar .site-header {
 }
 
 .feature-card {
-    background: white;
+    background: var(--white, #ffffff);
     padding: 2rem;
     border-radius: 1.5rem;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
@@ -1733,7 +1750,7 @@ body.admin-bar .site-header {
 
 /* Pricing Cards (if needed) */
 .pricing-card {
-    background: white;
+    background: var(--white, #ffffff);
     padding: 2.5rem 2rem;
     border-radius: 1.5rem;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
@@ -1799,7 +1816,7 @@ body.admin-bar .site-header {
 
 /* FAQ Section */
 .faq-item {
-    background: white;
+    background: var(--white, #ffffff);
     padding: 1.5rem;
     border-radius: 0.75rem;
     margin-bottom: 1rem;
@@ -2011,11 +2028,11 @@ body.admin-bar .site-header {
 
 /* Builder Canvas page template and editor-owned sections */
 .builder-canvas {
-    background: white;
+    background: var(--white, #ffffff);
 }
 
 .posts-page-content-section {
-    background: white;
+    background: var(--white, #ffffff);
 }
 
 .builder-canvas-content {
@@ -2469,7 +2486,11 @@ body.admin-bar .site-header {
 
 .builder-section {
     padding: 5rem 1.5rem;
-    background: white;
+    /* Token-based (was a hardcoded `white`) — every Section Pattern wraps
+       its content in .builder-section, so this one rule is what lets
+       Dark Surface Mode (inc/dark-surface-mode.php) recolor page sections
+       site-wide just by redefining --white, with no per-pattern changes. */
+    background: var(--white, #ffffff);
 }
 
 .builder-section-soft {
@@ -2480,6 +2501,26 @@ body.admin-bar .site-header {
 .editor-styles-wrapper .builder-section > .wp-block-group__inner-container {
     max-width: 1180px;
     margin: 0 auto;
+}
+
+/* Modern Gutenberg no longer wraps a constrained group's children in
+   `.wp-block-group__inner-container` above — it applies the width via
+   `.is-layout-constrained` directly on the group plus a `:where()` child
+   selector (see any core group block's rendered markup/CSS), which made
+   the rule above silently dead code against current WordPress: every
+   .builder-section's actual content quietly fell back to core's global
+   950px content width instead of the theme's intended 1180px, on every
+   Section Pattern, on every AJNanda site. Two class selectors here
+   (.builder-section.is-layout-constrained) beats core's generated
+   single-class `.wp-container-core-group-is-layout-{hash}` selector on
+   specificity alone, so this wins regardless of CSS source order and
+   needs no `!important`. Kept alongside the legacy rule above rather
+   than replacing it, in case any old cached/imported content still
+   renders the older wrapper markup. */
+.builder-section.is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)) {
+    max-width: 1180px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .builder-section h2 {
@@ -2509,7 +2550,7 @@ body.admin-bar .site-header {
     border: 1px solid rgba(37,99,235,0.12);
     border-top: 4px solid var(--primary);
     border-radius: 1rem;
-    background: white;
+    background: var(--white, #ffffff);
     /* Set explicitly, not left to inherit — a card can be placed inside a
        section that sets color:white (e.g. .builder-hero-section), and
        without its own color the card's white background would swallow
@@ -2966,7 +3007,10 @@ body.admin-bar .site-header {
 /* Blog / Knowledge Base */
 .blog-index-section {
     padding: 2rem 1.5rem 5rem;
-    background: linear-gradient(180deg, #f8fbff 0%, #ffffff 45%);
+    /* Token-based (was a hardcoded light-blue-to-white gradient) so this
+       responds to Dark Surface Mode like every other surface in the
+       theme — see the "Token-based" comments elsewhere in this file. */
+    background: linear-gradient(180deg, var(--gray-50, #f8fbff) 0%, var(--white, #ffffff) 45%);
 }
 
 .blog-grid {
@@ -2979,7 +3023,7 @@ body.admin-bar .site-header {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background: white;
+    background: var(--white, #ffffff);
     border: 1px solid var(--gray-100);
     border-radius: 1rem;
     box-shadow: 0 14px 35px rgba(15,23,42,0.08);
@@ -3063,7 +3107,7 @@ body.admin-bar .site-header {
     margin: 0.25rem;
     padding: 0 0.85rem;
     border-radius: 0.75rem;
-    background: white;
+    background: var(--white, #ffffff);
     border: 1px solid var(--gray-200);
     color: var(--gray-800);
     font-weight: 700;
@@ -3081,7 +3125,7 @@ body.admin-bar .site-header {
     margin: 0 auto;
     padding: 3rem;
     text-align: center;
-    background: white;
+    background: var(--white, #ffffff);
     border-radius: 1rem;
     box-shadow: 0 14px 35px rgba(15,23,42,0.08);
 }
@@ -3195,7 +3239,11 @@ body.admin-bar .site-header {
 }
 
 .editor-front-page {
-    background: #f3f8fb;
+    /* Token-based (was a hardcoded light blue-white) — normally hidden
+       behind opaque .builder-section children, but still real background
+       (visible in any gap, and the base case for a front page with no
+       full-width sections), so it needs to follow Dark Surface Mode too. */
+    background: var(--gray-50, #f3f8fb);
 }
 
 .editor-front-page > :where(:not(.alignfull):not(.alignwide)) {
@@ -3577,7 +3625,7 @@ body.admin-bar .site-header {
     border: 1px solid rgba(37, 99, 235, 0.12);
     border-top: 4px solid var(--secondary);
     border-radius: 1rem;
-    background: white;
+    background: var(--white, #ffffff);
     box-shadow: 0 12px 30px rgba(15,23,42,0.07);
 }
 
@@ -4586,7 +4634,7 @@ body .site-main .builder-hero-section .wp-block-buttons {
     font-size: 1rem;
     font-family: inherit;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    background: #fff;
+    background: var(--white, #ffffff);
     color: var(--gray-900);
 }
 .search-field:focus {

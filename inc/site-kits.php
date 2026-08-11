@@ -88,6 +88,13 @@ function ajnanda_get_site_kits() {
             'font_pairing' => 'developer-mono',
             'mood'         => __('Clean, spacious, tech-forward — developer portfolios, technical/coding sites.', 'ajnanda'),
         ),
+        'ubuntu-terminal' => array(
+            'label'        => __('Ubuntu Terminal', 'ajnanda'),
+            'color_scheme' => 'aubergine',
+            'font_pairing' => 'developer-mono',
+            'dark_surface' => true,
+            'mood'         => __('Deep charcoal with a warm terminal-orange glow — Ubuntu/GNOME-desktop-inspired, for developer portfolios that mean it.', 'ajnanda'),
+        ),
     );
 }
 
@@ -102,9 +109,11 @@ function ajnanda_get_site_kits() {
 function ajnanda_get_active_site_kit_slug() {
     $active_color = function_exists('ajnanda_get_active_color_scheme_slug') ? ajnanda_get_active_color_scheme_slug() : '';
     $active_font  = function_exists('ajnanda_get_active_font_pairing_slug') ? ajnanda_get_active_font_pairing_slug() : '';
+    $active_dark  = function_exists('ajnanda_is_dark_surface_mode_active') ? ajnanda_is_dark_surface_mode_active() : false;
 
     foreach (ajnanda_get_site_kits() as $slug => $kit) {
-        if ($kit['color_scheme'] === $active_color && $kit['font_pairing'] === $active_font) {
+        $kit_dark = !empty($kit['dark_surface']);
+        if ($kit['color_scheme'] === $active_color && $kit['font_pairing'] === $active_font && $kit_dark === $active_dark) {
             return $slug;
         }
     }
@@ -143,6 +152,10 @@ function ajnanda_apply_site_kit($kit_slug) {
     set_theme_mod('theme_secondary_color', $scheme['secondary']);
     set_theme_mod('theme_accent_color', $scheme['accent']);
     set_theme_mod('theme_font_pairing', $kit['font_pairing']);
+    // Explicitly set (not skipped when absent) so applying a kit is fully
+    // deterministic — a kit with no 'dark_surface' key means "light
+    // surfaces," the same as every kit defined before this setting existed.
+    set_theme_mod('ajnanda_dark_surface_mode', !empty($kit['dark_surface']));
 
     return true;
 }
@@ -187,6 +200,7 @@ function ajnanda_register_site_kit_control($wp_customize) {
                             data-secondary="<?php echo esc_attr($scheme['secondary']); ?>"
                             data-accent="<?php echo esc_attr($scheme['accent']); ?>"
                             data-font-pairing="<?php echo esc_attr($kit['font_pairing']); ?>"
+                            data-dark-surface="<?php echo !empty($kit['dark_surface']) ? '1' : '0'; ?>"
                         >
                             <span class="ajnanda-site-kit-swatch" style="background:<?php echo esc_attr($scheme['swatch']); ?>;"></span>
                             <span class="ajnanda-site-kit-info">
@@ -246,6 +260,10 @@ function ajnanda_site_kit_control_assets() {
                 var fontValue = btn.getAttribute('data-font-pairing');
                 if (fontSetting && fontValue) {
                     fontSetting.set(fontValue);
+                }
+                var darkSetting = wp.customize('ajnanda_dark_surface_mode');
+                if (darkSetting) {
+                    darkSetting.set(btn.getAttribute('data-dark-surface') === '1');
                 }
             });
         })(jQuery);

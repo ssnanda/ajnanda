@@ -182,6 +182,23 @@ function ajnanda_handle_preview_request() {
         $pairing_slug = '';
     }
 
+    // Dark Surface Mode override: no separate ?dark= query param — instead,
+    // if the requested scheme+font combination exactly matches a registered
+    // Site Kit (inc/site-kits.php) that has 'dark_surface' => true (e.g.
+    // "Ubuntu Terminal"), preview it dark too. Same single-theme_mod filter
+    // technique as the font pairing above, just conditioned on a kit lookup
+    // instead of its own URL param, since dark surface only ever travels
+    // bundled inside a kit here (a bare Color Scheme preview has no kit to
+    // look up and stays light, matching its non-preview behavior).
+    if ($scheme_slug && $pairing_slug && function_exists('ajnanda_get_site_kits')) {
+        foreach (ajnanda_get_site_kits() as $kit) {
+            if ($kit['color_scheme'] === $scheme_slug && $kit['font_pairing'] === $pairing_slug && !empty($kit['dark_surface'])) {
+                add_filter('theme_mod_ajnanda_dark_surface_mode', '__return_true');
+                break;
+            }
+        }
+    }
+
     // Connected click-through nav: if this preview was reached via a
     // Starter Site's page (ajnanda_get_starter_preview_url()), build a
     // link to every other page in that same starter, carrying the same

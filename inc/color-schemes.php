@@ -138,6 +138,10 @@ function ajnanda_get_color_schemes() {
             'label' => __('Nursery', 'ajnanda'), 'swatch' => '#a5b4fc',
             'primary' => '#a5b4fc', 'primary_dark' => '#818cf8', 'secondary' => '#86efac', 'accent' => '#fde047',
         ),
+        'aubergine' => array(
+            'label' => __('Aubergine', 'ajnanda'), 'swatch' => '#e9541d',
+            'primary' => '#e9541d', 'primary_dark' => '#c2410c', 'secondary' => '#3b0764', 'accent' => '#f59e0b',
+        ),
     );
 }
 
