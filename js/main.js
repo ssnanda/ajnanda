@@ -116,8 +116,16 @@ document.documentElement.classList.add('js');
             $parent.toggleClass('submenu-open', !isOpen);
         });
 
-        // Close mobile menu when clicking outside
+        // Close mobile menu when clicking outside. Guarded on the menu actually being open —
+        // without this check the handler fired (and called unlockBodyScroll(), which always does
+        // window.scrollTo(0, menuScrollY)) on every single click anywhere outside the nav, even
+        // with the menu already closed. menuScrollY defaults to 0 until the menu is opened at least
+        // once, so any click on inert whitespace elsewhere on the page — e.g. the padding around an
+        // FAQ accordion, outside its <summary> — silently snapped the whole page back to scrollY 0.
         $(document).on('click', function(e) {
+            if (!$('#mobile-menu-toggle').hasClass('active')) {
+                return;
+            }
             if (!$(e.target).closest('.main-navigation, .ajn-builder-cell-primary-menu, #mobile-menu-toggle').length) {
                 $('#mobile-menu-toggle').removeClass('active');
                 $('#mobile-menu-toggle').attr('aria-expanded', 'false');

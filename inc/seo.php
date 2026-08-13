@@ -250,7 +250,7 @@ function ajnanda_seo_head_tags() {
 
     $description = $post_id ? get_post_meta($post_id, '_ajnanda_seo_description', true) : '';
     if (! $description && $is_singular) {
-        $description = wp_strip_all_tags(get_the_excerpt($post_id));
+        $description = ajnanda_seo_excerpt_fallback($post_id);
     }
     if (! $description) {
         $description = get_theme_mod('seo_meta_description_default', '');
@@ -268,7 +268,8 @@ function ajnanda_seo_head_tags() {
     }
 
     // Open Graph / Twitter Card
-    $og_title = $is_singular ? get_the_title($post_id) : (get_bloginfo('name') ?: wp_parse_url(home_url(), PHP_URL_HOST));
+    $custom_title = $post_id ? get_post_meta($post_id, '_ajnanda_seo_title', true) : '';
+    $og_title     = $custom_title ? $custom_title : ($is_singular ? get_the_title($post_id) : (get_bloginfo('name') ?: wp_parse_url(home_url(), PHP_URL_HOST)));
     $og_image = $post_id ? get_post_meta($post_id, '_ajnanda_seo_social_image', true) : '';
     if (! $og_image && $post_id && has_post_thumbnail($post_id)) {
         $og_image = get_the_post_thumbnail_url($post_id, 'large');
@@ -301,6 +302,21 @@ function ajnanda_seo_head_tags() {
 }
 
 /**
+ * Meta-description fallback for singular posts/pages that have no manual `_ajnanda_seo_description`.
+ * get_the_excerpt() on block-built content (headings, stat labels, short paragraphs stacked with no
+ * punctuation between them) collapses into a run-on string once tags are stripped — e.g. "★★★★★5.0
+ * RatingFast SetupSame Day AvailableCharlotte, NC1914 J N PEASE PL." Inserting a space at every
+ * block-level closing tag before stripping keeps the words apart so the description reads as a
+ * sentence instead of a scraped fragment.
+ */
+function ajnanda_seo_excerpt_fallback($post_id) {
+    $excerpt = get_the_excerpt($post_id);
+    $spaced  = preg_replace('/<\/(h[1-6]|p|li|div|section|figcaption)>/i', ' ', $excerpt);
+    $spaced  = wp_strip_all_tags($spaced);
+    return trim(preg_replace('/\s+/', ' ', $spaced));
+}
+
+/**
  * Organization/LocalBusiness on the front page, Article + auto-detected FAQPage on single posts.
  * FAQPage detection looks for "heading ending in a question mark, followed by a paragraph" in the
  * post content — no manual Q&A entry required. This is the main GEO/AEO win: structured Q&A that
@@ -317,7 +333,11 @@ function ajnanda_seo_output_schema($is_singular, $post_id) {
 
         $business = array(
             '@context' => 'https://schema.org',
-            '@type'    => ($phone && $address) ? 'LocalBusiness' : 'Organization',
+            // A physical address alone is enough to identify a LocalBusiness per schema.org — phone
+            // isn't required, and this site intentionally keeps its phone number off public pages/schema
+            // (SMS-only contact), so requiring both would leave sites with an address but no published
+            // phone stuck on the generic Organization type for no real reason.
+            '@type'    => $address ? 'LocalBusiness' : 'Organization',
             'name'     => get_bloginfo('name') ?: wp_parse_url(home_url(), PHP_URL_HOST),
             'url'      => home_url('/'),
         );
@@ -334,6 +354,15 @@ function ajnanda_seo_output_schema($is_singular, $post_id) {
             $business['address'] = $address;
         }
         $graphs[] = $business;
+
+        // Accordion-only on the front page: a heading+paragraph landing page has plenty of h2/h3s
+        // that end in "?" without being FAQ content (e.g. a "Ready to Protect Your NC Business?"
+        // CTA followed by its own paragraph) — the <details>/<summary> accordion is the only pattern
+        // here that unambiguously means "this is a real FAQ entry", so skip the heading heuristic.
+        $faq = ajnanda_seo_extract_faq_schema($post_id ?: get_queried_object_id(), false);
+        if ($faq) {
+            $graphs[] = $faq;
+        }
     }
 
     if ($is_singular && 'post' === get_post_type($post_id)) {
@@ -366,24 +395,46 @@ function ajnanda_seo_output_schema($is_singular, $post_id) {
 }
 
 /**
- * Scans rendered post content for "<h2/h3>...question?</h2> <p>answer</p>" pairs and turns them
- * into FAQPage JSON-LD. Deliberately simple (no block-editor-specific parsing) so it works
- * regardless of which block/editor produced the HTML.
+ * Scans rendered post content for two FAQ authoring patterns and turns whichever is found into
+ * FAQPage JSON-LD:
+ *  1. "<h2/h3>question?</h2><p>answer</p>" — the plain heading+paragraph style blog posts tend to use.
+ *  2. "<details><summary>question?</summary>...<p>answer</p>...</details>" — the accordion (Details
+ *     block) style the homepage FAQ section uses. Everything between <summary> and </details> is
+ *     collapsed into one answer so multi-paragraph accordion answers still produce a single,
+ *     complete acceptedAnswer instead of only the first <p>.
+ * Deliberately simple regex matching (no block-editor-specific parsing) so it works regardless of
+ * which block/editor produced the HTML.
  */
-function ajnanda_seo_extract_faq_schema($post_id) {
+function ajnanda_seo_extract_faq_schema($post_id, $include_heading_pairs = true) {
     $content = apply_filters('the_content', get_post_field('post_content', $post_id));
-    if (! preg_match_all('/<h[23][^>]*>(.*?\?)\s*<\/h[23]>\s*<p[^>]*>(.*?)<\/p>/is', $content, $matches, PREG_SET_ORDER)) {
-        return null;
+    $questions = array();
+
+    // Each capture is bounded to "(?:(?!</tag>).)*" — everything up to that specific tag's own
+    // closing delimiter, never beyond it — instead of a bare ".*?". A bare lazy dot-star only stops
+    // at the first spot where the rest of the pattern happens to match, so a heading that doesn't
+    // end in "?" lets it swallow everything up to the next unrelated "?" anywhere later in the page
+    // into one bogus giant "question". Bounding first, then checking for "?" on the isolated result,
+    // makes a non-question heading fail to match at all rather than leak into whatever comes after it.
+    if ($include_heading_pairs && preg_match_all('/<h[23][^>]*>((?:(?!<\/h[23]>).)*)<\/h[23]>\s*<p[^>]*>((?:(?!<\/p>).)*)<\/p>/is', $content, $matches, PREG_SET_ORDER)) {
+        foreach ($matches as $match) {
+            $questions[] = array($match[1], $match[2]);
+        }
     }
 
-    $questions = array();
-    foreach ($matches as $match) {
-        $question = trim(wp_strip_all_tags($match[1]));
-        $answer   = trim(wp_strip_all_tags($match[2]));
-        if ('' === $question || '' === $answer) {
+    if (preg_match_all('/<details[^>]*>\s*<summary[^>]*>((?:(?!<\/summary>).)*)<\/summary>((?:(?!<\/details>).)*)<\/details>/is', $content, $matches, PREG_SET_ORDER)) {
+        foreach ($matches as $match) {
+            $questions[] = array($match[1], $match[2]);
+        }
+    }
+
+    $faq_entries = array();
+    foreach ($questions as $pair) {
+        $question = trim(wp_strip_all_tags($pair[0]));
+        $answer   = trim(preg_replace('/\s+/', ' ', wp_strip_all_tags($pair[1])));
+        if ('' === $question || '?' !== substr($question, -1) || '' === $answer) {
             continue;
         }
-        $questions[] = array(
+        $faq_entries[] = array(
             '@type'          => 'Question',
             'name'           => $question,
             'acceptedAnswer' => array(
@@ -393,14 +444,14 @@ function ajnanda_seo_extract_faq_schema($post_id) {
         );
     }
 
-    if (empty($questions)) {
+    if (empty($faq_entries)) {
         return null;
     }
 
     return array(
         '@context'   => 'https://schema.org',
         '@type'      => 'FAQPage',
-        'mainEntity' => $questions,
+        'mainEntity' => $faq_entries,
     );
 }
 
