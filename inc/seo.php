@@ -20,7 +20,13 @@ if (! defined('ABSPATH')) {
 
 // ── AJNanda admin menu: SEO Settings + SEO Insights ─────────────────────────
 
-add_action('admin_menu', 'ajnanda_seo_register_admin_pages');
+// Priority 20: must run after AJNanda_Admin::register_menu() (inc/admin/class-ajnanda-admin.php,
+// default priority 10) has already called add_menu_page('ajnanda', ...). WordPress resolves each
+// submenu page's internal callback hook name from its parent's registration state at the moment
+// add_submenu_page() runs — calling this before the 'ajnanda' top-level menu exists makes it
+// compute the wrong hook name, so the render callbacks silently never fire when the pages are
+// actually opened.
+add_action('admin_menu', 'ajnanda_seo_register_admin_pages', 20);
 function ajnanda_seo_register_admin_pages() {
     $settings_hook = add_submenu_page(
         'ajnanda',
