@@ -54,5 +54,14 @@ if (!defined('ABSPATH')) {
             <p><?php esc_html_e('Choose or change the site homepage and posts page.', 'ajnanda'); ?></p>
             <a class="button" href="<?php echo esc_url(admin_url('options-reading.php')); ?>"><?php esc_html_e('Open Reading Settings', 'ajnanda'); ?></a>
         </div>
+
+        <div class="ajnanda-admin-card">
+            <h2><?php esc_html_e('SEO', 'ajnanda'); ?></h2>
+            <p><?php esc_html_e('Meta descriptions, schema markup, GEO/AEO crawler access, and Site Kit suggestions.', 'ajnanda'); ?></p>
+            <div class="ajnanda-admin-actions">
+                <a class="button" href="<?php echo esc_url(admin_url('admin.php?page=ajnanda-seo-settings')); ?>"><?php esc_html_e('Open SEO Settings', 'ajnanda'); ?></a>
+                <a class="button" href="<?php echo esc_url(admin_url('admin.php?page=ajnanda-seo-insights')); ?>"><?php esc_html_e('Open SEO Insights', 'ajnanda'); ?></a>
+            </div>
+        </div>
     </div>
 </div>

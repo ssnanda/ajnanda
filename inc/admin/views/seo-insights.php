@@ -1,0 +1,27 @@
+<?php
+/**
+ * AJNanda admin: SEO Insights screen.
+ *
+ * Moved here from the Customizer (see ajnanda_seo_register_admin_pages() in inc/seo.php) — the
+ * insights themselves still come from ajnanda_seo_render_site_kit_insights() (Google Site Kit's
+ * Search Console + PageSpeed data via its own REST routes), unchanged; this is only a different
+ * page to view them on.
+ *
+ * @package AJNanda
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+?>
+<div class="wrap ajnanda-admin-wrap">
+    <div class="ajnanda-admin-hero">
+        <p class="ajnanda-admin-eyebrow"><?php esc_html_e('AJNanda', 'ajnanda'); ?></p>
+        <h1><?php esc_html_e('SEO Insights', 'ajnanda'); ?></h1>
+        <p><?php esc_html_e('Suggestions from Google Site Kit — Search Console click-through/ranking data and mobile PageSpeed.', 'ajnanda'); ?></p>
+    </div>
+
+    <div class="ajnanda-admin-card">
+        <?php echo ajnanda_seo_render_site_kit_insights(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+    </div>
+</div>

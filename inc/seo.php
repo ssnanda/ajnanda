@@ -2,10 +2,14 @@
 /**
  * Theme-native SEO, GEO/AEO, and Site Kit insights.
  *
- * Site-wide settings and the Site Kit insights panel live in the Customizer, matching the rest of
- * this theme's settings (see ajnanda_customize_register() in functions.php). Per-post overrides
- * can't live there — the Customizer only edits site-wide theme_mods, not individual post data — so
- * those get a small meta box on the post/page editor instead, the only place WordPress allows it.
+ * Site-wide settings and the Site Kit insights panel are plain admin pages under the AJNanda menu
+ * (see ajnanda_seo_register_admin_pages() below) — moved out of the Customizer, since none of this
+ * needs live-preview and a regular admin page is faster to load and easier to find. Still stored as
+ * theme_mods (set_theme_mod()/get_theme_mod()), same keys as before the move, so every read
+ * elsewhere in this file (ajnanda_seo_head_tags(), ajnanda_seo_output_schema(),
+ * ajnanda_seo_robots_txt(), etc.) needed zero changes. Per-post overrides still can't live here —
+ * theme_mods are site-wide, not per-post — so those stay on the meta box further down, the only
+ * place WordPress allows that.
  *
  * @package NCLLC_Pro
  */
@@ -14,162 +18,84 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-// ── Customizer: SEO Settings + SEO Insights ────────────────────────────────
+// ── AJNanda admin menu: SEO Settings + SEO Insights ─────────────────────────
 
-add_action('customize_register', 'ajnanda_seo_customize_register');
-function ajnanda_seo_customize_register($wp_customize) {
-    if (class_exists('WP_Customize_Control') && ! class_exists('AJNanda_SEO_Insights_Control')) {
-        class AJNanda_SEO_Insights_Control extends WP_Customize_Control {
-            public $type = 'ajnanda_seo_insights';
-
-            public function render_content() {
-                ?>
-                <span class="customize-control-title"><?php echo esc_html($this->label); ?></span>
-                <div class="ajnanda-seo-insights">
-                    <?php echo ajnanda_seo_render_site_kit_insights(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                </div>
-                <?php
-            }
-        }
-    }
-
-    $wp_customize->add_section('ajnanda_seo', array(
-        'title'    => __('SEO Settings', 'ajnanda'),
-        'priority' => 28,
-    ));
-
-    $wp_customize->add_setting('seo_meta_description_default', array(
-        'default'           => '',
-        'sanitize_callback' => 'sanitize_text_field',
-        'transport'         => 'refresh',
-    ));
-    $wp_customize->add_control('seo_meta_description_default', array(
-        'label'       => __('Default Meta Description', 'ajnanda'),
-        'description' => __('Used on pages/posts that don\'t set their own (see the SEO box on the post editor).', 'ajnanda'),
-        'section'     => 'ajnanda_seo',
-        'type'        => 'textarea',
-    ));
-
-    $wp_customize->add_setting('seo_default_social_image', array(
-        'default'           => '',
-        'sanitize_callback' => 'esc_url_raw',
-        'transport'         => 'refresh',
-    ));
-    if (class_exists('WP_Customize_Image_Control')) {
-        $wp_customize->add_control(new WP_Customize_Image_Control(
-            $wp_customize,
-            'seo_default_social_image',
-            array(
-                'label'       => __('Default Social Share Image', 'ajnanda'),
-                'description' => __('Used for Open Graph/Twitter previews when a post has no featured image.', 'ajnanda'),
-                'section'     => 'ajnanda_seo',
-            )
-        ));
-    }
-
-    $wp_customize->add_setting('seo_twitter_handle', array(
-        'default'           => '',
-        'sanitize_callback' => 'sanitize_text_field',
-        'transport'         => 'refresh',
-    ));
-    $wp_customize->add_control('seo_twitter_handle', array(
-        'label'   => __('Twitter/X Handle', 'ajnanda'),
-        'section' => 'ajnanda_seo',
-        'type'    => 'text',
-        'input_attrs' => array('placeholder' => '@yourbusiness'),
-    ));
-
-    $wp_customize->add_setting('seo_business_phone', array(
-        'default'           => '',
-        'sanitize_callback' => 'sanitize_text_field',
-        'transport'         => 'refresh',
-    ));
-    $wp_customize->add_control('seo_business_phone', array(
-        'label'       => __('Business Phone', 'ajnanda'),
-        'description' => __('Optional. Filling this in along with Business Address upgrades the schema markup from generic Organization to LocalBusiness.', 'ajnanda'),
-        'section'     => 'ajnanda_seo',
-        'type'        => 'text',
-    ));
-
-    $wp_customize->add_setting('seo_business_address', array(
-        'default'           => '',
-        'sanitize_callback' => 'sanitize_text_field',
-        'transport'         => 'refresh',
-    ));
-    $wp_customize->add_control('seo_business_address', array(
-        'label'   => __('Business Address', 'ajnanda'),
-        'section' => 'ajnanda_seo',
-        'type'    => 'text',
-    ));
-
-    $seo_toggles = array(
-        'seo_schema_enabled'    => array(
-            'label'       => __('Enable Schema Markup', 'ajnanda'),
-            'description' => __('Adds structured data (Organization/LocalBusiness, Article, FAQ) that search engines and AI answer engines use to understand and cite your content.', 'ajnanda'),
-        ),
-        'seo_allow_ai_crawlers' => array(
-            'label'       => __('Allow AI Crawlers (GEO/AEO)', 'ajnanda'),
-            'description' => __('Explicitly allows GPTBot, ClaudeBot, PerplexityBot, Google-Extended, and CCBot in robots.txt, so ChatGPT/Claude/Perplexity/Google AI Overviews can crawl and cite this site.', 'ajnanda'),
-        ),
-        'seo_llms_txt_enabled'  => array(
-            'label'       => __('Publish /llms.txt', 'ajnanda'),
-            'description' => __('A plain-text summary of your site for AI tools that support the emerging llms.txt convention.', 'ajnanda'),
-        ),
+add_action('admin_menu', 'ajnanda_seo_register_admin_pages');
+function ajnanda_seo_register_admin_pages() {
+    $settings_hook = add_submenu_page(
+        'ajnanda',
+        __('SEO Settings', 'ajnanda'),
+        __('SEO Settings', 'ajnanda'),
+        'manage_options',
+        'ajnanda-seo-settings',
+        'ajnanda_seo_render_settings_page'
     );
-
-    foreach ($seo_toggles as $setting_id => $control) {
-        $wp_customize->add_setting($setting_id, array(
-            'default'           => true,
-            'sanitize_callback' => 'ajnanda_sanitize_checkbox',
-            'transport'         => 'refresh',
-        ));
-        $wp_customize->add_control($setting_id, array(
-            'label'       => $control['label'],
-            'description' => $control['description'],
-            'section'     => 'ajnanda_seo',
-            'type'        => 'checkbox',
-        ));
+    // Only the SEO Settings screen needs the media picker (Default Social Share Image) — same
+    // wp_enqueue_media() call the post-editor meta box below already uses, just scoped to this one
+    // admin page via load-{hook} instead of the meta box's post.php/post-new.php check.
+    if ($settings_hook) {
+        add_action('load-' . $settings_hook, 'wp_enqueue_media');
     }
 
-    // Read-only info control confirming WordPress core's native sitemap (no custom generator needed).
-    $wp_customize->add_setting('seo_sitemap_info', array(
-        'default'           => '',
-        'sanitize_callback' => '__return_false',
-        'transport'         => 'refresh',
-    ));
-    $wp_customize->add_control('seo_sitemap_info', array(
-        'label'       => __('Sitemap', 'ajnanda'),
-        'description' => sprintf(
-            /* translators: %s: sitemap URL */
-            __('WordPress already publishes a sitemap automatically: %s', 'ajnanda'),
-            '<a href="' . esc_url(home_url('/wp-sitemap.xml')) . '" target="_blank" rel="noopener">' . esc_html(home_url('/wp-sitemap.xml')) . '</a>'
-        ),
-        'section' => 'ajnanda_seo',
-        'type'    => 'hidden',
-    ));
+    add_submenu_page(
+        'ajnanda',
+        __('SEO Insights', 'ajnanda'),
+        __('SEO Insights', 'ajnanda'),
+        'manage_options',
+        'ajnanda-seo-insights',
+        'ajnanda_seo_render_insights_page'
+    );
+}
 
-    // ── SEO Insights (Site Kit) ─────────────────────────────────────────────
-    $wp_customize->add_section('ajnanda_seo_insights', array(
-        'title'    => __('SEO Insights', 'ajnanda'),
-        'priority' => 29,
-    ));
-
-    $wp_customize->add_setting('seo_insights_display', array(
-        'default'           => '',
-        'sanitize_callback' => '__return_false',
-        'transport'         => 'refresh',
-    ));
-
-    if (class_exists('AJNanda_SEO_Insights_Control')) {
-        $wp_customize->add_control(new AJNanda_SEO_Insights_Control(
-            $wp_customize,
-            'seo_insights_display',
-            array(
-                'label'   => __('Suggestions from Google Site Kit', 'ajnanda'),
-                'section' => 'ajnanda_seo_insights',
-            )
-        ));
+function ajnanda_seo_render_settings_page() {
+    if (! current_user_can('manage_options')) {
+        wp_die(esc_html__('Insufficient permissions.', 'ajnanda'));
     }
+
+    $values = array(
+        'seo_meta_description_default' => get_theme_mod('seo_meta_description_default', ''),
+        'seo_default_social_image'     => get_theme_mod('seo_default_social_image', ''),
+        'seo_twitter_handle'           => get_theme_mod('seo_twitter_handle', ''),
+        'seo_business_phone'           => get_theme_mod('seo_business_phone', ''),
+        'seo_business_address'         => get_theme_mod('seo_business_address', ''),
+        'seo_schema_enabled'           => get_theme_mod('seo_schema_enabled', true),
+        'seo_allow_ai_crawlers'        => get_theme_mod('seo_allow_ai_crawlers', true),
+        'seo_llms_txt_enabled'         => get_theme_mod('seo_llms_txt_enabled', true),
+    );
+    $saved = isset($_GET['ajnanda_seo_saved']);
+
+    include get_template_directory() . '/inc/admin/views/seo-settings.php';
+}
+
+add_action('admin_post_ajnanda_save_seo_settings', 'ajnanda_seo_save_settings');
+function ajnanda_seo_save_settings() {
+    if (! current_user_can('manage_options')) {
+        wp_die(esc_html__('Insufficient permissions.', 'ajnanda'));
+    }
+    check_admin_referer('ajnanda_seo_save_settings', 'ajnanda_seo_settings_nonce');
+
+    set_theme_mod('seo_meta_description_default', sanitize_text_field(wp_unslash($_POST['seo_meta_description_default'] ?? '')));
+    set_theme_mod('seo_default_social_image', esc_url_raw(wp_unslash($_POST['seo_default_social_image'] ?? '')));
+    set_theme_mod('seo_twitter_handle', sanitize_text_field(wp_unslash($_POST['seo_twitter_handle'] ?? '')));
+    set_theme_mod('seo_business_phone', sanitize_text_field(wp_unslash($_POST['seo_business_phone'] ?? '')));
+    set_theme_mod('seo_business_address', sanitize_text_field(wp_unslash($_POST['seo_business_address'] ?? '')));
+    set_theme_mod('seo_schema_enabled', ajnanda_sanitize_checkbox($_POST['seo_schema_enabled'] ?? ''));
+    set_theme_mod('seo_allow_ai_crawlers', ajnanda_sanitize_checkbox($_POST['seo_allow_ai_crawlers'] ?? ''));
+    set_theme_mod('seo_llms_txt_enabled', ajnanda_sanitize_checkbox($_POST['seo_llms_txt_enabled'] ?? ''));
+
+    wp_safe_redirect(add_query_arg(
+        array('page' => 'ajnanda-seo-settings', 'ajnanda_seo_saved' => '1'),
+        admin_url('admin.php')
+    ));
+    exit;
+}
+
+function ajnanda_seo_render_insights_page() {
+    if (! current_user_can('manage_options')) {
+        wp_die(esc_html__('Insufficient permissions.', 'ajnanda'));
+    }
+
+    include get_template_directory() . '/inc/admin/views/seo-insights.php';
 }
 
 // ── Site Kit insights ────────────────────────────────────────────────────────
