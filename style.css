@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.4.11
+Version: 1.4.12
 License: GNU General Public License v2 or later
 Text Domain: ajnanda
 */
@@ -3472,6 +3472,14 @@ body.admin-bar .site-header {
     padding: 5rem 1.5rem;
 }
 
+/* Knowledge Base is the last white/gray section before the CTA band -- its own 5rem bottom
+   padding plus the CTA's 5rem top padding (below) stacked into a large, purposeless gap between
+   "View All Articles" and the CTA content. Trimmed on this side only; the other sections above
+   keep the full 5rem so their own rhythm is untouched. */
+.home-knowledge-section {
+    padding-bottom: 2.5rem;
+}
+
 .home-registered-agent-section h2,
 .home-features-section h2,
 .home-reviews-section h2,
@@ -3768,7 +3776,7 @@ body.admin-bar .site-header {
 }
 
 .home-cta-section {
-    padding: 5rem 1.5rem;
+    padding: 3rem 1.5rem;
     background: linear-gradient(135deg, var(--primary), var(--secondary));
     color: white;
     text-align: center;
