@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.4.10
+Version: 1.4.11
 License: GNU General Public License v2 or later
 Text Domain: ajnanda
 */
@@ -3450,9 +3450,18 @@ body.admin-bar .site-header {
     color: rgba(255,255,255,0.9);
 }
 
+/* is-not-stacked-on-mobile (set on this row in the editor) keeps these 3 columns side-by-side
+   even on small phones instead of the usual full-width mobile stack, so each column can be quite
+   narrow. Core's own .wp-block-column CSS sets word-break:break-word, which combined with the old
+   fixed 1.35rem size mid-word-broke "Charlotte, NC" into "Charlott"/"e, NC" -- same root cause as
+   the stats-section fix above, sized off the column's own width for the same reason. */
 .home-trust-row strong {
     color: white;
-    font-size: 1.35rem;
+    /* Bounds tuned against the row's own actual column width, which plateaus at ~136px past
+       640px (.home-trust-row caps at max-width:760px) while a bare vw value would keep growing
+       past that -- capped lower here so it doesn't outgrow the column it's actually sizing for. */
+    font-size: clamp(0.72rem, 3.6vw, 1.25rem);
+    white-space: nowrap;
 }
 
 .home-registered-agent-section,
