@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.4.9
+Version: 1.4.10
 License: GNU General Public License v2 or later
 Text Domain: ajnanda
 */
@@ -3580,13 +3580,28 @@ body.admin-bar .site-header {
     color: white;
 }
 
+.home-stats-section .wp-block-column {
+    /* Lets the h3 below size itself off its own column's actual width (cqw) instead of the
+       viewport's (vw). A vw-based size has no way to know how wide its column really ended up —
+       whether from ordinary responsive layout or the floating-panel content-size clearance above
+       — so at some combination of viewport width and column count it's guaranteed to eventually
+       be wider than whatever room the column actually has. Sizing off the column itself scales
+       correctly no matter what set that width. */
+    container-type: inline-size;
+}
+
 .home-stats-section h3 {
     margin-bottom: 0.5rem;
     background: linear-gradient(135deg, #60a5fa, #fbbf24);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-size: clamp(3rem, 5vw, 5rem);
+    /* 17cqw keeps the longest stat word ("Secure", ~3.55x its font-size wide in this bold
+       typeface) at roughly 60% of the column's width -- comfortable headroom against the
+       ~2.25rem/3.5rem-viewport-wide behavior. The old clamp(3rem,5vw,5rem) computed to 72px at
+       1440px, wide enough on its own to force "Secure" to wrap mid-word into "Secu"/"re". */
+    font-size: clamp(1.5rem, 17cqw, 3.25rem);
     line-height: 1;
+    white-space: nowrap;
 }
 
 .home-stats-section p {

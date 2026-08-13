@@ -5698,6 +5698,50 @@ add_action('wp_head', function (): void {
         }
     }
 
+    // A floating side panel sits fixed 16px off the viewport edge (full $panel_width wide above
+    // 1200px, min($panel_width, 230) between 922-1200px per the media query above) — but
+    // constrained content only gets var(--wp--style--global--content-size) (950px by default)
+    // centered in the viewport, and that centered margin is narrower than the panel's footprint
+    // across a wide, very common band of laptop/desktop widths (roughly 922-1522px at the default
+    // 270px panel width). Content near the edge of that centered box — e.g. the last column of a
+    // 4-up stats row — silently renders underneath the panel instead of wrapping or making room.
+    //
+    // Deliberately scoped to .home-stats-section rather than overriding
+    // --wp--style--global--content-size sitewide: shrinking that variable globally also crushed
+    // unrelated sections that were never near the panel's edge (the 3-column feature-card grid
+    // wrapped to one word per line at ~1024px) for no benefit, since they weren't the ones
+    // colliding with anything. Apply the same clearance per-section, on whichever ones are
+    // actually alignfull rows with content that reaches toward the edge, as those get reported.
+    $left_floating = ajnanda_menu_toggle_enabled('left_panel_enabled')
+        && ajnanda_menu_toggle_enabled('office_shortcuts')
+        && !ajnanda_menu_toggle_url_matches_patterns((string) ($settings['office_shortcuts_exclude_urls'] ?? ''))
+        && ajnanda_menu_toggle_visible_on_device('office_shortcuts', 'desktop')
+        && ('floating' === ($settings['office_shortcuts_mode'] ?? 'floating'));
+    $right_floating = ajnanda_menu_toggle_enabled('right_panel_enabled')
+        && ajnanda_menu_toggle_enabled('store_shortcuts')
+        && !ajnanda_menu_toggle_url_matches_patterns((string) ($settings['store_shortcuts_exclude_urls'] ?? ''))
+        && ajnanda_menu_toggle_visible_on_device('store_shortcuts', 'desktop')
+        && ('floating' === ($settings['store_shortcuts_mode'] ?? 'floating'));
+
+    if ($left_floating || $right_floating) {
+        // +32px beyond the panel's bare edge: the exact-minimum boundary leaves zero gap (content's
+        // computed edge lands precisely on the panel's computed edge), which reads as touching or
+        // overlapping in practice once real glyph rendering (bold gradient text, antialiasing) is
+        // involved rather than as clean clearance.
+        $clearance_buffer = 32;
+        $tier1_footprint = min($panel_width, 230) + 16 + $clearance_buffer; // 922-1199px, panel width capped per the media query above
+        $tier2_footprint = $panel_width + 16 + $clearance_buffer;           // 1200px+, panel at its full configured width
+        $tier2_safe_vw   = 950 + (2 * $tier2_footprint); // viewport width where default 950px content-size is already clear
+
+        // Sections known to run a wide row of content close to the edge. Add more selectors here
+        // as other alignfull sections turn out to need it -- keep it opt-in per section rather
+        // than global.
+        $edge_sensitive_selectors = '.home-stats-section .wp-block-columns';
+
+        $css .= "@media (min-width:922px) and (max-width:1199px) { {$edge_sensitive_selectors} { max-width: calc(100vw - " . (2 * $tier1_footprint) . "px) !important; } }\n";
+        $css .= "@media (min-width:1200px) and (max-width:{$tier2_safe_vw}px) { {$edge_sensitive_selectors} { max-width: calc(100vw - " . (2 * $tier2_footprint) . "px) !important; } }\n";
+    }
+
     if ($css) {
         echo '<style id="ajnanda-menu-toggles-css">' . $css . '</style>' . "\n";
     }
