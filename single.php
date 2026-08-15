@@ -160,7 +160,7 @@ get_header(); ?>
         <?php endif; ?>
 
         <?php
-        if (comments_open() || get_comments_number()) :
+        if (get_theme_mod('enable_comments', false) && (comments_open() || get_comments_number())) :
             comments_template();
         endif;
 

@@ -3814,6 +3814,31 @@ function ajnanda_customize_register($wp_customize) {
         ));
     }
 
+    // ── Comments ─────────────────────────────────────────────────────────────
+    // Theme-native replacement for manually visiting Settings → Discussion and
+    // unchecking "Allow people to submit comments on new posts" every time the theme
+    // is set up on a new site. Defaults to false (disabled) — comments are off out of
+    // the box; an admin who wants them opts in here instead of remembering a separate
+    // core settings screen. ajnanda_comments_open_filter() below enforces this
+    // site-wide (blocks new submissions too, not just the single.php template render).
+    $wp_customize->add_section('ajnanda_comments', array(
+        'title'    => __('Comments', 'ajnanda'),
+        'priority' => 29,
+    ));
+
+    $wp_customize->add_setting('enable_comments', array(
+        'default'           => false,
+        'sanitize_callback' => 'ajnanda_sanitize_checkbox',
+        'transport'         => 'refresh',
+    ));
+
+    $wp_customize->add_control('enable_comments', array(
+        'label'       => __('Enable Comments', 'ajnanda'),
+        'description' => __('Off by default. Turn on to allow visitors to view and submit comments on posts.', 'ajnanda'),
+        'section'     => 'ajnanda_comments',
+        'type'        => 'checkbox',
+    ));
+
     // Add live preview JavaScript
     if ($wp_customize->is_preview()) {
         add_action('wp_footer', 'ajnanda_customizer_live_preview', 21);
@@ -3821,6 +3846,17 @@ function ajnanda_customize_register($wp_customize) {
 
 }
 add_action('customize_register', 'ajnanda_customize_register');
+
+// Enforce the "Enable Comments" customizer toggle site-wide: when off (the default),
+// comments read as closed everywhere WordPress core checks comments_open() — including
+// wp-comments-post.php's own submission guard — not just in the single.php template.
+add_filter('comments_open', 'ajnanda_comments_open_filter', 10, 2);
+function ajnanda_comments_open_filter($open, $post_id) {
+    if (!get_theme_mod('enable_comments', false)) {
+        return false;
+    }
+    return $open;
+}
 
 // Remove the built-in Menus panel — all menu settings live in Appearance → Menus.
 // Filtering out the nav_menus component before it loads (WordPress core's
