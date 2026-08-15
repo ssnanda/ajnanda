@@ -29,12 +29,38 @@ function ajnanda_duplicate_content_action_link($actions, $post) {
         'ajnanda_duplicate_content_' . absint($post->ID)
     );
 
-    $actions['ajnanda_duplicate'] = '<a href="' . esc_url($url) . '" title="Duplicate this item">Duplicate</a>';
+    // Inline copy-icon SVG (Feather "copy", MIT) rather than guessing at a
+    // Dashicon name — styled as a small pill button by list-tables.css
+    // (targets .row-actions .ajnanda_duplicate a) instead of a bare text link.
+    $icon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+
+    $actions['ajnanda_duplicate'] = '<a href="' . esc_url($url) . '" title="Duplicate this item">' . $icon . 'Duplicate</a>';
 
     return $actions;
 }
 add_filter('post_row_actions', 'ajnanda_duplicate_content_action_link', 10, 2);
 add_filter('page_row_actions', 'ajnanda_duplicate_content_action_link', 10, 2);
+
+// Modernized bulk-action/filter/search controls + the Duplicate pill button
+// above — only loaded on the Posts and Pages list screens they affect.
+add_action('admin_enqueue_scripts', 'ajnanda_enqueue_list_table_assets');
+function ajnanda_enqueue_list_table_assets($hook_suffix) {
+    if ('edit.php' !== $hook_suffix) {
+        return;
+    }
+
+    $post_type = isset($_GET['post_type']) ? sanitize_key($_GET['post_type']) : 'post';
+    if (!in_array($post_type, array('post', 'page'), true)) {
+        return;
+    }
+
+    wp_enqueue_style(
+        'ajnanda-list-tables',
+        get_template_directory_uri() . '/inc/admin/assets/list-tables.css',
+        array(),
+        ajnanda_asset_version('inc/admin/assets/list-tables.css')
+    );
+}
 
 function ajnanda_duplicate_content() {
     if (empty($_GET['post'])) {
