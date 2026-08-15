@@ -3752,11 +3752,12 @@ function ajnanda_customize_register($wp_customize) {
     }
     
     // ── Post Meta Display ───────────────────────────────────────────────────
-    // Theme-native replacement for the "WP Meta and Date Remover" plugin — same three toggles
-    // (date / author / read time), read via get_theme_mod() at the render sites in single.php and
-    // the blog listing date in index.php, instead of a third-party plugin filtering output at
-    // runtime. Defaults all false (unchecked/hidden) — explicit decision to match the site's
-    // actual desired state (author/date/read-time hidden), matching what the old plugin enforced.
+    // Theme-native replacement for the "WP Meta and Date Remover" plugin — same toggles
+    // (date / author / read time / category), read via get_theme_mod() at the render sites in
+    // single.php and the blog listing in index.php, instead of a third-party plugin filtering
+    // output at runtime. Defaults all false (unchecked/hidden) — explicit decision to match the
+    // site's actual desired state (author/date/read-time/category hidden), matching what the old
+    // plugin enforced.
     $wp_customize->add_section('ajnanda_post_meta', array(
         'title'    => __('Post Meta Display', 'ajnanda'),
         'priority' => 27,
@@ -3766,6 +3767,7 @@ function ajnanda_customize_register($wp_customize) {
         'post_meta_show_date'      => __('Show Date', 'ajnanda'),
         'post_meta_show_author'    => __('Show Author', 'ajnanda'),
         'post_meta_show_read_time' => __('Show Read Time', 'ajnanda'),
+        'post_meta_show_category'  => __('Show Category', 'ajnanda'),
     );
 
     foreach ($post_meta_toggles as $setting_id => $label) {
@@ -3778,6 +3780,36 @@ function ajnanda_customize_register($wp_customize) {
         $wp_customize->add_control($setting_id, array(
             'label'   => $label,
             'section' => 'ajnanda_post_meta',
+            'type'    => 'checkbox',
+        ));
+    }
+
+    // ── Related Posts & Navigation ──────────────────────────────────────────
+    // Controls for the two blocks that appear below a single post's content: the
+    // "Related Articles" grid and the prev/next "Post Navigation" links. Both are
+    // core-ish, always-on theme behavior today (no admin control existed before this),
+    // so — unlike the Post Meta Display toggles above — these default to true
+    // (shown), preserving current behavior until an admin opts out.
+    $wp_customize->add_section('ajnanda_related_nav', array(
+        'title'    => __('Related Posts & Navigation', 'ajnanda'),
+        'priority' => 28,
+    ));
+
+    $related_nav_toggles = array(
+        'show_related_articles' => __('Show Related Articles', 'ajnanda'),
+        'show_post_navigation'  => __('Show Previous & Next Navigation', 'ajnanda'),
+    );
+
+    foreach ($related_nav_toggles as $setting_id => $label) {
+        $wp_customize->add_setting($setting_id, array(
+            'default'           => true,
+            'sanitize_callback' => 'ajnanda_sanitize_checkbox',
+            'transport'         => 'refresh',
+        ));
+
+        $wp_customize->add_control($setting_id, array(
+            'label'   => $label,
+            'section' => 'ajnanda_related_nav',
             'type'    => 'checkbox',
         ));
     }

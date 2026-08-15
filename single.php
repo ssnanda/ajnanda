@@ -66,7 +66,7 @@ get_header(); ?>
 
                 <footer class="entry-footer single-entry-footer">
                     <?php
-                    $categories_list = get_the_category_list(', ');
+                    $categories_list = get_theme_mod('post_meta_show_category', false) ? get_the_category_list(', ') : '';
                     if ($categories_list) {
                         printf(
                             '<span class="cat-links"><span class="entry-footer-label">' . esc_html__('Categories:', 'ajnanda') . '</span> %s</span>',
@@ -103,17 +103,18 @@ get_header(); ?>
 
                 <?php
                 // Related posts (same category, exclude current)
-                $current_id   = get_the_ID();
-                $cats         = wp_get_post_categories($current_id);
-                $related_args = array(
-                    'category__in'        => $cats ?: array(),
-                    'post__not_in'        => array($current_id),
-                    'posts_per_page'      => 3,
-                    'orderby'             => 'rand',
-                    'ignore_sticky_posts' => 1,
-                );
-                $related = new WP_Query($related_args);
-                if ($related->have_posts()) :
+                if (get_theme_mod('show_related_articles', true)) :
+                    $current_id   = get_the_ID();
+                    $cats         = wp_get_post_categories($current_id);
+                    $related_args = array(
+                        'category__in'        => $cats ?: array(),
+                        'post__not_in'        => array($current_id),
+                        'posts_per_page'      => 3,
+                        'orderby'             => 'rand',
+                        'ignore_sticky_posts' => 1,
+                    );
+                    $related = new WP_Query($related_args);
+                    if ($related->have_posts()) :
                 ?>
                 <div class="related-posts">
                     <h3 class="related-posts-title"><?php esc_html_e('Related Articles', 'ajnanda'); ?></h3>
@@ -124,7 +125,9 @@ get_header(); ?>
                                 <?php if (has_post_thumbnail()) : ?>
                                     <?php the_post_thumbnail('ajnanda-thumbnail', array('alt' => the_title_attribute(array('echo' => false)))); ?>
                                 <?php else : ?>
-                                    <div class="related-post-thumb-placeholder"></div>
+                                    <div class="related-post-thumb-placeholder" aria-hidden="true">
+                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 16l-5.5-5.5a1.5 1.5 0 00-2.12 0L4 19"/></svg>
+                                    </div>
                                 <?php endif; ?>
                             </div>
                             <div class="related-post-info">
@@ -137,11 +140,15 @@ get_header(); ?>
                         <?php endwhile; wp_reset_postdata(); ?>
                     </div>
                 </div>
-                <?php endif; ?>
+                <?php
+                    endif;
+                endif;
+                ?>
 
             </div>
         </article>
 
+        <?php if (get_theme_mod('show_post_navigation', true)) : ?>
         <div class="container">
             <?php
             the_post_navigation(array(
@@ -150,6 +157,7 @@ get_header(); ?>
             ));
             ?>
         </div>
+        <?php endif; ?>
 
         <?php
         if (comments_open() || get_comments_number()) :

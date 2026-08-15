@@ -54,6 +54,14 @@ $page_intro = strip_tags($page_intro);
                             <?php endif; ?>
 
                             <div class="blog-card-content">
+                                <?php if (get_theme_mod('post_meta_show_category', false)) :
+                                    $blog_card_categories = get_the_category_list(', ');
+                                    if ($blog_card_categories) :
+                                ?>
+                                <div class="blog-card-category"><?php echo wp_kses_post($blog_card_categories); ?></div>
+                                <?php
+                                    endif;
+                                endif; ?>
                                 <?php if (get_theme_mod('post_meta_show_date', false)) : ?>
                                 <div class="blog-card-date"><?php echo esc_html(get_the_date()); ?></div>
                                 <?php endif; ?>

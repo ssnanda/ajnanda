@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.4.13
+Version: 1.4.14
 License: GNU General Public License v2 or later
 Text Domain: ajnanda
 */
@@ -3062,6 +3062,23 @@ body.admin-bar .site-header {
     padding: 1.5rem;
 }
 
+.blog-card-category {
+    color: var(--primary);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+
+.blog-card-category a {
+    color: inherit;
+}
+
+.blog-card-category a:hover {
+    text-decoration: underline;
+}
+
 .blog-card-date {
     color: var(--gray-600);
     font-size: 0.875rem;
@@ -5027,10 +5044,13 @@ textarea.error {
 }
 .related-post-thumb img { width: 100%; height: 140px; object-fit: cover; display: block; }
 .related-post-thumb-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
     height: 140px;
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
-    opacity: 0.15;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 12%, var(--gray-100)), color-mix(in srgb, var(--secondary) 12%, var(--gray-100)));
+    color: color-mix(in srgb, var(--primary) 45%, var(--gray-300));
 }
 .related-post-info { padding: 0.875rem 1rem; }
 .related-post-date { font-size: 0.8rem; color: var(--gray-600); margin-bottom: 0.35rem; }
