@@ -3873,29 +3873,48 @@ function ajnanda_force_discussion_option_closed($value) {
     return $value;
 }
 
-// Grey out and annotate those same two checkboxes on Settings → Discussion so the
-// admin screen doesn't show a misleading "checked" state for something the theme
-// keeps closed — with a note pointing back to where it's actually controlled.
+// A page-top notice on Settings → Discussion when the theme has comments turned off —
+// every row below is about to be greyed out, and that's easy to miss without something
+// visible above the fold pointing to where comments are actually controlled.
+add_action('admin_notices', 'ajnanda_discussion_settings_notice');
+function ajnanda_discussion_settings_notice() {
+    $screen = get_current_screen();
+    if (!$screen || 'options-discussion' !== $screen->id || get_theme_mod('enable_comments', false)) {
+        return;
+    }
+
+    $customize_url = admin_url('customize.php?autofocus[section]=ajnanda_comments');
+    ?>
+    <div class="notice notice-warning">
+        <p>
+            <?php
+            printf(
+                /* translators: %s: "Enable them in Customize → Comments" link */
+                esc_html__('Comments are turned off by the AJNanda theme, so the settings below have no effect. %s to turn them back on.', 'ajnanda'),
+                '<a href="' . esc_url($customize_url) . '">' . esc_html__('Enable them in Customize → Comments', 'ajnanda') . '</a>'
+            );
+            ?>
+        </p>
+    </div>
+    <?php
+}
+
+// Grey out every comment-only control on Settings → Discussion so the admin screen
+// doesn't show a misleadingly "active" state for settings the theme has already made
+// moot — everything here is pointless once nothing can be submitted. Avatars are left
+// alone: they're used sitewide (e.g. the single-post author bio), not just for comments.
 add_action('admin_footer-options-discussion.php', 'ajnanda_lock_discussion_comment_settings');
 function ajnanda_lock_discussion_comment_settings() {
     if (get_theme_mod('enable_comments', false)) {
         return; // Theme-level comments are on — let core's own settings govern normally.
     }
-
-    $customize_url = admin_url('customize.php?autofocus[section]=ajnanda_comments');
-    $note_html     = sprintf(
-        /* translators: %s: "Enable them in Customize → Comments" link */
-        esc_html__('Comments are turned off by the AJNanda theme. %s to change this.', 'ajnanda'),
-        '<a href="' . esc_url($customize_url) . '">' . esc_html__('Enable them in Customize → Comments', 'ajnanda') . '</a>'
-    );
     ?>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
-        var noteHtml = <?php echo wp_json_encode($note_html); ?>;
-        var ids       = ['default_comment_status', 'default_ping_status'];
-        var lastLabel = null;
-
-        ids.forEach(function (id) {
+        // "Default post settings" row: only the two receive-side checkboxes are
+        // theme-controlled. "Attempt to notify any blogs linked to from the post"
+        // (outgoing pingbacks) is unrelated to receiving comments — left untouched.
+        ['default_comment_status', 'default_ping_status'].forEach(function (id) {
             var el = document.getElementById(id);
             if (!el) { return; }
             el.checked  = false;
@@ -3904,17 +3923,32 @@ function ajnanda_lock_discussion_comment_settings() {
             if (label) {
                 label.style.opacity = '0.6';
                 label.style.cursor  = 'not-allowed';
-                lastLabel = label;
             }
         });
 
-        if (lastLabel) {
-            var note = document.createElement('p');
-            note.className   = 'description ajnanda-comments-locked-note';
-            note.style.margin = '6px 0 0';
-            note.innerHTML   = noteHtml;
-            lastLabel.insertAdjacentElement('afterend', note);
-        }
+        // Everything else on this screen only matters once comments can actually be
+        // submitted. Grey out each row wholesale by its label rather than hand-picking
+        // individual field IDs, so any core fields added later under these same
+        // headings (new notification types, etc.) get covered automatically too.
+        var lockedRowLabels = [
+            'Other comment settings',
+            'Comment Pagination',
+            'Email me whenever',
+            'Before a comment appears',
+            'Comment Moderation',
+            'Disallowed Comment Keys'
+        ];
+
+        document.querySelectorAll('.form-table th').forEach(function (th) {
+            if (lockedRowLabels.indexOf(th.textContent.trim()) === -1) { return; }
+            var row = th.closest('tr');
+            var td  = row ? row.querySelector('td') : null;
+            if (!td) { return; }
+            td.querySelectorAll('input, select, textarea').forEach(function (field) {
+                field.disabled = true;
+            });
+            td.style.opacity = '0.6';
+        });
     });
     </script>
     <?php
