@@ -3873,6 +3873,19 @@ function ajnanda_force_discussion_option_closed($value) {
     return $value;
 }
 
+// Hide the wp-admin "Comments" menu item (and its unread-count badge) while the theme
+// has comments disabled — comments_open()/pings_open() are already forced closed
+// sitewide, so there's nothing to moderate and the menu is just clutter. This only
+// hides the menu link; the screen itself is still reachable by direct URL in case an
+// admin needs to check something left over from before comments were disabled.
+add_action('admin_menu', 'ajnanda_maybe_hide_comments_menu', 999);
+function ajnanda_maybe_hide_comments_menu() {
+    if (get_theme_mod('enable_comments', false)) {
+        return;
+    }
+    remove_menu_page('edit-comments.php');
+}
+
 // A page-top notice on Settings → Discussion when the theme has comments turned off —
 // every row below is about to be greyed out, and that's easy to miss without something
 // visible above the fold pointing to where comments are actually controlled.
