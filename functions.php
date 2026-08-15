@@ -3848,14 +3848,76 @@ function ajnanda_customize_register($wp_customize) {
 add_action('customize_register', 'ajnanda_customize_register');
 
 // Enforce the "Enable Comments" customizer toggle site-wide: when off (the default),
-// comments read as closed everywhere WordPress core checks comments_open() — including
-// wp-comments-post.php's own submission guard — not just in the single.php template.
+// comments (and pingbacks/trackbacks) read as closed everywhere WordPress core checks
+// comments_open()/pings_open() — including wp-comments-post.php's own submission guard
+// and the XML-RPC pingback handler — not just in the single.php template.
 add_filter('comments_open', 'ajnanda_comments_open_filter', 10, 2);
+add_filter('pings_open', 'ajnanda_comments_open_filter', 10, 2);
 function ajnanda_comments_open_filter($open, $post_id) {
     if (!get_theme_mod('enable_comments', false)) {
         return false;
     }
     return $open;
+}
+
+// Keep Settings → Discussion truthful instead of silently overridden: while the theme
+// toggle is off, report the "Allow comments/pingbacks on new posts" options as closed
+// (without overwriting whatever value is actually stored, so it's restored as-is the
+// moment comments are re-enabled in Customize).
+add_filter('option_default_comment_status', 'ajnanda_force_discussion_option_closed');
+add_filter('option_default_ping_status', 'ajnanda_force_discussion_option_closed');
+function ajnanda_force_discussion_option_closed($value) {
+    if (!get_theme_mod('enable_comments', false)) {
+        return 'closed';
+    }
+    return $value;
+}
+
+// Grey out and annotate those same two checkboxes on Settings → Discussion so the
+// admin screen doesn't show a misleading "checked" state for something the theme
+// keeps closed — with a note pointing back to where it's actually controlled.
+add_action('admin_footer-options-discussion.php', 'ajnanda_lock_discussion_comment_settings');
+function ajnanda_lock_discussion_comment_settings() {
+    if (get_theme_mod('enable_comments', false)) {
+        return; // Theme-level comments are on — let core's own settings govern normally.
+    }
+
+    $customize_url = admin_url('customize.php?autofocus[section]=ajnanda_comments');
+    $note_html     = sprintf(
+        /* translators: %s: "Enable them in Customize → Comments" link */
+        esc_html__('Comments are turned off by the AJNanda theme. %s to change this.', 'ajnanda'),
+        '<a href="' . esc_url($customize_url) . '">' . esc_html__('Enable them in Customize → Comments', 'ajnanda') . '</a>'
+    );
+    ?>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var noteHtml = <?php echo wp_json_encode($note_html); ?>;
+        var ids       = ['default_comment_status', 'default_ping_status'];
+        var lastLabel = null;
+
+        ids.forEach(function (id) {
+            var el = document.getElementById(id);
+            if (!el) { return; }
+            el.checked  = false;
+            el.disabled = true;
+            var label = el.closest('label');
+            if (label) {
+                label.style.opacity = '0.6';
+                label.style.cursor  = 'not-allowed';
+                lastLabel = label;
+            }
+        });
+
+        if (lastLabel) {
+            var note = document.createElement('p');
+            note.className   = 'description ajnanda-comments-locked-note';
+            note.style.margin = '6px 0 0';
+            note.innerHTML   = noteHtml;
+            lastLabel.insertAdjacentElement('afterend', note);
+        }
+    });
+    </script>
+    <?php
 }
 
 // Remove the built-in Menus panel — all menu settings live in Appearance → Menus.
