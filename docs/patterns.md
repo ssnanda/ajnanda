@@ -122,6 +122,15 @@ a fresh install). Where a pattern needs an image, it uses a styled
 `is-style-ajnanda-card-soft` placeholder group with instructional text
 ("Add an image here") — replace it with a real Image block after inserting.
 
+## Process / step patterns
+
+Two process patterns exist for different step counts: `ajnanda-pro/three-step-process`
+(legacy, 3-4 equal-height steps in one row) and `ajnanda/section-process-six-step`
+(6 steps in two rows of three, same step-card/icon-tile styling) for longer
+operational lifecycles — added while building a client site whose "how it
+works" needed six stages and three-step-process's single row got cramped.
+Reuse one of these before adding a third step-count variant.
+
 ## Adding a new pattern
 
 1. Create `patterns/{name}.php` with a header comment (`Title`, `Slug`,
