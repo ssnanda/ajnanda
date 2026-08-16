@@ -355,39 +355,6 @@ document.documentElement.classList.add('js');
             processObserver.observe(step);
         });
 
-        // Contact Form Handler
-        $('#contact-form').on('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = {
-                name: $(this).find('[name="name"]').val(),
-                email: $(this).find('[name="email"]').val(),
-                business: $(this).find('[name="business"]').val(),
-                message: $(this).find('[name="message"]').val()
-            };
-            
-            // Show loading state
-            const submitBtn = $(this).find('button[type="submit"]');
-            const originalText = submitBtn.html();
-            submitBtn.html('<span class="loading-spinner"></span> Sending...').prop('disabled', true);
-            
-            // Simulate form submission (replace with actual AJAX call)
-            var $form = $(this);
-            setTimeout(() => {
-                submitBtn.html('✓ Message Sent!').addClass('btn-sent');
-                $form[0].reset();
-
-                var $success = $('<div class="form-success-message" role="alert">Thank you for contacting University Place Office Suites! We will respond to your inquiry shortly.</div>');
-                $form.prepend($success);
-                $success[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-                setTimeout(() => {
-                    submitBtn.html(originalText).removeClass('btn-sent').prop('disabled', false);
-                    $success.fadeOut(400, function() { $(this).remove(); });
-                }, 5000);
-            }, 1000);
-        });
-
         // Performance optimization: Debounce scroll events
         function debounce(func, wait) {
             let timeout;
@@ -405,13 +372,10 @@ document.documentElement.classList.add('js');
 
         // Apply debounce to scroll handlers
         const debouncedScroll = debounce(function() {
-            animateOnScroll();
             revealSections();
         }, 10);
 
         $(window).on('scroll', debouncedScroll);
-
-        console.log('🚀 NCLLC Pro Theme loaded successfully!');
     });
 
 })(jQuery);

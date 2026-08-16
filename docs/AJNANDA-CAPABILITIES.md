@@ -502,9 +502,8 @@ codebase, treat it as worth double-checking against this list.
 - **NCLLC naming**: the theme was renamed from an earlier "NCLLC
   Pro"/"NCLLC" project. `@package NCLLC_Pro` doc-comment headers remain in
   most root PHP files and several `inc/` files (cosmetic only — text
-  domain is `'ajnanda'` throughout, not `'ncllc'`). `js/main.js` has the
-  same header comment plus a leftover `console.log('🚀 NCLLC Pro Theme
-  loaded successfully!')`. Five Customizer control classes are still
+  domain is `'ajnanda'` throughout, not `'ncllc'`). `js/main.js` still has
+  the same header comment. Five Customizer control classes are still
   named `NCLLC_Pro_*` and are genuinely active (see the Customizer
   inventory above) — not dead code, just old naming. Two legacy PHP
   constants, `NCLLC_GOOGLE_PLACES_API_KEY` / `NCLLC_GOOGLE_PLACE_ID`
@@ -513,6 +512,18 @@ codebase, treat it as worth double-checking against this list.
   for "NCLLC Professional Theme" / `ncllc-pro` and describes older
   marketing copy, not the current site-builder capabilities — treat it as
   stale, not authoritative.
+- **`js/main.js` dead code removed (2026-08-16)**: a leftover
+  `$('#contact-form').on('submit', ...)` handler from the original
+  NCLLC/"University Place Office Suites" demo template — inert on every
+  real site (no current template produces `#contact-form`), but it also
+  called an undefined `animateOnScroll()` function from inside the
+  page-wide debounced scroll handler below it, throwing a real
+  `ReferenceError` on **every scroll, on every AJNanda site**, found while
+  testing a client site's forms with a real browser. Both the dead handler
+  and the undefined-function call are removed; the debounced scroll
+  handler now only calls `revealSections()` (still separately bound
+  directly too, so scroll-reveal behavior is unchanged) — see `docs/patterns.md`
+  for the scroll-reveal animation classes this supports.
 - **Multi-generation option/theme_mod migrations** (`functions.php`,
   `after_setup_theme`): `ncllc_left_panel_enabled` etc. → `ajnanda_left_panel_enabled`
   etc.; `upos_office_shortcuts`/`upos_store_shortcuts` nav-menu-location
