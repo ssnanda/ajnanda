@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 1.4.20
+Version: 1.4.21
 License: GNU General Public License v2 or later
 Text Domain: ajnanda
 */
@@ -1947,6 +1947,14 @@ body.admin-bar .site-header {
     background:
         linear-gradient(180deg, #f8fbff 0%, #ffffff 45%),
         var(--gray-50);
+}
+
+/* The AJCore client portal manages its own vertical rhythm and reads as an app
+   rather than a marketing page, so trim the generous page-section padding there. */
+body.page-client-portal .page-content-section,
+.page-content-section:has(.ajcore-portal-shell) {
+    padding-top: 1rem;
+    padding-bottom: 2rem;
 }
 
 .page-content-panel {
