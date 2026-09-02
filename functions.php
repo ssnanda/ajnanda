@@ -5273,6 +5273,7 @@ add_action('after_setup_theme', 'ajnanda_gutenberg_support');
 require_once get_template_directory() . '/inc/github-theme-updater.php';
 require_once get_template_directory() . '/inc/duplicate-content.php';
 require_once get_template_directory() . '/inc/seo.php';
+require_once get_template_directory() . '/inc/search-ai/bootstrap.php';
 require_once get_template_directory() . '/blocks/ajnanda-blocks/loader.php';
 
 /**

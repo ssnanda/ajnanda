@@ -58,6 +58,14 @@ function ajnanda_seo_render_settings_page() {
         wp_die(esc_html__('Insufficient permissions.', 'ajnanda'));
     }
 
+    if (class_exists('AJNanda_Search_AI_Admin')) {
+        wp_safe_redirect(add_query_arg(
+            array('page' => AJNanda_Search_AI_Admin::PAGE_SLUG, 'tab' => 'seo'),
+            admin_url('admin.php')
+        ));
+        exit;
+    }
+
     $values = array(
         'seo_meta_description_default' => get_theme_mod('seo_meta_description_default', ''),
         'seo_default_social_image'     => get_theme_mod('seo_default_social_image', ''),
@@ -90,7 +98,7 @@ function ajnanda_seo_save_settings() {
     set_theme_mod('seo_llms_txt_enabled', ajnanda_sanitize_checkbox($_POST['seo_llms_txt_enabled'] ?? ''));
 
     wp_safe_redirect(add_query_arg(
-        array('page' => 'ajnanda-seo-settings', 'ajnanda_seo_saved' => '1'),
+        array('page' => 'ajnanda-search-ai', 'tab' => 'seo', 'ajnanda_seo_saved' => '1'),
         admin_url('admin.php')
     ));
     exit;
@@ -99,6 +107,14 @@ function ajnanda_seo_save_settings() {
 function ajnanda_seo_render_insights_page() {
     if (! current_user_can('manage_options')) {
         wp_die(esc_html__('Insufficient permissions.', 'ajnanda'));
+    }
+
+    if (class_exists('AJNanda_Search_AI_Admin')) {
+        wp_safe_redirect(add_query_arg(
+            array('page' => AJNanda_Search_AI_Admin::PAGE_SLUG, 'tab' => 'insights'),
+            admin_url('admin.php')
+        ));
+        exit;
     }
 
     include get_template_directory() . '/inc/admin/views/seo-insights.php';
