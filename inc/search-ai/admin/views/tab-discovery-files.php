@@ -1,0 +1,18 @@
+<?php
+if (! defined('ABSPATH')) { exit; }
+$owner_label = static function ($item) {
+    if (! empty($item['ownership']['ajnanda'])) { return __('AJNanda', 'ajnanda'); }
+    return implode(', ', $item['ownership']['external']);
+};
+?>
+<div class="ajnanda-admin-section">
+    <h2><?php esc_html_e('Discovery outputs', 'ajnanda'); ?></h2>
+    <p><?php esc_html_e('Status and ownership of the standard discovery outputs used by this site. Configure them in their respective tabs.', 'ajnanda'); ?></p>
+    <?php if ($discovery_status['policy_count']) : ?><div class="notice notice-info inline"><p><?php printf(esc_html(_n('Content Access currently contains %d exclusion rule.', 'Content Access currently contains %d exclusion rules.', $discovery_status['policy_count'], 'ajnanda')), (int) $discovery_status['policy_count']); ?></p></div><?php endif; ?>
+    <div class="ajnanda-admin-grid ajnanda-discovery-grid">
+        <div class="ajnanda-admin-card"><h2><?php esc_html_e('XML Sitemap', 'ajnanda'); ?></h2><span class="ajnanda-admin-pill <?php echo $discovery_status['sitemap']['ownership']['ajnanda'] ? 'is-success' : 'is-warning'; ?>"><?php echo esc_html($owner_label($discovery_status['sitemap'])); ?></span><p><?php echo $discovery_status['sitemap']['ownership']['ajnanda'] ? esc_html__('WordPress core sitemap with AJNanda Content Access filtering.', 'ajnanda') : esc_html__('A recognized SEO plugin owns sitemap generation; AJNanda does not apply competing core-sitemap filters.', 'ajnanda'); ?></p><a class="button" target="_blank" rel="noopener" href="<?php echo esc_url($discovery_status['sitemap']['url']); ?>"><?php esc_html_e('View Sitemap', 'ajnanda'); ?></a></div>
+        <div class="ajnanda-admin-card"><h2><?php esc_html_e('robots.txt', 'ajnanda'); ?></h2><span class="ajnanda-admin-pill is-success"><?php esc_html_e('Available', 'ajnanda'); ?></span><p><?php esc_html_e('Preserves WordPress rules and appends AJNanda’s registry-backed AI crawler policy. Content paths are disallowed only when advanced crawler blocking is enabled.', 'ajnanda'); ?></p><a class="button" target="_blank" rel="noopener" href="<?php echo esc_url($discovery_status['robots']['url']); ?>"><?php esc_html_e('View robots.txt', 'ajnanda'); ?></a></div>
+        <div class="ajnanda-admin-card"><h2><?php esc_html_e('llms.txt', 'ajnanda'); ?></h2><span class="ajnanda-admin-pill <?php echo $discovery_status['llms_txt']['enabled'] ? 'is-success' : 'is-warning'; ?>"><?php echo $discovery_status['llms_txt']['enabled'] ? esc_html__('Enabled', 'ajnanda') : esc_html__('Disabled or delegated', 'ajnanda'); ?></span><p><?php printf(esc_html__('Owner: %s. Uses the Site Profile and excludes content blocked from llms.txt advertising.', 'ajnanda'), esc_html($owner_label($discovery_status['llms_txt']))); ?></p><?php if ($discovery_status['llms_txt']['enabled']) : ?><a class="button" target="_blank" rel="noopener" href="<?php echo esc_url($discovery_status['llms_txt']['url']); ?>"><?php esc_html_e('View llms.txt', 'ajnanda'); ?></a><?php endif; ?></div>
+        <div class="ajnanda-admin-card"><h2><?php esc_html_e('Schema', 'ajnanda'); ?></h2><span class="ajnanda-admin-pill <?php echo $discovery_status['schema']['active'] ? 'is-success' : 'is-warning'; ?>"><?php echo $discovery_status['schema']['active'] ? esc_html__('AJNanda active', 'ajnanda') : ($discovery_status['schema']['enabled'] ? esc_html__('Delegated', 'ajnanda') : esc_html__('Disabled', 'ajnanda')); ?></span><p><?php printf(esc_html__('Owner: %s. AJNanda schema uses the canonical Site Profile when AJNanda owns this capability.', 'ajnanda'), esc_html($owner_label($discovery_status['schema']))); ?></p></div>
+    </div>
+</div>

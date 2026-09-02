@@ -69,6 +69,7 @@ class AJNanda_Search_AI_Admin {
         $profile = AJNanda_Search_AI_Site_Profile::get();
         $policy = AJNanda_Search_AI_Content_Policy::settings();
         $crawler_registry = AJNanda_Search_AI_Crawler_Registry::all();
+        $discovery_status = AJNanda_Search_AI_Discovery_Files::status();
         $public_post_types = get_post_types(array('public' => true, 'show_ui' => true), 'objects');
         unset($public_post_types['attachment']);
         $selected_content = array();

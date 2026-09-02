@@ -35,8 +35,8 @@ class AJNanda_Search_AI_Capability_Ownership {
     }
 
     /**
-     * Describe likely ownership without changing output in Phase 1.
-     * Later integrations may safely supplement a plugin-owned graph.
+     * Describe effective ownership. Capability-specific filters can opt
+     * AJNanda back in when a verified safe integration is available.
      */
     public static function get($capability) {
         $owners = array();
@@ -48,12 +48,16 @@ class AJNanda_Search_AI_Capability_Ownership {
 
         $result = array(
             'capability' => $capability,
-            'ajnanda'    => true,
+            'ajnanda'    => empty($owners),
             'external'   => $owners,
-            'status'     => empty($owners) ? 'ajnanda' : 'review_required',
+            'status'     => empty($owners) ? 'ajnanda' : 'external',
         );
 
         return apply_filters('ajnanda_search_ai_capability_ownership', $result, $capability);
     }
-}
 
+    public static function ajnanda_owns($capability) {
+        $ownership = self::get($capability);
+        return ! empty($ownership['ajnanda']);
+    }
+}

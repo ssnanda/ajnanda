@@ -91,8 +91,12 @@ function ajnanda_seo_save_settings() {
     set_theme_mod('seo_meta_description_default', sanitize_text_field(wp_unslash($_POST['seo_meta_description_default'] ?? '')));
     set_theme_mod('seo_default_social_image', esc_url_raw(wp_unslash($_POST['seo_default_social_image'] ?? '')));
     set_theme_mod('seo_twitter_handle', sanitize_text_field(wp_unslash($_POST['seo_twitter_handle'] ?? '')));
-    set_theme_mod('seo_business_phone', sanitize_text_field(wp_unslash($_POST['seo_business_phone'] ?? '')));
-    set_theme_mod('seo_business_address', sanitize_text_field(wp_unslash($_POST['seo_business_address'] ?? '')));
+    if (isset($_POST['seo_business_phone']) || ! class_exists('AJNanda_Search_AI_Admin')) {
+        set_theme_mod('seo_business_phone', sanitize_text_field(wp_unslash($_POST['seo_business_phone'] ?? '')));
+    }
+    if (isset($_POST['seo_business_address']) || ! class_exists('AJNanda_Search_AI_Admin')) {
+        set_theme_mod('seo_business_address', sanitize_text_field(wp_unslash($_POST['seo_business_address'] ?? '')));
+    }
     set_theme_mod('seo_schema_enabled', ajnanda_sanitize_checkbox($_POST['seo_schema_enabled'] ?? ''));
     // The combined control is retained only for the legacy standalone form.
     // Search & AI's AI Discovery tab owns the separated crawler policies.
@@ -264,6 +268,9 @@ function ajnanda_seo_head_tags() {
     $post_id     = $is_singular ? get_queried_object_id() : 0;
 
     $noindex = $post_id && get_post_meta($post_id, '_ajnanda_seo_noindex', true);
+    if ($post_id && class_exists('AJNanda_Search_AI_Content_Policy')) {
+        $noindex = ! AJNanda_Search_AI_Content_Policy::evaluate($post_id)['search_indexable'];
+    }
     if ($noindex) {
         echo '<meta name="robots" content="noindex,follow">' . "\n";
     }
@@ -344,73 +351,8 @@ function ajnanda_seo_excerpt_fallback($post_id) {
  * changes beyond writing headings as questions, which many posts already do naturally.
  */
 function ajnanda_seo_output_schema($is_singular, $post_id) {
-    $graphs = array();
-
-    if (is_front_page() || is_home()) {
-        $phone   = get_theme_mod('seo_business_phone', '');
-        $address = get_theme_mod('seo_business_address', '');
-        $logo    = get_theme_mod('custom_logo') ? wp_get_attachment_image_url(get_theme_mod('custom_logo'), 'full') : '';
-
-        $business = array(
-            '@context' => 'https://schema.org',
-            // A physical address alone is enough to identify a LocalBusiness per schema.org — phone
-            // isn't required, and this site intentionally keeps its phone number off public pages/schema
-            // (SMS-only contact), so requiring both would leave sites with an address but no published
-            // phone stuck on the generic Organization type for no real reason.
-            '@type'    => $address ? 'LocalBusiness' : 'Organization',
-            'name'     => get_bloginfo('name') ?: wp_parse_url(home_url(), PHP_URL_HOST),
-            'url'      => home_url('/'),
-        );
-        if (get_bloginfo('description')) {
-            $business['description'] = get_bloginfo('description');
-        }
-        if ($logo) {
-            $business['logo'] = $logo;
-        }
-        if ($phone) {
-            $business['telephone'] = $phone;
-        }
-        if ($address) {
-            $business['address'] = $address;
-        }
-        $graphs[] = $business;
-
-        // Accordion-only on the front page: a heading+paragraph landing page has plenty of h2/h3s
-        // that end in "?" without being FAQ content (e.g. a "Ready to Protect Your NC Business?"
-        // CTA followed by its own paragraph) — the <details>/<summary> accordion is the only pattern
-        // here that unambiguously means "this is a real FAQ entry", so skip the heading heuristic.
-        $faq = ajnanda_seo_extract_faq_schema($post_id ?: get_queried_object_id(), false);
-        if ($faq) {
-            $graphs[] = $faq;
-        }
-    }
-
-    if ($is_singular && 'post' === get_post_type($post_id)) {
-        $image = has_post_thumbnail($post_id) ? get_the_post_thumbnail_url($post_id, 'large') : get_theme_mod('seo_default_social_image', '');
-        $article = array(
-            '@context'      => 'https://schema.org',
-            '@type'         => 'Article',
-            'headline'      => get_the_title($post_id),
-            'datePublished' => get_the_date('c', $post_id),
-            'dateModified'  => get_the_modified_date('c', $post_id),
-            'author'        => array(
-                '@type' => 'Person',
-                'name'  => get_the_author_meta('display_name', get_post_field('post_author', $post_id)),
-            ),
-        );
-        if ($image) {
-            $article['image'] = $image;
-        }
-        $graphs[] = $article;
-
-        $faq = ajnanda_seo_extract_faq_schema($post_id);
-        if ($faq) {
-            $graphs[] = $faq;
-        }
-    }
-
-    foreach ($graphs as $graph) {
-        echo '<script type="application/ld+json">' . wp_json_encode($graph, JSON_UNESCAPED_SLASHES) . '</script>' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+    if (class_exists('AJNanda_Search_AI_Schema_Graph')) {
+        AJNanda_Search_AI_Schema_Graph::render($is_singular, $post_id);
     }
 }
 
@@ -484,13 +426,28 @@ function ajnanda_seo_robots_txt($output, $public) {
     }
 
     if (class_exists('AJNanda_Search_AI_Crawler_Registry')) {
+        $policy = AJNanda_Search_AI_Content_Policy::settings();
+        $blocked_paths = array();
+        if (! empty($policy['effects']['automated_crawlers'])) {
+            $blocked_paths = $policy['excluded_paths'];
+            foreach ($policy['excluded_post_ids'] as $post_id) {
+                $path = wp_parse_url(get_permalink($post_id), PHP_URL_PATH);
+                if ($path) { $blocked_paths[] = $path; }
+            }
+            $blocked_paths = array_values(array_unique($blocked_paths));
+            if ($blocked_paths) {
+                $output .= "\n# Explicit content exclusions for automated crawlers\nUser-agent: *\n";
+                foreach ($blocked_paths as $path) { $output .= 'Disallow: ' . $path . "\n"; }
+                $output .= "\n";
+            }
+        }
         $output .= "\n# AI crawler policy (AJNanda Search & AI)\n";
         foreach (AJNanda_Search_AI_Crawler_Registry::all() as $crawler) {
             if (empty($crawler['robots_control']) || empty($crawler['token'])) {
                 continue;
             }
-            $directive = AJNanda_Search_AI_Crawler_Registry::category_allowed($crawler['category']) ? 'Allow' : 'Disallow';
-            $output .= 'User-agent: ' . $crawler['token'] . "\n{$directive}: /\n\n";
+            if (AJNanda_Search_AI_Crawler_Registry::category_allowed($crawler['category'])) { continue; }
+            $output .= 'User-agent: ' . $crawler['token'] . "\nDisallow: /\n\n";
         }
         return $output;
     }
@@ -509,7 +466,10 @@ function ajnanda_seo_robots_txt($output, $public) {
 
 add_action('template_redirect', 'ajnanda_seo_maybe_serve_llms_txt');
 function ajnanda_seo_maybe_serve_llms_txt() {
-    if (! get_theme_mod('seo_llms_txt_enabled', true)) {
+    $enabled = class_exists('AJNanda_Search_AI_Discovery_Files')
+        ? AJNanda_Search_AI_Discovery_Files::llms_enabled()
+        : get_theme_mod('seo_llms_txt_enabled', true);
+    if (! $enabled) {
         return;
     }
     $path = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
@@ -523,6 +483,9 @@ function ajnanda_seo_maybe_serve_llms_txt() {
 }
 
 function ajnanda_seo_render_llms_txt() {
+    if (class_exists('AJNanda_Search_AI_Discovery_Files')) {
+        return AJNanda_Search_AI_Discovery_Files::render_llms_txt();
+    }
     $site_name = get_bloginfo('name') ?: wp_parse_url(home_url(), PHP_URL_HOST);
     $lines   = array();
     $lines[] = '# ' . $site_name;

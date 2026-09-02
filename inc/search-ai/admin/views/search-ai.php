@@ -31,14 +31,14 @@ $base_url = admin_url('admin.php?page=' . AJNanda_Search_AI_Admin::PAGE_SLUG);
             <?php include get_template_directory() . '/inc/search-ai/admin/views/tab-content-access.php'; ?>
         <?php elseif ('ai-discovery' === $tab) : ?>
             <?php include get_template_directory() . '/inc/search-ai/admin/views/tab-ai-discovery.php'; ?>
+        <?php elseif ('discovery-files' === $tab) : ?>
+            <?php include get_template_directory() . '/inc/search-ai/admin/views/tab-discovery-files.php'; ?>
         <?php elseif ('seo' === $tab) : ?>
             <?php
             $values = array(
                 'seo_meta_description_default' => get_theme_mod('seo_meta_description_default', ''),
                 'seo_default_social_image'     => get_theme_mod('seo_default_social_image', ''),
                 'seo_twitter_handle'           => get_theme_mod('seo_twitter_handle', ''),
-                'seo_business_phone'           => get_theme_mod('seo_business_phone', ''),
-                'seo_business_address'         => get_theme_mod('seo_business_address', ''),
                 'seo_schema_enabled'           => get_theme_mod('seo_schema_enabled', true),
                 'seo_allow_ai_crawlers'        => get_theme_mod('seo_allow_ai_crawlers', true),
                 'seo_llms_txt_enabled'         => get_theme_mod('seo_llms_txt_enabled', true),

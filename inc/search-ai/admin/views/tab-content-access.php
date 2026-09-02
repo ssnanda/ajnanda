@@ -21,7 +21,7 @@ $ajax_nonce = wp_create_nonce('ajnanda_search_ai_find_content');
         <h2><?php esc_html_e('Exclude content from discovery', 'ajnanda'); ?></h2>
         <p><strong><?php esc_html_e('Normal public content is discoverable.', 'ajnanda'); ?></strong> <?php esc_html_e('Search for the pages or posts that should be exceptions.', 'ajnanda'); ?></p>
 
-        <label class="ajnanda-search-ai-primary-policy"><input type="checkbox" id="search_ai_default_exclusion" name="search_ai_default_exclusion" value="1" <?php checked($uses_default); ?>> <span><strong><?php esc_html_e('Exclude from Search & AI discovery', 'ajnanda'); ?></strong><small><?php esc_html_e('Applies AJNanda’s sensible default exclusion behavior to the content selected below.', 'ajnanda'); ?></small></span></label>
+        <label class="ajnanda-search-ai-primary-policy"><input type="checkbox" id="search_ai_default_exclusion" name="search_ai_default_exclusion" value="1" <?php checked($uses_default); ?>> <span><strong><?php esc_html_e('Exclude selected content from Search & AI discovery', 'ajnanda'); ?></strong><small><?php esc_html_e('Applies AJNanda’s sensible default exclusion behavior to the content selected below.', 'ajnanda'); ?></small></span></label>
 
         <div class="ajnanda-content-picker" data-ajax-url="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" data-nonce="<?php echo esc_attr($ajax_nonce); ?>">
             <label for="ajnanda_content_search"><strong><?php esc_html_e('Find content to exclude', 'ajnanda'); ?></strong></label>
