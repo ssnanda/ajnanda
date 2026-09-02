@@ -11,7 +11,7 @@ if (! defined('ABSPATH')) {
 
 class AJNanda_Search_AI_Settings {
 
-    const MIGRATION_VERSION = 1;
+    const MIGRATION_VERSION = 2;
     const VERSION_MOD = 'search_ai_migration_version';
 
     /**
@@ -55,6 +55,8 @@ class AJNanda_Search_AI_Settings {
             'search_ai_allow_ai_search'      => $legacy_ai,
             'search_ai_allow_ai_training'    => $legacy_ai,
             'search_ai_allow_user_retrieval' => $legacy_ai,
+            'search_ai_profile_phone'        => get_theme_mod('seo_business_phone', ''),
+            'search_ai_profile_address_street' => get_theme_mod('seo_business_address', ''),
         );
 
         foreach ($mappings as $key => $value) {
@@ -66,4 +68,3 @@ class AJNanda_Search_AI_Settings {
         set_theme_mod(self::VERSION_MOD, self::MIGRATION_VERSION);
     }
 }
-

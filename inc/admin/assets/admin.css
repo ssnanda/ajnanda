@@ -408,6 +408,44 @@ body.ajnanda-modal-open {
     margin-top: 12px !important;
 }
 
+.ajnanda-search-ai-toggle-list {
+    display: grid;
+    gap: 12px;
+    margin: 18px 0;
+}
+
+.ajnanda-search-ai-toggle-list > label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #f9fafb;
+}
+
+.ajnanda-search-ai-toggle-list small {
+    display: block;
+    margin-top: 4px;
+    color: #6b7280;
+}
+
+.ajnanda-search-ai-multiselect {
+    width: 100%;
+    max-width: 680px;
+}
+
+.ajnanda-search-ai-check-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+    margin-bottom: 20px;
+}
+
+.ajnanda-search-ai-registry code {
+    white-space: nowrap;
+}
+
 @media (max-width: 782px) {
     .ajnanda-search-ai-tabs {
         border-bottom: 0;

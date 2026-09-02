@@ -94,7 +94,11 @@ function ajnanda_seo_save_settings() {
     set_theme_mod('seo_business_phone', sanitize_text_field(wp_unslash($_POST['seo_business_phone'] ?? '')));
     set_theme_mod('seo_business_address', sanitize_text_field(wp_unslash($_POST['seo_business_address'] ?? '')));
     set_theme_mod('seo_schema_enabled', ajnanda_sanitize_checkbox($_POST['seo_schema_enabled'] ?? ''));
-    set_theme_mod('seo_allow_ai_crawlers', ajnanda_sanitize_checkbox($_POST['seo_allow_ai_crawlers'] ?? ''));
+    // The combined control is retained only for the legacy standalone form.
+    // Search & AI's AI Discovery tab owns the separated crawler policies.
+    if (isset($_POST['seo_allow_ai_crawlers']) || ! class_exists('AJNanda_Search_AI_Admin')) {
+        set_theme_mod('seo_allow_ai_crawlers', ajnanda_sanitize_checkbox($_POST['seo_allow_ai_crawlers'] ?? ''));
+    }
     set_theme_mod('seo_llms_txt_enabled', ajnanda_sanitize_checkbox($_POST['seo_llms_txt_enabled'] ?? ''));
 
     wp_safe_redirect(add_query_arg(
@@ -475,14 +479,27 @@ function ajnanda_seo_extract_faq_schema($post_id, $include_heading_pairs = true)
 
 add_filter('robots_txt', 'ajnanda_seo_robots_txt', 10, 2);
 function ajnanda_seo_robots_txt($output, $public) {
-    if (! $public || ! get_theme_mod('seo_allow_ai_crawlers', true)) {
+    if (! $public) {
         return $output;
     }
 
-    $ai_bots = array('GPTBot', 'ClaudeBot', 'PerplexityBot', 'Google-Extended', 'CCBot');
-    $output .= "\n# AI answer engine crawlers — explicitly allowed (AJNanda SEO Settings)\n";
-    foreach ($ai_bots as $bot) {
-        $output .= "User-agent: {$bot}\nAllow: /\n\n";
+    if (class_exists('AJNanda_Search_AI_Crawler_Registry')) {
+        $output .= "\n# AI crawler policy (AJNanda Search & AI)\n";
+        foreach (AJNanda_Search_AI_Crawler_Registry::all() as $crawler) {
+            if (empty($crawler['robots_control']) || empty($crawler['token'])) {
+                continue;
+            }
+            $directive = AJNanda_Search_AI_Crawler_Registry::category_allowed($crawler['category']) ? 'Allow' : 'Disallow';
+            $output .= 'User-agent: ' . $crawler['token'] . "\n{$directive}: /\n\n";
+        }
+        return $output;
+    }
+
+    if (get_theme_mod('seo_allow_ai_crawlers', true)) {
+        $output .= "\n# AI answer engine crawlers — explicitly allowed (AJNanda SEO Settings)\n";
+        foreach (array('GPTBot', 'ClaudeBot', 'PerplexityBot', 'Google-Extended', 'CCBot') as $bot) {
+            $output .= "User-agent: {$bot}\nAllow: /\n\n";
+        }
     }
 
     return $output;

@@ -22,7 +22,16 @@ $base_url = admin_url('admin.php?page=' . AJNanda_Search_AI_Admin::PAGE_SLUG);
     </nav>
 
     <div class="ajnanda-search-ai-content">
-        <?php if ('seo' === $tab) : ?>
+        <?php if (isset($_GET['updated'])) : ?>
+            <div class="notice notice-success is-dismissible"><p><?php esc_html_e('Search & AI settings saved.', 'ajnanda'); ?></p></div>
+        <?php endif; ?>
+        <?php if ('site-profile' === $tab) : ?>
+            <?php include get_template_directory() . '/inc/search-ai/admin/views/tab-site-profile.php'; ?>
+        <?php elseif ('content-access' === $tab) : ?>
+            <?php include get_template_directory() . '/inc/search-ai/admin/views/tab-content-access.php'; ?>
+        <?php elseif ('ai-discovery' === $tab) : ?>
+            <?php include get_template_directory() . '/inc/search-ai/admin/views/tab-ai-discovery.php'; ?>
+        <?php elseif ('seo' === $tab) : ?>
             <?php
             $values = array(
                 'seo_meta_description_default' => get_theme_mod('seo_meta_description_default', ''),
@@ -47,4 +56,3 @@ $base_url = admin_url('admin.php?page=' . AJNanda_Search_AI_Admin::PAGE_SLUG);
         <?php endif; ?>
     </div>
 </div>
-

@@ -18,7 +18,7 @@ if (! defined('ABSPATH')) {
             <tr><th scope="row"><label for="seo_twitter_handle"><?php esc_html_e('Twitter/X Handle', 'ajnanda'); ?></label></th><td><input type="text" id="seo_twitter_handle" name="seo_twitter_handle" value="<?php echo esc_attr($values['seo_twitter_handle']); ?>" class="regular-text"></td></tr>
             <tr><th scope="row"><label for="seo_business_phone"><?php esc_html_e('Business Phone', 'ajnanda'); ?></label></th><td><input type="text" id="seo_business_phone" name="seo_business_phone" value="<?php echo esc_attr($values['seo_business_phone']); ?>" class="regular-text"></td></tr>
             <tr><th scope="row"><label for="seo_business_address"><?php esc_html_e('Business Address', 'ajnanda'); ?></label></th><td><input type="text" id="seo_business_address" name="seo_business_address" value="<?php echo esc_attr($values['seo_business_address']); ?>" class="regular-text"></td></tr>
-            <tr><th scope="row"><?php esc_html_e('Existing output', 'ajnanda'); ?></th><td><label><input type="checkbox" name="seo_schema_enabled" value="1" <?php checked($values['seo_schema_enabled']); ?>> <?php esc_html_e('Enable Schema Markup', 'ajnanda'); ?></label><br><label><input type="checkbox" name="seo_allow_ai_crawlers" value="1" <?php checked($values['seo_allow_ai_crawlers']); ?>> <?php esc_html_e('Allow AI Crawlers (legacy combined control)', 'ajnanda'); ?></label><br><label><input type="checkbox" name="seo_llms_txt_enabled" value="1" <?php checked($values['seo_llms_txt_enabled']); ?>> <?php esc_html_e('Publish /llms.txt', 'ajnanda'); ?></label><p class="description"><?php esc_html_e('The combined AI control remains here temporarily to preserve Phase 1 behavior. Separate AI Search, training, and user-retrieval controls will replace it when their policy consumers are implemented.', 'ajnanda'); ?></p></td></tr>
+            <tr><th scope="row"><?php esc_html_e('Existing output', 'ajnanda'); ?></th><td><label><input type="checkbox" name="seo_schema_enabled" value="1" <?php checked($values['seo_schema_enabled']); ?>> <?php esc_html_e('Enable Schema Markup', 'ajnanda'); ?></label><br><label><input type="checkbox" name="seo_llms_txt_enabled" value="1" <?php checked($values['seo_llms_txt_enabled']); ?>> <?php esc_html_e('Publish /llms.txt', 'ajnanda'); ?></label><p class="description"><?php esc_html_e('AI crawler access is managed separately on the AI Discovery tab.', 'ajnanda'); ?></p></td></tr>
         </table>
         <?php submit_button(__('Save SEO Settings', 'ajnanda')); ?>
     </form>
@@ -36,4 +36,3 @@ if (! defined('ABSPATH')) {
     });
 })();
 </script>
-

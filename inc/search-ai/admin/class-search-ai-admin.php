@@ -16,6 +16,9 @@ class AJNanda_Search_AI_Admin {
     public static function init() {
         add_action('admin_menu', array(__CLASS__, 'register_menu'), 25);
         add_action('admin_menu', array(__CLASS__, 'hide_legacy_menu_items'), 99);
+        add_action('admin_post_ajnanda_save_search_ai_profile', array(__CLASS__, 'save_profile'));
+        add_action('admin_post_ajnanda_save_search_ai_policy', array(__CLASS__, 'save_policy'));
+        add_action('admin_post_ajnanda_save_ai_discovery', array(__CLASS__, 'save_ai_discovery'));
     }
 
     public static function tabs() {
@@ -63,6 +66,30 @@ class AJNanda_Search_AI_Admin {
         }
 
         $profile = AJNanda_Search_AI_Site_Profile::get();
+        $policy = AJNanda_Search_AI_Content_Policy::settings();
+        $crawler_registry = AJNanda_Search_AI_Crawler_Registry::all();
+        $public_post_types = get_post_types(array('public' => true, 'show_ui' => true), 'objects');
+        unset($public_post_types['attachment']);
+        $selectable_content = array();
+        if ('content-access' === $tab) {
+            $selectable_content = get_posts(array(
+                'post_type' => array_keys($public_post_types),
+                'post_status' => 'publish',
+                'numberposts' => 250,
+                'orderby' => 'title',
+                'order' => 'ASC',
+            ));
+            $shown_ids = wp_list_pluck($selectable_content, 'ID');
+            $missing_ids = array_diff($policy['excluded_post_ids'], array_map('intval', $shown_ids));
+            if ($missing_ids) {
+                $selectable_content = array_merge($selectable_content, get_posts(array(
+                    'post_type' => array_keys($public_post_types),
+                    'post_status' => 'publish',
+                    'post__in' => array_map('absint', $missing_ids),
+                    'numberposts' => count($missing_ids),
+                )));
+            }
+        }
         $ownership = array();
         foreach (AJNanda_Search_AI_Capability_Ownership::capabilities() as $capability) {
             $ownership[$capability] = AJNanda_Search_AI_Capability_Ownership::get($capability);
@@ -70,5 +97,86 @@ class AJNanda_Search_AI_Admin {
 
         include get_template_directory() . '/inc/search-ai/admin/views/search-ai.php';
     }
-}
 
+    private static function authorize($nonce_action) {
+        if (! current_user_can('manage_options')) {
+            wp_die(esc_html__('Insufficient permissions.', 'ajnanda'));
+        }
+        check_admin_referer($nonce_action);
+    }
+
+    private static function redirect($tab) {
+        wp_safe_redirect(add_query_arg(array('page' => self::PAGE_SLUG, 'tab' => $tab, 'updated' => '1'), admin_url('admin.php')));
+        exit;
+    }
+
+    public static function save_profile() {
+        self::authorize('ajnanda_save_search_ai_profile');
+        $text_fields = array(
+            'search_ai_profile_name', 'search_ai_profile_alternate_name', 'search_ai_profile_industry',
+            'search_ai_profile_phone', 'search_ai_profile_address_street', 'search_ai_profile_address_city',
+            'search_ai_profile_address_state', 'search_ai_profile_address_postal', 'search_ai_profile_address_country',
+        );
+        foreach ($text_fields as $key) {
+            set_theme_mod($key, sanitize_text_field(wp_unslash($_POST[$key] ?? '')));
+        }
+        set_theme_mod('search_ai_profile_description', sanitize_textarea_field(wp_unslash($_POST['search_ai_profile_description'] ?? '')));
+        set_theme_mod('search_ai_profile_website', esc_url_raw(wp_unslash($_POST['search_ai_profile_website'] ?? '')));
+        set_theme_mod('search_ai_profile_email', sanitize_email(wp_unslash($_POST['search_ai_profile_email'] ?? '')));
+        set_theme_mod('search_ai_profile_logo_id', absint($_POST['search_ai_profile_logo_id'] ?? 0));
+
+        $types = AJNanda_Search_AI_Site_Profile::organization_types();
+        $type = sanitize_text_field(wp_unslash($_POST['search_ai_profile_organization_type'] ?? 'Organization'));
+        set_theme_mod('search_ai_profile_organization_type', isset($types[$type]) ? $type : 'Organization');
+        $location_modes = array('physical', 'service_area', 'regional_national', 'none');
+        $mode = sanitize_key(wp_unslash($_POST['search_ai_profile_location_mode'] ?? 'none'));
+        set_theme_mod('search_ai_profile_location_mode', in_array($mode, $location_modes, true) ? $mode : 'none');
+
+        set_theme_mod('search_ai_profile_service_areas', self::sanitize_lines($_POST['search_ai_profile_service_areas'] ?? ''));
+        set_theme_mod('search_ai_profile_identity_urls', self::sanitize_url_lines($_POST['search_ai_profile_identity_urls'] ?? ''));
+
+        // Keep legacy consumers supplied until the schema layer moves to Site Profile.
+        set_theme_mod('seo_business_phone', get_theme_mod('search_ai_profile_phone', ''));
+        set_theme_mod('seo_business_address', get_theme_mod('search_ai_profile_address_street', ''));
+        self::redirect('site-profile');
+    }
+
+    public static function save_policy() {
+        self::authorize('ajnanda_save_search_ai_policy');
+        $post_ids = array_map('absint', (array) ($_POST['search_ai_excluded_post_ids'] ?? array()));
+        set_theme_mod('search_ai_excluded_post_ids', array_values(array_filter(array_unique($post_ids))));
+
+        $allowed_types = get_post_types(array('public' => true), 'names');
+        $post_types = array_map('sanitize_key', (array) ($_POST['search_ai_excluded_post_types'] ?? array()));
+        set_theme_mod('search_ai_excluded_post_types', array_values(array_intersect($post_types, $allowed_types)));
+
+        set_theme_mod('search_ai_excluded_paths', AJNanda_Search_AI_Content_Policy::normalize_paths(self::sanitize_lines($_POST['search_ai_excluded_paths'] ?? '')));
+        $effects = array();
+        foreach (AJNanda_Search_AI_Content_Policy::default_effects() as $key => $default) {
+            $effects[$key] = isset($_POST['search_ai_exclusion_effects'][$key]);
+        }
+        set_theme_mod('search_ai_exclusion_effects', $effects);
+        self::redirect('content-access');
+    }
+
+    public static function save_ai_discovery() {
+        self::authorize('ajnanda_save_ai_discovery');
+        $ai_search = isset($_POST['search_ai_allow_ai_search']);
+        $ai_training = isset($_POST['search_ai_allow_ai_training']);
+        AJNanda_Search_AI_Settings::set('search_ai_allow_ai_search', $ai_search);
+        AJNanda_Search_AI_Settings::set('search_ai_allow_ai_training', $ai_training);
+        AJNanda_Search_AI_Settings::set('search_ai_allow_user_retrieval', isset($_POST['search_ai_allow_user_retrieval']));
+        // Preserve the best possible value for legacy integrations with only one combined switch.
+        set_theme_mod('seo_allow_ai_crawlers', $ai_search || $ai_training);
+        self::redirect('ai-discovery');
+    }
+
+    private static function sanitize_lines($value) {
+        $lines = preg_split('/\r\n|\r|\n/', wp_unslash((string) $value));
+        return array_values(array_filter(array_map('sanitize_text_field', $lines)));
+    }
+
+    private static function sanitize_url_lines($value) {
+        return array_values(array_filter(array_map('esc_url_raw', self::sanitize_lines($value))));
+    }
+}
