@@ -22,6 +22,14 @@ class AJNanda_Search_AI_Site_Profile {
      */
     public static function get() {
         $logo_id = (int) get_theme_mod('search_ai_profile_logo_id', get_theme_mod('custom_logo', 0));
+        $location_mode = get_theme_mod('search_ai_profile_location_mode', 'none');
+        $stored_address = array(
+            'street'  => self::value('search_ai_profile_address_street', get_theme_mod('seo_business_address', '')),
+            'city'    => self::value('search_ai_profile_address_city', ''),
+            'state'   => self::value('search_ai_profile_address_state', ''),
+            'postal'  => self::value('search_ai_profile_address_postal', ''),
+            'country' => self::value('search_ai_profile_address_country', ''),
+        );
         $profile = array(
             'name'              => self::value('search_ai_profile_name', get_bloginfo('name')),
             'alternate_name'    => self::value('search_ai_profile_alternate_name', ''),
@@ -33,15 +41,13 @@ class AJNanda_Search_AI_Site_Profile {
             'website'           => self::value('search_ai_profile_website', home_url('/')),
             'phone'             => self::value('search_ai_profile_phone', get_theme_mod('seo_business_phone', '')),
             'email'             => self::value('search_ai_profile_email', ''),
-            'address'           => array(
-                'street'  => self::value('search_ai_profile_address_street', get_theme_mod('seo_business_address', '')),
-                'city'    => self::value('search_ai_profile_address_city', ''),
-                'state'   => self::value('search_ai_profile_address_state', ''),
-                'postal'  => self::value('search_ai_profile_address_postal', ''),
-                'country' => self::value('search_ai_profile_address_country', ''),
-            ),
-            'location_mode'     => get_theme_mod('search_ai_profile_location_mode', 'none'),
-            'service_areas'     => (array) get_theme_mod('search_ai_profile_service_areas', array()),
+            // Only a physical-location profile exposes a PostalAddress. Stored
+            // values remain available to the editor if the mode changes later.
+            'address'           => 'physical' === $location_mode ? $stored_address : array_fill_keys(array_keys($stored_address), ''),
+            'stored_address'    => $stored_address,
+            'location_mode'     => $location_mode,
+            'service_areas'     => 'none' === $location_mode ? array() : (array) get_theme_mod('search_ai_profile_service_areas', array()),
+            'stored_service_areas' => (array) get_theme_mod('search_ai_profile_service_areas', array()),
             'identity_urls'     => (array) get_theme_mod('search_ai_profile_identity_urls', array()),
             'services'          => (array) get_theme_mod('search_ai_profile_services', array()),
         );

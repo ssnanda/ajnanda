@@ -8,6 +8,7 @@ $categories = AJNanda_Search_AI_Crawler_Registry::categories();
     <div class="ajnanda-admin-section">
         <h2><?php esc_html_e('AI discovery policy', 'ajnanda'); ?></h2>
         <p><?php esc_html_e('Choose how AI systems may use normal public content. Content Access exclusions can narrow these site-wide choices.', 'ajnanda'); ?></p>
+        <div class="notice notice-info inline"><p><strong><?php esc_html_e('AI Search and AI training are separate choices.', 'ajnanda'); ?></strong> <?php esc_html_e('You can allow supported AI Search crawlers so the site may be found and cited while keeping model-development crawlers restricted.', 'ajnanda'); ?></p></div>
         <div class="ajnanda-search-ai-toggle-list">
             <label><input type="checkbox" name="search_ai_allow_ai_search" value="1" <?php checked(AJNanda_Search_AI_Settings::get('search_ai_allow_ai_search')); ?>> <span><strong><?php esc_html_e('Allow public content in AI Search and retrieval', 'ajnanda'); ?></strong><small><?php esc_html_e('Allows supported search crawlers that help services cite and link to this website.', 'ajnanda'); ?></small></span></label>
             <label><input type="checkbox" name="search_ai_allow_ai_training" value="1" <?php checked(AJNanda_Search_AI_Settings::get('search_ai_allow_ai_training')); ?>> <span><strong><?php esc_html_e('Allow AI companies to use public content for model development', 'ajnanda'); ?></strong><small><?php esc_html_e('Controls supported training/model-development crawler tokens separately from AI Search.', 'ajnanda'); ?></small></span></label>
@@ -25,4 +26,3 @@ $categories = AJNanda_Search_AI_Crawler_Registry::categories();
         <tbody><?php foreach ($crawler_registry as $crawler) : ?><tr><td><?php echo esc_html($crawler['provider']); ?></td><td><code><?php echo esc_html($crawler['label']); ?></code><?php if (! empty($crawler['control_only'])) : ?><br><small><?php esc_html_e('Policy token; not a distinct request User-Agent.', 'ajnanda'); ?></small><?php endif; ?></td><td><?php echo esc_html($categories[$crawler['category']] ?? $crawler['category']); ?></td><td><?php echo ! empty($crawler['robots_control']) ? esc_html__('Supported', 'ajnanda') : esc_html__('Not reliably controllable', 'ajnanda'); ?></td><td><?php echo AJNanda_Search_AI_Crawler_Registry::category_allowed($crawler['category']) ? esc_html__('Allow', 'ajnanda') : esc_html__('Restrict', 'ajnanda'); ?></td></tr><?php endforeach; ?></tbody>
     </table>
 </div>
-

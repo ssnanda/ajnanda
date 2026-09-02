@@ -29,20 +29,37 @@ $location_modes = array(
             <tr><th><label for="search_ai_profile_website"><?php esc_html_e('Website URL', 'ajnanda'); ?></label></th><td><input class="regular-text" type="url" id="search_ai_profile_website" name="search_ai_profile_website" value="<?php echo esc_url($profile['website']); ?>"></td></tr>
             <tr><th><label for="search_ai_profile_phone"><?php esc_html_e('Phone', 'ajnanda'); ?></label></th><td><input class="regular-text" type="text" id="search_ai_profile_phone" name="search_ai_profile_phone" value="<?php echo esc_attr($profile['phone']); ?>"></td></tr>
             <tr><th><label for="search_ai_profile_email"><?php esc_html_e('Public email', 'ajnanda'); ?></label></th><td><input class="regular-text" type="email" id="search_ai_profile_email" name="search_ai_profile_email" value="<?php echo esc_attr($profile['email']); ?>"></td></tr>
-            <tr><th><label for="search_ai_profile_location_mode"><?php esc_html_e('Location model', 'ajnanda'); ?></label></th><td><select id="search_ai_profile_location_mode" name="search_ai_profile_location_mode"><?php foreach ($location_modes as $value => $label) : ?><option value="<?php echo esc_attr($value); ?>" <?php selected($profile['location_mode'], $value); ?>><?php echo esc_html($label); ?></option><?php endforeach; ?></select></td></tr>
-            <tr><th><label for="search_ai_profile_address_street"><?php esc_html_e('Address', 'ajnanda'); ?></label></th><td><input class="regular-text" type="text" id="search_ai_profile_address_street" name="search_ai_profile_address_street" value="<?php echo esc_attr($profile['address']['street']); ?>"></td></tr>
-            <tr><th><label for="search_ai_profile_address_city"><?php esc_html_e('City', 'ajnanda'); ?></label></th><td><input type="text" id="search_ai_profile_address_city" name="search_ai_profile_address_city" value="<?php echo esc_attr($profile['address']['city']); ?>"></td></tr>
-            <tr><th><label for="search_ai_profile_address_state"><?php esc_html_e('State/region', 'ajnanda'); ?></label></th><td><input type="text" id="search_ai_profile_address_state" name="search_ai_profile_address_state" value="<?php echo esc_attr($profile['address']['state']); ?>"></td></tr>
-            <tr><th><label for="search_ai_profile_address_postal"><?php esc_html_e('ZIP/postal code', 'ajnanda'); ?></label></th><td><input type="text" id="search_ai_profile_address_postal" name="search_ai_profile_address_postal" value="<?php echo esc_attr($profile['address']['postal']); ?>"></td></tr>
-            <tr><th><label for="search_ai_profile_address_country"><?php esc_html_e('Country', 'ajnanda'); ?></label></th><td><input type="text" id="search_ai_profile_address_country" name="search_ai_profile_address_country" value="<?php echo esc_attr($profile['address']['country']); ?>"></td></tr>
-            <tr><th><label for="search_ai_profile_service_areas"><?php esc_html_e('Service areas', 'ajnanda'); ?></label></th><td><textarea class="large-text" rows="4" id="search_ai_profile_service_areas" name="search_ai_profile_service_areas"><?php echo esc_textarea(implode("\n", $profile['service_areas'])); ?></textarea><p class="description"><?php esc_html_e('One city, region, state, or country per line.', 'ajnanda'); ?></p></td></tr>
-            <tr><th><label for="search_ai_profile_identity_urls"><?php esc_html_e('Social and identity URLs', 'ajnanda'); ?></label></th><td><textarea class="large-text" rows="5" id="search_ai_profile_identity_urls" name="search_ai_profile_identity_urls"><?php echo esc_textarea(implode("\n", $profile['identity_urls'])); ?></textarea><p class="description"><?php esc_html_e('One full public profile URL per line.', 'ajnanda'); ?></p></td></tr>
+            <tr><th><label for="search_ai_profile_location_mode"><?php esc_html_e('Location model', 'ajnanda'); ?></label></th><td><select id="search_ai_profile_location_mode" name="search_ai_profile_location_mode"><?php foreach ($location_modes as $value => $label) : ?><option value="<?php echo esc_attr($value); ?>" <?php selected($profile['location_mode'], $value); ?>><?php echo esc_html($label); ?></option><?php endforeach; ?></select><p id="ajnanda_location_explanation" class="description"></p></td></tr>
+            <tr data-location-field="address"><th><label for="search_ai_profile_address_street"><?php esc_html_e('Address', 'ajnanda'); ?></label></th><td><input class="regular-text" type="text" id="search_ai_profile_address_street" name="search_ai_profile_address_street" value="<?php echo esc_attr($profile['stored_address']['street']); ?>"></td></tr>
+            <tr data-location-field="address"><th><label for="search_ai_profile_address_city"><?php esc_html_e('City', 'ajnanda'); ?></label></th><td><input type="text" id="search_ai_profile_address_city" name="search_ai_profile_address_city" value="<?php echo esc_attr($profile['stored_address']['city']); ?>"></td></tr>
+            <tr data-location-field="address"><th><label for="search_ai_profile_address_state"><?php esc_html_e('State/region', 'ajnanda'); ?></label></th><td><input type="text" id="search_ai_profile_address_state" name="search_ai_profile_address_state" value="<?php echo esc_attr($profile['stored_address']['state']); ?>"></td></tr>
+            <tr data-location-field="address"><th><label for="search_ai_profile_address_postal"><?php esc_html_e('ZIP/postal code', 'ajnanda'); ?></label></th><td><input type="text" id="search_ai_profile_address_postal" name="search_ai_profile_address_postal" value="<?php echo esc_attr($profile['stored_address']['postal']); ?>"></td></tr>
+            <tr data-location-field="address"><th><label for="search_ai_profile_address_country"><?php esc_html_e('Country', 'ajnanda'); ?></label></th><td><input type="text" id="search_ai_profile_address_country" name="search_ai_profile_address_country" value="<?php echo esc_attr($profile['stored_address']['country']); ?>"></td></tr>
+            <tr data-location-field="service-areas"><th><label for="search_ai_profile_service_areas"><?php esc_html_e('Service areas', 'ajnanda'); ?></label></th><td><textarea class="large-text" rows="4" id="search_ai_profile_service_areas" name="search_ai_profile_service_areas"><?php echo esc_textarea(implode("\n", $profile['stored_service_areas'])); ?></textarea><p class="description"><?php esc_html_e('One city, region, state, or country per line.', 'ajnanda'); ?></p></td></tr>
+            <tr><th><label for="search_ai_profile_identity_urls"><?php esc_html_e('Social profiles and identity links', 'ajnanda'); ?></label></th><td><textarea class="large-text" rows="5" id="search_ai_profile_identity_urls" name="search_ai_profile_identity_urls"><?php echo esc_textarea(implode("\n", $profile['identity_urls'])); ?></textarea><p class="description"><?php esc_html_e('One full public profile URL per line.', 'ajnanda'); ?></p></td></tr>
         </table>
     </div>
     <?php submit_button(__('Save Site Profile', 'ajnanda')); ?>
 </form>
 <script>
 (function () {
+    var locationModel = document.getElementById('search_ai_profile_location_mode');
+    var locationExplanation = document.getElementById('ajnanda_location_explanation');
+    function updateLocationFields() {
+        if (!locationModel) { return; }
+        var mode = locationModel.value;
+        document.querySelectorAll('[data-location-field="address"]').forEach(function (row) { row.hidden = mode !== 'physical'; });
+        document.querySelectorAll('[data-location-field="service-areas"]').forEach(function (row) { row.hidden = mode === 'none'; });
+        var messages = {
+            physical: <?php echo wp_json_encode(__('The structured address will be treated as a public machine-readable location.', 'ajnanda')); ?>,
+            service_area: <?php echo wp_json_encode(__('The address is retained but not published; service areas describe where the business operates.', 'ajnanda')); ?>,
+            regional_national: <?php echo wp_json_encode(__('The address is retained but not published; use service areas for regional or national coverage.', 'ajnanda')); ?>,
+            none: <?php echo wp_json_encode(__('No address or service area will be exposed through the canonical Site Profile. Previously entered values are retained if you change this later.', 'ajnanda')); ?>
+        };
+        locationExplanation.textContent = messages[mode] || '';
+    }
+    if (locationModel) { locationModel.addEventListener('change', updateLocationFields); updateLocationFields(); }
+
     var choose = document.getElementById('ajnanda_profile_logo_button');
     var remove = document.getElementById('ajnanda_profile_logo_remove');
     var input = document.getElementById('search_ai_profile_logo_id');
