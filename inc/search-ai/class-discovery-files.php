@@ -29,7 +29,7 @@ class AJNanda_Search_AI_Discovery_Files {
         foreach ($posts as $post) {
             $decision = AJNanda_Search_AI_Content_Policy::evaluate($post->ID);
             if (empty($decision['advertise']['llms_txt'])) { continue; }
-            $title = trim(wp_strip_all_tags(get_the_title($post)));
+            $title = trim(wp_specialchars_decode(wp_strip_all_tags(get_the_title($post)), ENT_QUOTES));
             if (! $title) { continue; }
             $entries[] = '- [' . str_replace(array('[', ']'), '', $title) . '](' . get_permalink($post) . ')';
             if (count($entries) >= $limit) { break; }

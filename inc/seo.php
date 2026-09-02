@@ -477,6 +477,7 @@ function ajnanda_seo_maybe_serve_llms_txt() {
         return;
     }
 
+    status_header(200);
     header('Content-Type: text/plain; charset=utf-8');
     echo ajnanda_seo_render_llms_txt(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     exit;

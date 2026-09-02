@@ -24,14 +24,15 @@ class AJNanda_Search_AI_Schema_Graph {
             $nodes[] = self::identity_node($entity_id);
         }
         if ($is_singular && 'post' === get_post_type($post_id)) {
+            $author_name = get_the_author_meta('display_name', get_post_field('post_author', $post_id));
             $article = array(
                 '@type' => 'Article', '@id' => get_permalink($post_id) . '#article',
-                'url' => get_permalink($post_id), 'headline' => get_the_title($post_id),
+                'url' => get_permalink($post_id), 'headline' => wp_specialchars_decode(get_the_title($post_id), ENT_QUOTES),
                 'datePublished' => get_the_date('c', $post_id),
                 'dateModified' => get_the_modified_date('c', $post_id),
-                'author' => array('@type' => 'Person', 'name' => get_the_author_meta('display_name', get_post_field('post_author', $post_id))),
                 'publisher' => array('@id' => $entity_id),
             );
+            if ($author_name) { $article['author'] = array('@type' => 'Person', 'name' => $author_name); }
             $image = has_post_thumbnail($post_id) ? get_the_post_thumbnail_url($post_id, 'large') : get_theme_mod('seo_default_social_image', '');
             if ($image) { $article['image'] = $image; }
             $nodes[] = $article;
