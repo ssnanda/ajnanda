@@ -21,6 +21,7 @@ class AJNanda_Search_AI_Admin {
         add_action('admin_post_ajnanda_save_ai_discovery', array(__CLASS__, 'save_ai_discovery'));
         add_action('admin_post_ajnanda_save_llms_important_pages', array(__CLASS__, 'save_llms_important_pages'));
         add_action('admin_post_ajnanda_save_crawler_log_settings', array(__CLASS__, 'save_crawler_log_settings'));
+        add_action('admin_post_ajnanda_refresh_search_ai_roadmap', array(__CLASS__, 'refresh_roadmap'));
         add_action('wp_ajax_ajnanda_search_ai_find_content', array(__CLASS__, 'find_content'));
     }
 
@@ -35,6 +36,7 @@ class AJNanda_Search_AI_Admin {
             'insights'        => __('Insights', 'ajnanda'),
             'crawler-log'     => __('Crawler Log', 'ajnanda'),
             'settings'        => __('Settings', 'ajnanda'),
+            'roadmap'         => __('Roadmap', 'ajnanda'),
         );
     }
 
@@ -76,6 +78,7 @@ class AJNanda_Search_AI_Admin {
         $insights = 'insights' === $tab ? AJNanda_Search_AI_Insights::report() : array();
         $crawler_log = array();
         $crawler_event = null;
+        $roadmap = 'roadmap' === $tab ? AJNanda_Search_AI_Roadmap::get() : array();
         if ('crawler-log' === $tab) {
             $crawler_log = AJNanda_Search_AI_Crawler_Log_Store::table_exists() ? array(
                 'query' => AJNanda_Search_AI_Crawler_Log_Store::query($_GET),
@@ -234,6 +237,12 @@ class AJNanda_Search_AI_Admin {
         AJNanda_Search_AI_Settings::set('search_ai_crawler_ip_mode', in_array($ip_mode, array('anonymized', 'hashed', 'full'), true) ? $ip_mode : 'anonymized');
         AJNanda_Search_AI_Crawler_Log_Store::ensure_schedules();
         self::redirect('settings');
+    }
+
+    public static function refresh_roadmap() {
+        self::authorize('ajnanda_refresh_search_ai_roadmap');
+        AJNanda_Search_AI_Roadmap::get(true);
+        self::redirect('roadmap');
     }
 
     private static function sanitize_lines($value) {

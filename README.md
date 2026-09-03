@@ -94,6 +94,11 @@ GPL v2 or later
 
 For support, visit http://ncllc.ddev.site/
 
+## Documentation
+
+- [Search & AI architecture](docs/search-ai.md)
+- [Search & AI Roadmap](docs/search-ai-roadmap.md)
+
 ---
 
 Built with ❤️ for NCLLC

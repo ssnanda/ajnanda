@@ -54,6 +54,8 @@ $base_url = admin_url('admin.php?page=' . AJNanda_Search_AI_Admin::PAGE_SLUG);
             <?php include get_template_directory() . '/inc/search-ai/admin/views/tab-crawler-log.php'; ?>
         <?php elseif ('settings' === $tab) : ?>
             <?php include get_template_directory() . '/inc/search-ai/admin/views/tab-settings.php'; ?>
+        <?php elseif ('roadmap' === $tab) : ?>
+            <?php include get_template_directory() . '/inc/search-ai/admin/views/tab-roadmap.php'; ?>
         <?php else : ?>
             <?php include get_template_directory() . '/inc/search-ai/admin/views/tab-foundation.php'; ?>
         <?php endif; ?>

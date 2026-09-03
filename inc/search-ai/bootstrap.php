@@ -29,6 +29,7 @@ require_once __DIR__ . '/class-schema-graph.php';
 require_once __DIR__ . '/class-sitemap-policy.php';
 require_once __DIR__ . '/class-discovery-files.php';
 require_once __DIR__ . '/class-readiness.php';
+require_once __DIR__ . '/class-roadmap.php';
 require_once __DIR__ . '/class-insights.php';
 require_once __DIR__ . '/class-crawler-log-store.php';
 require_once __DIR__ . '/class-crawler-verifier.php';

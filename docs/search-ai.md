@@ -102,3 +102,7 @@ AJNanda stores reusable service-area records in the theme-native `search_ai_serv
 The Site Profile identity uses the business-default records for `areaServed`. Formal records contribute stable geographic nodes to the connected graph; custom areas and postal areas lacking sufficient country context safely remain Text. Physical address and service coverage remain independent concepts.
 
 Service pages inherit the business defaults unless `_ajnanda_service_area_mode` is explicitly set to `override`; selected record IDs are stored in `_ajnanda_service_area_ids`. An intentionally empty override omits `areaServed` and is surfaced as an editor/readiness warning. Product and General pages do not receive service-area semantics. No geography is inferred from page titles, content, customer addresses, or free-form prose.
+
+## Live roadmap
+
+The canonical [Search & AI Roadmap](search-ai-roadmap.md) lives in GitHub. The WordPress Roadmap tab is a cached, sanitized viewer of that document and does not maintain a separate feature registry. When a deferred capability becomes worth tracking, update the Markdown roadmap. When it ships, move it from **What's Next** to **Already in AJNanda** and revise its description when necessary.
