@@ -86,3 +86,11 @@ Native semantic blocks are the authoritative source. Enabled AJ FAQ and AJ How T
 The contributor pipeline parses a post once, traverses nested and reusable blocks with cycle/depth protection, validates incomplete and placeholder content, deduplicates equivalent nodes, and merges relationships into the main graph. Content excluded from schema relationships is never traversed. When another recognized SEO provider owns schema, the existing capability delegation suppresses AJNanda's graph; provider adapters are intentionally separate future work.
 
 Legacy FAQ compatibility is limited to visible WordPress Details blocks. Generic question-shaped headings are not inferred as FAQ schema.
+
+## Page-level business entities
+
+Pages may explicitly declare their primary meaning through `_ajnanda_primary_entity_type`. Missing metadata remains a General page; AJNanda never infers intent from a title, slug, page design, starter site, pattern, block, or content. Supported roles are General page, Service, Product, and Primary business location.
+
+Service and Product roles contribute provider-neutral primary nodes to the existing connected graph. Their name, URL, description, and featured image reuse the page's existing sources. Service may reference the Site Profile identity as provider and reuse configured service areas. Product intentionally omits offers, prices, availability, brand, manufacturer, seller, and identifiers until explicit structured sources exist.
+
+Primary business location points the WebPage at the existing canonical Site Profile identity and never creates a second inferred Place or LocalBusiness. It requires Physical location mode and a complete structured address. Malformed or invalid role configurations fall back to WebPage and appear in readiness diagnostics.

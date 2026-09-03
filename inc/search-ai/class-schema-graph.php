@@ -14,17 +14,26 @@ class AJNanda_Search_AI_Schema_Graph {
 
     public static function nodes($is_singular, $post_id) {
         $subject_id = absint($post_id ?: get_queried_object_id());
+        if ($subject_id && empty(AJNanda_Search_AI_Content_Policy::evaluate($subject_id)['advertise']['schema_relationships'])) { return array(); }
         $is_article = $is_singular && 'post' === get_post_type($subject_id);
         $context = new AJNanda_Search_AI_Schema_Context($subject_id, $is_article);
         $nodes = array(self::identity_node($context->identity_id), self::website_node($context), self::webpage_node($context));
         if ($is_article) { $nodes[] = self::article_node($subject_id, $context); }
 
         $contributions = array('nodes' => array(), 'relationships' => array(), 'explicit_faq' => false);
+        if ($subject_id && $is_singular && ! $is_article) {
+            $page_entity = AJNanda_Search_AI_Schema_Page_Entity_Contributor::contribute($context);
+            $nodes = array_merge($nodes, $page_entity['nodes']);
+            $contributions['relationships'] = array_merge($contributions['relationships'], $page_entity['relationships']);
+        }
         $entries = array();
         if ($subject_id && $is_singular) {
             $entries = AJNanda_Search_AI_Schema_Block_Walker::walk_post($subject_id);
-            $contributions = AJNanda_Search_AI_Schema_Contributors::collect($entries, $context);
-            $nodes = array_merge($nodes, $contributions['nodes']);
+            $block_contributions = AJNanda_Search_AI_Schema_Contributors::collect($entries, $context);
+            $nodes = array_merge($nodes, $block_contributions['nodes']);
+            $contributions['nodes'] = array_merge($contributions['nodes'], $block_contributions['nodes']);
+            $contributions['relationships'] = array_merge($contributions['relationships'], $block_contributions['relationships']);
+            $contributions['explicit_faq'] = $block_contributions['explicit_faq'];
         }
         if ($subject_id && empty($contributions['explicit_faq'])) {
             $legacy = AJNanda_Search_AI_Schema_Contributors::legacy_faq($entries, $context);
@@ -42,12 +51,9 @@ class AJNanda_Search_AI_Schema_Graph {
     }
 
     private static function webpage_node($context) {
-        $title = $context->post_id ? get_the_title($context->post_id) : get_bloginfo('name');
-        $node = array('@type' => 'WebPage', '@id' => $context->webpage_id, 'url' => $context->url, 'name' => html_entity_decode($title, ENT_QUOTES | ENT_HTML5, get_bloginfo('charset') ?: 'UTF-8'), 'isPartOf' => array('@id' => $context->website_id), 'about' => array('@id' => $context->identity_id));
+        $node = array('@type' => 'WebPage', '@id' => $context->webpage_id, 'url' => $context->url, 'name' => $context->title, 'isPartOf' => array('@id' => $context->website_id), 'about' => array('@id' => $context->identity_id));
         if ($context->is_article) { $node['mainEntity'] = array('@id' => $context->primary_id); }
-        $description = $context->post_id ? get_post_meta($context->post_id, '_ajnanda_seo_description', true) : $context->profile['description'];
-        if (! $description && $context->post_id && function_exists('ajnanda_seo_excerpt_fallback')) { $description = ajnanda_seo_excerpt_fallback($context->post_id); }
-        if ($description) { $node['description'] = AJNanda_Search_AI_Schema_Validator::text($description); }
+        if ($context->description) { $node['description'] = $context->description; }
         return $node;
     }
 
@@ -55,7 +61,7 @@ class AJNanda_Search_AI_Schema_Graph {
         $article = array('@type' => 'Article', '@id' => $context->primary_id, 'url' => $context->url, 'headline' => html_entity_decode(get_the_title($post_id), ENT_QUOTES | ENT_HTML5, get_bloginfo('charset') ?: 'UTF-8'), 'datePublished' => get_the_date('c', $post_id), 'dateModified' => get_the_modified_date('c', $post_id), 'mainEntityOfPage' => array('@id' => $context->webpage_id), 'isPartOf' => array('@id' => $context->website_id), 'publisher' => array('@id' => $context->identity_id));
         $author_name = get_the_author_meta('display_name', get_post_field('post_author', $post_id));
         if ($author_name) { $article['author'] = array('@type' => 'Person', 'name' => $author_name); }
-        $image = has_post_thumbnail($post_id) ? get_the_post_thumbnail_url($post_id, 'large') : get_theme_mod('seo_default_social_image', '');
+        $image = $context->image ?: get_theme_mod('seo_default_social_image', '');
         if ($image) { $article['image'] = $image; }
         return $article;
     }

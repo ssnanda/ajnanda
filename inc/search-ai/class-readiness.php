@@ -37,6 +37,7 @@ class AJNanda_Search_AI_Readiness {
         self::add($checks, 'ai', 'registry', count(AJNanda_Search_AI_Crawler_Registry::all()) ? 'pass' : 'fail', __('Crawler policy registry', 'ajnanda'), sprintf(__('The maintainable registry contains %d provider tokens.', 'ajnanda'), count(AJNanda_Search_AI_Crawler_Registry::all())), 'ai-discovery', 2);
 
         self::content_checks($checks, $policy);
+        self::page_entity_checks($checks);
         self::discovery_checks($checks, $discovery);
         self::ownership_checks($checks);
         self::crawler_log_checks($checks);
@@ -77,6 +78,17 @@ class AJNanda_Search_AI_Readiness {
             if (empty(AJNanda_Search_AI_Content_Policy::evaluate($id)['advertise']['llms_txt'])) { $conflicts[] = get_the_title($id) ?: '#' . $id; }
         }
         self::add($checks, 'content', 'important_conflicts', $conflicts ? 'warning' : 'pass', __('Important Page conflicts', 'ajnanda'), $conflicts ? sprintf(__('Selected Important Pages are excluded from llms.txt: %s.', 'ajnanda'), implode(', ', $conflicts)) : __('Selected Important Pages do not conflict with llms.txt exclusions.', 'ajnanda'), $conflicts ? 'content-access' : 'discovery-files', 1);
+    }
+
+    private static function page_entity_checks(&$checks) {
+        $issues = AJNanda_Search_AI_Page_Semantic_Intent::diagnostic_issues();
+        if ($issues) {
+            $labels = array_slice(wp_list_pluck($issues, 'title'), 0, 5);
+            $suffix = count($issues) > 5 ? sprintf(__(' and %d more', 'ajnanda'), count($issues) - 5) : '';
+            self::add($checks, 'entity', 'page_entity_intent', 'warning', __('Page meaning configuration', 'ajnanda'), sprintf(__('Pages with invalid Search & AI meaning settings: %1$s%2$s. Invalid settings safely fall back to General page.', 'ajnanda'), implode(', ', $labels), $suffix), 'seo', 1);
+            return;
+        }
+        self::add($checks, 'entity', 'page_entity_intent', 'pass', __('Page meaning configuration', 'ajnanda'), __('Configured page meanings are valid; unclassified pages remain General pages.', 'ajnanda'), 'seo', 1);
     }
 
     private static function discovery_checks(&$checks, $discovery) {

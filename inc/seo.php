@@ -519,6 +519,7 @@ function ajnanda_seo_render_meta_box($post) {
     $description = get_post_meta($post->ID, '_ajnanda_seo_description', true);
     $image       = get_post_meta($post->ID, '_ajnanda_seo_social_image', true);
     $noindex     = get_post_meta($post->ID, '_ajnanda_seo_noindex', true);
+    $page_intent = class_exists('AJNanda_Search_AI_Page_Semantic_Intent') ? AJNanda_Search_AI_Page_Semantic_Intent::evaluate($post->ID) : array('stored' => '', 'requested' => 'webpage', 'valid' => true, 'reason' => '');
     ?>
     <p>
         <label for="ajnanda_seo_title"><strong><?php esc_html_e('SEO Title', 'ajnanda'); ?></strong></label><br>
@@ -536,6 +537,20 @@ function ajnanda_seo_render_meta_box($post) {
     <p>
         <label><input type="checkbox" name="ajnanda_seo_noindex" value="1" <?php checked($noindex, '1'); ?>> <?php esc_html_e('Hide from search engines (noindex)', 'ajnanda'); ?></label>
     </p>
+    <?php if ('page' === $post->post_type && class_exists('AJNanda_Search_AI_Page_Semantic_Intent')) : ?>
+        <hr>
+        <h3><?php esc_html_e('Search & AI — Page meaning', 'ajnanda'); ?></h3>
+        <p>
+            <label for="ajnanda_primary_entity_type"><strong><?php esc_html_e('What does this page primarily describe?', 'ajnanda'); ?></strong></label><br>
+            <select id="ajnanda_primary_entity_type" name="ajnanda_primary_entity_type">
+                <?php foreach (AJNanda_Search_AI_Page_Semantic_Intent::choices() as $value => $label) : ?>
+                    <option value="<?php echo esc_attr($value); ?>" <?php selected($page_intent['requested'], $value); ?>><?php echo esc_html($label); ?></option>
+                <?php endforeach; ?>
+            </select>
+        </p>
+        <p class="description"><?php esc_html_e("This helps search engines and AI systems understand the main subject of this page. AJNanda reuses the page and Site Profile information; you don't need to enter it again.", 'ajnanda'); ?></p>
+        <?php if (! $page_intent['valid']) : ?><p class="notice notice-warning inline"><strong><?php esc_html_e('Page meaning needs attention:', 'ajnanda'); ?></strong> <?php echo esc_html($page_intent['reason']); ?></p><?php endif; ?>
+    <?php endif; ?>
     <script>
     (function () {
         var btn = document.getElementById('ajnanda_seo_social_image_button');
@@ -571,6 +586,11 @@ function ajnanda_seo_save_meta_box($post_id) {
     update_post_meta($post_id, '_ajnanda_seo_description', sanitize_textarea_field(wp_unslash($_POST['ajnanda_seo_description'] ?? '')));
     update_post_meta($post_id, '_ajnanda_seo_social_image', esc_url_raw(wp_unslash($_POST['ajnanda_seo_social_image'] ?? '')));
     update_post_meta($post_id, '_ajnanda_seo_noindex', isset($_POST['ajnanda_seo_noindex']) ? '1' : '');
+    if ('page' === get_post_type($post_id) && class_exists('AJNanda_Search_AI_Page_Semantic_Intent') && isset($_POST['ajnanda_primary_entity_type'])) {
+        $entity_type = AJNanda_Search_AI_Page_Semantic_Intent::sanitize(wp_unslash($_POST['ajnanda_primary_entity_type']));
+        if ($entity_type && 'webpage' !== $entity_type) { update_post_meta($post_id, AJNanda_Search_AI_Page_Semantic_Intent::META_KEY, $entity_type); }
+        else { delete_post_meta($post_id, AJNanda_Search_AI_Page_Semantic_Intent::META_KEY); }
+    }
 }
 
 add_action('admin_enqueue_scripts', 'ajnanda_seo_admin_enqueue_media');
