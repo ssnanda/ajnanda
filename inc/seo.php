@@ -344,11 +344,7 @@ function ajnanda_seo_excerpt_fallback($post_id) {
 }
 
 /**
- * Organization/LocalBusiness on the front page, Article + auto-detected FAQPage on single posts.
- * FAQPage detection looks for "heading ending in a question mark, followed by a paragraph" in the
- * post content — no manual Q&A entry required. This is the main GEO/AEO win: structured Q&A that
- * AI answer engines (and Google's AI Overviews) can lift directly, without any content-authoring
- * changes beyond writing headings as questions, which many posts already do naturally.
+ * Delegates structured data output to the connected Search & AI schema graph.
  */
 function ajnanda_seo_output_schema($is_singular, $post_id) {
     if (class_exists('AJNanda_Search_AI_Schema_Graph')) {
@@ -357,17 +353,13 @@ function ajnanda_seo_output_schema($is_singular, $post_id) {
 }
 
 /**
- * Scans rendered post content for two FAQ authoring patterns and turns whichever is found into
- * FAQPage JSON-LD:
- *  1. "<h2/h3>question?</h2><p>answer</p>" — the plain heading+paragraph style blog posts tend to use.
- *  2. "<details><summary>question?</summary>...<p>answer</p>...</details>" — the accordion (Details
+ * Compatibility fallback for legacy FAQ content. Explicit enabled AJ FAQ blocks are handled by
+ * the semantic contributor layer and take precedence. This fallback recognizes only the Details
  *     block) style the homepage FAQ section uses. Everything between <summary> and </details> is
  *     collapsed into one answer so multi-paragraph accordion answers still produce a single,
- *     complete acceptedAnswer instead of only the first <p>.
- * Deliberately simple regex matching (no block-editor-specific parsing) so it works regardless of
- * which block/editor produced the HTML.
+ *     complete acceptedAnswer. Generic heading/paragraph pairs are deliberately not inferred.
  */
-function ajnanda_seo_extract_faq_schema($post_id, $include_heading_pairs = true) {
+function ajnanda_seo_extract_faq_schema($post_id, $include_heading_pairs = false) {
     $content = apply_filters('the_content', get_post_field('post_content', $post_id));
     $questions = array();
 
@@ -377,12 +369,6 @@ function ajnanda_seo_extract_faq_schema($post_id, $include_heading_pairs = true)
     // end in "?" lets it swallow everything up to the next unrelated "?" anywhere later in the page
     // into one bogus giant "question". Bounding first, then checking for "?" on the isolated result,
     // makes a non-question heading fail to match at all rather than leak into whatever comes after it.
-    if ($include_heading_pairs && preg_match_all('/<h[23][^>]*>((?:(?!<\/h[23]>).)*)<\/h[23]>\s*<p[^>]*>((?:(?!<\/p>).)*)<\/p>/is', $content, $matches, PREG_SET_ORDER)) {
-        foreach ($matches as $match) {
-            $questions[] = array($match[1], $match[2]);
-        }
-    }
-
     if (preg_match_all('/<details[^>]*>\s*<summary[^>]*>((?:(?!<\/summary>).)*)<\/summary>((?:(?!<\/details>).)*)<\/details>/is', $content, $matches, PREG_SET_ORDER)) {
         foreach ($matches as $match) {
             $questions[] = array($match[1], $match[2]);

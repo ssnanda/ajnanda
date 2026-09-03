@@ -1757,9 +1757,9 @@
         }
     });
     simpleCardBlock('ajnanda/team', __('AJ Team', 'ajnanda'), 'groups', 'aj-team', [['core/image'], ['core/heading', { level: 3, content: 'Team Member' }], ['core/paragraph', { content: 'Role or short bio.' }]], {
-        attributes: { imageShape: { type: 'string', default: 'rounded' }, socialLinks: { type: 'boolean', default: false } },
+        attributes: { imageShape: { type: 'string', default: 'rounded' }, socialLinks: { type: 'boolean', default: false }, enableSchema: { type: 'boolean', default: false } },
         controls: function(props) {
-            return [el(SelectControl, { label: __('Image shape', 'ajnanda'), value: props.attributes.imageShape || 'rounded', options: [{ label: __('Rounded', 'ajnanda'), value: 'rounded' }, { label: __('Circle', 'ajnanda'), value: 'circle' }, { label: __('Square', 'ajnanda'), value: 'square' }], onChange: function(value) { props.setAttributes({ imageShape: value }); } }), el(ToggleControl, { label: __('Show social links area', 'ajnanda'), checked: !!props.attributes.socialLinks, onChange: function(value) { props.setAttributes({ socialLinks: value }); } })];
+            return [el(SelectControl, { label: __('Image shape', 'ajnanda'), value: props.attributes.imageShape || 'rounded', options: [{ label: __('Rounded', 'ajnanda'), value: 'rounded' }, { label: __('Circle', 'ajnanda'), value: 'circle' }, { label: __('Square', 'ajnanda'), value: 'square' }], onChange: function(value) { props.setAttributes({ imageShape: value }); } }), el(ToggleControl, { label: __('Show social links area', 'ajnanda'), checked: !!props.attributes.socialLinks, onChange: function(value) { props.setAttributes({ socialLinks: value }); } }), el(ToggleControl, { label: __('Describe this person in structured data', 'ajnanda'), checked: !!props.attributes.enableSchema, onChange: function(value) { props.setAttributes({ enableSchema: value }); }, help: __('Uses the visible name, image, and biography; no duplicate profile fields are required.', 'ajnanda') })];
         },
         className: function(attrs) { return 'aj-team--image-' + attrs.imageShape; }
     });

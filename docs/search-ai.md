@@ -77,3 +77,12 @@ requires `manage_options`; settings writes also require a nonce.
 
 Readiness checks table health and retention only when logging is enabled. Zero
 traffic and an intentional disabled state do not reduce Search & AI readiness.
+## Semantic content and schema graph
+
+AJNanda emits one connected, Site Profile-backed Schema.org graph when AJNanda owns the schema capability. The graph contains stable identity, WebSite, WebPage, and Article entities, then accepts provider-neutral semantic contributions from visible block content.
+
+Native semantic blocks are the authoritative source. Enabled AJ FAQ and AJ How To blocks derive their structured data from their visible headings, Details answers, and list steps. AJ Team can opt into Person markup using its existing visible name, image, and biography. Contributors do not print independent JSON-LD scripts.
+
+The contributor pipeline parses a post once, traverses nested and reusable blocks with cycle/depth protection, validates incomplete and placeholder content, deduplicates equivalent nodes, and merges relationships into the main graph. Content excluded from schema relationships is never traversed. When another recognized SEO provider owns schema, the existing capability delegation suppresses AJNanda's graph; provider adapters are intentionally separate future work.
+
+Legacy FAQ compatibility is limited to visible WordPress Details blocks. Generic question-shaped headings are not inferred as FAQ schema.
