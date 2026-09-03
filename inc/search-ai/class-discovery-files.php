@@ -81,18 +81,33 @@ class AJNanda_Search_AI_Discovery_Files {
     }
 
     public static function endpoint_status($url, $cache_suffix = '') {
-        $cache_key = 'ajnanda_search_ai_endpoint_' . md5($cache_suffix . '|' . $url);
+        $cache_key = 'ajnanda_search_ai_endpoint_v2_' . md5($cache_suffix . '|' . $url);
         $cached = get_transient($cache_key);
         if (is_array($cached)) { return $cached; }
         $response = wp_remote_get($url, array(
             'timeout' => 3, 'redirection' => 1, 'limit_response_size' => 2048,
             'user-agent' => 'AJNanda-Discovery-Diagnostic/1.0',
         ));
-        $status = is_wp_error($response) ? array('reachable' => false, 'code' => 0, 'message' => $response->get_error_message()) : array(
-            'reachable' => 200 === wp_remote_retrieve_response_code($response),
-            'code' => (int) wp_remote_retrieve_response_code($response),
-            'message' => '',
-        );
+        if (is_wp_error($response)) {
+            $message = $response->get_error_message();
+            $result = preg_match('/ssl|tls|certificate|curl error 60|unable to get local issuer/i', $message) ? 'tls_error' : 'transport_error';
+            $status = array(
+                'result' => $result,
+                'reachable' => false,
+                'code' => 0,
+                'error_code' => $response->get_error_code(),
+                'message' => $message,
+            );
+        } else {
+            $code = (int) wp_remote_retrieve_response_code($response);
+            $status = array(
+                'result' => $code >= 200 && $code < 300 ? 'success' : 'http_error',
+                'reachable' => $code >= 200 && $code < 300,
+                'code' => $code,
+                'error_code' => '',
+                'message' => wp_remote_retrieve_response_message($response),
+            );
+        }
         set_transient($cache_key, $status, 5 * MINUTE_IN_SECONDS);
         return $status;
     }

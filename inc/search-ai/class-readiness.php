@@ -39,6 +39,7 @@ class AJNanda_Search_AI_Readiness {
         self::content_checks($checks, $policy);
         self::discovery_checks($checks, $discovery);
         self::ownership_checks($checks);
+        self::crawler_log_checks($checks);
 
         $report = array('checks' => apply_filters('ajnanda_search_ai_readiness_checks', $checks));
         $report['categories'] = self::categories($report['checks']);
@@ -81,14 +82,14 @@ class AJNanda_Search_AI_Readiness {
     private static function discovery_checks(&$checks, $discovery) {
         self::add($checks, 'outputs', 'robots_policy', 'pass', __('WordPress robots policy', 'ajnanda'), __('WordPress can generate the AJNanda robots policy.', 'ajnanda'), 'discovery-files', 2);
         $endpoint = $discovery['robots']['endpoint'];
-        self::add($checks, 'outputs', 'robots_endpoint', ! empty($endpoint['reachable']) ? 'pass' : 'externally_unverifiable', __('Public robots.txt endpoint', 'ajnanda'), ! empty($endpoint['reachable']) ? __('The public endpoint responded successfully.', 'ajnanda') : sprintf(__('WordPress policy is available, but the endpoint returned %s. Check web-server or proxy routing.', 'ajnanda'), ! empty($endpoint['code']) ? 'HTTP ' . $endpoint['code'] : __('no response', 'ajnanda')), 'discovery-files', 0);
+        self::add($checks, 'outputs', 'robots_endpoint', self::diagnostic_state($endpoint), __('Public robots.txt endpoint', 'ajnanda'), __('WordPress policy is available. ', 'ajnanda') . self::diagnostic_message($endpoint), 'discovery-files', 0);
         $llms = $discovery['llms_txt'];
         if (! $llms['ownership']['ajnanda']) {
             self::add($checks, 'outputs', 'llms', 'pass', __('llms.txt ownership', 'ajnanda'), self::ownership_message($llms['ownership']), 'discovery-files', 1);
         } elseif (! $llms['enabled']) {
             self::add($checks, 'outputs', 'llms', 'warning', __('llms.txt', 'ajnanda'), __('AJNanda owns llms.txt, but the output is disabled.', 'ajnanda'), 'seo', 1);
         } else {
-            self::add($checks, 'outputs', 'llms', ! empty($llms['endpoint']['reachable']) ? 'pass' : 'warning', __('llms.txt', 'ajnanda'), ! empty($llms['endpoint']['reachable']) ? __('The AJNanda output responded successfully.', 'ajnanda') : __('llms.txt is enabled but its public endpoint did not respond successfully.', 'ajnanda'), 'discovery-files', 1);
+            self::add($checks, 'outputs', 'llms', self::diagnostic_state($llms['endpoint']), __('llms.txt', 'ajnanda'), self::diagnostic_message($llms['endpoint']), 'discovery-files', 1);
         }
         $schema = $discovery['schema'];
         self::add($checks, 'outputs', 'schema', ($schema['active'] || ! $schema['ownership']['ajnanda']) ? 'pass' : 'warning', __('Structured data', 'ajnanda'), ! $schema['ownership']['ajnanda'] ? self::ownership_message($schema['ownership']) : ($schema['active'] ? __('AJNanda structured data is active.', 'ajnanda') : __('AJNanda owns structured data, but schema output is disabled.', 'ajnanda')), 'seo', 2);
@@ -97,10 +98,19 @@ class AJNanda_Search_AI_Readiness {
     private static function ownership_checks(&$checks) {
         $plugins = AJNanda_Search_AI_Capability_Ownership::detected_plugins();
         self::add($checks, 'ownership', 'provider_conflicts', count($plugins) > 1 ? 'warning' : 'pass', __('SEO provider configuration', 'ajnanda'), count($plugins) > 1 ? sprintf(__('Multiple recognized SEO providers are active: %s. Review their output settings for duplication.', 'ajnanda'), implode(', ', wp_list_pluck($plugins, 'label'))) : ($plugins ? sprintf(__('Capabilities are cleanly delegated to %s where appropriate.', 'ajnanda'), implode(', ', wp_list_pluck($plugins, 'label'))) : __('No external SEO provider conflicts were detected.', 'ajnanda')), 'seo', 2);
-        foreach (array('meta_description', 'canonical', 'social', 'robots_meta', 'schema', 'sitemap', 'llms_txt') as $capability) {
+        foreach (array('meta_description', 'canonical', 'social', 'robots_meta', 'schema', 'sitemap', 'llms_txt', 'ai_crawler_policy') as $capability) {
             $owner = AJNanda_Search_AI_Capability_Ownership::get($capability);
             self::add($checks, 'ownership', 'owner_' . $capability, 'pass', sprintf(__('%s ownership', 'ajnanda'), ucwords(str_replace('_', ' ', $capability))), self::ownership_message($owner), 'seo', 0);
         }
+    }
+
+    private static function crawler_log_checks(&$checks) {
+        $enabled = (bool) AJNanda_Search_AI_Settings::get('search_ai_crawler_logging_enabled');
+        self::add($checks, 'ownership', 'crawler_log_enabled', $enabled ? 'pass' : 'not_applicable', __('Crawler logging', 'ajnanda'), $enabled ? __('WordPress-local crawler observation is enabled.', 'ajnanda') : __('Crawler logging is intentionally disabled; this does not reduce readiness.', 'ajnanda'), 'settings', 0);
+        $healthy = AJNanda_Search_AI_Crawler_Log_Store::table_exists();
+        self::add($checks, 'ownership', 'crawler_log_table', $healthy ? 'pass' : ($enabled ? 'warning' : 'not_applicable'), __('Crawler log storage', 'ajnanda'), $healthy ? __('The crawler event table is available.', 'ajnanda') : __('The crawler event table is unavailable.', 'ajnanda'), 'crawler-log', $enabled ? 1 : 0);
+        $retention = (int) AJNanda_Search_AI_Settings::get('search_ai_log_retention_days', 90);
+        self::add($checks, 'ownership', 'crawler_log_retention', in_array($retention, array(7, 30, 90, 180, 365), true) ? 'pass' : 'warning', __('Crawler log retention', 'ajnanda'), sprintf(__('Crawler observations are retained for %d days.', 'ajnanda'), $retention), 'settings', $enabled ? 1 : 0);
     }
 
     private static function ownership_message($owner) {
@@ -108,13 +118,25 @@ class AJNanda_Search_AI_Readiness {
     }
 
     private static function endpoint_state($url, $suffix) {
-        return ! empty(AJNanda_Search_AI_Discovery_Files::endpoint_status($url, $suffix)['reachable']) ? 'pass' : 'warning';
+        return self::diagnostic_state(AJNanda_Search_AI_Discovery_Files::endpoint_status($url, $suffix));
     }
 
     private static function endpoint_message($url, $suffix, $ownership) {
         $endpoint = AJNanda_Search_AI_Discovery_Files::endpoint_status($url, $suffix);
         $owner = self::ownership_message($ownership);
-        return ! empty($endpoint['reachable']) ? $owner . ' ' . __('The public endpoint responded successfully.', 'ajnanda') : $owner . ' ' . sprintf(__('The configured endpoint returned %s.', 'ajnanda'), ! empty($endpoint['code']) ? 'HTTP ' . $endpoint['code'] : __('no response', 'ajnanda'));
+        return $owner . ' ' . self::diagnostic_message($endpoint);
+    }
+
+    private static function diagnostic_state($endpoint) {
+        if ('success' === ($endpoint['result'] ?? '')) { return 'pass'; }
+        if (in_array($endpoint['result'] ?? '', array('tls_error', 'transport_error'), true)) { return 'externally_unverifiable'; }
+        return 'warning';
+    }
+
+    private static function diagnostic_message($endpoint) {
+        if ('success' === ($endpoint['result'] ?? '')) { return __('The public endpoint responded successfully.', 'ajnanda'); }
+        if ('http_error' === ($endpoint['result'] ?? '')) { return sprintf(__('The public endpoint returned HTTP %1$d %2$s.', 'ajnanda'), (int) ($endpoint['code'] ?? 0), (string) ($endpoint['message'] ?? '')); }
+        return sprintf(__('WordPress could not verify the public endpoint (%1$s): %2$s', 'ajnanda'), (string) ($endpoint['error_code'] ?? __('transport error', 'ajnanda')), (string) ($endpoint['message'] ?? __('No diagnostic details were returned.', 'ajnanda')));
     }
 
     private static function score($checks) {

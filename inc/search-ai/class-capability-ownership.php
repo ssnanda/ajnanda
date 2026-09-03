@@ -12,7 +12,7 @@ if (! defined('ABSPATH')) {
 class AJNanda_Search_AI_Capability_Ownership {
 
     public static function capabilities() {
-        return array('title', 'meta_description', 'canonical', 'social', 'robots_meta', 'schema', 'sitemap', 'llms_txt', 'indexnow');
+        return array('title', 'meta_description', 'canonical', 'social', 'robots_meta', 'schema', 'sitemap', 'llms_txt', 'ai_crawler_policy', 'indexnow');
     }
 
     public static function detected_plugins() {

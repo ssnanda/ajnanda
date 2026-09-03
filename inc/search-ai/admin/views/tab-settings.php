@@ -1,0 +1,17 @@
+<?php if (! defined('ABSPATH')) { exit; } ?>
+<form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+    <input type="hidden" name="action" value="ajnanda_save_crawler_log_settings">
+    <?php wp_nonce_field('ajnanda_save_crawler_log_settings'); ?>
+    <div class="ajnanda-admin-section">
+        <h2><?php esc_html_e('Crawler Log settings', 'ajnanda'); ?></h2>
+        <p><?php esc_html_e('Observe plausible search and AI crawler requests that reach WordPress. This is diagnostic logging, not visitor analytics or a security control.', 'ajnanda'); ?></p>
+        <div class="ajnanda-search-ai-toggle-list">
+            <label><input type="checkbox" name="search_ai_crawler_logging_enabled" value="1" <?php checked(AJNanda_Search_AI_Settings::get('search_ai_crawler_logging_enabled')); ?>> <span><strong><?php esc_html_e('Enable crawler logging', 'ajnanda'); ?></strong><small><?php esc_html_e('Only crawler-like requests are recorded. Administrators, admin/REST traffic, assets, and normal browser requests are excluded.', 'ajnanda'); ?></small></span></label>
+        </div>
+        <table class="form-table" role="presentation">
+            <tr><th scope="row"><label for="search_ai_log_retention_days"><?php esc_html_e('Retention', 'ajnanda'); ?></label></th><td><select id="search_ai_log_retention_days" name="search_ai_log_retention_days"><?php foreach (array(7, 30, 90, 180, 365) as $days) : ?><option value="<?php echo esc_attr($days); ?>" <?php selected((int) AJNanda_Search_AI_Settings::get('search_ai_log_retention_days', 90), $days); ?>><?php printf(esc_html__('%d days', 'ajnanda'), $days); ?></option><?php endforeach; ?></select><p class="description"><?php esc_html_e('Expired events are deleted in bounded daily batches.', 'ajnanda'); ?></p></td></tr>
+            <tr><th scope="row"><label for="search_ai_crawler_ip_mode"><?php esc_html_e('Crawler IP privacy', 'ajnanda'); ?></label></th><td><select id="search_ai_crawler_ip_mode" name="search_ai_crawler_ip_mode"><option value="anonymized" <?php selected(AJNanda_Search_AI_Settings::get('search_ai_crawler_ip_mode', 'anonymized'), 'anonymized'); ?>><?php esc_html_e('Store anonymized IP (recommended)', 'ajnanda'); ?></option><option value="hashed" <?php selected(AJNanda_Search_AI_Settings::get('search_ai_crawler_ip_mode', 'anonymized'), 'hashed'); ?>><?php esc_html_e('Store one-way hash', 'ajnanda'); ?></option><option value="full" <?php selected(AJNanda_Search_AI_Settings::get('search_ai_crawler_ip_mode', 'anonymized'), 'full'); ?>><?php esc_html_e('Store full crawler IP for verification', 'ajnanda'); ?></option></select><p class="description"><?php esc_html_e('Provider DNS verification requires the full source IP. Anonymized and hashed modes intentionally mark new requests as not verifiable.', 'ajnanda'); ?></p></td></tr>
+        </table>
+        <?php submit_button(__('Save Crawler Log Settings', 'ajnanda')); ?>
+    </div>
+</form>

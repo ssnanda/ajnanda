@@ -23,8 +23,14 @@ require_once __DIR__ . '/class-sitemap-policy.php';
 require_once __DIR__ . '/class-discovery-files.php';
 require_once __DIR__ . '/class-readiness.php';
 require_once __DIR__ . '/class-insights.php';
+require_once __DIR__ . '/class-crawler-log-store.php';
+require_once __DIR__ . '/class-crawler-verifier.php';
+require_once __DIR__ . '/class-crawler-logger.php';
 require_once __DIR__ . '/admin/class-search-ai-admin.php';
 
 add_action('after_setup_theme', array('AJNanda_Search_AI_Settings', 'maybe_migrate'), 20);
 AJNanda_Search_AI_Admin::init();
 AJNanda_Search_AI_Sitemap_Policy::init();
+AJNanda_Search_AI_Crawler_Log_Store::init();
+AJNanda_Search_AI_Crawler_Logger::init();
+add_action('switch_theme', array('AJNanda_Search_AI_Crawler_Log_Store', 'unschedule'));

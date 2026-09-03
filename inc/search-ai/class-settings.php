@@ -25,7 +25,8 @@ class AJNanda_Search_AI_Settings {
             'search_ai_allow_ai_training'        => true,
             'search_ai_allow_user_retrieval'     => true,
             'search_ai_crawler_logging_enabled'  => false,
-            'search_ai_log_retention_days'       => 30,
+            'search_ai_log_retention_days'       => 90,
+            'search_ai_crawler_ip_mode'          => 'anonymized',
         );
     }
 

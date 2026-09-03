@@ -9,6 +9,7 @@ class AJNanda_Search_AI_Crawler_Registry {
             'ai_search' => __('AI Search / Retrieval', 'ajnanda'),
             'ai_training' => __('AI Training / Model Development', 'ajnanda'),
             'user_retrieval' => __('User-Initiated Retrieval', 'ajnanda'),
+            'dataset' => __('Common Crawl / Dataset', 'ajnanda'),
         );
     }
 
@@ -23,7 +24,9 @@ class AJNanda_Search_AI_Crawler_Registry {
             'perplexitybot' => array('provider' => 'Perplexity', 'label' => 'PerplexityBot', 'token' => 'PerplexityBot', 'category' => 'ai_search', 'robots_control' => true),
             'perplexity-user' => array('provider' => 'Perplexity', 'label' => 'Perplexity-User', 'token' => 'Perplexity-User', 'category' => 'user_retrieval', 'robots_control' => false),
             'google-extended' => array('provider' => 'Google', 'label' => 'Google-Extended', 'token' => 'Google-Extended', 'category' => 'ai_training', 'robots_control' => true, 'control_only' => true),
-            'ccbot' => array('provider' => 'Common Crawl', 'label' => 'CCBot', 'token' => 'CCBot', 'category' => 'ai_training', 'robots_control' => true),
+            'googlebot' => array('provider' => 'Google', 'label' => 'Googlebot', 'token' => 'Googlebot', 'category' => 'traditional_search', 'robots_control' => true, 'verification' => array('method' => 'forward_confirmed_reverse_dns', 'domains' => array('.googlebot.com', '.google.com'))),
+            'bingbot' => array('provider' => 'Microsoft', 'label' => 'Bingbot', 'token' => 'bingbot', 'category' => 'traditional_search', 'robots_control' => true, 'verification' => array('method' => 'forward_confirmed_reverse_dns', 'domains' => array('.search.msn.com'))),
+            'ccbot' => array('provider' => 'Common Crawl', 'label' => 'CCBot', 'token' => 'CCBot', 'category' => 'dataset', 'robots_control' => true),
         ));
     }
 
@@ -33,6 +36,7 @@ class AJNanda_Search_AI_Crawler_Registry {
             'ai_search' => 'search_ai_allow_ai_search',
             'ai_training' => 'search_ai_allow_ai_training',
             'user_retrieval' => 'search_ai_allow_user_retrieval',
+            'dataset' => 'search_ai_allow_ai_training',
         );
         return isset($mapping[$category]) ? (bool) AJNanda_Search_AI_Settings::get($mapping[$category]) : false;
     }

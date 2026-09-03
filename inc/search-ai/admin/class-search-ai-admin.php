@@ -20,6 +20,7 @@ class AJNanda_Search_AI_Admin {
         add_action('admin_post_ajnanda_save_search_ai_policy', array(__CLASS__, 'save_policy'));
         add_action('admin_post_ajnanda_save_ai_discovery', array(__CLASS__, 'save_ai_discovery'));
         add_action('admin_post_ajnanda_save_llms_important_pages', array(__CLASS__, 'save_llms_important_pages'));
+        add_action('admin_post_ajnanda_save_crawler_log_settings', array(__CLASS__, 'save_crawler_log_settings'));
         add_action('wp_ajax_ajnanda_search_ai_find_content', array(__CLASS__, 'find_content'));
     }
 
@@ -73,6 +74,15 @@ class AJNanda_Search_AI_Admin {
         $discovery_status = AJNanda_Search_AI_Discovery_Files::status('discovery-files' === $tab);
         $readiness = 'overview' === $tab ? AJNanda_Search_AI_Readiness::report() : array();
         $insights = 'insights' === $tab ? AJNanda_Search_AI_Insights::report() : array();
+        $crawler_log = array();
+        $crawler_event = null;
+        if ('crawler-log' === $tab) {
+            $crawler_log = AJNanda_Search_AI_Crawler_Log_Store::table_exists() ? array(
+                'query' => AJNanda_Search_AI_Crawler_Log_Store::query($_GET),
+                'aggregates' => AJNanda_Search_AI_Crawler_Log_Store::aggregates($_GET),
+            ) : array('query' => array('rows' => array(), 'total' => 0, 'pages' => 1, 'filters' => AJNanda_Search_AI_Crawler_Log_Store::sanitize_filters($_GET)), 'aggregates' => array());
+            if (! empty($_GET['event'])) { $crawler_event = AJNanda_Search_AI_Crawler_Log_Store::get(absint($_GET['event'])); }
+        }
         $public_post_types = get_post_types(array('public' => true, 'show_ui' => true), 'objects');
         unset($public_post_types['attachment']);
         $selected_content = array();
@@ -205,6 +215,17 @@ class AJNanda_Search_AI_Admin {
         }
         set_theme_mod('search_ai_llms_important_page_ids', $valid_ids);
         self::redirect('discovery-files');
+    }
+
+    public static function save_crawler_log_settings() {
+        self::authorize('ajnanda_save_crawler_log_settings');
+        AJNanda_Search_AI_Settings::set('search_ai_crawler_logging_enabled', isset($_POST['search_ai_crawler_logging_enabled']));
+        $retention = absint($_POST['search_ai_log_retention_days'] ?? 90);
+        AJNanda_Search_AI_Settings::set('search_ai_log_retention_days', in_array($retention, array(7, 30, 90, 180, 365), true) ? $retention : 90);
+        $ip_mode = sanitize_key(wp_unslash($_POST['search_ai_crawler_ip_mode'] ?? 'anonymized'));
+        AJNanda_Search_AI_Settings::set('search_ai_crawler_ip_mode', in_array($ip_mode, array('anonymized', 'hashed', 'full'), true) ? $ip_mode : 'anonymized');
+        AJNanda_Search_AI_Crawler_Log_Store::ensure_schedules();
+        self::redirect('settings');
     }
 
     private static function sanitize_lines($value) {
