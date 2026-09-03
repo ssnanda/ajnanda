@@ -529,6 +529,134 @@ body.ajnanda-modal-open {
     background: #fffbeb;
 }
 
+.ajnanda-readiness-summary {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.ajnanda-readiness-summary h2 {
+    margin-bottom: 6px;
+}
+
+.ajnanda-readiness-score {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    min-width: 104px;
+    padding: 16px;
+    border-radius: 14px;
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.ajnanda-readiness-score strong {
+    font-size: 34px;
+    line-height: 1;
+}
+
+.ajnanda-readiness-cards {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.ajnanda-readiness-card {
+    display: grid;
+    gap: 8px;
+    padding: 14px;
+    border: 1px solid #dcdcde;
+    border-radius: 10px;
+    background: #fff;
+    color: #111827;
+    text-decoration: none;
+}
+
+.ajnanda-readiness-card:hover,
+.ajnanda-readiness-card:focus {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+}
+
+.ajnanda-state-pass { color: #047857; }
+.ajnanda-state-warning { color: #92400e; }
+.ajnanda-state-fail { color: #b91c1c; }
+
+.ajnanda-admin-pill.is-fail {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.ajnanda-admin-pill.is-not_applicable,
+.ajnanda-admin-pill.is-externally_unverifiable {
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+.ajnanda-overview-main {
+    grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr);
+}
+
+.ajnanda-readiness-actions,
+.ajnanda-readiness-checks,
+.ajnanda-insight-list {
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ajnanda-readiness-actions li,
+.ajnanda-insight-list li {
+    padding: 14px 0;
+    border-top: 1px solid #e5e7eb;
+}
+
+.ajnanda-readiness-actions li:first-child,
+.ajnanda-insight-list li:first-child {
+    border-top: 0;
+}
+
+.ajnanda-readiness-actions strong {
+    margin-left: 7px;
+}
+
+.ajnanda-readiness-actions p,
+.ajnanda-insight-list p {
+    margin: 6px 0;
+}
+
+.ajnanda-readiness-checks li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 8px 0;
+}
+
+.ajnanda-readiness-checks small {
+    display: block;
+    margin-top: 2px;
+    color: #6b7280;
+}
+
+.ajnanda-ownership-list {
+    margin: 0;
+}
+
+.ajnanda-ownership-list div {
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.ajnanda-ownership-list dt {
+    font-weight: 600;
+}
+
+.ajnanda-ownership-list dd {
+    margin: 3px 0 0;
+    color: #6b7280;
+}
+
 @media (max-width: 782px) {
     .ajnanda-search-ai-tabs {
         border-bottom: 0;
@@ -540,5 +668,17 @@ body.ajnanda-modal-open {
         border: 1px solid #c3c4c7;
         border-radius: 8px;
         text-align: center;
+    }
+
+    .ajnanda-readiness-summary {
+        align-items: flex-start;
+    }
+
+    .ajnanda-readiness-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ajnanda-overview-main {
+        grid-template-columns: 1fr;
     }
 }

@@ -49,7 +49,7 @@ class AJNanda_Search_AI_Discovery_Files {
         if ($entries) { $lines[] = '## ' . $heading; $lines = array_merge($lines, $entries, array('')); }
     }
 
-    public static function status($probe_robots = false) {
+    public static function status($probe_endpoints = false) {
         $policy = AJNanda_Search_AI_Content_Policy::settings();
         $sitemap_ownership = AJNanda_Search_AI_Capability_Ownership::get('sitemap');
         $sitemap_url = home_url('/wp-sitemap.xml');
@@ -63,9 +63,14 @@ class AJNanda_Search_AI_Discovery_Files {
             'robots' => array(
                 'url' => home_url('/robots.txt'),
                 'policy_active' => true,
-                'endpoint' => $probe_robots ? self::robots_endpoint_status() : null,
+                'endpoint' => $probe_endpoints ? self::endpoint_status(home_url('/robots.txt'), 'robots') : null,
             ),
-            'llms_txt' => array('url' => home_url('/llms.txt'), 'enabled' => self::llms_enabled(), 'ownership' => AJNanda_Search_AI_Capability_Ownership::get('llms_txt')),
+            'llms_txt' => array(
+                'url' => home_url('/llms.txt'),
+                'enabled' => self::llms_enabled(),
+                'ownership' => AJNanda_Search_AI_Capability_Ownership::get('llms_txt'),
+                'endpoint' => $probe_endpoints && self::llms_enabled() ? self::endpoint_status(home_url('/llms.txt'), 'llms') : null,
+            ),
             'schema' => array(
                 'enabled' => (bool) get_theme_mod('seo_schema_enabled', true),
                 'active' => (bool) get_theme_mod('seo_schema_enabled', true) && AJNanda_Search_AI_Capability_Ownership::ajnanda_owns('schema'),
@@ -75,11 +80,11 @@ class AJNanda_Search_AI_Discovery_Files {
         );
     }
 
-    private static function robots_endpoint_status() {
-        $cache_key = 'ajnanda_search_ai_robots_probe';
+    public static function endpoint_status($url, $cache_suffix = '') {
+        $cache_key = 'ajnanda_search_ai_endpoint_' . md5($cache_suffix . '|' . $url);
         $cached = get_transient($cache_key);
         if (is_array($cached)) { return $cached; }
-        $response = wp_remote_get(home_url('/robots.txt'), array(
+        $response = wp_remote_get($url, array(
             'timeout' => 3, 'redirection' => 1, 'limit_response_size' => 2048,
             'user-agent' => 'AJNanda-Discovery-Diagnostic/1.0',
         ));

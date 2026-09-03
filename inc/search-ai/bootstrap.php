@@ -21,6 +21,8 @@ require_once __DIR__ . '/class-capability-ownership.php';
 require_once __DIR__ . '/class-schema-graph.php';
 require_once __DIR__ . '/class-sitemap-policy.php';
 require_once __DIR__ . '/class-discovery-files.php';
+require_once __DIR__ . '/class-readiness.php';
+require_once __DIR__ . '/class-insights.php';
 require_once __DIR__ . '/admin/class-search-ai-admin.php';
 
 add_action('after_setup_theme', array('AJNanda_Search_AI_Settings', 'maybe_migrate'), 20);

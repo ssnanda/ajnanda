@@ -47,10 +47,9 @@ $base_url = admin_url('admin.php?page=' . AJNanda_Search_AI_Admin::PAGE_SLUG);
             include get_template_directory() . '/inc/search-ai/admin/views/tab-seo.php';
             ?>
         <?php elseif ('insights' === $tab) : ?>
-            <div class="ajnanda-admin-card">
-                <h2><?php esc_html_e('Google Site Kit insights', 'ajnanda'); ?></h2>
-                <?php echo ajnanda_seo_render_site_kit_insights(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-            </div>
+            <?php include get_template_directory() . '/inc/search-ai/admin/views/tab-insights.php'; ?>
+        <?php elseif ('overview' === $tab) : ?>
+            <?php include get_template_directory() . '/inc/search-ai/admin/views/tab-overview.php'; ?>
         <?php else : ?>
             <?php include get_template_directory() . '/inc/search-ai/admin/views/tab-foundation.php'; ?>
         <?php endif; ?>
