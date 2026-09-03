@@ -1365,9 +1365,11 @@
             icon: icon,
             supports: { align: ['wide', 'full'], anchor: true },
             attributes: withStyleAttributes(options.attributes || {}),
+            variations: options.variations || [],
             edit: function(props) {
                 return el(Fragment, {},
                     inspector(controlsWithCommon(props, extraControls(props, options))),
+                    options.searchAIControls ? el(InspectorControls, {}, el(PanelBody, { title: __('Search & AI', 'ajnanda'), initialOpen: false }, options.searchAIControls(props))) : null,
                     el('section', styledProps(className, props.attributes, extraClass(props.attributes, options)), el(InnerBlocks, { template: template || [], templateLock: false }))
                 );
             },
@@ -1545,6 +1547,12 @@
             separatorColor: { type: 'string', default: '' },
             animation: { type: 'string', default: 'none' }
         }),
+        variations: [{
+            name: 'search-ai-enabled',
+            title: __('AJ FAQ', 'ajnanda'),
+            isDefault: true,
+            attributes: { enableSchema: true }
+        }],
         edit: function(props) {
             var attrs = props.attributes;
             var faqClass = classNames(
@@ -1579,7 +1587,6 @@
                         el(ToggleControl, { label: __('Collapse other items', 'ajnanda'), checked: !!attrs.collapseOtherItems, onChange: function(value) { props.setAttributes({ collapseOtherItems: value }); } }),
                         el(ToggleControl, { label: __('Expand First Item', 'ajnanda'), checked: !!attrs.expandFirstItem, onChange: function(value) { props.setAttributes({ expandFirstItem: value }); } }),
                         el(ToggleControl, { label: __('Enable Toggle', 'ajnanda'), checked: !!attrs.enableToggle, onChange: function(value) { props.setAttributes({ enableToggle: value }); } }),
-                        el(ToggleControl, { label: __('Enable Schema Support', 'ajnanda'), checked: !!attrs.enableSchema, onChange: function(value) { props.setAttributes({ enableSchema: value }); } }),
                         el(ToggleControl, { label: __('Enable Separator', 'ajnanda'), checked: !!attrs.enableSeparator, onChange: function(value) { props.setAttributes({ enableSeparator: value }); } }),
                         el(SelectControl, {
                             label: __('Question Tag', 'ajnanda'),
@@ -1634,6 +1641,14 @@
                         }),
                         el(RangeControl, { label: __('Margin top', 'ajnanda'), min: 0, max: 160, value: attrs.marginTop || 0, onChange: function(value) { props.setAttributes({ marginTop: value }); } }),
                         el(RangeControl, { label: __('Margin bottom', 'ajnanda'), min: 0, max: 160, value: attrs.marginBottom || 0, onChange: function(value) { props.setAttributes({ marginBottom: value }); } })
+                    ),
+                    el(PanelBody, { title: __('Search & AI', 'ajnanda'), initialOpen: false },
+                        el(ToggleControl, {
+                            label: __('Describe these questions as FAQ content', 'ajnanda'),
+                            checked: !!attrs.enableSchema,
+                            onChange: function(value) { props.setAttributes({ enableSchema: value }); },
+                            help: __('Helps search engines and AI systems understand the visible questions and answers.', 'ajnanda')
+                        })
                     )
                 ),
                 el('section', {
@@ -1682,8 +1697,12 @@
 
     simpleCardBlock('ajnanda/how-to', __('AJ How To', 'ajnanda'), 'media-document', 'aj-how-to', [['core/heading', { level: 2, content: 'How To' }], ['core/list', { values: '<li>Step one</li><li>Step two</li><li>Step three</li>' }]], {
         attributes: { showSchema: { type: 'boolean', default: false }, stepStyle: { type: 'string', default: 'numbered' } },
+        variations: [{ name: 'search-ai-enabled', title: __('AJ How To', 'ajnanda'), isDefault: true, attributes: { showSchema: true } }],
         controls: function(props) {
-            return [el(ToggleControl, { label: __('Enable HowTo schema', 'ajnanda'), checked: !!props.attributes.showSchema, onChange: function(value) { props.setAttributes({ showSchema: value }); } }), el(SelectControl, { label: __('Step style', 'ajnanda'), value: props.attributes.stepStyle || 'numbered', options: [{ label: __('Numbered', 'ajnanda'), value: 'numbered' }, { label: __('Bullets', 'ajnanda'), value: 'bullets' }, { label: __('Cards', 'ajnanda'), value: 'cards' }], onChange: function(value) { props.setAttributes({ stepStyle: value }); } })];
+            return el(SelectControl, { label: __('Step style', 'ajnanda'), value: props.attributes.stepStyle || 'numbered', options: [{ label: __('Numbered', 'ajnanda'), value: 'numbered' }, { label: __('Bullets', 'ajnanda'), value: 'bullets' }, { label: __('Cards', 'ajnanda'), value: 'cards' }], onChange: function(value) { props.setAttributes({ stepStyle: value }); } });
+        },
+        searchAIControls: function(props) {
+            return el(ToggleControl, { label: __('Describe these steps as How-To content', 'ajnanda'), checked: !!props.attributes.showSchema, onChange: function(value) { props.setAttributes({ showSchema: value }); }, help: __('Helps search engines and AI systems understand the visible instructions and their order.', 'ajnanda') });
         },
         className: function(attrs) { return 'aj-how-to--' + attrs.stepStyle; }
     });
@@ -1759,7 +1778,10 @@
     simpleCardBlock('ajnanda/team', __('AJ Team', 'ajnanda'), 'groups', 'aj-team', [['core/image'], ['core/heading', { level: 3, content: 'Team Member' }], ['core/paragraph', { content: 'Role or short bio.' }]], {
         attributes: { imageShape: { type: 'string', default: 'rounded' }, socialLinks: { type: 'boolean', default: false }, enableSchema: { type: 'boolean', default: false } },
         controls: function(props) {
-            return [el(SelectControl, { label: __('Image shape', 'ajnanda'), value: props.attributes.imageShape || 'rounded', options: [{ label: __('Rounded', 'ajnanda'), value: 'rounded' }, { label: __('Circle', 'ajnanda'), value: 'circle' }, { label: __('Square', 'ajnanda'), value: 'square' }], onChange: function(value) { props.setAttributes({ imageShape: value }); } }), el(ToggleControl, { label: __('Show social links area', 'ajnanda'), checked: !!props.attributes.socialLinks, onChange: function(value) { props.setAttributes({ socialLinks: value }); } }), el(ToggleControl, { label: __('Describe this person in structured data', 'ajnanda'), checked: !!props.attributes.enableSchema, onChange: function(value) { props.setAttributes({ enableSchema: value }); }, help: __('Uses the visible name, image, and biography; no duplicate profile fields are required.', 'ajnanda') })];
+            return [el(SelectControl, { label: __('Image shape', 'ajnanda'), value: props.attributes.imageShape || 'rounded', options: [{ label: __('Rounded', 'ajnanda'), value: 'rounded' }, { label: __('Circle', 'ajnanda'), value: 'circle' }, { label: __('Square', 'ajnanda'), value: 'square' }], onChange: function(value) { props.setAttributes({ imageShape: value }); } }), el(ToggleControl, { label: __('Show social links area', 'ajnanda'), checked: !!props.attributes.socialLinks, onChange: function(value) { props.setAttributes({ socialLinks: value }); } })];
+        },
+        searchAIControls: function(props) {
+            return el(ToggleControl, { label: __('Describe this person in structured data', 'ajnanda'), checked: !!props.attributes.enableSchema, onChange: function(value) { props.setAttributes({ enableSchema: value }); }, help: __('Uses the visible name, image, and biography; no duplicate profile fields are required.', 'ajnanda') });
         },
         className: function(attrs) { return 'aj-team--image-' + attrs.imageShape; }
     });
