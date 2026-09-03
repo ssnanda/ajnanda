@@ -23,6 +23,7 @@ class AJNanda_Search_AI_Readiness {
         self::add($checks, 'entity', 'organization_type', isset($types[$profile['organization_type']]) ? 'pass' : 'warning', __('Organization type', 'ajnanda'), isset($types[$profile['organization_type']]) ? __('The selected Schema.org organization type is supported.', 'ajnanda') : __('Review the organization type.', 'ajnanda'), 'site-profile', 1);
         self::add($checks, 'entity', 'logo', $profile['logo_url'] ? 'pass' : 'warning', __('Identity logo', 'ajnanda'), $profile['logo_url'] ? __('A public identity logo is configured.', 'ajnanda') : __('Add a logo if this organization publicly uses one.', 'ajnanda'), 'site-profile', 0);
         self::location_checks($checks, $profile);
+        self::service_area_checks($checks);
         self::add($checks, 'entity', 'identity_links', $profile['identity_urls'] ? 'pass' : 'not_applicable', __('Identity links', 'ajnanda'), $profile['identity_urls'] ? __('Public identity links are available.', 'ajnanda') : __('Optional: add public profiles that help disambiguate the entity.', 'ajnanda'), 'site-profile', 0);
 
         foreach (array('meta_description' => __('Metadata', 'ajnanda'), 'canonical' => __('Canonical output', 'ajnanda')) as $capability => $label) {
@@ -78,6 +79,16 @@ class AJNanda_Search_AI_Readiness {
             if (empty(AJNanda_Search_AI_Content_Policy::evaluate($id)['advertise']['llms_txt'])) { $conflicts[] = get_the_title($id) ?: '#' . $id; }
         }
         self::add($checks, 'content', 'important_conflicts', $conflicts ? 'warning' : 'pass', __('Important Page conflicts', 'ajnanda'), $conflicts ? sprintf(__('Selected Important Pages are excluded from llms.txt: %s.', 'ajnanda'), implode(', ', $conflicts)) : __('Selected Important Pages do not conflict with llms.txt exclusions.', 'ajnanda'), $conflicts ? 'content-access' : 'discovery-files', 1);
+    }
+
+    private static function service_area_checks(&$checks) {
+        if (! class_exists('AJNanda_Search_AI_Service_Area_Registry')) { return; }
+        $diagnostics = AJNanda_Search_AI_Service_Area_Registry::diagnostics();
+        $problems = (int) ($diagnostics['invalid_record'] ?? 0) + (int) ($diagnostics['missing_default'] ?? 0) + (int) ($diagnostics['empty_override'] ?? 0) + (int) ($diagnostics['missing_override'] ?? 0);
+        self::add($checks, 'entity', 'service_area_configuration', $problems ? 'warning' : 'pass', __('Service-area configuration', 'ajnanda'), $problems ? sprintf(_n('%d service-area reference or Service-page override needs attention.', '%d service-area references or Service-page overrides need attention.', $problems, 'ajnanda'), $problems) : __('Shared service areas and Service-page inheritance are configured consistently.', 'ajnanda'), 'site-profile', 1);
+        if (! empty($diagnostics['legacy'])) {
+            self::add($checks, 'entity', 'legacy_service_areas', 'not_applicable', __('Imported service areas', 'ajnanda'), sprintf(_n('%d legacy service area remains valid as text. Classify it when convenient for more precise geographic meaning.', '%d legacy service areas remain valid as text. Classify them when convenient for more precise geographic meaning.', $diagnostics['legacy'], 'ajnanda'), $diagnostics['legacy']), 'site-profile', 0);
+        }
     }
 
     private static function page_entity_checks(&$checks) {

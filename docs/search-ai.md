@@ -94,3 +94,11 @@ Pages may explicitly declare their primary meaning through `_ajnanda_primary_ent
 Service and Product roles contribute provider-neutral primary nodes to the existing connected graph. Their name, URL, description, and featured image reuse the page's existing sources. Service may reference the Site Profile identity as provider and reuse configured service areas. Product intentionally omits offers, prices, availability, brand, manufacturer, seller, and identifiers until explicit structured sources exist.
 
 Primary business location points the WebPage at the existing canonical Site Profile identity and never creates a second inferred Place or LocalBusiness. It requires Physical location mode and a complete structured address. Malformed or invalid role configurations fall back to WebPage and appear in readiness diagnostics.
+
+## Geographic and service-area semantics
+
+AJNanda stores reusable service-area records in the theme-native `search_ai_service_area_records` theme mod and the business defaults in `search_ai_profile_default_service_area_ids`. Records have stable IDs and an explicit geographic type: Country, State/province, County/administrative area, City, Postal/ZIP code, or Custom named region. Existing `search_ai_profile_service_areas` strings are preserved as deterministic imported Custom records and remain valid Text values until an administrator classifies them.
+
+The Site Profile identity uses the business-default records for `areaServed`. Formal records contribute stable geographic nodes to the connected graph; custom areas and postal areas lacking sufficient country context safely remain Text. Physical address and service coverage remain independent concepts.
+
+Service pages inherit the business defaults unless `_ajnanda_service_area_mode` is explicitly set to `override`; selected record IDs are stored in `_ajnanda_service_area_ids`. An intentionally empty override omits `areaServed` and is surfaced as an editor/readiness warning. Product and General pages do not receive service-area semantics. No geography is inferred from page titles, content, customer addresses, or free-form prose.

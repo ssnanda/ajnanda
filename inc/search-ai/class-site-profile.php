@@ -46,7 +46,7 @@ class AJNanda_Search_AI_Site_Profile {
             'address'           => 'physical' === $location_mode ? $stored_address : array_fill_keys(array_keys($stored_address), ''),
             'stored_address'    => $stored_address,
             'location_mode'     => $location_mode,
-            'service_areas'     => 'none' === $location_mode ? array() : (array) get_theme_mod('search_ai_profile_service_areas', array()),
+            'service_areas'     => class_exists('AJNanda_Search_AI_Service_Area_Registry') ? AJNanda_Search_AI_Service_Area_Registry::public_names() : (array) get_theme_mod('search_ai_profile_service_areas', array()),
             'stored_service_areas' => (array) get_theme_mod('search_ai_profile_service_areas', array()),
             'identity_urls'     => (array) get_theme_mod('search_ai_profile_identity_urls', array()),
             'services'          => (array) get_theme_mod('search_ai_profile_services', array()),

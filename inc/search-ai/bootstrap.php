@@ -19,6 +19,7 @@ require_once __DIR__ . '/class-content-policy.php';
 require_once __DIR__ . '/class-crawler-registry.php';
 require_once __DIR__ . '/class-capability-ownership.php';
 require_once __DIR__ . '/class-page-semantic-intent.php';
+require_once __DIR__ . '/class-service-area-registry.php';
 require_once __DIR__ . '/class-schema-context.php';
 require_once __DIR__ . '/class-schema-block-walker.php';
 require_once __DIR__ . '/class-schema-validator.php';
@@ -36,6 +37,7 @@ require_once __DIR__ . '/admin/class-search-ai-admin.php';
 
 add_action('after_setup_theme', array('AJNanda_Search_AI_Settings', 'maybe_migrate'), 20);
 add_action('init', array('AJNanda_Search_AI_Page_Semantic_Intent', 'init'));
+add_action('init', array('AJNanda_Search_AI_Service_Area_Registry', 'init'));
 AJNanda_Search_AI_Admin::init();
 AJNanda_Search_AI_Sitemap_Policy::init();
 AJNanda_Search_AI_Crawler_Log_Store::init();

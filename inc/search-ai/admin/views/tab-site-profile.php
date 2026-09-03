@@ -6,6 +6,9 @@ $location_modes = array(
     'regional_national' => __('Regional or national business', 'ajnanda'),
     'none' => __('No public location', 'ajnanda'),
 );
+$service_area_records=AJNanda_Search_AI_Service_Area_Registry::records();
+$default_service_area_ids=AJNanda_Search_AI_Service_Area_Registry::default_ids();
+$service_area_types=AJNanda_Search_AI_Service_Area_Registry::types();
 ?>
 <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
     <input type="hidden" name="action" value="ajnanda_save_search_ai_profile">
@@ -23,21 +26,37 @@ $location_modes = array(
         </table>
     </div>
     <div class="ajnanda-admin-section">
-        <h2><?php esc_html_e('Contact and location', 'ajnanda'); ?></h2>
+        <h2><?php esc_html_e('Contact and physical location', 'ajnanda'); ?></h2>
         <p class="description"><?php esc_html_e('Only enter contact information that may be published as machine-readable site information.', 'ajnanda'); ?></p>
         <table class="form-table" role="presentation">
             <tr><th><label for="search_ai_profile_website"><?php esc_html_e('Website URL', 'ajnanda'); ?></label></th><td><input class="regular-text" type="url" id="search_ai_profile_website" name="search_ai_profile_website" value="<?php echo esc_url($profile['website']); ?>"></td></tr>
             <tr><th><label for="search_ai_profile_phone"><?php esc_html_e('Phone', 'ajnanda'); ?></label></th><td><input class="regular-text" type="text" id="search_ai_profile_phone" name="search_ai_profile_phone" value="<?php echo esc_attr($profile['phone']); ?>"></td></tr>
             <tr><th><label for="search_ai_profile_email"><?php esc_html_e('Public email', 'ajnanda'); ?></label></th><td><input class="regular-text" type="email" id="search_ai_profile_email" name="search_ai_profile_email" value="<?php echo esc_attr($profile['email']); ?>"></td></tr>
-            <tr><th><label for="search_ai_profile_location_mode"><?php esc_html_e('Location model', 'ajnanda'); ?></label></th><td><select id="search_ai_profile_location_mode" name="search_ai_profile_location_mode"><?php foreach ($location_modes as $value => $label) : ?><option value="<?php echo esc_attr($value); ?>" <?php selected($profile['location_mode'], $value); ?>><?php echo esc_html($label); ?></option><?php endforeach; ?></select><p id="ajnanda_location_explanation" class="description"></p></td></tr>
+            <tr><th><label for="search_ai_profile_location_mode"><?php esc_html_e('Where is your business physically located?', 'ajnanda'); ?></label></th><td><select id="search_ai_profile_location_mode" name="search_ai_profile_location_mode"><?php foreach ($location_modes as $value => $label) : ?><option value="<?php echo esc_attr($value); ?>" <?php selected($profile['location_mode'], $value); ?>><?php echo esc_html($label); ?></option><?php endforeach; ?></select><p id="ajnanda_location_explanation" class="description"></p></td></tr>
             <tr data-location-field="address"><th><label for="search_ai_profile_address_street"><?php esc_html_e('Address', 'ajnanda'); ?></label></th><td><input class="regular-text" type="text" id="search_ai_profile_address_street" name="search_ai_profile_address_street" value="<?php echo esc_attr($profile['stored_address']['street']); ?>"></td></tr>
             <tr data-location-field="address"><th><label for="search_ai_profile_address_city"><?php esc_html_e('City', 'ajnanda'); ?></label></th><td><input type="text" id="search_ai_profile_address_city" name="search_ai_profile_address_city" value="<?php echo esc_attr($profile['stored_address']['city']); ?>"></td></tr>
             <tr data-location-field="address"><th><label for="search_ai_profile_address_state"><?php esc_html_e('State/region', 'ajnanda'); ?></label></th><td><input type="text" id="search_ai_profile_address_state" name="search_ai_profile_address_state" value="<?php echo esc_attr($profile['stored_address']['state']); ?>"></td></tr>
             <tr data-location-field="address"><th><label for="search_ai_profile_address_postal"><?php esc_html_e('ZIP/postal code', 'ajnanda'); ?></label></th><td><input type="text" id="search_ai_profile_address_postal" name="search_ai_profile_address_postal" value="<?php echo esc_attr($profile['stored_address']['postal']); ?>"></td></tr>
             <tr data-location-field="address"><th><label for="search_ai_profile_address_country"><?php esc_html_e('Country', 'ajnanda'); ?></label></th><td><input type="text" id="search_ai_profile_address_country" name="search_ai_profile_address_country" value="<?php echo esc_attr($profile['stored_address']['country']); ?>"></td></tr>
-            <tr data-location-field="service-areas"><th><label for="search_ai_profile_service_areas"><?php esc_html_e('Service areas', 'ajnanda'); ?></label></th><td><textarea class="large-text" rows="4" id="search_ai_profile_service_areas" name="search_ai_profile_service_areas"><?php echo esc_textarea(implode("\n", $profile['stored_service_areas'])); ?></textarea><p class="description"><?php esc_html_e('One city, region, state, or country per line.', 'ajnanda'); ?></p></td></tr>
             <tr><th><label for="search_ai_profile_identity_urls"><?php esc_html_e('Social profiles and identity links', 'ajnanda'); ?></label></th><td><textarea class="large-text" rows="5" id="search_ai_profile_identity_urls" name="search_ai_profile_identity_urls"><?php echo esc_textarea(implode("\n", $profile['identity_urls'])); ?></textarea><p class="description"><?php esc_html_e('One full public profile URL per line.', 'ajnanda'); ?></p></td></tr>
         </table>
+    </div>
+    <div class="ajnanda-admin-section">
+        <h2><?php esc_html_e('Where do you normally provide services?', 'ajnanda'); ?></h2>
+        <p class="description"><?php esc_html_e('Service coverage is separate from your public business address. These defaults can be inherited or overridden by individual Service pages.', 'ajnanda'); ?></p>
+        <div id="ajnanda-service-area-records">
+        <?php foreach($service_area_records as $index=>$record): ?>
+            <div class="ajnanda-admin-card ajnanda-service-area-row" style="margin-top:12px">
+                <input type="hidden" name="search_ai_service_area_records[<?php echo esc_attr($index); ?>][id]" value="<?php echo esc_attr($record['id']); ?>">
+                <input type="hidden" name="search_ai_service_area_records[<?php echo esc_attr($index); ?>][legacy]" value="<?php echo !empty($record['legacy'])?'1':'0'; ?>">
+                <p><label><strong><?php esc_html_e('Type of area','ajnanda'); ?></strong> <select name="search_ai_service_area_records[<?php echo esc_attr($index); ?>][type]"><?php foreach($service_area_types as $value=>$label): ?><option value="<?php echo esc_attr($value); ?>" <?php selected($record['type'],$value); ?>><?php echo esc_html($label); ?></option><?php endforeach; ?></select></label> <label><strong><?php esc_html_e('Public name','ajnanda'); ?></strong> <input type="text" name="search_ai_service_area_records[<?php echo esc_attr($index); ?>][name]" value="<?php echo esc_attr($record['name']); ?>"></label> <label><input type="checkbox" name="search_ai_service_area_records[<?php echo esc_attr($index); ?>][default]" value="1" <?php checked(in_array($record['id'],$default_service_area_ids,true)); ?>> <?php esc_html_e('Business default','ajnanda'); ?></label></p>
+                <p><label><?php esc_html_e('Country code','ajnanda'); ?> <input size="4" name="search_ai_service_area_records[<?php echo esc_attr($index); ?>][country_code]" value="<?php echo esc_attr($record['country_code']); ?>"></label> <label><?php esc_html_e('Country name','ajnanda'); ?> <input name="search_ai_service_area_records[<?php echo esc_attr($index); ?>][country_name]" value="<?php echo esc_attr($record['country_name']); ?>"></label> <label><?php esc_html_e('State/region code','ajnanda'); ?> <input size="10" name="search_ai_service_area_records[<?php echo esc_attr($index); ?>][region_code]" value="<?php echo esc_attr($record['region_code']); ?>"></label> <label><?php esc_html_e('State/region name','ajnanda'); ?> <input name="search_ai_service_area_records[<?php echo esc_attr($index); ?>][region_name]" value="<?php echo esc_attr($record['region_name']); ?>"></label> <label><?php esc_html_e('Postal code','ajnanda'); ?> <input size="10" name="search_ai_service_area_records[<?php echo esc_attr($index); ?>][postal_code]" value="<?php echo esc_attr($record['postal_code']); ?>"></label></p>
+                <?php if(!empty($record['legacy'])):?><p class="description"><strong><?php esc_html_e('Imported area:','ajnanda'); ?></strong> <?php esc_html_e('Choose its geographic type when you are ready. It remains functional as text until classified.','ajnanda'); ?></p><?php endif; ?>
+                <button type="button" class="button-link-delete ajnanda-remove-service-area"><?php esc_html_e('Remove','ajnanda'); ?></button>
+            </div>
+        <?php endforeach; ?>
+        </div>
+        <p><button type="button" class="button" id="ajnanda-add-service-area"><?php esc_html_e('Add service area','ajnanda'); ?></button></p>
     </div>
     <?php submit_button(__('Save Site Profile', 'ajnanda')); ?>
 </form>
@@ -49,7 +68,6 @@ $location_modes = array(
         if (!locationModel) { return; }
         var mode = locationModel.value;
         document.querySelectorAll('[data-location-field="address"]').forEach(function (row) { row.hidden = mode !== 'physical'; });
-        document.querySelectorAll('[data-location-field="service-areas"]').forEach(function (row) { row.hidden = mode === 'none'; });
         var messages = {
             physical: <?php echo wp_json_encode(__('The structured address will be treated as a public machine-readable location.', 'ajnanda')); ?>,
             service_area: <?php echo wp_json_encode(__('The address is retained but not published; service areas describe where the business operates.', 'ajnanda')); ?>,
@@ -59,6 +77,10 @@ $location_modes = array(
         locationExplanation.textContent = messages[mode] || '';
     }
     if (locationModel) { locationModel.addEventListener('change', updateLocationFields); updateLocationFields(); }
+
+    var areaList=document.getElementById('ajnanda-service-area-records'), addArea=document.getElementById('ajnanda-add-service-area');
+    if(areaList){areaList.addEventListener('click',function(e){if(e.target.classList.contains('ajnanda-remove-service-area'))e.target.closest('.ajnanda-service-area-row').remove();});}
+    if(addArea&&areaList){addArea.addEventListener('click',function(){var i='new-'+Date.now(), row=document.createElement('div');row.className='ajnanda-admin-card ajnanda-service-area-row';row.style.marginTop='12px';row.innerHTML='<input type="hidden" name="search_ai_service_area_records['+i+'][id]" value="area-'+Date.now()+'"><p><label><strong><?php echo esc_js(__('Type of area','ajnanda')); ?></strong> <select name="search_ai_service_area_records['+i+'][type]"><?php foreach($service_area_types as $value=>$label): ?><option value="<?php echo esc_attr($value); ?>"><?php echo esc_js($label); ?></option><?php endforeach; ?></select></label> <label><strong><?php echo esc_js(__('Public name','ajnanda')); ?></strong> <input type="text" name="search_ai_service_area_records['+i+'][name]"></label> <label><input type="checkbox" name="search_ai_service_area_records['+i+'][default]" value="1" checked> <?php echo esc_js(__('Business default','ajnanda')); ?></label></p><p><label><?php echo esc_js(__('Country code','ajnanda')); ?> <input size="4" name="search_ai_service_area_records['+i+'][country_code]"></label> <label><?php echo esc_js(__('Country name','ajnanda')); ?> <input name="search_ai_service_area_records['+i+'][country_name]"></label> <label><?php echo esc_js(__('State/region code','ajnanda')); ?> <input size="10" name="search_ai_service_area_records['+i+'][region_code]"></label> <label><?php echo esc_js(__('State/region name','ajnanda')); ?> <input name="search_ai_service_area_records['+i+'][region_name]"></label> <label><?php echo esc_js(__('Postal code','ajnanda')); ?> <input size="10" name="search_ai_service_area_records['+i+'][postal_code]"></label></p><button type="button" class="button-link-delete ajnanda-remove-service-area"><?php echo esc_js(__('Remove','ajnanda')); ?></button>';areaList.appendChild(row);});}
 
     var choose = document.getElementById('ajnanda_profile_logo_button');
     var remove = document.getElementById('ajnanda_profile_logo_remove');

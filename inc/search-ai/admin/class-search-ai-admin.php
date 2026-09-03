@@ -152,7 +152,15 @@ class AJNanda_Search_AI_Admin {
         $mode = sanitize_key(wp_unslash($_POST['search_ai_profile_location_mode'] ?? 'none'));
         set_theme_mod('search_ai_profile_location_mode', in_array($mode, $location_modes, true) ? $mode : 'none');
 
-        set_theme_mod('search_ai_profile_service_areas', self::sanitize_lines($_POST['search_ai_profile_service_areas'] ?? ''));
+        $submitted_records=(array)wp_unslash($_POST['search_ai_service_area_records']??array());
+        $records=AJNanda_Search_AI_Service_Area_Registry::sanitize_records($submitted_records);
+        $default_ids=array();
+        foreach($submitted_records as $record)if(!empty($record['default'])&&!empty($record['id']))$default_ids[]=sanitize_key($record['id']);
+        $valid_ids=wp_list_pluck($records,'id');
+        $default_ids=array_values(array_intersect(AJNanda_Search_AI_Service_Area_Registry::sanitize_ids($default_ids),$valid_ids));
+        set_theme_mod(AJNanda_Search_AI_Service_Area_Registry::RECORDS_MOD,$records);
+        set_theme_mod(AJNanda_Search_AI_Service_Area_Registry::DEFAULT_IDS_MOD,$default_ids);
+        set_theme_mod('search_ai_profile_service_areas',AJNanda_Search_AI_Service_Area_Registry::public_names(AJNanda_Search_AI_Service_Area_Registry::select($default_ids)));
         set_theme_mod('search_ai_profile_identity_urls', self::sanitize_url_lines($_POST['search_ai_profile_identity_urls'] ?? ''));
 
         // Keep legacy consumers supplied until the schema layer moves to Site Profile.

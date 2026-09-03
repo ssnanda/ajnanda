@@ -520,6 +520,7 @@ function ajnanda_seo_render_meta_box($post) {
     $image       = get_post_meta($post->ID, '_ajnanda_seo_social_image', true);
     $noindex     = get_post_meta($post->ID, '_ajnanda_seo_noindex', true);
     $page_intent = class_exists('AJNanda_Search_AI_Page_Semantic_Intent') ? AJNanda_Search_AI_Page_Semantic_Intent::evaluate($post->ID) : array('stored' => '', 'requested' => 'webpage', 'valid' => true, 'reason' => '');
+    $service_area = class_exists('AJNanda_Search_AI_Service_Area_Registry') ? AJNanda_Search_AI_Service_Area_Registry::effective($post->ID) : array('mode' => 'inherit', 'requested_ids' => array(), 'records' => array(), 'missing_ids' => array(), 'empty_override' => false);
     ?>
     <p>
         <label for="ajnanda_seo_title"><strong><?php esc_html_e('SEO Title', 'ajnanda'); ?></strong></label><br>
@@ -550,9 +551,37 @@ function ajnanda_seo_render_meta_box($post) {
         </p>
         <p class="description"><?php esc_html_e("This helps search engines and AI systems understand the main subject of this page. AJNanda reuses the page and Site Profile information; you don't need to enter it again.", 'ajnanda'); ?></p>
         <?php if (! $page_intent['valid']) : ?><p class="notice notice-warning inline"><strong><?php esc_html_e('Page meaning needs attention:', 'ajnanda'); ?></strong> <?php echo esc_html($page_intent['reason']); ?></p><?php endif; ?>
+        <?php if (class_exists('AJNanda_Search_AI_Service_Area_Registry')) : ?>
+            <div id="ajnanda-service-area-controls" <?php echo 'service' === $page_intent['requested'] ? '' : 'hidden'; ?>>
+                <h4><?php esc_html_e('Where is this service available?', 'ajnanda'); ?></h4>
+                <p class="description"><?php esc_html_e('Service coverage is separate from your business address. Selecting Charlotte here does not claim that you have an office in Charlotte.', 'ajnanda'); ?></p>
+                <p><label><input type="radio" name="ajnanda_service_area_mode" value="inherit" <?php checked($service_area['mode'], 'inherit'); ?>> <?php esc_html_e('Use business default', 'ajnanda'); ?></label></p>
+                <p><label><input type="radio" name="ajnanda_service_area_mode" value="override" <?php checked($service_area['mode'], 'override'); ?>> <?php esc_html_e('Choose specific service areas', 'ajnanda'); ?></label></p>
+                <div id="ajnanda-service-area-overrides" <?php echo 'override' === $service_area['mode'] ? '' : 'hidden'; ?>>
+                    <?php foreach (AJNanda_Search_AI_Service_Area_Registry::records() as $area) : ?>
+                        <p><label><input type="checkbox" name="ajnanda_service_area_ids[]" value="<?php echo esc_attr($area['id']); ?>" <?php checked(in_array($area['id'], $service_area['requested_ids'], true)); ?>> <?php echo esc_html($area['name']); ?> <span class="description">(<?php echo esc_html(AJNanda_Search_AI_Service_Area_Registry::types()[$area['type']]); ?>)</span></label></p>
+                    <?php endforeach; ?>
+                    <?php if (! AJNanda_Search_AI_Service_Area_Registry::records()) : ?><p class="description"><?php esc_html_e('No shared service areas are available. Add them in Search & AI → Site Profile.', 'ajnanda'); ?></p><?php endif; ?>
+                    <p class="description"><?php esc_html_e('An override with no selected areas means this page will not publish service-area structured data.', 'ajnanda'); ?></p>
+                </div>
+                <?php if ($service_area['empty_override'] || $service_area['missing_ids']) : ?><p class="notice notice-warning inline"><?php esc_html_e('This Service page has an empty or incomplete service-area override. Review the selections or inherit the business defaults.', 'ajnanda'); ?></p><?php endif; ?>
+            </div>
+        <?php endif; ?>
     <?php endif; ?>
     <script>
     (function () {
+        var meaning = document.getElementById('ajnanda_primary_entity_type');
+        var serviceControls = document.getElementById('ajnanda-service-area-controls');
+        var serviceOverrides = document.getElementById('ajnanda-service-area-overrides');
+        function updateServiceAreas() {
+            if (serviceControls && meaning) { serviceControls.hidden = meaning.value !== 'service'; }
+            var selected = document.querySelector('input[name="ajnanda_service_area_mode"]:checked');
+            if (serviceOverrides) { serviceOverrides.hidden = !selected || selected.value !== 'override'; }
+        }
+        if (meaning) { meaning.addEventListener('change', updateServiceAreas); }
+        document.querySelectorAll('input[name="ajnanda_service_area_mode"]').forEach(function (input) { input.addEventListener('change', updateServiceAreas); });
+        updateServiceAreas();
+
         var btn = document.getElementById('ajnanda_seo_social_image_button');
         var input = document.getElementById('ajnanda_seo_social_image');
         if (!btn || !input || typeof wp === 'undefined' || !wp.media) { return; }
@@ -590,6 +619,15 @@ function ajnanda_seo_save_meta_box($post_id) {
         $entity_type = AJNanda_Search_AI_Page_Semantic_Intent::sanitize(wp_unslash($_POST['ajnanda_primary_entity_type']));
         if ($entity_type && 'webpage' !== $entity_type) { update_post_meta($post_id, AJNanda_Search_AI_Page_Semantic_Intent::META_KEY, $entity_type); }
         else { delete_post_meta($post_id, AJNanda_Search_AI_Page_Semantic_Intent::META_KEY); }
+        if (class_exists('AJNanda_Search_AI_Service_Area_Registry')) {
+            $area_mode = AJNanda_Search_AI_Service_Area_Registry::sanitize_mode(wp_unslash($_POST['ajnanda_service_area_mode'] ?? 'inherit'));
+            update_post_meta($post_id, AJNanda_Search_AI_Service_Area_Registry::MODE_META, $area_mode);
+            if ('override' === $area_mode) {
+                update_post_meta($post_id, AJNanda_Search_AI_Service_Area_Registry::IDS_META, AJNanda_Search_AI_Service_Area_Registry::sanitize_ids(wp_unslash($_POST['ajnanda_service_area_ids'] ?? array())));
+            } else {
+                delete_post_meta($post_id, AJNanda_Search_AI_Service_Area_Registry::IDS_META);
+            }
+        }
     }
 }
 

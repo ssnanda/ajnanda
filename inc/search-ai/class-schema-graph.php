@@ -17,7 +17,8 @@ class AJNanda_Search_AI_Schema_Graph {
         if ($subject_id && empty(AJNanda_Search_AI_Content_Policy::evaluate($subject_id)['advertise']['schema_relationships'])) { return array(); }
         $is_article = $is_singular && 'post' === get_post_type($subject_id);
         $context = new AJNanda_Search_AI_Schema_Context($subject_id, $is_article);
-        $nodes = array(self::identity_node($context->identity_id), self::website_node($context), self::webpage_node($context));
+        $default_areas=AJNanda_Search_AI_Service_Area_Registry::defaults();
+        $nodes = array_merge(array(self::identity_node($context->identity_id), self::website_node($context), self::webpage_node($context)), AJNanda_Search_AI_Service_Area_Registry::schema_nodes($default_areas));
         if ($is_article) { $nodes[] = self::article_node($subject_id, $context); }
 
         $contributions = array('nodes' => array(), 'relationships' => array(), 'explicit_faq' => false);
@@ -103,7 +104,8 @@ class AJNanda_Search_AI_Schema_Graph {
         if ($profile['phone']) { $node['telephone'] = $profile['phone']; }
         if ($profile['email']) { $node['email'] = $profile['email']; }
         if ($profile['identity_urls']) { $node['sameAs'] = array_values($profile['identity_urls']); }
-        if ($profile['service_areas']) { $node['areaServed'] = array_values($profile['service_areas']); }
+        $areas=AJNanda_Search_AI_Service_Area_Registry::defaults();
+        if ($areas) { $node['areaServed'] = AJNanda_Search_AI_Service_Area_Registry::schema_values($areas); }
         if ('physical' === $profile['location_mode'] && array_filter($profile['address'])) {
             $node['address'] = array_filter(array('@type' => 'PostalAddress', 'streetAddress' => $profile['address']['street'], 'addressLocality' => $profile['address']['city'], 'addressRegion' => $profile['address']['state'], 'postalCode' => $profile['address']['postal'], 'addressCountry' => $profile['address']['country']));
         }
