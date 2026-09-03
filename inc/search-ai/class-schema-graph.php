@@ -27,7 +27,7 @@ class AJNanda_Search_AI_Schema_Graph {
             $author_name = get_the_author_meta('display_name', get_post_field('post_author', $post_id));
             $article = array(
                 '@type' => 'Article', '@id' => get_permalink($post_id) . '#article',
-                'url' => get_permalink($post_id), 'headline' => wp_specialchars_decode(get_the_title($post_id), ENT_QUOTES),
+                'url' => get_permalink($post_id), 'headline' => html_entity_decode(get_the_title($post_id), ENT_QUOTES | ENT_HTML5, get_bloginfo('charset') ?: 'UTF-8'),
                 'datePublished' => get_the_date('c', $post_id),
                 'dateModified' => get_the_modified_date('c', $post_id),
                 'publisher' => array('@id' => $entity_id),

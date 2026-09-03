@@ -19,6 +19,7 @@ class AJNanda_Search_AI_Admin {
         add_action('admin_post_ajnanda_save_search_ai_profile', array(__CLASS__, 'save_profile'));
         add_action('admin_post_ajnanda_save_search_ai_policy', array(__CLASS__, 'save_policy'));
         add_action('admin_post_ajnanda_save_ai_discovery', array(__CLASS__, 'save_ai_discovery'));
+        add_action('admin_post_ajnanda_save_llms_important_pages', array(__CLASS__, 'save_llms_important_pages'));
         add_action('wp_ajax_ajnanda_search_ai_find_content', array(__CLASS__, 'find_content'));
     }
 
@@ -69,7 +70,7 @@ class AJNanda_Search_AI_Admin {
         $profile = AJNanda_Search_AI_Site_Profile::get();
         $policy = AJNanda_Search_AI_Content_Policy::settings();
         $crawler_registry = AJNanda_Search_AI_Crawler_Registry::all();
-        $discovery_status = AJNanda_Search_AI_Discovery_Files::status();
+        $discovery_status = AJNanda_Search_AI_Discovery_Files::status('discovery-files' === $tab);
         $public_post_types = get_post_types(array('public' => true, 'show_ui' => true), 'objects');
         unset($public_post_types['attachment']);
         $selected_content = array();
@@ -81,6 +82,19 @@ class AJNanda_Search_AI_Admin {
                     'post__in' => $policy['excluded_post_ids'],
                     'orderby' => 'post__in',
                     'numberposts' => count($policy['excluded_post_ids']),
+                ));
+            }
+        }
+        $selected_important_pages = array();
+        if ('discovery-files' === $tab) {
+            $important_ids = AJNanda_Search_AI_Discovery_Files::important_page_ids();
+            if ($important_ids) {
+                $selected_important_pages = get_posts(array(
+                    'post_type' => 'page',
+                    'post_status' => 'publish',
+                    'post__in' => $important_ids,
+                    'orderby' => 'post__in',
+                    'numberposts' => count($important_ids),
                 ));
             }
         }
@@ -180,6 +194,17 @@ class AJNanda_Search_AI_Admin {
         self::redirect('ai-discovery');
     }
 
+    public static function save_llms_important_pages() {
+        self::authorize('ajnanda_save_llms_important_pages');
+        $ids = array_values(array_filter(array_unique(array_map('absint', (array) ($_POST['search_ai_llms_important_page_ids'] ?? array())))));
+        $valid_ids = array();
+        foreach ($ids as $id) {
+            if ('page' === get_post_type($id) && 'publish' === get_post_status($id)) { $valid_ids[] = $id; }
+        }
+        set_theme_mod('search_ai_llms_important_page_ids', $valid_ids);
+        self::redirect('discovery-files');
+    }
+
     private static function sanitize_lines($value) {
         $lines = preg_split('/\r\n|\r|\n/', wp_unslash((string) $value));
         return array_values(array_filter(array_map('sanitize_text_field', $lines)));
@@ -195,8 +220,13 @@ class AJNanda_Search_AI_Admin {
         if (strlen($search) < 2) {
             wp_send_json_success(array());
         }
-        $types = get_post_types(array('public' => true, 'show_ui' => true), 'names');
-        unset($types['attachment']);
+        $requested_type = sanitize_key(wp_unslash($_GET['post_type'] ?? ''));
+        if ('page' === $requested_type) {
+            $types = array('page');
+        } else {
+            $types = get_post_types(array('public' => true, 'show_ui' => true), 'names');
+            unset($types['attachment']);
+        }
         $posts = get_posts(array(
             'post_type' => array_values($types),
             'post_status' => 'publish',
