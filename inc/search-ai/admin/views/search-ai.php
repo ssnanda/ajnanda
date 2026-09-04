@@ -12,7 +12,6 @@ $base_url = admin_url('admin.php?page=' . AJNanda_Search_AI_Admin::PAGE_SLUG);
     <div class="ajnanda-admin-hero">
         <p class="ajnanda-admin-eyebrow"><?php esc_html_e('AJNanda', 'ajnanda'); ?></p>
         <h1><?php esc_html_e('Search & AI', 'ajnanda'); ?></h1>
-        <p><?php esc_html_e('Control how search engines and AI systems discover, understand, and access your public website.', 'ajnanda'); ?></p>
     </div>
 
     <div class="ajnanda-search-ai-toolbar">

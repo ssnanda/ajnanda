@@ -18,7 +18,6 @@ if (!defined('ABSPATH')) {
     <div class="ajnanda-admin-hero">
         <p class="ajnanda-admin-eyebrow"><?php esc_html_e('AJNanda', 'ajnanda'); ?></p>
         <h1><?php esc_html_e('Theme Settings', 'ajnanda'); ?></h1>
-        <p><?php esc_html_e('AJNanda\'s site-wide controls live in their existing locations — nothing has moved, this is just a shortcut to both.', 'ajnanda'); ?></p>
     </div>
 
     <div class="ajnanda-admin-grid">

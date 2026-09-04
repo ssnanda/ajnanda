@@ -29,19 +29,6 @@ $site_scheme_label = isset($color_schemes[$site_scheme]) ? $color_schemes[$site_
     <div class="ajnanda-admin-hero">
         <p class="ajnanda-admin-eyebrow"><?php esc_html_e('AJNanda', 'ajnanda'); ?></p>
         <h1><?php esc_html_e('Page Library', 'ajnanda'); ?></h1>
-        <p><?php esc_html_e('Complete page designs built from AJNanda section patterns. These also appear automatically in the "Choose a pattern" screen when you go to Pages → Add New — use this screen when you want to browse first, or to insert one directly.', 'ajnanda'); ?></p>
-        <?php if (!empty($color_schemes)) : ?>
-            <p>
-                <?php
-                printf(
-                    /* translators: 1: current site brand colors label, 2: link to Customizer */
-                    esc_html__('Your site\'s current brand colors are %1$s. New pages below default to matching them. %2$s', 'ajnanda'),
-                    '<strong>' . esc_html($site_scheme_label) . '</strong>',
-                    '<a href="' . esc_url(admin_url('customize.php?autofocus[section]=colors')) . '">' . esc_html__('Change them in the Customizer', 'ajnanda') . '</a>'
-                );
-                ?>
-            </p>
-        <?php endif; ?>
     </div>
 
     <?php if ($notice && !empty($notice['error'])) : ?>

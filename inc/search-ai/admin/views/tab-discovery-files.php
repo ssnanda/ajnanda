@@ -54,16 +54,17 @@ $endpoint_label = static function ($endpoint) {
         <nav class="ajnanda-file-tree" aria-label="<?php esc_attr_e('Discovery files', 'ajnanda'); ?>">
             <p class="ajnanda-file-tree-heading"><?php esc_html_e('Discovery files', 'ajnanda'); ?></p>
             <?php foreach ($text_editors as $file => $editor) : ?>
-                <button type="button" class="ajnanda-file-tree-item<?php echo 'robots_txt' === $file ? ' is-active' : ''; ?>" data-file-target="<?php echo esc_attr($file); ?>" aria-pressed="<?php echo 'robots_txt' === $file ? 'true' : 'false'; ?>"><span aria-hidden="true">├─</span> <?php echo esc_html($editor['label']); ?><?php if (AJNanda_Search_AI_Discovery_Files::custom_enabled($file)) : ?><small><?php esc_html_e('Custom', 'ajnanda'); ?></small><?php endif; ?></button>
+                <button type="button" class="ajnanda-file-tree-item" data-file-target="<?php echo esc_attr($file); ?>" aria-pressed="false"><span aria-hidden="true">├─</span> <?php echo esc_html($editor['label']); ?><?php if (AJNanda_Search_AI_Discovery_Files::custom_enabled($file)) : ?><small><?php esc_html_e('Custom', 'ajnanda'); ?></small><?php endif; ?></button>
             <?php endforeach; ?>
             <button type="button" class="ajnanda-file-tree-item" data-file-target="security_txt" aria-pressed="false"><span aria-hidden="true">└─</span> security.txt</button>
         </nav>
         <div class="ajnanda-file-panels">
+            <div class="ajnanda-file-empty" data-file-empty><?php esc_html_e('Select a file to view or edit.', 'ajnanda'); ?></div>
         <?php
         foreach ($text_editors as $file => $editor) :
             $custom_content = AJNanda_Search_AI_Discovery_Files::custom_content($file);
         ?>
-            <section class="ajnanda-discovery-editor<?php echo 'robots_txt' === $file ? ' is-active' : ''; ?>" data-file-panel="<?php echo esc_attr($file); ?>" <?php echo 'robots_txt' === $file ? '' : 'hidden'; ?>>
+            <section class="ajnanda-discovery-editor" data-file-panel="<?php echo esc_attr($file); ?>" hidden>
                 <header class="ajnanda-file-editor-header"><div><h3><?php echo esc_html($editor['label']); ?></h3><span class="ajnanda-admin-pill"><?php echo esc_html($editor['format']); ?></span></div><a href="<?php echo esc_url($editor['url']); ?>" target="_blank" rel="noopener"><?php esc_html_e('View public file', 'ajnanda'); ?> &rarr;</a></header>
                 <p><label><input type="checkbox" name="search_ai_custom_<?php echo esc_attr($file); ?>_enabled" value="1" <?php checked(AJNanda_Search_AI_Discovery_Files::custom_enabled($file)); ?>> <?php esc_html_e('Custom override', 'ajnanda'); ?></label></p>
                 <div class="ajnanda-file-editor-actions"><button type="submit" class="button button-primary"><?php esc_html_e('Save changes', 'ajnanda'); ?></button><button type="button" class="button" data-undo-discovery><?php esc_html_e('Undo edits', 'ajnanda'); ?></button><span class="spinner" aria-hidden="true"></span><span class="ajnanda-file-dirty" hidden><?php esc_html_e('Unsaved changes', 'ajnanda'); ?></span></div>
@@ -122,7 +123,7 @@ $endpoint_label = static function ($endpoint) {
                 panels.forEach(function (panel) { panel.classList.remove('is-active'); panel.hidden = true; });
                 item.classList.add('is-active'); item.setAttribute('aria-pressed', 'true');
                 var panel = workspace.querySelector('[data-file-panel="' + item.dataset.fileTarget + '"]');
-                if (panel) { panel.hidden = false; panel.classList.add('is-active'); loadPublicFile(panel); }
+                if (panel) { var empty = workspace.querySelector('[data-file-empty]'); if (empty) { empty.hidden = true; } panel.hidden = false; panel.classList.add('is-active'); loadPublicFile(panel); }
             });
         });
         workspace.querySelectorAll('[data-file-panel]').forEach(function (panel) {
@@ -145,7 +146,6 @@ $endpoint_label = static function ($endpoint) {
                 updateDirty();
             }); }
         });
-        loadPublicFile(workspace.querySelector('[data-file-panel].is-active'));
     }
     var checklist = document.getElementById('ajnanda-important-pages');
     if (checklist) {

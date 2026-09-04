@@ -17,7 +17,6 @@ if (!defined('ABSPATH')) {
     <div class="ajnanda-admin-hero">
         <p class="ajnanda-admin-eyebrow"><?php esc_html_e('AJNanda Site Builder', 'ajnanda'); ?></p>
         <h1><?php esc_html_e('Build websites with patterns, page designs, and starter sites', 'ajnanda'); ?></h1>
-        <p><?php esc_html_e('Everything here becomes ordinary, fully editable Gutenberg blocks once it lands on a page — there is nothing to "eject" and no separate builder to learn.', 'ajnanda'); ?></p>
     </div>
 
     <div class="ajnanda-admin-section">

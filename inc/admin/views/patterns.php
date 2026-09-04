@@ -30,7 +30,6 @@ ksort($groups);
     <div class="ajnanda-admin-hero">
         <p class="ajnanda-admin-eyebrow"><?php esc_html_e('AJNanda', 'ajnanda'); ?></p>
         <h1><?php esc_html_e('Section Patterns', 'ajnanda'); ?></h1>
-        <p><?php esc_html_e('Reference list of every AJNanda section pattern. Insert a section from any page or post by opening the block inserter\'s Patterns tab and searching "AJNanda", or by typing "/" and the pattern name — "Preview" here just shows what a section looks like on its own before you go looking for it.', 'ajnanda'); ?></p>
     </div>
 
     <p class="ajnanda-admin-search">

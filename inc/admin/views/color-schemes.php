@@ -22,19 +22,6 @@ if (!defined('ABSPATH')) {
     <div class="ajnanda-admin-hero">
         <p class="ajnanda-admin-eyebrow"><?php esc_html_e('AJNanda', 'ajnanda'); ?></p>
         <h1><?php esc_html_e('Color Schemes', 'ajnanda'); ?></h1>
-        <p>
-            <?php esc_html_e('A visual reference for the 20 preset color schemes. This screen is read-only — it changes nothing. Click "Preview" on any card to see a real page rendered with that scheme\'s colors, in a new tab, exactly as a visitor would see it — nothing is saved.', 'ajnanda'); ?>
-        </p>
-        <p>
-            <?php
-            printf(
-                /* translators: 1: link to Customizer, 2: link to Page Library */
-                esc_html__('To actually use a scheme: apply one site-wide from the swatches in %1$s, or apply one to a single page from %2$s.', 'ajnanda'),
-                '<a href="' . esc_url(admin_url('customize.php?autofocus[section]=colors')) . '">' . esc_html__('Appearance → Customize → Colors', 'ajnanda') . '</a>',
-                '<a href="' . esc_url(admin_url('admin.php?page=ajnanda-page-library')) . '">' . esc_html__('Page Library', 'ajnanda') . '</a>'
-            );
-            ?>
-        </p>
     </div>
 
     <div class="ajnanda-admin-grid">

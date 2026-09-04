@@ -18,7 +18,6 @@ if (!defined('ABSPATH')) {
     <div class="ajnanda-admin-hero">
         <p class="ajnanda-admin-eyebrow"><?php esc_html_e('AJNanda', 'ajnanda'); ?></p>
         <h1><?php esc_html_e('SEO Insights', 'ajnanda'); ?></h1>
-        <p><?php esc_html_e('Suggestions from Google Site Kit — Search Console click-through/ranking data and mobile PageSpeed.', 'ajnanda'); ?></p>
     </div>
 
     <div class="ajnanda-admin-card">

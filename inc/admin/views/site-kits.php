@@ -25,18 +25,6 @@ if (!defined('ABSPATH')) {
     <div class="ajnanda-admin-hero">
         <p class="ajnanda-admin-eyebrow"><?php esc_html_e('AJNanda', 'ajnanda'); ?></p>
         <h1><?php esc_html_e('Site Kits', 'ajnanda'); ?></h1>
-        <p>
-            <?php esc_html_e('A Site Kit is a color scheme and a font pairing, bundled under one name — a complete look in one click, not a new design system. This screen is read-only. Click "Preview" on any card to see a real page rendered with that kit\'s colors and fonts, in a new tab — nothing is saved.', 'ajnanda'); ?>
-        </p>
-        <p>
-            <?php
-            printf(
-                /* translators: %s: link to Customizer */
-                esc_html__('To actually apply a kit: open %s and use the "Quick Kits" swatches at the top of the Colors panel.', 'ajnanda'),
-                '<a href="' . esc_url(admin_url('customize.php?autofocus[section]=colors')) . '">' . esc_html__('Appearance → Customize', 'ajnanda') . '</a>'
-            );
-            ?>
-        </p>
     </div>
 
     <div class="ajnanda-admin-grid">

@@ -33,7 +33,6 @@ $initial_slug = ($preview && isset($starters[$preview['slug']])) ? $preview['slu
     <div class="ajnanda-admin-hero">
         <p class="ajnanda-admin-eyebrow"><?php esc_html_e('AJNanda', 'ajnanda'); ?></p>
         <h1><?php esc_html_e('Starter Sites', 'ajnanda'); ?></h1>
-        <p><?php esc_html_e('Each starter site creates a coordinated set of pages built from AJNanda Page Designs, plus a primary navigation menu. Nothing already on your site is overwritten — re-running an import safely skips pages you already have, and content with a slug AJNanda does not own is never taken over.', 'ajnanda'); ?></p>
     </div>
 
     <?php if ($notice) : ?>
