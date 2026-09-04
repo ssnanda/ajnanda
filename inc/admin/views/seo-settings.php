@@ -43,7 +43,7 @@ if (!defined('ABSPATH')) {
             <tr>
                 <th scope="row"><label for="seo_default_social_image"><?php esc_html_e('Default Social Share Image', 'ajnanda'); ?></label></th>
                 <td>
-                    <input type="text" id="seo_default_social_image" name="seo_default_social_image" value="<?php echo esc_url($values['seo_default_social_image']); ?>" class="regular-text">
+                    <input type="text" id="seo_default_social_image" name="seo_default_social_image" value="<?php echo esc_attr($values['seo_default_social_image']); ?>" class="regular-text">
                     <button type="button" class="button" id="ajnanda_seo_social_image_button"><?php esc_html_e('Choose Image', 'ajnanda'); ?></button>
                     <p class="description"><?php esc_html_e('Used for Open Graph/Twitter previews when a post has no featured image.', 'ajnanda'); ?></p>
                     <?php if ($values['seo_default_social_image']) : ?>

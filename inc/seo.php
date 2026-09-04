@@ -27,6 +27,13 @@ function ajnanda_seo_normalize_site_url($url) {
     $url = trim((string) $url);
     if ('' === $url) { return ''; }
 
+    // Same-site values are stored root-relative so database synchronization
+    // cannot carry one environment's origin into another. Expand them only
+    // when generating public metadata, where absolute URLs are required.
+    if (preg_match('#^/(?!/)#', $url)) {
+        return home_url($url);
+    }
+
     $parts = wp_parse_url($url);
     $home  = wp_parse_url(home_url('/'));
     if (empty($parts['host']) || empty($home['host']) || ! preg_match('/\.ddev\.site$/i', $parts['host'])) {
@@ -40,6 +47,25 @@ function ajnanda_seo_normalize_site_url($url) {
     if (isset($parts['query'])) { $normalized .= '?' . $parts['query']; }
     if (isset($parts['fragment'])) { $normalized .= '#' . $parts['fragment']; }
     return $normalized;
+}
+
+/**
+ * Convert same-site and DDEV URLs to a portable root-relative value for storage.
+ */
+function ajnanda_seo_relative_site_url($url) {
+    $url = trim((string) $url);
+    if ('' === $url || preg_match('#^/(?!/)#', $url)) { return $url; }
+
+    $parts = wp_parse_url($url);
+    $home  = wp_parse_url(home_url('/'));
+    if (empty($parts['host']) || (strcasecmp($parts['host'], $home['host'] ?? '') !== 0 && ! preg_match('/\.ddev\.site$/i', $parts['host']))) {
+        return $url;
+    }
+
+    $relative = '/' . ltrim($parts['path'] ?? '', '/');
+    if (isset($parts['query'])) { $relative .= '?' . $parts['query']; }
+    if (isset($parts['fragment'])) { $relative .= '#' . $parts['fragment']; }
+    return $relative;
 }
 
 // ── AJNanda admin menu: SEO Settings + SEO Insights ─────────────────────────
@@ -113,7 +139,7 @@ function ajnanda_seo_save_settings() {
     check_admin_referer('ajnanda_seo_save_settings', 'ajnanda_seo_settings_nonce');
 
     set_theme_mod('seo_meta_description_default', sanitize_text_field(wp_unslash($_POST['seo_meta_description_default'] ?? '')));
-    set_theme_mod('seo_default_social_image', esc_url_raw(ajnanda_seo_normalize_site_url(wp_unslash($_POST['seo_default_social_image'] ?? ''))));
+    set_theme_mod('seo_default_social_image', esc_url_raw(ajnanda_seo_relative_site_url(wp_unslash($_POST['seo_default_social_image'] ?? ''))));
     set_theme_mod('seo_twitter_handle', sanitize_text_field(wp_unslash($_POST['seo_twitter_handle'] ?? '')));
     if (isset($_POST['seo_business_phone']) || ! class_exists('AJNanda_Search_AI_Admin')) {
         set_theme_mod('seo_business_phone', sanitize_text_field(wp_unslash($_POST['seo_business_phone'] ?? '')));

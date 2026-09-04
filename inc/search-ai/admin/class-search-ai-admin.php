@@ -142,7 +142,7 @@ class AJNanda_Search_AI_Admin {
             set_theme_mod($key, sanitize_text_field(wp_unslash($_POST[$key] ?? '')));
         }
         set_theme_mod('search_ai_profile_description', sanitize_textarea_field(wp_unslash($_POST['search_ai_profile_description'] ?? '')));
-        set_theme_mod('search_ai_profile_website', esc_url_raw(wp_unslash($_POST['search_ai_profile_website'] ?? '')));
+        set_theme_mod('search_ai_profile_website', esc_url_raw(ajnanda_seo_relative_site_url(wp_unslash($_POST['search_ai_profile_website'] ?? '/'))));
         set_theme_mod('search_ai_profile_email', sanitize_email(wp_unslash($_POST['search_ai_profile_email'] ?? '')));
         set_theme_mod('search_ai_profile_logo_id', absint($_POST['search_ai_profile_logo_id'] ?? 0));
 

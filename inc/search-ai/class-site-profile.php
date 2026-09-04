@@ -41,6 +41,7 @@ class AJNanda_Search_AI_Site_Profile {
             // The current WordPress URL is authoritative. A copied environment
             // must never publish the source environment's stored origin.
             'website'           => home_url('/'),
+            'website_input'     => self::value('search_ai_profile_website', '/'),
             'phone'             => self::value('search_ai_profile_phone', get_theme_mod('seo_business_phone', '')),
             'email'             => self::value('search_ai_profile_email', ''),
             // Only a physical-location profile exposes a PostalAddress. Stored

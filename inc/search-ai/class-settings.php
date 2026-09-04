@@ -11,7 +11,7 @@ if (! defined('ABSPATH')) {
 
 class AJNanda_Search_AI_Settings {
 
-    const MIGRATION_VERSION = 3;
+    const MIGRATION_VERSION = 4;
     const VERSION_MOD = 'search_ai_migration_version';
 
     /**
@@ -71,6 +71,14 @@ class AJNanda_Search_AI_Settings {
 
         if ($installed_version < 3) {
             self::migrate_discovery_content();
+        }
+
+        if ($installed_version < 4) {
+            $social_image = get_theme_mod('seo_default_social_image', '');
+            if ($social_image) {
+                set_theme_mod('seo_default_social_image', esc_url_raw(ajnanda_seo_relative_site_url($social_image)));
+            }
+            set_theme_mod('search_ai_profile_website', '/');
         }
 
         set_theme_mod(self::VERSION_MOD, self::MIGRATION_VERSION);
