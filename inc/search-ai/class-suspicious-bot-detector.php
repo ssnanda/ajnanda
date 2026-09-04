@@ -69,14 +69,14 @@ class AJNanda_Search_AI_Suspicious_Bot_Detector {
             $items[] = array('state' => 'success', 'title' => __('Sensitive probes were rejected or redirected', 'ajnanda'), 'text' => __('No detected sensitive-path probe returned a successful 2xx response. Continue reviewing hosting or edge-security logs for broader visibility.', 'ajnanda'));
         }
         if ($report['claimed_crawlers']) {
-            $items[] = array('state' => 'warning', 'title' => __('Crawler names may be spoofed', 'ajnanda'), 'text' => sprintf(_n('%d suspicious request claimed a recognized search or AI crawler identity without verified evidence. Do not interpret these as confirmed provider visits.', '%d suspicious requests claimed recognized search or AI crawler identities without verified evidence. Do not interpret these as confirmed provider visits.', $report['claimed_crawlers'], 'ajnanda'), $report['claimed_crawlers']));
+            $items[] = array('state' => 'warning', 'title' => __('Unverified crawler names appeared on probe paths', 'ajnanda'), 'text' => sprintf(_n('%d suspicious request used a recognized search or AI crawler name without verified identity evidence. This is an unverified claim, not proof of either genuine provider traffic or deliberate spoofing.', '%d suspicious requests used recognized search or AI crawler names without verified identity evidence. These are unverified claims, not proof of either genuine provider traffic or deliberate spoofing.', $report['claimed_crawlers'], 'ajnanda'), $report['claimed_crawlers']));
         }
         $items[] = array('state' => 'warning', 'title' => __('Prefer blocking at the hosting or edge layer', 'ajnanda'), 'text' => __('If these probes persist, review Hostinger, Cloudflare, or another WAF/security log. WordPress-level blocking occurs after the request has already consumed server resources.', 'ajnanda'));
         return $items;
     }
 
     public static function reason_label($reason) {
-        $labels = array('credentials' => __('Credential or secret-file probe', 'ajnanda'), 'configuration' => __('Configuration-file probe', 'ajnanda'), 'exploit_probe' => __('Known exploit or diagnostic-path probe', 'ajnanda'), 'identity_verification_failed' => __('Crawler identity verification failed', 'ajnanda'), 'claimed_crawler_on_probe_path' => __('Recognized crawler name used on a suspicious path', 'ajnanda'));
+        $labels = array('credentials' => __('Credential or secret-file probe', 'ajnanda'), 'configuration' => __('Configuration-file probe', 'ajnanda'), 'exploit_probe' => __('Known exploit or diagnostic-path probe', 'ajnanda'), 'identity_verification_failed' => __('Crawler identity verification failed', 'ajnanda'), 'claimed_crawler_on_probe_path' => __('Unverified recognized crawler name used on a suspicious path', 'ajnanda'));
         return $labels[$reason] ?? ucfirst(str_replace('_', ' ', $reason));
     }
 }

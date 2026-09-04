@@ -5,7 +5,7 @@ if (! defined('ABSPATH')) { exit; }
 class AJNanda_Search_AI_Export {
     public static function report() {
         $readiness = AJNanda_Search_AI_Readiness::report();
-        $insights = AJNanda_Search_AI_Insights::report();
+        $insights = AJNanda_Search_AI_Insights::report($readiness);
         $suspicious = AJNanda_Search_AI_Suspicious_Bot_Detector::report();
         $crawler = AJNanda_Search_AI_Crawler_Log_Store::table_exists() ? AJNanda_Search_AI_Crawler_Log_Store::aggregates(array('days' => 30)) : array();
         $policy = AJNanda_Search_AI_Content_Policy::settings();
@@ -48,7 +48,7 @@ class AJNanda_Search_AI_Export {
         return apply_filters('ajnanda_search_ai_export_report', array(
             'report' => array(
                 'format' => 'AJNanda Search & AI Handoff',
-                'format_version' => 1,
+                'format_version' => 2,
                 'generated_at_utc' => gmdate('c'),
                 'site_url' => home_url('/'),
                 'site_name' => get_bloginfo('name'),
@@ -57,7 +57,8 @@ class AJNanda_Search_AI_Export {
                 'handoff_instructions' => 'Attach this JSON file in VS Code and ask Codex to review action_items first, validate each recommendation against the supporting evidence, and propose or implement the appropriate website changes.',
             ),
             'action_items' => $action_items,
-            'readiness' => array('score' => $readiness['score'], 'checks' => array_values($readiness['checks'])),
+            'technical_readiness' => array('score' => $readiness['score'], 'checks' => array_values($readiness['checks'])),
+            'readiness' => array('deprecated' => true, 'replacement' => 'technical_readiness', 'score' => $readiness['score'], 'checks' => array_values($readiness['checks'])),
             'insights' => $insights,
             'site_profile' => array(
                 'name' => $profile['name'], 'alternate_name' => $profile['alternate_name'], 'description' => $profile['description'],
@@ -77,7 +78,7 @@ class AJNanda_Search_AI_Export {
             'suspicious_activity' => array(
                 'enabled' => $suspicious['enabled'], 'period_days' => $suspicious['days'], 'events_scanned' => $suspicious['scanned'], 'scan_limited' => $suspicious['scan_limited'],
                 'suspicious_requests' => $suspicious['total'], 'critical' => $suspicious['critical'], 'high' => $suspicious['high'], 'medium' => $suspicious['medium'],
-                'successful_sensitive_responses' => $suspicious['successful_sensitive'], 'spoofing_indicators' => $suspicious['claimed_crawlers'],
+                'successful_sensitive_responses' => $suspicious['successful_sensitive'], 'unverified_crawler_claims' => $suspicious['claimed_crawlers'],
                 'top_paths' => $suspicious['top_paths'], 'recent_evidence' => $suspicious_events,
             ),
         ));

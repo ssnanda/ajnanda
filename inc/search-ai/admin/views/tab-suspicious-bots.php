@@ -8,7 +8,7 @@
 <div class="ajnanda-readiness-cards ajnanda-crawler-summary">
     <div class="ajnanda-readiness-card"><span><?php esc_html_e('Suspicious requests', 'ajnanda'); ?></span><strong><?php echo esc_html(number_format_i18n($suspicious_bots['total'])); ?></strong></div>
     <div class="ajnanda-readiness-card"><span><?php esc_html_e('Successful sensitive responses', 'ajnanda'); ?></span><strong class="<?php echo $suspicious_bots['successful_sensitive'] ? 'ajnanda-state-fail' : 'ajnanda-state-pass'; ?>"><?php echo esc_html(number_format_i18n($suspicious_bots['successful_sensitive'])); ?></strong></div>
-    <div class="ajnanda-readiness-card"><span><?php esc_html_e('Spoofing indicators', 'ajnanda'); ?></span><strong><?php echo esc_html(number_format_i18n($suspicious_bots['claimed_crawlers'])); ?></strong></div>
+    <div class="ajnanda-readiness-card"><span><?php esc_html_e('Unverified crawler claims', 'ajnanda'); ?></span><strong><?php echo esc_html(number_format_i18n($suspicious_bots['claimed_crawlers'])); ?></strong></div>
     <div class="ajnanda-readiness-card"><span><?php esc_html_e('Period analyzed', 'ajnanda'); ?></span><strong><?php printf(esc_html__('%d days', 'ajnanda'), $suspicious_bots['days']); ?></strong></div>
 </div>
 <div class="ajnanda-admin-grid ajnanda-overview-main">

@@ -23,6 +23,7 @@ class AJNanda_Search_AI_Admin {
         add_action('admin_post_ajnanda_save_discovery_file_editors', array(__CLASS__, 'save_discovery_file_editors'));
         add_action('admin_post_ajnanda_save_crawler_log_settings', array(__CLASS__, 'save_crawler_log_settings'));
         add_action('admin_post_ajnanda_refresh_search_ai_roadmap', array(__CLASS__, 'refresh_roadmap'));
+        add_action('admin_post_ajnanda_refresh_search_ai_insights', array(__CLASS__, 'refresh_insights'));
         add_action('admin_post_ajnanda_export_search_ai', array('AJNanda_Search_AI_Export', 'download'));
         add_action('wp_ajax_ajnanda_search_ai_find_content', array(__CLASS__, 'find_content'));
     }
@@ -130,6 +131,12 @@ class AJNanda_Search_AI_Admin {
     private static function redirect($tab) {
         wp_safe_redirect(add_query_arg(array('page' => self::PAGE_SLUG, 'tab' => $tab, 'updated' => '1'), admin_url('admin.php')));
         exit;
+    }
+
+    public static function refresh_insights() {
+        self::authorize('ajnanda_refresh_search_ai_insights');
+        AJNanda_Search_AI_Insights::refresh();
+        self::redirect('insights');
     }
 
     public static function save_profile() {

@@ -85,6 +85,10 @@ The Suspicious Bots tab analyzes the existing bounded Crawler Log data for conse
 ## Actionable report export
 
 Search & AI provides a JSON handoff report for offline review and code-assisted website improvements. It combines readiness issues, provider-backed Insights, public configuration, capability ownership, bounded crawler aggregates, and sanitized suspicious-request evidence. API credentials, stored IP values, raw User-Agent strings, and the general event-level crawler log are deliberately excluded. The `action_items` section is the concise starting point; the remaining sections provide supporting evidence and policy context.
+
+Insights uses a six-hour last-successful snapshot so opening the admin tab does not wait for Google provider requests. Stale evidence is clearly identified; **Refresh evidence now** is the only intentional synchronous provider-fetch path. Search opportunities include raw metrics, a position-aware directional CTR comparison, interpretation, suggested action, confidence, caveats, and prior-period evidence. Results are impact-sorted and capped for page/type diversity. Address-shaped queries are surfaced for relevance review rather than automatically treated as optimization targets.
+
+Export format version 2 calls the readiness result `technical_readiness`, includes current-versus-previous 28-day provider evidence, and distinguishes claimed crawler identities from verified providers. An unverified crawler name is never reported as confirmed engagement or proof of spoofing.
 ## Semantic content and schema graph
 
 AJNanda emits one connected, Site Profile-backed Schema.org graph when AJNanda owns the schema capability. The graph contains stable identity, WebSite, WebPage, and Article entities, then accepts provider-neutral semantic contributions from visible block content.

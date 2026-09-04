@@ -104,8 +104,12 @@ class AJNanda_Search_AI_Crawler_Log_Store {
             'identity_count' => (int) $wpdb->get_var($prepare("SELECT COUNT(DISTINCT crawler_key) FROM {$table} {$where}")),
             'latest' => $wpdb->get_var($prepare("SELECT MAX(observed_at) FROM {$table} {$where}")),
             'providers' => $wpdb->get_results($prepare("SELECT provider_key, reported_identity, COUNT(*) count, MAX(observed_at) latest FROM {$table} {$where} GROUP BY provider_key, reported_identity ORDER BY count DESC LIMIT 10"), ARRAY_A),
+            'claimed_providers' => $wpdb->get_results($prepare("SELECT provider_key, reported_identity, COUNT(*) count, MAX(observed_at) latest FROM {$table} {$where} GROUP BY provider_key, reported_identity ORDER BY count DESC LIMIT 10"), ARRAY_A),
+            'verified_providers' => $wpdb->get_results($prepare("SELECT provider_key, reported_identity, COUNT(*) count, MAX(observed_at) latest FROM {$table} {$where} AND verification_state = 'verified' GROUP BY provider_key, reported_identity ORDER BY count DESC LIMIT 10"), ARRAY_A),
             'categories' => $wpdb->get_results($prepare("SELECT category, COUNT(*) count FROM {$table} {$where} GROUP BY category ORDER BY count DESC LIMIT 10"), ARRAY_A),
             'verification' => $wpdb->get_results($prepare("SELECT verification_state, COUNT(*) count FROM {$table} {$where} GROUP BY verification_state ORDER BY count DESC"), ARRAY_A),
+            'verification_evidence' => $wpdb->get_results($prepare("SELECT verification_state, verification_method, verification_reason, ip_mode, COUNT(*) count FROM {$table} {$where} GROUP BY verification_state, verification_method, verification_reason, ip_mode ORDER BY count DESC LIMIT 20"), ARRAY_A),
+            'trust_notice' => __('Provider and crawler names are User-Agent claims unless verification_state is verified. Claimed traffic must not be presented as confirmed provider engagement.', 'ajnanda'),
             'paths' => $wpdb->get_results($prepare("SELECT request_path, COUNT(*) count, MAX(observed_at) latest FROM {$table} {$where} GROUP BY request_path ORDER BY count DESC LIMIT 10"), ARRAY_A),
         );
     }

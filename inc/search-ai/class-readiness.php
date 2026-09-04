@@ -5,11 +5,11 @@ if (! defined('ABSPATH')) { exit; }
 class AJNanda_Search_AI_Readiness {
     const STATES = array('pass', 'warning', 'fail', 'not_applicable', 'externally_unverifiable');
 
-    public static function report() {
+    public static function report($probe_endpoints = true) {
         $checks = array();
         $profile = AJNanda_Search_AI_Site_Profile::get();
         $policy = AJNanda_Search_AI_Content_Policy::settings();
-        $discovery = AJNanda_Search_AI_Discovery_Files::status(true);
+        $discovery = AJNanda_Search_AI_Discovery_Files::status($probe_endpoints);
         $types = AJNanda_Search_AI_Site_Profile::organization_types();
 
         self::add($checks, 'foundation', 'search_visibility', (int) get_option('blog_public') ? 'pass' : 'fail', __('Search-engine visibility', 'ajnanda'), (int) get_option('blog_public') ? __('WordPress permits public indexing.', 'ajnanda') : __('WordPress currently asks search engines not to index this site.', 'ajnanda'), 'settings', 3);
@@ -30,7 +30,7 @@ class AJNanda_Search_AI_Readiness {
             $owner = AJNanda_Search_AI_Capability_Ownership::get($capability);
             self::add($checks, 'search', $capability, 'pass', $label, self::ownership_message($owner), 'seo', 2);
         }
-        self::add($checks, 'search', 'sitemap', self::endpoint_state($discovery['sitemap']['url'], 'sitemap'), __('XML sitemap', 'ajnanda'), self::endpoint_message($discovery['sitemap']['url'], 'sitemap', $discovery['sitemap']['ownership']), 'discovery-files', 2);
+        self::add($checks, 'search', 'sitemap', $probe_endpoints ? self::endpoint_state($discovery['sitemap']['url'], 'sitemap') : 'pass', __('XML sitemap', 'ajnanda'), $probe_endpoints ? self::endpoint_message($discovery['sitemap']['url'], 'sitemap', $discovery['sitemap']['ownership']) : self::ownership_message($discovery['sitemap']['ownership']), 'discovery-files', 2);
 
         self::add($checks, 'ai', 'ai_search', AJNanda_Search_AI_Settings::get('search_ai_allow_ai_search') ? 'pass' : 'warning', __('AI Search discovery', 'ajnanda'), AJNanda_Search_AI_Settings::get('search_ai_allow_ai_search') ? __('Supported AI Search crawlers are permitted by site policy.', 'ajnanda') : __('AI Search retrieval is restricted by site policy.', 'ajnanda'), 'ai-discovery', 1);
         self::add($checks, 'ai', 'ai_training', 'not_applicable', __('AI model training policy', 'ajnanda'), AJNanda_Search_AI_Settings::get('search_ai_allow_ai_training') ? __('Allowed by site-owner choice; this does not affect readiness.', 'ajnanda') : __('Restricted by site-owner choice; this does not reduce readiness.', 'ajnanda'), 'ai-discovery', 0);
@@ -39,7 +39,7 @@ class AJNanda_Search_AI_Readiness {
 
         self::content_checks($checks, $policy);
         self::page_entity_checks($checks);
-        self::discovery_checks($checks, $discovery);
+        self::discovery_checks($checks, $discovery, $probe_endpoints);
         self::stale_reference_checks($checks);
         self::ownership_checks($checks);
         self::crawler_log_checks($checks);
@@ -128,17 +128,17 @@ class AJNanda_Search_AI_Readiness {
         self::add($checks, 'entity', 'page_entity_intent', 'pass', __('Page meaning configuration', 'ajnanda'), __('Configured page meanings are valid; unclassified pages remain General pages.', 'ajnanda'), 'seo', 1);
     }
 
-    private static function discovery_checks(&$checks, $discovery) {
+    private static function discovery_checks(&$checks, $discovery, $probe_endpoints = true) {
         self::add($checks, 'outputs', 'robots_policy', 'pass', __('WordPress robots policy', 'ajnanda'), __('WordPress can generate the AJNanda robots policy.', 'ajnanda'), 'discovery-files', 2);
         $endpoint = $discovery['robots']['endpoint'];
-        self::add($checks, 'outputs', 'robots_endpoint', self::diagnostic_state($endpoint), __('Public robots.txt endpoint', 'ajnanda'), __('WordPress policy is available. ', 'ajnanda') . self::diagnostic_message($endpoint), 'discovery-files', 0);
+        if ($probe_endpoints) { self::add($checks, 'outputs', 'robots_endpoint', self::diagnostic_state($endpoint), __('Public robots.txt endpoint', 'ajnanda'), __('WordPress policy is available. ', 'ajnanda') . self::diagnostic_message($endpoint), 'discovery-files', 0); }
         $llms = $discovery['llms_txt'];
         if (! $llms['ownership']['ajnanda']) {
             self::add($checks, 'outputs', 'llms', 'pass', __('llms.txt ownership', 'ajnanda'), self::ownership_message($llms['ownership']), 'discovery-files', 1);
         } elseif (! $llms['enabled']) {
             self::add($checks, 'outputs', 'llms', 'warning', __('llms.txt', 'ajnanda'), __('AJNanda owns llms.txt, but the output is disabled.', 'ajnanda'), 'seo', 1);
         } else {
-            self::add($checks, 'outputs', 'llms', self::diagnostic_state($llms['endpoint']), __('llms.txt', 'ajnanda'), self::diagnostic_message($llms['endpoint']), 'discovery-files', 1);
+            self::add($checks, 'outputs', 'llms', $probe_endpoints ? self::diagnostic_state($llms['endpoint']) : 'pass', __('llms.txt', 'ajnanda'), $probe_endpoints ? self::diagnostic_message($llms['endpoint']) : __('AJNanda is configured to publish llms.txt.', 'ajnanda'), 'discovery-files', 1);
         }
         $schema = $discovery['schema'];
         self::add($checks, 'outputs', 'schema', ($schema['active'] || ! $schema['ownership']['ajnanda']) ? 'pass' : 'warning', __('Structured data', 'ajnanda'), ! $schema['ownership']['ajnanda'] ? self::ownership_message($schema['ownership']) : ($schema['active'] ? __('AJNanda structured data is active.', 'ajnanda') : __('AJNanda owns structured data, but schema output is disabled.', 'ajnanda')), 'seo', 2);
