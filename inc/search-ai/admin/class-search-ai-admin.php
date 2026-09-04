@@ -30,14 +30,14 @@ class AJNanda_Search_AI_Admin {
     public static function tabs() {
         return array(
             'overview'        => __('Overview', 'ajnanda'),
+            'insights'        => __('Insights', 'ajnanda'),
+            'crawler-log'     => __('Crawler Log', 'ajnanda'),
+            'suspicious-bots' => __('Suspicious Bots', 'ajnanda'),
             'site-profile'    => __('Site Profile', 'ajnanda'),
             'seo'             => __('SEO', 'ajnanda'),
             'ai-discovery'    => __('AI Discovery', 'ajnanda'),
             'content-access'  => __('Content Access', 'ajnanda'),
             'discovery-files' => __('Discovery Files', 'ajnanda'),
-            'insights'        => __('Insights', 'ajnanda'),
-            'crawler-log'     => __('Crawler Log', 'ajnanda'),
-            'suspicious-bots' => __('Suspicious Bots', 'ajnanda'),
             'settings'        => __('Settings', 'ajnanda'),
             'roadmap'         => __('Roadmap', 'ajnanda'),
         );

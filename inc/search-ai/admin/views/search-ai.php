@@ -17,8 +17,8 @@ $base_url = admin_url('admin.php?page=' . AJNanda_Search_AI_Admin::PAGE_SLUG);
 
     <div class="ajnanda-search-ai-toolbar">
         <div class="ajnanda-search-ai-tab-legend" aria-label="<?php esc_attr_e('Tab color guide', 'ajnanda'); ?>">
-            <span class="is-review"><?php esc_html_e('Review & act', 'ajnanda'); ?></span>
-            <span class="is-configure"><?php esc_html_e('Configure & reference', 'ajnanda'); ?></span>
+            <span class="is-review"><?php esc_html_e('Data & monitoring', 'ajnanda'); ?></span>
+            <span class="is-configure"><?php esc_html_e('Settings & configuration', 'ajnanda'); ?></span>
         </div>
         <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
             <input type="hidden" name="action" value="ajnanda_export_search_ai">
