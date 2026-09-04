@@ -35,6 +35,7 @@ class AJNanda_Search_AI_Admin {
             'discovery-files' => __('Discovery Files', 'ajnanda'),
             'insights'        => __('Insights', 'ajnanda'),
             'crawler-log'     => __('Crawler Log', 'ajnanda'),
+            'suspicious-bots' => __('Suspicious Bots', 'ajnanda'),
             'settings'        => __('Settings', 'ajnanda'),
             'roadmap'         => __('Roadmap', 'ajnanda'),
         );
@@ -79,6 +80,7 @@ class AJNanda_Search_AI_Admin {
         $crawler_log = array();
         $crawler_event = null;
         $roadmap = 'roadmap' === $tab ? AJNanda_Search_AI_Roadmap::get() : array();
+        $suspicious_bots = 'suspicious-bots' === $tab ? AJNanda_Search_AI_Suspicious_Bot_Detector::report() : array();
         if ('crawler-log' === $tab) {
             $crawler_log = AJNanda_Search_AI_Crawler_Log_Store::table_exists() ? array(
                 'query' => AJNanda_Search_AI_Crawler_Log_Store::query($_GET),
@@ -235,6 +237,9 @@ class AJNanda_Search_AI_Admin {
         AJNanda_Search_AI_Settings::set('search_ai_log_retention_days', in_array($retention, array(7, 30, 90, 180, 365), true) ? $retention : 90);
         $ip_mode = sanitize_key(wp_unslash($_POST['search_ai_crawler_ip_mode'] ?? 'anonymized'));
         AJNanda_Search_AI_Settings::set('search_ai_crawler_ip_mode', in_array($ip_mode, array('anonymized', 'hashed', 'full'), true) ? $ip_mode : 'anonymized');
+        AJNanda_Search_AI_Settings::set('search_ai_suspicious_bot_detection_enabled', isset($_POST['search_ai_suspicious_bot_detection_enabled']));
+        $bot_period = absint($_POST['search_ai_suspicious_bot_period_days'] ?? 7);
+        AJNanda_Search_AI_Settings::set('search_ai_suspicious_bot_period_days', in_array($bot_period, array(1, 7, 30, 90), true) ? $bot_period : 7);
         AJNanda_Search_AI_Crawler_Log_Store::ensure_schedules();
         self::redirect('settings');
     }

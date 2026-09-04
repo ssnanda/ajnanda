@@ -162,6 +162,10 @@ Verify supported crawler identities such as Google and Bing where possible inste
 
 Control crawler-log retention and IP privacy while keeping crawler observation useful.
 
+### Suspicious Bot Activity
+
+Identify high-confidence credential, configuration, and exploit-path probes in observed crawler traffic while keeping behavioral suspicion separate from verified identity.
+
 ### SEO Plugin Ownership
 
 Detect when another SEO plugin owns a capability and avoid blindly producing conflicting duplicate output.

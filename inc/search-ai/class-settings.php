@@ -27,6 +27,8 @@ class AJNanda_Search_AI_Settings {
             'search_ai_crawler_logging_enabled'  => false,
             'search_ai_log_retention_days'       => 90,
             'search_ai_crawler_ip_mode'          => 'anonymized',
+            'search_ai_suspicious_bot_detection_enabled' => true,
+            'search_ai_suspicious_bot_period_days' => 7,
         );
     }
 

@@ -77,6 +77,10 @@ requires `manage_options`; settings writes also require a nonce.
 
 Readiness checks table health and retention only when logging is enabled. Zero
 traffic and an intentional disabled state do not reduce Search & AI readiness.
+
+## Suspicious bot activity
+
+The Suspicious Bots tab analyzes the existing bounded Crawler Log data for conservative credential-file, configuration-file, and exploit-path probes. It reports behavioral evidence rather than claiming an unverified sender is a confirmed spam bot. Recognized crawler names used on suspicious paths remain reported identities unless separately verified. The dashboard provides high-level counts, recent evidence, and rule-based guidance; it never blocks requests automatically and recommends hosting or edge-layer controls when intervention is warranted.
 ## Semantic content and schema graph
 
 AJNanda emits one connected, Site Profile-backed Schema.org graph when AJNanda owns the schema capability. The graph contains stable identity, WebSite, WebPage, and Article entities, then accepts provider-neutral semantic contributions from visible block content.

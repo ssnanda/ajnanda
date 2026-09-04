@@ -52,6 +52,8 @@ $base_url = admin_url('admin.php?page=' . AJNanda_Search_AI_Admin::PAGE_SLUG);
             <?php include get_template_directory() . '/inc/search-ai/admin/views/tab-overview.php'; ?>
         <?php elseif ('crawler-log' === $tab) : ?>
             <?php include get_template_directory() . '/inc/search-ai/admin/views/tab-crawler-log.php'; ?>
+        <?php elseif ('suspicious-bots' === $tab) : ?>
+            <?php include get_template_directory() . '/inc/search-ai/admin/views/tab-suspicious-bots.php'; ?>
         <?php elseif ('settings' === $tab) : ?>
             <?php include get_template_directory() . '/inc/search-ai/admin/views/tab-settings.php'; ?>
         <?php elseif ('roadmap' === $tab) : ?>
