@@ -30,7 +30,7 @@ class AJNanda_Search_AI_Schema_Context {
         $description = $this->post_id ? get_post_meta($this->post_id, '_ajnanda_seo_description', true) : $this->profile['description'];
         if (! $description && $this->post_id && function_exists('ajnanda_seo_excerpt_fallback')) { $description = ajnanda_seo_excerpt_fallback($this->post_id); }
         $this->description = AJNanda_Search_AI_Schema_Validator::text($description);
-        $this->image = $this->post_id && has_post_thumbnail($this->post_id) ? get_the_post_thumbnail_url($this->post_id, 'large') : '';
+        $this->image = $this->post_id && has_post_thumbnail($this->post_id) ? ajnanda_seo_normalize_site_url(get_the_post_thumbnail_url($this->post_id, 'large')) : '';
         if ($this->is_article) { $this->primary_id = trailingslashit($this->url) . '#article'; }
         elseif ('service' === $this->semantic_intent['effective']) { $this->primary_id = trailingslashit($this->url) . '#service'; }
         elseif ('product' === $this->semantic_intent['effective']) { $this->primary_id = trailingslashit($this->url) . '#product'; }

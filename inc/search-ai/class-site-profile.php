@@ -37,8 +37,10 @@ class AJNanda_Search_AI_Site_Profile {
             'organization_type' => self::value('search_ai_profile_organization_type', 'Organization'),
             'industry'          => self::value('search_ai_profile_industry', ''),
             'logo_id'           => $logo_id,
-            'logo_url'          => $logo_id ? wp_get_attachment_image_url($logo_id, 'full') : '',
-            'website'           => self::value('search_ai_profile_website', home_url('/')),
+            'logo_url'          => $logo_id ? ajnanda_seo_normalize_site_url(wp_get_attachment_image_url($logo_id, 'full')) : '',
+            // The current WordPress URL is authoritative. A copied environment
+            // must never publish the source environment's stored origin.
+            'website'           => home_url('/'),
             'phone'             => self::value('search_ai_profile_phone', get_theme_mod('seo_business_phone', '')),
             'email'             => self::value('search_ai_profile_email', ''),
             // Only a physical-location profile exposes a PostalAddress. Stored
@@ -52,6 +54,7 @@ class AJNanda_Search_AI_Site_Profile {
             'services'          => (array) get_theme_mod('search_ai_profile_services', array()),
         );
 
+        $profile['identity_urls'] = array_values(array_filter(array_map('ajnanda_seo_normalize_site_url', $profile['identity_urls'])));
         return apply_filters('ajnanda_search_ai_site_profile', $profile);
     }
 

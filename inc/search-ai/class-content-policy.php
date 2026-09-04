@@ -57,6 +57,15 @@ class AJNanda_Search_AI_Content_Policy {
         $settings = self::settings();
         $reasons = array();
 
+        // Conventional authentication, account, portal, utility, and sandbox
+        // pages are non-discovery content. Sites can alter this bounded list;
+        // access itself is unchanged.
+        $utility_slugs = apply_filters('ajnanda_search_ai_utility_page_slugs', array(
+            'login', 'password-reset', 'edit-profile', 'member-home', 'account',
+            'my-account', 'client-portal', 'products-sandbox',
+        ));
+        if ($post && in_array($post->post_name, $utility_slugs, true)) { $reasons[] = 'utility_page'; }
+
         if ($post_id && in_array($post_id, $settings['excluded_post_ids'], true)) { $reasons[] = 'excluded_post'; }
         if ($post && in_array($post->post_type, $settings['excluded_post_types'], true)) { $reasons[] = 'excluded_post_type'; }
         foreach ($settings['excluded_paths'] as $pattern) {
@@ -64,7 +73,7 @@ class AJNanda_Search_AI_Content_Policy {
         }
         if (! $is_public) { $reasons[] = 'not_public'; }
 
-        $excluded = (bool) array_intersect($reasons, array('excluded_post', 'excluded_post_type', 'excluded_path'));
+        $excluded = (bool) array_intersect($reasons, array('excluded_post', 'excluded_post_type', 'excluded_path', 'utility_page'));
         $effects = $settings['effects'];
         $automated_allowed = $is_public && ! ($excluded && ! empty($effects['automated_crawlers']));
         $legacy_noindex = $post_id && '1' === get_post_meta($post_id, '_ajnanda_seo_noindex', true);

@@ -130,16 +130,25 @@ Pages, foundational pages, and the connected schema graph). A URL qualifies only
 - its permalink is canonical — it round-trips through `url_to_postid()` (the static
   front page and posts page are exempt because their URLs resolve to an archive query)
 
-WordPress still knowing that a page once existed is never sufficient. The
+Conventional authentication, account, portal, utility, and sandbox pages are classified
+inside the central policy. They remain accessible, but receive `noindex` and are withheld
+from sitemaps, `llms.txt`, and schema relationships. WordPress still knowing that a page
+once existed is never sufficient. The
 `ajnanda_search_ai_discovery_eligibility` filter can add reasons.
 
 ## Content Access and llms.txt
 
-`llms.txt` never enumerates the page tree. It advertises the Site Profile, the resolved
-Important Pages, the eligible foundational pages, and a bounded list of recent articles —
-each item re-checked through `eligible_for_discovery()` at render time. A page excluded
+`llms.txt` advertises the Site Profile, resolved Important Pages first, eligible public
+foundational public pages, and all eligible Knowledge Base posts. Every item is re-checked through
+`eligible_for_discovery()` at render time and must have a clean, non-empty summary. A page excluded
 in Content Access (or given the "Exclude from llms.txt" effect, or set to `noindex`) is
 withheld from `llms.txt` immediately, with no manual URL editing.
+
+AJNanda owns the endpoint at the earliest WordPress template-routing priority and sends
+no-cache headers, preventing a second plugin from serving a stale competing version.
+WordPress core user sitemaps and undeveloped taxonomy sitemaps are disabled by default;
+intentional taxonomy landing pages can be opted in with
+`ajnanda_search_ai_sitemap_taxonomies`.
 
 ## Important Page validation
 

@@ -77,7 +77,14 @@ class AJNanda_Search_AI_Discovery_Files {
             'orderby' => 'post__in', 'numberposts' => count($important_ids),
         )) : array();
         self::append_content_section($lines, __('Important Pages', 'ajnanda'), $important_pages, 20);
-        self::append_content_section($lines, __('Recent Articles', 'ajnanda'), get_posts(array('post_type' => 'post', 'post_status' => 'publish', 'numberposts' => 20)), 10);
+        $important_lookup = array_fill_keys($important_ids, true);
+        $page_slugs = apply_filters('ajnanda_search_ai_llms_foundational_page_slugs', array(
+            'about', 'service', 'services', 'knowledge-base', 'contact', 'contact-us', 'email-us', 'guide-me',
+        ));
+        $pages = get_posts(array('post_type' => 'page', 'post_status' => 'publish', 'numberposts' => -1, 'post_name__in' => $page_slugs, 'orderby' => array('menu_order' => 'ASC', 'title' => 'ASC')));
+        $pages = array_values(array_filter($pages, function ($page) use ($important_lookup) { return empty($important_lookup[$page->ID]); }));
+        self::append_content_section($lines, __('Pages', 'ajnanda'), $pages, 30);
+        self::append_content_section($lines, __('Knowledge Base Articles', 'ajnanda'), get_posts(array('post_type' => 'post', 'post_status' => 'publish', 'numberposts' => -1, 'orderby' => 'date', 'order' => 'DESC')), PHP_INT_MAX);
         return apply_filters('ajnanda_search_ai_llms_txt', implode("\n", $lines) . "\n", $profile);
     }
 
@@ -87,10 +94,20 @@ class AJNanda_Search_AI_Discovery_Files {
             if (! self::eligible_for_discovery($post->ID, 'llms_txt')['eligible']) { continue; }
             $title = trim(html_entity_decode(wp_strip_all_tags(get_the_title($post)), ENT_QUOTES | ENT_HTML5, get_bloginfo('charset') ?: 'UTF-8'));
             if (! $title) { continue; }
-            $entries[] = '- [' . str_replace(array('[', ']'), '', $title) . '](' . get_permalink($post) . ')';
+            $summary = self::summary($post);
+            if (! $summary) { continue; }
+            $entries[] = '- [' . str_replace(array('[', ']'), '', $title) . '](' . get_permalink($post) . '): ' . $summary;
             if (count($entries) >= $limit) { break; }
         }
         if ($entries) { $lines[] = '## ' . $heading; $lines = array_merge($lines, $entries, array('')); }
+    }
+
+    private static function summary($post) {
+        $summary = get_post_meta($post->ID, '_ajnanda_seo_description', true);
+        if (! $summary) { $summary = get_post_field('post_excerpt', $post); }
+        if (! $summary) { $summary = get_post_field('post_content', $post); }
+        $summary = function_exists('ajnanda_seo_clean_description') ? ajnanda_seo_clean_description($summary, 220) : wp_trim_words(wp_strip_all_tags(strip_shortcodes($summary)), 32, '…');
+        return trim((string) $summary);
     }
 
     public static function status($probe_endpoints = false) {

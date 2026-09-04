@@ -18,6 +18,30 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
+/**
+ * Rebase a copied local-development URL onto the current WordPress origin.
+ * Paths, query strings, and fragments are preserved. This is deliberately
+ * limited to DDEV hosts so legitimate external URLs are never rewritten.
+ */
+function ajnanda_seo_normalize_site_url($url) {
+    $url = trim((string) $url);
+    if ('' === $url) { return ''; }
+
+    $parts = wp_parse_url($url);
+    $home  = wp_parse_url(home_url('/'));
+    if (empty($parts['host']) || empty($home['host']) || ! preg_match('/\.ddev\.site$/i', $parts['host'])) {
+        return $url;
+    }
+    if (preg_match('/\.ddev\.site$/i', $home['host'])) { return $url; }
+
+    $normalized = ($home['scheme'] ?? 'https') . '://' . $home['host'];
+    if (! empty($home['port'])) { $normalized .= ':' . (int) $home['port']; }
+    $normalized .= '/' . ltrim($parts['path'] ?? '', '/');
+    if (isset($parts['query'])) { $normalized .= '?' . $parts['query']; }
+    if (isset($parts['fragment'])) { $normalized .= '#' . $parts['fragment']; }
+    return $normalized;
+}
+
 // ── AJNanda admin menu: SEO Settings + SEO Insights ─────────────────────────
 
 // Priority 20: must run after AJNanda_Admin::register_menu() (inc/admin/class-ajnanda-admin.php,
@@ -89,7 +113,7 @@ function ajnanda_seo_save_settings() {
     check_admin_referer('ajnanda_seo_save_settings', 'ajnanda_seo_settings_nonce');
 
     set_theme_mod('seo_meta_description_default', sanitize_text_field(wp_unslash($_POST['seo_meta_description_default'] ?? '')));
-    set_theme_mod('seo_default_social_image', esc_url_raw(wp_unslash($_POST['seo_default_social_image'] ?? '')));
+    set_theme_mod('seo_default_social_image', esc_url_raw(ajnanda_seo_normalize_site_url(wp_unslash($_POST['seo_default_social_image'] ?? ''))));
     set_theme_mod('seo_twitter_handle', sanitize_text_field(wp_unslash($_POST['seo_twitter_handle'] ?? '')));
     if (isset($_POST['seo_business_phone']) || ! class_exists('AJNanda_Search_AI_Admin')) {
         set_theme_mod('seo_business_phone', sanitize_text_field(wp_unslash($_POST['seo_business_phone'] ?? '')));
@@ -265,7 +289,7 @@ function ajnanda_seo_document_title($title) {
 add_action('wp_head', 'ajnanda_seo_head_tags', 1);
 function ajnanda_seo_head_tags() {
     $is_singular = is_singular();
-    $post_id     = $is_singular ? get_queried_object_id() : 0;
+    $post_id     = $is_singular ? get_queried_object_id() : (is_home() ? (int) get_option('page_for_posts') : 0);
 
     $noindex = $post_id && get_post_meta($post_id, '_ajnanda_seo_noindex', true);
     if ($post_id && class_exists('AJNanda_Search_AI_Content_Policy')) {
@@ -276,20 +300,21 @@ function ajnanda_seo_head_tags() {
     }
 
     $description = $post_id ? get_post_meta($post_id, '_ajnanda_seo_description', true) : '';
-    if (! $description && $is_singular) {
+    if (! $description && $post_id) {
         $description = ajnanda_seo_excerpt_fallback($post_id);
     }
-    if (! $description) {
+    if (! $description && ! is_404()) {
         $description = get_theme_mod('seo_meta_description_default', '');
     }
+    $description = ajnanda_seo_clean_description($description);
     if ($description) {
-        echo '<meta name="description" content="' . esc_attr(wp_trim_words($description, 40)) . '">' . "\n";
+        echo '<meta name="description" content="' . esc_attr($description) . '">' . "\n";
     }
 
     // Only emit our own canonical for the home/front page — WordPress core's rel_canonical()
     // already outputs one for every singular post/page via its own wp_head hook, so adding a
     // second one there would duplicate the tag.
-    $canonical = $is_singular ? get_permalink($post_id) : (is_home() || is_front_page() ? home_url('/') : '');
+    $canonical = $is_singular ? get_permalink($post_id) : (is_home() && $post_id ? get_permalink($post_id) : (is_front_page() ? home_url('/') : ''));
     if ($canonical && ! $is_singular) {
         echo '<link rel="canonical" href="' . esc_url($canonical) . '">' . "\n";
     }
@@ -304,11 +329,12 @@ function ajnanda_seo_head_tags() {
     if (! $og_image) {
         $og_image = get_theme_mod('seo_default_social_image', '');
     }
+    $og_image = ajnanda_seo_normalize_site_url($og_image);
 
     echo '<meta property="og:type" content="' . esc_attr($is_singular ? 'article' : 'website') . '">' . "\n";
     echo '<meta property="og:title" content="' . esc_attr($og_title) . '">' . "\n";
     if ($description) {
-        echo '<meta property="og:description" content="' . esc_attr(wp_trim_words($description, 40)) . '">' . "\n";
+        echo '<meta property="og:description" content="' . esc_attr($description) . '">' . "\n";
     }
     if ($canonical) {
         echo '<meta property="og:url" content="' . esc_url($canonical) . '">' . "\n";
@@ -323,7 +349,7 @@ function ajnanda_seo_head_tags() {
         echo '<meta name="twitter:site" content="' . esc_attr($twitter_handle) . '">' . "\n";
     }
 
-    if (get_theme_mod('seo_schema_enabled', true) && ! $noindex) {
+    if (get_theme_mod('seo_schema_enabled', true) && ! $noindex && ! is_404()) {
         ajnanda_seo_output_schema($is_singular, $post_id);
     }
 }
@@ -337,10 +363,46 @@ function ajnanda_seo_head_tags() {
  * sentence instead of a scraped fragment.
  */
 function ajnanda_seo_excerpt_fallback($post_id) {
-    $excerpt = get_the_excerpt($post_id);
+    $excerpt = get_post_field('post_excerpt', $post_id);
+    if (! trim((string) $excerpt)) { $excerpt = get_post_field('post_content', $post_id); }
     $spaced  = preg_replace('/<\/(h[1-6]|p|li|div|section|figcaption)>/i', ' ', $excerpt);
     $spaced  = wp_strip_all_tags($spaced);
     return trim(preg_replace('/\s+/', ' ', $spaced));
+}
+
+/** Return plain, sentence-like metadata without shortcodes or broken words. */
+function ajnanda_seo_clean_description($description, $limit = 160) {
+    $description = html_entity_decode((string) $description, ENT_QUOTES | ENT_HTML5, get_bloginfo('charset') ?: 'UTF-8');
+    $description = strip_shortcodes($description);
+    $description = wp_strip_all_tags($description, true);
+    $description = trim(preg_replace('/\s+/u', ' ', $description));
+    if (function_exists('mb_strlen') ? mb_strlen($description) <= $limit : strlen($description) <= $limit) { return $description; }
+    $description = wp_html_excerpt($description, $limit + 1, '');
+    $description = preg_replace('/\s+\S*$/u', '', $description);
+    return rtrim($description, " \t\n\r\0\x0B,;:-") . '…';
+}
+
+/** Keep utility and undeveloped archive results out of search by default. */
+add_filter('wp_robots', 'ajnanda_seo_archive_robots');
+function ajnanda_seo_archive_robots($robots) {
+    if (is_404() || is_author() || is_category() || is_tag() || is_date()) {
+        $robots['noindex'] = true;
+        $robots['follow']  = true;
+    }
+    return $robots;
+}
+
+/** Content supplies the H1 on pages; articles already receive one in single.php. */
+add_filter('the_content', 'ajnanda_seo_normalize_content_headings', 8);
+function ajnanda_seo_normalize_content_headings($content) {
+    if (is_admin() || ! is_singular() || false === stripos($content, '<h1')) { return $content; }
+    $keep_first = 'page' === get_post_type();
+    $seen = 0;
+    return preg_replace_callback('/<h1(\s[^>]*)?>(.*?)<\/h1>/is', function ($match) use (&$seen, $keep_first) {
+        $seen++;
+        if ($keep_first && 1 === $seen) { return $match[0]; }
+        return '<h2' . ($match[1] ?? '') . '>' . $match[2] . '</h2>';
+    }, $content);
 }
 
 /**
@@ -427,14 +489,16 @@ function ajnanda_seo_robots_txt($output, $public) {
                 $output .= "\n";
             }
         }
-        $output .= "\n# AI crawler policy (AJNanda Search & AI)\n";
+        $rules = '';
         foreach (AJNanda_Search_AI_Crawler_Registry::all() as $crawler) {
             if (empty($crawler['robots_control']) || empty($crawler['token'])) {
                 continue;
             }
             if (AJNanda_Search_AI_Crawler_Registry::category_allowed($crawler['category'])) { continue; }
-            $output .= 'User-agent: ' . $crawler['token'] . "\nDisallow: /\n\n";
+            $rules .= 'User-agent: ' . $crawler['token'] . "\nDisallow: /\n\n";
         }
+        if ($rules) { $output .= "\n# AI crawler policy (AJNanda Search & AI)\n" . $rules; }
+        if (AJNanda_Search_AI_Discovery_Files::llms_enabled()) { $output .= "\n# AI-readable site guide: " . home_url('/llms.txt') . "\n"; }
         return $output;
     }
 
@@ -450,7 +514,8 @@ function ajnanda_seo_robots_txt($output, $public) {
 
 // ── /llms.txt ────────────────────────────────────────────────────────────────
 
-add_action('template_redirect', 'ajnanda_seo_maybe_serve_llms_txt');
+add_action('parse_request', 'ajnanda_seo_maybe_serve_llms_txt', -999);
+add_action('template_redirect', 'ajnanda_seo_maybe_serve_llms_txt', 0);
 function ajnanda_seo_maybe_serve_llms_txt() {
     $enabled = class_exists('AJNanda_Search_AI_Discovery_Files')
         ? AJNanda_Search_AI_Discovery_Files::llms_enabled()
@@ -464,6 +529,8 @@ function ajnanda_seo_maybe_serve_llms_txt() {
     }
 
     status_header(200);
+    nocache_headers();
+    header('X-Robots-Tag: noindex');
     header('Content-Type: text/plain; charset=utf-8');
     echo ajnanda_seo_render_llms_txt(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     exit;

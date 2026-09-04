@@ -60,9 +60,10 @@ class AJNanda_Search_AI_Schema_Graph {
 
     private static function article_node($post_id, $context) {
         $article = array('@type' => 'Article', '@id' => $context->primary_id, 'url' => $context->url, 'headline' => html_entity_decode(get_the_title($post_id), ENT_QUOTES | ENT_HTML5, get_bloginfo('charset') ?: 'UTF-8'), 'datePublished' => get_the_date('c', $post_id), 'dateModified' => get_the_modified_date('c', $post_id), 'mainEntityOfPage' => array('@id' => $context->webpage_id), 'isPartOf' => array('@id' => $context->website_id), 'publisher' => array('@id' => $context->identity_id));
-        $author_name = get_the_author_meta('display_name', get_post_field('post_author', $post_id));
-        if ($author_name) { $article['author'] = array('@type' => 'Person', 'name' => $author_name); }
-        $image = $context->image ?: get_theme_mod('seo_default_social_image', '');
+        // Editorial posts represent the organization, not an administrator's
+        // account/display name.
+        $article['author'] = array('@id' => $context->identity_id);
+        $image = $context->image ?: ajnanda_seo_normalize_site_url(get_theme_mod('seo_default_social_image', ''));
         if ($image) { $article['image'] = $image; }
         return $article;
     }
