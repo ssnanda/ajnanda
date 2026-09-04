@@ -3,8 +3,8 @@
 if (! defined('ABSPATH')) { exit; }
 
 class AJNanda_Search_AI_Roadmap {
-    const RAW_URL = 'https://raw.githubusercontent.com/ssnanda/ajnanda/main/docs/search-ai-roadmap.md';
-    const SOURCE_URL = 'https://github.com/ssnanda/ajnanda/blob/main/docs/search-ai-roadmap.md';
+    const RAW_URL = 'https://raw.githubusercontent.com/ssnanda/ajnanda/feature/site-builder-system/docs/search-ai-roadmap.md';
+    const SOURCE_URL = 'https://github.com/ssnanda/ajnanda/blob/feature/site-builder-system/docs/search-ai-roadmap.md';
     const TRANSIENT = 'ajnanda_search_ai_roadmap';
     const LAST_SUCCESS_OPTION = 'ajnanda_search_ai_roadmap_last_success';
     const CACHE_TTL = 10 * MINUTE_IN_SECONDS;
