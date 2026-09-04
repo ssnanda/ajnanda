@@ -9,7 +9,7 @@
  */
 
 .ajnanda-admin-wrap {
-    max-width: 1180px;
+    max-width: none;
 }
 
 .ajnanda-admin-hero {
@@ -490,10 +490,22 @@ body.ajnanda-modal-open {
 
 .ajnanda-search-ai-tabs {
     display: flex;
+    flex: 1 1 auto;
     flex-wrap: wrap;
     gap: 2px;
-    margin-bottom: 20px;
+    margin: 0;
 }
+
+.ajnanda-search-ai-nav-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    margin: 0 0 10px;
+    padding-top: 4px;
+}
+.ajnanda-search-ai-nav-row form { flex: 0 0 auto; margin: 0 0 4px; }
+.ajnanda-search-ai-content > .ajnanda-admin-section:first-child,
+.ajnanda-search-ai-content > .ajnanda-discovery-layout:first-child { margin-top: 0; }
 
 .ajnanda-search-ai-tabs .nav-tab {
     margin-left: 0;
@@ -914,6 +926,7 @@ body.ajnanda-modal-open {
 }
 
 @media (max-width: 782px) {
+    .ajnanda-search-ai-nav-row { align-items: stretch; flex-direction: column; }
     .ajnanda-search-ai-toolbar {
         align-items: flex-start;
         flex-direction: column;

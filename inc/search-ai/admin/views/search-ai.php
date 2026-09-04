@@ -9,29 +9,19 @@ if (! defined('ABSPATH')) {
 $base_url = admin_url('admin.php?page=' . AJNanda_Search_AI_Admin::PAGE_SLUG);
 ?>
 <div class="wrap ajnanda-admin-wrap ajnanda-search-ai-wrap">
-    <div class="ajnanda-admin-hero">
-        <p class="ajnanda-admin-eyebrow"><?php esc_html_e('AJNanda', 'ajnanda'); ?></p>
-        <h1><?php esc_html_e('Search & AI', 'ajnanda'); ?></h1>
-    </div>
-
-    <div class="ajnanda-search-ai-toolbar">
-        <div class="ajnanda-search-ai-tab-legend" aria-label="<?php esc_attr_e('Tab color guide', 'ajnanda'); ?>">
-            <span class="is-review"><?php esc_html_e('Data & monitoring', 'ajnanda'); ?></span>
-            <span class="is-configure"><?php esc_html_e('Settings & configuration', 'ajnanda'); ?></span>
-        </div>
+    <div class="ajnanda-search-ai-nav-row">
+        <nav class="nav-tab-wrapper ajnanda-search-ai-tabs" aria-label="<?php esc_attr_e('Search & AI sections', 'ajnanda'); ?>">
+            <?php foreach ($tabs as $slug => $label) : ?>
+                <?php $group = in_array($slug, array('overview', 'insights', 'crawler-log', 'suspicious-bots'), true) ? 'review' : 'configure'; ?>
+                <a class="nav-tab ajnanda-tab-<?php echo esc_attr($group); ?> <?php echo $slug === $tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url(add_query_arg('tab', $slug, $base_url)); ?>" <?php echo $slug === $tab ? 'aria-current="page"' : ''; ?>><?php echo esc_html($label); ?></a>
+            <?php endforeach; ?>
+        </nav>
         <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
             <input type="hidden" name="action" value="ajnanda_export_search_ai">
             <?php wp_nonce_field('ajnanda_export_search_ai'); ?>
-            <button type="submit" class="button button-secondary"><?php esc_html_e('Export Actionable Report', 'ajnanda'); ?></button>
+            <button type="submit" class="button button-secondary"><?php esc_html_e('Export', 'ajnanda'); ?></button>
         </form>
     </div>
-
-    <nav class="nav-tab-wrapper ajnanda-search-ai-tabs" aria-label="<?php esc_attr_e('Search & AI sections', 'ajnanda'); ?>">
-        <?php foreach ($tabs as $slug => $label) : ?>
-            <?php $group = in_array($slug, array('overview', 'insights', 'crawler-log', 'suspicious-bots'), true) ? 'review' : 'configure'; ?>
-            <a class="nav-tab ajnanda-tab-<?php echo esc_attr($group); ?> <?php echo $slug === $tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url(add_query_arg('tab', $slug, $base_url)); ?>" <?php echo $slug === $tab ? 'aria-current="page"' : ''; ?>><?php echo esc_html($label); ?></a>
-        <?php endforeach; ?>
-    </nav>
 
     <div class="ajnanda-search-ai-content">
         <?php if (isset($_GET['updated'])) : ?>
