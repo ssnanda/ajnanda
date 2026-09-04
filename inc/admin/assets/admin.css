@@ -3,7 +3,7 @@
  * Theme Settings). Only enqueued on AJNanda's own admin pages — see
  * AJNanda_Admin::enqueue_assets(). Visual language intentionally matches
  * the existing Appearance → Update AJNanda screen (same radii, borders,
- * and gradient hero treatment) so the whole admin area reads as one
+ * and restrained page-header treatment) so the whole admin area reads as one
  * product; class names are namespaced ajnanda-admin-* to avoid colliding
  * with that screen's own ajnanda-update-* classes.
  */
@@ -13,35 +13,32 @@
 }
 
 .ajnanda-admin-hero {
-    margin: 20px 0 22px;
-    padding: 28px 30px;
-    border: 1px solid #dcdcde;
-    border-radius: 16px;
-    background: linear-gradient(135deg, #ffffff 0%, #f6f8ff 100%);
-    box-shadow: 0 14px 35px rgba(15, 23, 42, 0.08);
+    margin: 14px 0 12px;
+    padding: 0 0 12px;
+    border: 0;
+    border-bottom: 1px solid #dcdcde;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
 }
 
 .ajnanda-admin-eyebrow {
-    margin: 0 0 8px;
-    color: #3858e9;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    display: none;
 }
 
 .ajnanda-admin-hero h1 {
     margin: 0;
     color: #111827;
-    font-size: 30px;
-    line-height: 1.15;
+    font-size: 23px;
+    line-height: 1.3;
 }
 
 .ajnanda-admin-hero p {
-    max-width: 720px;
-    margin: 10px 0 0;
+    max-width: 900px;
+    margin: 4px 0 0;
     color: #4b5563;
-    font-size: 15px;
+    font-size: 13px;
+    line-height: 1.5;
 }
 
 .ajnanda-admin-grid {
@@ -427,7 +424,7 @@ body.ajnanda-modal-open {
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    margin: 18px 0 8px;
+    margin: 0 0 8px;
 }
 
 .ajnanda-search-ai-tab-legend {
