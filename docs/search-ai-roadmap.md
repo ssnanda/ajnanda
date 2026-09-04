@@ -38,9 +38,15 @@ Add optional product details such as brand, manufacturer, model, SKU, MPN, GTIN,
 
 Connect visible reviews and ratings to the specific Service, Product, or other entity they actually review while respecting search-engine policies.
 
-### Markdown / AI-Friendly Content
+### Agent-Friendly Content
 
-Explore clean machine-readable versions of important content that AI systems can consume without replacing the normal website experience.
+Build on the completed full-content export with additional agent-friendly delivery options:
+
+- per-page Markdown representations
+- `Accept: text/markdown` content negotiation
+- caching and generation strategies for large sites
+- size management
+- explicit control over which public post types participate
 
 ### Faster Search Discovery
 
@@ -101,6 +107,10 @@ Help traditional search engines discover public AJNanda content through WordPres
 ### LLMS.TXT
 
 Provide AI systems with a simple overview of the site, important pages, and recent content through llms.txt.
+
+### LLMS Full Content
+
+Give compatible AI agents a readable full-content version of eligible public website content.
 
 ### Important Pages
 

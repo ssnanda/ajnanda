@@ -525,7 +525,7 @@ function ajnanda_seo_robots_txt($output, $public) {
         }
         if ($rules) { $output .= "\n# AI crawler policy (AJNanda Search & AI)\n" . $rules; }
         if (AJNanda_Search_AI_Discovery_Files::llms_enabled()) {
-            $output .= "\n# AI-readable site guides: " . home_url('/llms.txt') . ' and ' . home_url('/llms-full.txt') . "\n";
+            $output .= "\n# Additional discovery hint (not a standardized crawler directive): " . home_url('/llms.txt') . ' and ' . home_url('/llms-full.txt') . "\n";
         }
         return $output;
     }
