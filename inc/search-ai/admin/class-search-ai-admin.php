@@ -26,6 +26,7 @@ class AJNanda_Search_AI_Admin {
         add_action('admin_post_ajnanda_refresh_search_ai_insights', array(__CLASS__, 'refresh_insights'));
         add_action('admin_post_ajnanda_export_search_ai', array('AJNanda_Search_AI_Export', 'download'));
         add_action('wp_ajax_ajnanda_search_ai_find_content', array(__CLASS__, 'find_content'));
+        add_action('wp_ajax_ajnanda_save_llms_important_pages', array(__CLASS__, 'ajax_save_llms_important_pages'));
     }
 
     public static function tabs() {
@@ -105,13 +106,6 @@ class AJNanda_Search_AI_Admin {
                     'numberposts' => count($policy['excluded_post_ids']),
                 ));
             }
-        }
-        $selected_important_pages = array();
-        $invalid_important_pages = array();
-        if ('discovery-files' === $tab) {
-            $resolved_important_pages = AJNanda_Search_AI_Important_Pages::resolve();
-            $selected_important_pages = array_values($resolved_important_pages['valid']);
-            $invalid_important_pages = $resolved_important_pages['invalid'];
         }
         $ownership = array();
         foreach (AJNanda_Search_AI_Capability_Ownership::capabilities() as $capability) {
@@ -238,6 +232,19 @@ class AJNanda_Search_AI_Admin {
         }
         set_theme_mod('search_ai_llms_important_page_ids', $stored_ids);
         self::redirect('discovery-files');
+    }
+
+    public static function ajax_save_llms_important_pages() {
+        if (! current_user_can('manage_options')) { wp_send_json_error(array('message' => __('Insufficient permissions.', 'ajnanda')), 403); }
+        check_ajax_referer('ajnanda_save_llms_important_pages');
+        $ids = array_values(array_filter(array_unique(array_map('absint', (array) ($_POST['ids'] ?? array())))));
+        $stored_ids = array();
+        foreach ($ids as $id) {
+            $post = get_post($id);
+            if ($post && 'page' === $post->post_type && 'publish' === $post->post_status && AJNanda_Search_AI_Discovery_Files::eligible_for_discovery($id, 'llms_txt')['eligible']) { $stored_ids[] = $id; }
+        }
+        set_theme_mod('search_ai_llms_important_page_ids', $stored_ids);
+        wp_send_json_success(array('count' => count($stored_ids)));
     }
 
     public static function save_discovery_file_editors() {

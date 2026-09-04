@@ -9,7 +9,10 @@ $llms_endpoint = $discovery_status['llms_txt']['endpoint'];
 $llms_full_endpoint = $discovery_status['llms_full_txt']['endpoint'];
 $ai_endpoint = $discovery_status['ai_txt']['endpoint'];
 $security_endpoint = $discovery_status['security_txt']['endpoint'];
-$picker_nonce = wp_create_nonce('ajnanda_search_ai_find_content');
+$important_nonce = wp_create_nonce('ajnanda_save_llms_important_pages');
+$available_important_pages = array_values(array_filter(get_pages(array('post_status' => 'publish', 'sort_column' => 'menu_order,post_title')), static function ($page) {
+    return AJNanda_Search_AI_Discovery_Files::eligible_for_discovery($page->ID, 'llms_txt')['eligible'];
+}));
 ?>
 <details class="ajnanda-admin-section ajnanda-search-ai-advanced">
     <summary><strong><?php esc_html_e('Discovery output status', 'ajnanda'); ?></strong> <span><?php esc_html_e('Review endpoint reachability and ownership.', 'ajnanda'); ?></span></summary>
@@ -57,21 +60,21 @@ $picker_nonce = wp_create_nonce('ajnanda_search_ai_find_content');
             <section class="ajnanda-discovery-editor<?php echo 'robots_txt' === $file ? ' is-active' : ''; ?>" data-file-panel="<?php echo esc_attr($file); ?>" <?php echo 'robots_txt' === $file ? '' : 'hidden'; ?>>
                 <header class="ajnanda-file-editor-header"><div><h3><?php echo esc_html($editor['label']); ?></h3><span class="ajnanda-admin-pill"><?php echo esc_html($editor['format']); ?></span></div><a href="<?php echo esc_url($editor['url']); ?>" target="_blank" rel="noopener"><?php esc_html_e('View public file', 'ajnanda'); ?> &rarr;</a></header>
                 <p><label><input type="checkbox" name="search_ai_custom_<?php echo esc_attr($file); ?>_enabled" value="1" <?php checked(AJNanda_Search_AI_Discovery_Files::custom_enabled($file)); ?>> <?php esc_html_e('Use custom content instead of automatic generation', 'ajnanda'); ?></label></p>
-                <textarea class="large-text code" rows="24" name="search_ai_custom_<?php echo esc_attr($file); ?>_content" spellcheck="false"><?php echo esc_textarea($custom_content); ?></textarea>
-                <div class="ajnanda-file-editor-actions"><button type="submit" class="button button-primary"><?php esc_html_e('Save changes', 'ajnanda'); ?></button><button type="button" class="button" data-undo-discovery><?php esc_html_e('Undo edits', 'ajnanda'); ?></button><button type="button" class="button" data-load-discovery="<?php echo esc_url($editor['url']); ?>"><?php esc_html_e('Load current public file', 'ajnanda'); ?></button><span class="spinner" aria-hidden="true"></span><span class="ajnanda-file-dirty" hidden><?php esc_html_e('Unsaved changes', 'ajnanda'); ?></span></div>
+                <div class="ajnanda-file-editor-actions"><button type="submit" class="button button-primary"><?php esc_html_e('Save changes', 'ajnanda'); ?></button><button type="button" class="button" data-undo-discovery><?php esc_html_e('Undo edits', 'ajnanda'); ?></button><span class="spinner" aria-hidden="true"></span><span class="ajnanda-file-dirty" hidden><?php esc_html_e('Unsaved changes', 'ajnanda'); ?></span></div>
+                <textarea class="large-text code" rows="20" name="search_ai_custom_<?php echo esc_attr($file); ?>_content" spellcheck="false" data-public-url="<?php echo esc_url($editor['url']); ?>"><?php echo esc_textarea($custom_content); ?></textarea>
             </section>
         <?php endforeach; ?>
 
         <section class="ajnanda-discovery-editor" data-file-panel="security_txt" hidden>
             <header class="ajnanda-file-editor-header"><div><h3><?php esc_html_e('security.txt', 'ajnanda'); ?></h3><span class="ajnanda-admin-pill"><?php esc_html_e('RFC 9116 fields', 'ajnanda'); ?></span></div><a href="<?php echo esc_url($discovery_status['security_txt']['url']); ?>" target="_blank" rel="noopener"><?php esc_html_e('View public file', 'ajnanda'); ?> &rarr;</a></header>
             <p><?php esc_html_e('Structured fields preserve RFC 9116 formatting. Expiration must be a future UTC timestamp in RFC 3339 format.', 'ajnanda'); ?></p>
+            <div class="ajnanda-file-editor-actions"><button type="submit" class="button button-primary"><?php esc_html_e('Save changes', 'ajnanda'); ?></button><button type="button" class="button" data-undo-discovery><?php esc_html_e('Undo edits', 'ajnanda'); ?></button><span class="ajnanda-file-dirty" hidden><?php esc_html_e('Unsaved changes', 'ajnanda'); ?></span></div>
             <table class="form-table" role="presentation">
                 <tr><th><label for="search_ai_security_contact"><?php esc_html_e('Contact URI', 'ajnanda'); ?></label></th><td><input class="large-text code" type="text" id="search_ai_security_contact" name="search_ai_security_contact" value="<?php echo esc_attr(get_theme_mod('search_ai_security_contact', home_url('/email-us/'))); ?>" data-saved-value="<?php echo esc_attr(get_theme_mod('search_ai_security_contact', home_url('/email-us/'))); ?>" placeholder="https://example.com/security-contact/ or mailto:security@example.com"></td></tr>
                 <tr><th><label for="search_ai_security_expires"><?php esc_html_e('Expires', 'ajnanda'); ?></label></th><td><input class="regular-text code" type="text" id="search_ai_security_expires" name="search_ai_security_expires" value="<?php echo esc_attr(get_theme_mod('search_ai_security_expires', gmdate('Y-m-d\TH:i:s\Z', time() + YEAR_IN_SECONDS))); ?>" data-saved-value="<?php echo esc_attr(get_theme_mod('search_ai_security_expires', gmdate('Y-m-d\TH:i:s\Z', time() + YEAR_IN_SECONDS))); ?>" pattern="\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z"></td></tr>
                 <tr><th><label for="search_ai_security_languages"><?php esc_html_e('Preferred languages', 'ajnanda'); ?></label></th><td><input class="regular-text" type="text" id="search_ai_security_languages" name="search_ai_security_languages" value="<?php echo esc_attr(get_theme_mod('search_ai_security_languages', 'en')); ?>" data-saved-value="<?php echo esc_attr(get_theme_mod('search_ai_security_languages', 'en')); ?>"></td></tr>
                 <tr><th><label for="search_ai_security_canonical"><?php esc_html_e('Canonical URL', 'ajnanda'); ?></label></th><td><input class="large-text" type="url" id="search_ai_security_canonical" name="search_ai_security_canonical" value="<?php echo esc_attr(get_theme_mod('search_ai_security_canonical', home_url('/.well-known/security.txt'))); ?>" data-saved-value="<?php echo esc_attr(get_theme_mod('search_ai_security_canonical', home_url('/.well-known/security.txt'))); ?>"></td></tr>
             </table>
-            <div class="ajnanda-file-editor-actions"><button type="submit" class="button button-primary"><?php esc_html_e('Save changes', 'ajnanda'); ?></button><button type="button" class="button" data-undo-discovery><?php esc_html_e('Undo edits', 'ajnanda'); ?></button><span class="ajnanda-file-dirty" hidden><?php esc_html_e('Unsaved changes', 'ajnanda'); ?></span></div>
         </section>
         </div>
     </form>
@@ -79,28 +82,13 @@ $picker_nonce = wp_create_nonce('ajnanda_search_ai_find_content');
 
 <div class="ajnanda-admin-section">
     <h2><?php esc_html_e('llms.txt Important Pages', 'ajnanda'); ?></h2>
-    <p><?php esc_html_e('Select the authoritative public pages that help machines understand this site. AJNanda separately includes the 16 most recently updated eligible articles.', 'ajnanda'); ?></p>
-    <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
-        <input type="hidden" name="action" value="ajnanda_save_llms_important_pages">
-        <?php wp_nonce_field('ajnanda_save_llms_important_pages'); ?>
-        <div class="ajnanda-content-picker" id="ajnanda_llms_page_picker" data-ajax-url="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" data-nonce="<?php echo esc_attr($picker_nonce); ?>">
-            <label for="ajnanda_llms_page_search"><strong><?php esc_html_e('Find a page', 'ajnanda'); ?></strong></label>
-            <input type="search" id="ajnanda_llms_page_search" class="regular-text" placeholder="<?php esc_attr_e('Search published pages…', 'ajnanda'); ?>" autocomplete="off">
-            <span class="spinner" aria-hidden="true"></span>
-            <div class="ajnanda-content-picker-results" role="listbox" aria-label="<?php esc_attr_e('Page search results', 'ajnanda'); ?>"></div>
-            <h3><?php esc_html_e('Selected Important Pages', 'ajnanda'); ?></h3>
-            <div class="ajnanda-content-picker-selected">
-                <?php foreach ($selected_important_pages as $page) : ?>
-                    <div class="ajnanda-content-picker-item" data-content-id="<?php echo esc_attr($page->ID); ?>"><input type="hidden" name="search_ai_llms_important_page_ids[]" value="<?php echo esc_attr($page->ID); ?>"><span><strong><?php echo esc_html(get_the_title($page) ?: __('(no title)', 'ajnanda')); ?></strong><small><?php echo esc_html(get_permalink($page)); ?></small></span><button type="button" class="button-link-delete" data-remove-content><?php esc_html_e('Remove', 'ajnanda'); ?></button></div>
-                <?php endforeach; ?>
-                <?php foreach ($invalid_important_pages as $invalid_id => $invalid) : ?>
-                    <div class="ajnanda-content-picker-item is-invalid" data-content-id="<?php echo esc_attr($invalid_id); ?>"><input type="hidden" name="search_ai_llms_important_page_ids[]" value="<?php echo esc_attr($invalid_id); ?>"><span><strong><?php echo esc_html($invalid['title']); ?></strong> <span class="ajnanda-admin-pill is-warning"><?php esc_html_e('Not discoverable', 'ajnanda'); ?></span><small><?php echo esc_html(AJNanda_Search_AI_Stale_References::reason_label($invalid['reasons'][0] ?? 'missing')); ?> <?php esc_html_e('Your selection is kept but withheld from public AI discovery until this is resolved.', 'ajnanda'); ?></small></span><button type="button" class="button-link-delete" data-remove-content><?php esc_html_e('Remove', 'ajnanda'); ?></button></div>
-                <?php endforeach; ?>
-                <p class="ajnanda-content-picker-empty" <?php echo ($selected_important_pages || $invalid_important_pages) ? 'hidden' : ''; ?>><?php esc_html_e('No additional Important Pages selected. Only reliable WordPress foundational pages will be included automatically.', 'ajnanda'); ?></p>
-            </div>
-        </div>
-        <?php submit_button(__('Save Important Pages', 'ajnanda')); ?>
-    </form>
+    <p><?php esc_html_e('Check the authoritative pages to include. Changes save automatically. AJNanda separately includes the 16 most recently updated eligible articles.', 'ajnanda'); ?> <span id="ajnanda-important-save-status" aria-live="polite"></span></p>
+    <div class="ajnanda-important-page-checklist" id="ajnanda-important-pages" data-ajax-url="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" data-nonce="<?php echo esc_attr($important_nonce); ?>">
+        <?php foreach ($available_important_pages as $page) : ?>
+            <label><input type="checkbox" value="<?php echo esc_attr($page->ID); ?>" <?php checked(in_array($page->ID, AJNanda_Search_AI_Important_Pages::stored_ids(), true)); ?>><span><strong><?php echo esc_html(get_the_title($page) ?: __('(no title)', 'ajnanda')); ?></strong><small><?php echo esc_html(wp_make_link_relative(get_permalink($page))); ?></small></span></label>
+        <?php endforeach; ?>
+        <?php if (! $available_important_pages) : ?><p><?php esc_html_e('No eligible published pages are currently available.', 'ajnanda'); ?></p><?php endif; ?>
+    </div>
 </div>
 
 <script>
@@ -109,13 +97,25 @@ $picker_nonce = wp_create_nonce('ajnanda_search_ai_find_content');
     if (workspace) {
         var treeItems = workspace.querySelectorAll('[data-file-target]');
         var panels = workspace.querySelectorAll('[data-file-panel]');
+        function loadPublicFile(panel) {
+            var textarea = panel && panel.querySelector('textarea[data-public-url]');
+            if (! textarea || textarea.dataset.loaded || textarea.value.trim()) { return; }
+            textarea.dataset.loaded = 'loading';
+            var spinner = panel.querySelector('.spinner');
+            if (spinner) { spinner.classList.add('is-active'); }
+            fetch(textarea.dataset.publicUrl, { credentials: 'same-origin', cache: 'no-store' })
+                .then(function (response) { if (! response.ok) { throw new Error('HTTP ' + response.status); } return response.text(); })
+                .then(function (content) { textarea.value = content; textarea.dataset.loaded = 'yes'; textarea.dispatchEvent(new Event('input', { bubbles: true })); })
+                .catch(function (error) { textarea.dataset.loaded = ''; window.alert(<?php echo wp_json_encode(__('The public file could not be loaded: ', 'ajnanda')); ?> + error.message); })
+                .finally(function () { if (spinner) { spinner.classList.remove('is-active'); } });
+        }
         treeItems.forEach(function (item) {
             item.addEventListener('click', function () {
                 treeItems.forEach(function (candidate) { candidate.classList.remove('is-active'); candidate.setAttribute('aria-pressed', 'false'); });
                 panels.forEach(function (panel) { panel.classList.remove('is-active'); panel.hidden = true; });
                 item.classList.add('is-active'); item.setAttribute('aria-pressed', 'true');
                 var panel = workspace.querySelector('[data-file-panel="' + item.dataset.fileTarget + '"]');
-                if (panel) { panel.hidden = false; panel.classList.add('is-active'); }
+                if (panel) { panel.hidden = false; panel.classList.add('is-active'); loadPublicFile(panel); }
             });
         });
         workspace.querySelectorAll('[data-file-panel]').forEach(function (panel) {
@@ -138,52 +138,22 @@ $picker_nonce = wp_create_nonce('ajnanda_search_ai_find_content');
                 updateDirty();
             }); }
         });
+        loadPublicFile(workspace.querySelector('[data-file-panel].is-active'));
     }
-    document.querySelectorAll('[data-load-discovery]').forEach(function (button) {
-        button.addEventListener('click', function () {
-            var editor = button.closest('.ajnanda-discovery-editor');
-            var textarea = editor.querySelector('textarea');
-            var spinner = editor.querySelector('.spinner');
-            spinner.classList.add('is-active'); button.disabled = true;
-            fetch(button.dataset.loadDiscovery, { credentials: 'same-origin', cache: 'no-store' })
-                .then(function (response) { if (!response.ok) { throw new Error('HTTP ' + response.status); } return response.text(); })
-                .then(function (content) { textarea.value = content; textarea.dispatchEvent(new Event('input', { bubbles: true })); })
-                .catch(function (error) { window.alert(<?php echo wp_json_encode(__('The public file could not be loaded: ', 'ajnanda')); ?> + error.message); })
-                .finally(function () { spinner.classList.remove('is-active'); button.disabled = false; });
+    var checklist = document.getElementById('ajnanda-important-pages');
+    if (checklist) {
+        var saveTimer; var status = document.getElementById('ajnanda-important-save-status');
+        checklist.addEventListener('change', function () {
+            clearTimeout(saveTimer); status.textContent = <?php echo wp_json_encode(__('Saving…', 'ajnanda')); ?>;
+            saveTimer = setTimeout(function () {
+                var data = new FormData(); data.append('action', 'ajnanda_save_llms_important_pages'); data.append('_ajax_nonce', checklist.dataset.nonce);
+                checklist.querySelectorAll('input:checked').forEach(function (checkbox) { data.append('ids[]', checkbox.value); });
+                fetch(checklist.dataset.ajaxUrl, { method: 'POST', credentials: 'same-origin', body: data })
+                    .then(function (response) { return response.json(); })
+                    .then(function (payload) { if (! payload.success) { throw new Error(payload.data && payload.data.message ? payload.data.message : 'Save failed'); } status.textContent = <?php echo wp_json_encode(__('Saved.', 'ajnanda')); ?>; })
+                    .catch(function () { status.textContent = <?php echo wp_json_encode(__('Could not save. Try again.', 'ajnanda')); ?>; });
+            }, 250);
         });
-    });
-    var picker = document.getElementById('ajnanda_llms_page_picker');
-    if (!picker) { return; }
-    var search = document.getElementById('ajnanda_llms_page_search');
-    var results = picker.querySelector('.ajnanda-content-picker-results');
-    var selected = picker.querySelector('.ajnanda-content-picker-selected');
-    var spinner = picker.querySelector('.spinner');
-    var timer;
-    function updateEmpty() { selected.querySelector('.ajnanda-content-picker-empty').hidden = !!selected.querySelector('[data-content-id]'); }
-    function addPage(item) {
-        if (selected.querySelector('[data-content-id="' + item.id + '"]')) { return; }
-        var row = document.createElement('div'); row.className = 'ajnanda-content-picker-item'; row.dataset.contentId = item.id;
-        var hidden = document.createElement('input'); hidden.type = 'hidden'; hidden.name = 'search_ai_llms_important_page_ids[]'; hidden.value = item.id;
-        var text = document.createElement('span'); var title = document.createElement('strong'); title.textContent = item.title; var url = document.createElement('small'); url.textContent = item.url; text.appendChild(title); text.appendChild(url);
-        var remove = document.createElement('button'); remove.type = 'button'; remove.className = 'button-link-delete'; remove.dataset.removeContent = ''; remove.textContent = <?php echo wp_json_encode(__('Remove', 'ajnanda')); ?>;
-        row.appendChild(hidden); row.appendChild(text); row.appendChild(remove); selected.appendChild(row); updateEmpty();
     }
-    search.addEventListener('input', function () {
-        clearTimeout(timer); results.innerHTML = '';
-        if (search.value.trim().length < 2) { spinner.classList.remove('is-active'); return; }
-        timer = setTimeout(function () {
-            spinner.classList.add('is-active');
-            var requestUrl = picker.dataset.ajaxUrl + '?action=ajnanda_search_ai_find_content&post_type=page&_wpnonce=' + encodeURIComponent(picker.dataset.nonce) + '&search=' + encodeURIComponent(search.value.trim());
-            fetch(requestUrl, { credentials: 'same-origin' }).then(function (response) { return response.json(); }).then(function (payload) {
-                results.innerHTML = '';
-                (payload.success ? payload.data : []).forEach(function (item) {
-                    if (selected.querySelector('[data-content-id="' + item.id + '"]')) { return; }
-                    var button = document.createElement('button'); button.type = 'button'; button.className = 'ajnanda-content-picker-result'; button.textContent = item.title; button.addEventListener('click', function () { addPage(item); button.remove(); }); results.appendChild(button);
-                });
-                if (!results.children.length) { results.textContent = <?php echo wp_json_encode(__('No matching unselected pages.', 'ajnanda')); ?>; }
-            }).catch(function () { results.textContent = <?php echo wp_json_encode(__('Search could not be completed. Try again.', 'ajnanda')); ?>; }).finally(function () { spinner.classList.remove('is-active'); });
-        }, 300);
-    });
-    selected.addEventListener('click', function (event) { if (event.target.matches('[data-remove-content]')) { event.target.closest('[data-content-id]').remove(); updateEmpty(); } });
 })();
 </script>
