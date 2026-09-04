@@ -85,7 +85,48 @@ class AJNanda_Search_AI_Discovery_Files {
         $pages = array_values(array_filter($pages, function ($page) use ($important_lookup) { return empty($important_lookup[$page->ID]); }));
         self::append_content_section($lines, __('Pages', 'ajnanda'), $pages, 30);
         self::append_content_section($lines, __('Knowledge Base Articles', 'ajnanda'), get_posts(array('post_type' => 'post', 'post_status' => 'publish', 'numberposts' => -1, 'orderby' => 'date', 'order' => 'DESC')), PHP_INT_MAX);
+        $lines[] = '## Optional';
+        $lines[] = '- [Full site content](' . home_url('/llms-full.txt') . '): Full text of public content permitted by the site’s Content Access policy.';
+        $lines[] = '';
         return apply_filters('ajnanda_search_ai_llms_txt', implode("\n", $lines) . "\n", $profile);
+    }
+
+    /**
+     * Render the optional full-content companion to llms.txt.
+     */
+    public static function render_llms_full_txt() {
+        $profile = AJNanda_Search_AI_Site_Profile::get();
+        $lines = array('# ' . ($profile['name'] ?: wp_parse_url(home_url(), PHP_URL_HOST)), '');
+        if ($profile['description']) {
+            $lines[] = '> ' . preg_replace('/\s+/', ' ', $profile['description']);
+            $lines[] = '';
+        }
+        $lines[] = 'Source: ' . home_url('/');
+        $lines[] = 'Index: ' . home_url('/llms.txt');
+        $lines[] = '';
+
+        $post_types = array_values(array_diff(get_post_types(array('public' => true), 'names'), array('attachment')));
+        $posts = get_posts(array(
+            'post_type' => $post_types,
+            'post_status' => 'publish',
+            'numberposts' => -1,
+            'orderby' => array('post_type' => 'ASC', 'menu_order' => 'ASC', 'date' => 'DESC', 'title' => 'ASC'),
+            'suppress_filters' => false,
+        ));
+        foreach ($posts as $post) {
+            if (! self::eligible_for_discovery($post->ID, 'llms_txt')['eligible']) { continue; }
+            $title = trim(html_entity_decode(wp_strip_all_tags(get_the_title($post)), ENT_QUOTES | ENT_HTML5, get_bloginfo('charset') ?: 'UTF-8'));
+            $content = self::full_content($post);
+            if (! $title || ! $content) { continue; }
+            $lines[] = '## ' . str_replace(array("\r", "\n"), ' ', $title);
+            $lines[] = '';
+            $lines[] = 'URL: ' . get_permalink($post);
+            $lines[] = '';
+            $lines[] = $content;
+            $lines[] = '';
+        }
+
+        return apply_filters('ajnanda_search_ai_llms_full_txt', implode("\n", $lines) . "\n", $profile);
     }
 
     private static function append_content_section(&$lines, $heading, $posts, $limit) {
@@ -110,6 +151,18 @@ class AJNanda_Search_AI_Discovery_Files {
         return trim((string) $summary);
     }
 
+    private static function full_content($post) {
+        $content = strip_shortcodes((string) get_post_field('post_content', $post));
+        $content = preg_replace('/<!--\s*\/?wp:.*?-->/s', '', $content);
+        $content = preg_replace('#<(br|/p|/div|/li|/h[1-6]|/blockquote|/tr)>#i', "$0\n", $content);
+        $content = html_entity_decode(wp_strip_all_tags($content), ENT_QUOTES | ENT_HTML5, get_bloginfo('charset') ?: 'UTF-8');
+        $content = preg_replace("/\r\n?|\x{2028}|\x{2029}/u", "\n", $content);
+        $content = preg_replace('/[ \t]+/', ' ', $content);
+        $content = preg_replace('/ *\n */', "\n", $content);
+        $content = preg_replace('/\n{3,}/', "\n\n", $content);
+        return trim((string) $content);
+    }
+
     public static function status($probe_endpoints = false) {
         $policy = AJNanda_Search_AI_Content_Policy::settings();
         $sitemap_ownership = AJNanda_Search_AI_Capability_Ownership::get('sitemap');
@@ -131,6 +184,12 @@ class AJNanda_Search_AI_Discovery_Files {
                 'enabled' => self::llms_enabled(),
                 'ownership' => AJNanda_Search_AI_Capability_Ownership::get('llms_txt'),
                 'endpoint' => $probe_endpoints && self::llms_enabled() ? self::endpoint_status(home_url('/llms.txt'), 'llms') : null,
+            ),
+            'llms_full_txt' => array(
+                'url' => home_url('/llms-full.txt'),
+                'enabled' => self::llms_enabled(),
+                'ownership' => AJNanda_Search_AI_Capability_Ownership::get('llms_txt'),
+                'endpoint' => $probe_endpoints && self::llms_enabled() ? self::endpoint_status(home_url('/llms-full.txt'), 'llms-full') : null,
             ),
             'schema' => array(
                 'enabled' => (bool) get_theme_mod('seo_schema_enabled', true),

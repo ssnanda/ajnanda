@@ -83,8 +83,8 @@ if (!defined('ABSPATH')) {
             <tr>
                 <th scope="row"><?php esc_html_e('llms.txt', 'ajnanda'); ?></th>
                 <td>
-                    <label><input type="checkbox" name="seo_llms_txt_enabled" value="1" <?php checked($values['seo_llms_txt_enabled']); ?>> <?php esc_html_e('Publish /llms.txt', 'ajnanda'); ?></label>
-                    <p class="description"><?php esc_html_e('A plain-text summary of your site for AI tools that support the emerging llms.txt convention.', 'ajnanda'); ?></p>
+                    <label><input type="checkbox" name="seo_llms_txt_enabled" value="1" <?php checked($values['seo_llms_txt_enabled']); ?>> <?php esc_html_e('Publish /llms.txt and /llms-full.txt', 'ajnanda'); ?></label>
+                    <p class="description"><?php esc_html_e('A concise index and full-content companion for AI tools that support the emerging llms.txt convention.', 'ajnanda'); ?></p>
                 </td>
             </tr>
             <tr>

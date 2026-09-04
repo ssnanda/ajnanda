@@ -524,7 +524,9 @@ function ajnanda_seo_robots_txt($output, $public) {
             $rules .= 'User-agent: ' . $crawler['token'] . "\nDisallow: /\n\n";
         }
         if ($rules) { $output .= "\n# AI crawler policy (AJNanda Search & AI)\n" . $rules; }
-        if (AJNanda_Search_AI_Discovery_Files::llms_enabled()) { $output .= "\n# AI-readable site guide: " . home_url('/llms.txt') . "\n"; }
+        if (AJNanda_Search_AI_Discovery_Files::llms_enabled()) {
+            $output .= "\n# AI-readable site guides: " . home_url('/llms.txt') . ' and ' . home_url('/llms-full.txt') . "\n";
+        }
         return $output;
     }
 
@@ -538,7 +540,7 @@ function ajnanda_seo_robots_txt($output, $public) {
     return $output;
 }
 
-// ── /llms.txt ────────────────────────────────────────────────────────────────
+// ── /llms.txt and /llms-full.txt ────────────────────────────────────────────
 
 add_action('parse_request', 'ajnanda_seo_maybe_serve_llms_txt', -999);
 add_action('template_redirect', 'ajnanda_seo_maybe_serve_llms_txt', 0);
@@ -550,7 +552,10 @@ function ajnanda_seo_maybe_serve_llms_txt() {
         return;
     }
     $path = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
-    if ('/llms.txt' !== $path) {
+    if (! in_array($path, array('/llms.txt', '/llms-full.txt'), true)) {
+        return;
+    }
+    if ('/llms-full.txt' === $path && ! class_exists('AJNanda_Search_AI_Discovery_Files')) {
         return;
     }
 
@@ -558,7 +563,9 @@ function ajnanda_seo_maybe_serve_llms_txt() {
     nocache_headers();
     header('X-Robots-Tag: noindex');
     header('Content-Type: text/plain; charset=utf-8');
-    echo ajnanda_seo_render_llms_txt(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+    echo '/llms-full.txt' === $path
+        ? AJNanda_Search_AI_Discovery_Files::render_llms_full_txt() // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        : ajnanda_seo_render_llms_txt(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     exit;
 }
 
