@@ -13,27 +13,33 @@ $important_nonce = wp_create_nonce('ajnanda_save_llms_important_pages');
 $available_important_pages = array_values(array_filter(get_pages(array('post_status' => 'publish', 'sort_column' => 'menu_order,post_title')), static function ($page) {
     return AJNanda_Search_AI_Discovery_Files::eligible_for_discovery($page->ID, 'llms_txt')['eligible'];
 }));
+$endpoint_label = static function ($endpoint) {
+    if (! $endpoint) { return __('Not checked', 'ajnanda'); }
+    if ('success' === $endpoint['result']) { return __('Reachable', 'ajnanda'); }
+    if ('http_error' === $endpoint['result']) { return sprintf(__('HTTP %d', 'ajnanda'), (int) $endpoint['code']); }
+    return __('Unverifiable', 'ajnanda');
+};
 ?>
-<details class="ajnanda-admin-section ajnanda-search-ai-advanced">
-    <summary><strong><?php esc_html_e('Discovery output status', 'ajnanda'); ?></strong> <span><?php esc_html_e('Review endpoint reachability and ownership.', 'ajnanda'); ?></span></summary>
+<details class="ajnanda-admin-section ajnanda-search-ai-advanced" id="ajnanda-discovery-status">
+    <summary><strong><?php esc_html_e('Output status', 'ajnanda'); ?></strong></summary>
     <div class="ajnanda-search-ai-details-body">
-    <p><?php esc_html_e('Status and ownership of the standard discovery outputs used by this site. Configure them in their respective tabs.', 'ajnanda'); ?></p>
-    <?php if ($discovery_status['policy_count']) : ?><div class="notice notice-info inline"><p><?php printf(esc_html(_n('Content Access currently contains %d exclusion rule.', 'Content Access currently contains %d exclusion rules.', $discovery_status['policy_count'], 'ajnanda')), (int) $discovery_status['policy_count']); ?></p></div><?php endif; ?>
-    <div class="ajnanda-admin-grid ajnanda-discovery-grid">
-        <div class="ajnanda-admin-card"><h2><?php esc_html_e('XML Sitemap', 'ajnanda'); ?></h2><span class="ajnanda-admin-pill <?php echo $discovery_status['sitemap']['ownership']['ajnanda'] ? 'is-success' : 'is-warning'; ?>"><?php echo esc_html($owner_label($discovery_status['sitemap'])); ?></span><p><?php echo $discovery_status['sitemap']['ownership']['ajnanda'] ? esc_html__('WordPress core sitemap with AJNanda Content Access filtering.', 'ajnanda') : esc_html__('A recognized SEO plugin owns sitemap generation; AJNanda does not apply competing core-sitemap filters.', 'ajnanda'); ?></p><a class="button" target="_blank" rel="noopener" href="<?php echo esc_url($discovery_status['sitemap']['url']); ?>"><?php esc_html_e('View Sitemap', 'ajnanda'); ?></a></div>
-        <div class="ajnanda-admin-card"><h2><?php esc_html_e('robots.txt', 'ajnanda'); ?></h2><span class="ajnanda-admin-pill is-success"><?php esc_html_e('WordPress policy available', 'ajnanda'); ?></span><?php if ($robots_endpoint) : ?><span class="ajnanda-admin-pill <?php echo 'success' === $robots_endpoint['result'] ? 'is-success' : ('http_error' === $robots_endpoint['result'] ? 'is-warning' : 'is-externally_unverifiable'); ?>"><?php echo 'success' === $robots_endpoint['result'] ? esc_html__('Public endpoint reachable', 'ajnanda') : ('http_error' === $robots_endpoint['result'] ? esc_html(sprintf(__('Public endpoint returned HTTP %d', 'ajnanda'), $robots_endpoint['code'])) : esc_html__('Endpoint externally unverifiable', 'ajnanda')); ?></span><?php endif; ?><p><?php if ($robots_endpoint && in_array($robots_endpoint['result'], array('tls_error', 'transport_error'), true)) { echo esc_html($robots_endpoint['message']); } else { esc_html_e('Preserves WordPress rules and appends AJNanda’s registry-backed AI crawler policy. A public endpoint warning usually indicates web-server or reverse-proxy routing, not a broken WordPress policy.', 'ajnanda'); } ?></p><a class="button" target="_blank" rel="noopener" href="<?php echo esc_url($discovery_status['robots']['url']); ?>"><?php esc_html_e('View robots.txt', 'ajnanda'); ?></a></div>
-        <div class="ajnanda-admin-card"><h2><?php esc_html_e('llms.txt', 'ajnanda'); ?></h2><span class="ajnanda-admin-pill <?php echo $discovery_status['llms_txt']['enabled'] ? 'is-success' : 'is-warning'; ?>"><?php echo $discovery_status['llms_txt']['enabled'] ? esc_html__('Enabled', 'ajnanda') : esc_html__('Disabled or delegated', 'ajnanda'); ?></span><?php if ($llms_endpoint) : ?><span class="ajnanda-admin-pill <?php echo 'success' === $llms_endpoint['result'] ? 'is-success' : ('http_error' === $llms_endpoint['result'] ? 'is-warning' : 'is-externally_unverifiable'); ?>"><?php echo 'success' === $llms_endpoint['result'] ? esc_html__('Public endpoint reachable', 'ajnanda') : ('http_error' === $llms_endpoint['result'] ? esc_html(sprintf(__('Endpoint returned HTTP %d', 'ajnanda'), $llms_endpoint['code'])) : esc_html__('Endpoint externally unverifiable', 'ajnanda')); ?></span><?php endif; ?><p><?php if ($llms_endpoint && in_array($llms_endpoint['result'], array('tls_error', 'transport_error'), true)) { echo esc_html($llms_endpoint['message']); } else { printf(esc_html__('Owner: %s. Uses the Site Profile and excludes content blocked from llms.txt advertising.', 'ajnanda'), esc_html($owner_label($discovery_status['llms_txt']))); } ?></p><?php if ($discovery_status['llms_txt']['enabled']) : ?><a class="button" target="_blank" rel="noopener" href="<?php echo esc_url($discovery_status['llms_txt']['url']); ?>"><?php esc_html_e('View llms.txt', 'ajnanda'); ?></a><?php endif; ?></div>
-        <div class="ajnanda-admin-card"><h2><?php esc_html_e('llms-full.txt', 'ajnanda'); ?></h2><span class="ajnanda-admin-pill <?php echo $discovery_status['llms_full_txt']['enabled'] ? 'is-success' : 'is-warning'; ?>"><?php echo $discovery_status['llms_full_txt']['enabled'] ? esc_html__('Enabled', 'ajnanda') : esc_html__('Disabled or delegated', 'ajnanda'); ?></span><?php if ($llms_full_endpoint) : ?><span class="ajnanda-admin-pill <?php echo 'success' === $llms_full_endpoint['result'] ? 'is-success' : ('http_error' === $llms_full_endpoint['result'] ? 'is-warning' : 'is-externally_unverifiable'); ?>"><?php echo 'success' === $llms_full_endpoint['result'] ? esc_html__('Public endpoint reachable', 'ajnanda') : ('http_error' === $llms_full_endpoint['result'] ? esc_html(sprintf(__('Endpoint returned HTTP %d', 'ajnanda'), $llms_full_endpoint['code'])) : esc_html__('Endpoint externally unverifiable', 'ajnanda')); ?></span><?php endif; ?><p><?php if ($llms_full_endpoint && in_array($llms_full_endpoint['result'], array('tls_error', 'transport_error'), true)) { echo esc_html($llms_full_endpoint['message']); } else { esc_html_e('Full text of eligible public pages and posts. It follows the same ownership, enablement, and Content Access exclusions as llms.txt.', 'ajnanda'); } ?></p><?php if ($discovery_status['llms_full_txt']['enabled']) : ?><a class="button" target="_blank" rel="noopener" href="<?php echo esc_url($discovery_status['llms_full_txt']['url']); ?>"><?php esc_html_e('View llms-full.txt', 'ajnanda'); ?></a><?php endif; ?></div>
-        <div class="ajnanda-admin-card"><h2><?php esc_html_e('ai.txt', 'ajnanda'); ?></h2><span class="ajnanda-admin-pill is-success"><?php esc_html_e('Enabled', 'ajnanda'); ?></span><?php if ($ai_endpoint) : ?><span class="ajnanda-admin-pill <?php echo 'success' === $ai_endpoint['result'] ? 'is-success' : 'is-warning'; ?>"><?php echo 'success' === $ai_endpoint['result'] ? esc_html__('Public endpoint reachable', 'ajnanda') : esc_html(sprintf(__('Endpoint returned HTTP %d', 'ajnanda'), $ai_endpoint['code'])); ?></span><?php endif; ?><p><?php esc_html_e('Site-owner policy permitting AI search, citation, and retrieval while requiring attribution and respecting privacy.', 'ajnanda'); ?></p><a class="button" target="_blank" rel="noopener" href="<?php echo esc_url($discovery_status['ai_txt']['url']); ?>"><?php esc_html_e('View ai.txt', 'ajnanda'); ?></a></div>
-        <div class="ajnanda-admin-card"><h2><?php esc_html_e('security.txt', 'ajnanda'); ?></h2><span class="ajnanda-admin-pill is-success"><?php esc_html_e('RFC 9116', 'ajnanda'); ?></span><?php if ($security_endpoint) : ?><span class="ajnanda-admin-pill <?php echo 'success' === $security_endpoint['result'] ? 'is-success' : 'is-warning'; ?>"><?php echo 'success' === $security_endpoint['result'] ? esc_html__('Public endpoint reachable', 'ajnanda') : esc_html(sprintf(__('Endpoint returned HTTP %d', 'ajnanda'), $security_endpoint['code'])); ?></span><?php endif; ?><p><?php esc_html_e('Canonical vulnerability-reporting contact with English preference and a rolling one-year expiration.', 'ajnanda'); ?></p><a class="button" target="_blank" rel="noopener" href="<?php echo esc_url($discovery_status['security_txt']['url']); ?>"><?php esc_html_e('View security.txt', 'ajnanda'); ?></a></div>
-        <div class="ajnanda-admin-card"><h2><?php esc_html_e('Schema', 'ajnanda'); ?></h2><span class="ajnanda-admin-pill <?php echo $discovery_status['schema']['active'] ? 'is-success' : 'is-warning'; ?>"><?php echo $discovery_status['schema']['active'] ? esc_html__('AJNanda active', 'ajnanda') : ($discovery_status['schema']['enabled'] ? esc_html__('Delegated', 'ajnanda') : esc_html__('Disabled', 'ajnanda')); ?></span><p><?php printf(esc_html__('Owner: %s. AJNanda schema uses the canonical Site Profile when AJNanda owns this capability.', 'ajnanda'), esc_html($owner_label($discovery_status['schema']))); ?></p></div>
+    <div class="ajnanda-output-status-list">
+        <?php foreach (array(
+            array('XML Sitemap', $discovery_status['sitemap']['url'], $owner_label($discovery_status['sitemap'])),
+            array('robots.txt', $discovery_status['robots']['url'], $endpoint_label($robots_endpoint)),
+            array('llms.txt', $discovery_status['llms_txt']['url'], $endpoint_label($llms_endpoint)),
+            array('llms-full.txt', $discovery_status['llms_full_txt']['url'], $endpoint_label($llms_full_endpoint)),
+            array('ai.txt', $discovery_status['ai_txt']['url'], $endpoint_label($ai_endpoint)),
+            array('security.txt', $discovery_status['security_txt']['url'], $endpoint_label($security_endpoint)),
+            array('Schema', '', $discovery_status['schema']['active'] ? __('Active', 'ajnanda') : __('Inactive', 'ajnanda')),
+        ) as $row) : ?><div><strong><?php echo esc_html($row[0]); ?></strong><span class="ajnanda-admin-pill"><?php echo esc_html($row[2]); ?></span><?php if ($row[1]) : ?><a class="button button-small" target="_blank" rel="noopener" href="<?php echo esc_url($row[1]); ?>"><?php esc_html_e('View', 'ajnanda'); ?></a><?php endif; ?></div><?php endforeach; ?>
     </div>
     </div>
 </details>
 
-<div class="ajnanda-admin-section">
+<div class="ajnanda-discovery-layout">
+<div class="ajnanda-admin-section ajnanda-discovery-main">
     <h2><?php esc_html_e('Edit discovery files', 'ajnanda'); ?></h2>
-    <p><?php esc_html_e('AJNanda normally generates these files from current site data and policies. Enable a custom override only when you want the saved text to replace dynamic generation. Custom overrides do not update automatically when site content changes.', 'ajnanda'); ?></p>
     <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" id="ajnanda-discovery-editors" class="ajnanda-file-workspace">
         <input type="hidden" name="action" value="ajnanda_save_discovery_file_editors">
         <?php wp_nonce_field('ajnanda_save_discovery_file_editors'); ?>
@@ -59,7 +65,7 @@ $available_important_pages = array_values(array_filter(get_pages(array('post_sta
         ?>
             <section class="ajnanda-discovery-editor<?php echo 'robots_txt' === $file ? ' is-active' : ''; ?>" data-file-panel="<?php echo esc_attr($file); ?>" <?php echo 'robots_txt' === $file ? '' : 'hidden'; ?>>
                 <header class="ajnanda-file-editor-header"><div><h3><?php echo esc_html($editor['label']); ?></h3><span class="ajnanda-admin-pill"><?php echo esc_html($editor['format']); ?></span></div><a href="<?php echo esc_url($editor['url']); ?>" target="_blank" rel="noopener"><?php esc_html_e('View public file', 'ajnanda'); ?> &rarr;</a></header>
-                <p><label><input type="checkbox" name="search_ai_custom_<?php echo esc_attr($file); ?>_enabled" value="1" <?php checked(AJNanda_Search_AI_Discovery_Files::custom_enabled($file)); ?>> <?php esc_html_e('Use custom content instead of automatic generation', 'ajnanda'); ?></label></p>
+                <p><label><input type="checkbox" name="search_ai_custom_<?php echo esc_attr($file); ?>_enabled" value="1" <?php checked(AJNanda_Search_AI_Discovery_Files::custom_enabled($file)); ?>> <?php esc_html_e('Custom override', 'ajnanda'); ?></label></p>
                 <div class="ajnanda-file-editor-actions"><button type="submit" class="button button-primary"><?php esc_html_e('Save changes', 'ajnanda'); ?></button><button type="button" class="button" data-undo-discovery><?php esc_html_e('Undo edits', 'ajnanda'); ?></button><span class="spinner" aria-hidden="true"></span><span class="ajnanda-file-dirty" hidden><?php esc_html_e('Unsaved changes', 'ajnanda'); ?></span></div>
                 <textarea class="large-text code" rows="20" name="search_ai_custom_<?php echo esc_attr($file); ?>_content" spellcheck="false" data-public-url="<?php echo esc_url($editor['url']); ?>"><?php echo esc_textarea($custom_content); ?></textarea>
             </section>
@@ -67,7 +73,6 @@ $available_important_pages = array_values(array_filter(get_pages(array('post_sta
 
         <section class="ajnanda-discovery-editor" data-file-panel="security_txt" hidden>
             <header class="ajnanda-file-editor-header"><div><h3><?php esc_html_e('security.txt', 'ajnanda'); ?></h3><span class="ajnanda-admin-pill"><?php esc_html_e('RFC 9116 fields', 'ajnanda'); ?></span></div><a href="<?php echo esc_url($discovery_status['security_txt']['url']); ?>" target="_blank" rel="noopener"><?php esc_html_e('View public file', 'ajnanda'); ?> &rarr;</a></header>
-            <p><?php esc_html_e('Structured fields preserve RFC 9116 formatting. Expiration must be a future UTC timestamp in RFC 3339 format.', 'ajnanda'); ?></p>
             <div class="ajnanda-file-editor-actions"><button type="submit" class="button button-primary"><?php esc_html_e('Save changes', 'ajnanda'); ?></button><button type="button" class="button" data-undo-discovery><?php esc_html_e('Undo edits', 'ajnanda'); ?></button><span class="ajnanda-file-dirty" hidden><?php esc_html_e('Unsaved changes', 'ajnanda'); ?></span></div>
             <table class="form-table" role="presentation">
                 <tr><th><label for="search_ai_security_contact"><?php esc_html_e('Contact URI', 'ajnanda'); ?></label></th><td><input class="large-text code" type="text" id="search_ai_security_contact" name="search_ai_security_contact" value="<?php echo esc_attr(get_theme_mod('search_ai_security_contact', home_url('/email-us/'))); ?>" data-saved-value="<?php echo esc_attr(get_theme_mod('search_ai_security_contact', home_url('/email-us/'))); ?>" placeholder="https://example.com/security-contact/ or mailto:security@example.com"></td></tr>
@@ -80,19 +85,21 @@ $available_important_pages = array_values(array_filter(get_pages(array('post_sta
     </form>
 </div>
 
-<div class="ajnanda-admin-section">
-    <h2><?php esc_html_e('llms.txt Important Pages', 'ajnanda'); ?></h2>
-    <p><?php esc_html_e('Check the authoritative pages to include. Changes save automatically. AJNanda separately includes the 16 most recently updated eligible articles.', 'ajnanda'); ?> <span id="ajnanda-important-save-status" aria-live="polite"></span></p>
+<aside class="ajnanda-admin-section ajnanda-important-pages-panel">
+    <h2><?php esc_html_e('Important Pages', 'ajnanda'); ?> <span id="ajnanda-important-save-status" aria-live="polite"></span></h2>
     <div class="ajnanda-important-page-checklist" id="ajnanda-important-pages" data-ajax-url="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" data-nonce="<?php echo esc_attr($important_nonce); ?>">
         <?php foreach ($available_important_pages as $page) : ?>
             <label><input type="checkbox" value="<?php echo esc_attr($page->ID); ?>" <?php checked(in_array($page->ID, AJNanda_Search_AI_Important_Pages::stored_ids(), true)); ?>><span><strong><?php echo esc_html(get_the_title($page) ?: __('(no title)', 'ajnanda')); ?></strong><small><?php echo esc_html(wp_make_link_relative(get_permalink($page))); ?></small></span></label>
         <?php endforeach; ?>
         <?php if (! $available_important_pages) : ?><p><?php esc_html_e('No eligible published pages are currently available.', 'ajnanda'); ?></p><?php endif; ?>
     </div>
+</aside>
 </div>
 
 <script>
 (function () {
+    var outputStatus = document.getElementById('ajnanda-discovery-status');
+    if (outputStatus) { outputStatus.parentNode.appendChild(outputStatus); }
     var workspace = document.getElementById('ajnanda-discovery-editors');
     if (workspace) {
         var treeItems = workspace.querySelectorAll('[data-file-target]');

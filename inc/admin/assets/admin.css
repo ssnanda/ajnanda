@@ -116,6 +116,22 @@
     background: #fff;
 }
 
+.ajnanda-discovery-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(260px, 1fr);
+    gap: 16px;
+    align-items: start;
+}
+.ajnanda-discovery-layout > .ajnanda-admin-section { margin-top: 0; }
+.ajnanda-discovery-main { min-width: 0; }
+.ajnanda-important-pages-panel { position: sticky; top: 46px; }
+.ajnanda-important-pages-panel h2 { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 16px; }
+.ajnanda-important-pages-panel .ajnanda-important-page-checklist { grid-template-columns: 1fr; max-height: 540px; }
+
+.ajnanda-output-status-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px; padding-top: 10px; }
+.ajnanda-output-status-list > div { display: flex; align-items: center; gap: 8px; min-height: 30px; padding: 7px 9px; border: 1px solid #dcdcde; border-radius: 6px; }
+.ajnanda-output-status-list .button { margin-left: auto; }
+
 .ajnanda-file-tree {
     padding: 14px 10px;
     border-right: 1px solid #dcdcde;
@@ -177,6 +193,8 @@
 #ajnanda-important-save-status { color: #008a20; font-weight: 600; }
 
 @media screen and (max-width: 782px) {
+    .ajnanda-discovery-layout { grid-template-columns: 1fr; }
+    .ajnanda-important-pages-panel { position: static; }
     .ajnanda-file-workspace { grid-template-columns: 1fr; }
     .ajnanda-file-tree { display: flex; gap: 4px; overflow-x: auto; border-right: 0; border-bottom: 1px solid #dcdcde; }
     .ajnanda-file-tree-heading { display: none; }
