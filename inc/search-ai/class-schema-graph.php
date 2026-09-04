@@ -6,7 +6,7 @@ class AJNanda_Search_AI_Schema_Graph {
     public static function render($is_singular, $post_id) {
         if (! AJNanda_Search_AI_Capability_Ownership::ajnanda_owns('schema')) { return; }
         $subject_id = $post_id ?: get_queried_object_id();
-        if ($subject_id && empty(AJNanda_Search_AI_Content_Policy::evaluate($subject_id)['advertise']['schema_relationships'])) { return; }
+        if ($subject_id && ! AJNanda_Search_AI_Discovery_Files::eligible_for_discovery($subject_id, 'schema_relationships')['eligible']) { return; }
         $nodes = self::nodes($is_singular, $post_id);
         if (! $nodes) { return; }
         echo '<script type="application/ld+json">' . wp_json_encode(array('@context' => 'https://schema.org', '@graph' => $nodes), JSON_UNESCAPED_SLASHES) . '</script>' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -14,7 +14,7 @@ class AJNanda_Search_AI_Schema_Graph {
 
     public static function nodes($is_singular, $post_id) {
         $subject_id = absint($post_id ?: get_queried_object_id());
-        if ($subject_id && empty(AJNanda_Search_AI_Content_Policy::evaluate($subject_id)['advertise']['schema_relationships'])) { return array(); }
+        if ($subject_id && ! AJNanda_Search_AI_Discovery_Files::eligible_for_discovery($subject_id, 'schema_relationships')['eligible']) { return array(); }
         $is_article = $is_singular && 'post' === get_post_type($subject_id);
         $context = new AJNanda_Search_AI_Schema_Context($subject_id, $is_article);
         $default_areas=AJNanda_Search_AI_Service_Area_Registry::defaults();

@@ -36,7 +36,10 @@ $picker_nonce = wp_create_nonce('ajnanda_search_ai_find_content');
                 <?php foreach ($selected_important_pages as $page) : ?>
                     <div class="ajnanda-content-picker-item" data-content-id="<?php echo esc_attr($page->ID); ?>"><input type="hidden" name="search_ai_llms_important_page_ids[]" value="<?php echo esc_attr($page->ID); ?>"><span><strong><?php echo esc_html(get_the_title($page) ?: __('(no title)', 'ajnanda')); ?></strong><small><?php echo esc_html(get_permalink($page)); ?></small></span><button type="button" class="button-link-delete" data-remove-content><?php esc_html_e('Remove', 'ajnanda'); ?></button></div>
                 <?php endforeach; ?>
-                <p class="ajnanda-content-picker-empty" <?php echo $selected_important_pages ? 'hidden' : ''; ?>><?php esc_html_e('No additional Important Pages selected. Only reliable WordPress foundational pages will be included automatically.', 'ajnanda'); ?></p>
+                <?php foreach ($invalid_important_pages as $invalid_id => $invalid) : ?>
+                    <div class="ajnanda-content-picker-item is-invalid" data-content-id="<?php echo esc_attr($invalid_id); ?>"><input type="hidden" name="search_ai_llms_important_page_ids[]" value="<?php echo esc_attr($invalid_id); ?>"><span><strong><?php echo esc_html($invalid['title']); ?></strong> <span class="ajnanda-admin-pill is-warning"><?php esc_html_e('Not discoverable', 'ajnanda'); ?></span><small><?php echo esc_html(AJNanda_Search_AI_Stale_References::reason_label($invalid['reasons'][0] ?? 'missing')); ?> <?php esc_html_e('Your selection is kept but withheld from public AI discovery until this is resolved.', 'ajnanda'); ?></small></span><button type="button" class="button-link-delete" data-remove-content><?php esc_html_e('Remove', 'ajnanda'); ?></button></div>
+                <?php endforeach; ?>
+                <p class="ajnanda-content-picker-empty" <?php echo ($selected_important_pages || $invalid_important_pages) ? 'hidden' : ''; ?>><?php esc_html_e('No additional Important Pages selected. Only reliable WordPress foundational pages will be included automatically.', 'ajnanda'); ?></p>
             </div>
         </div>
         <?php submit_button(__('Save Important Pages', 'ajnanda')); ?>

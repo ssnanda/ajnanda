@@ -106,6 +106,18 @@ Provide AI systems with a simple overview of the site, important pages, and rece
 
 Explicitly identify the pages that best explain the website instead of relying on automatic guesses.
 
+### Discovery Eligibility Rules
+
+One shared rule decides whether a URL may appear in llms.txt, Important Pages, or schema, instead of assuming a page qualifies just because WordPress still knows it existed.
+
+### Important Page Validation
+
+An Important Page that becomes draft, private, trashed, deleted, noindex, or excluded is kept as a saved choice, marked invalid in the admin, and withheld from public AI discovery.
+
+### Stale Discovery Detection
+
+Search & AI Overview reports any URL it still promotes that has become unpublished, noindex, excluded, redirected, or deleted, with the reason for each.
+
 ### Structured Site Identity
 
 Connect Organization, WebSite, WebPage, and Article information into one coherent machine-readable graph.

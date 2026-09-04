@@ -645,6 +645,29 @@ body.ajnanda-modal-open {
     color: #4b5563;
 }
 
+.ajnanda-admin-pill.is-pass {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.ajnanda-stale-references .ajnanda-stale-count {
+    margin-right: 10px;
+}
+
+.ajnanda-stale-references-table {
+    margin-top: 12px;
+}
+
+.ajnanda-stale-references-table small {
+    color: #6b7280;
+    word-break: break-all;
+}
+
+.ajnanda-content-picker-item.is-invalid {
+    border-color: #fcd34d;
+    background: #fffbeb;
+}
+
 .ajnanda-overview-main {
     grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr);
 }

@@ -77,6 +77,7 @@ class AJNanda_Search_AI_Admin {
         $crawler_registry = AJNanda_Search_AI_Crawler_Registry::all();
         $discovery_status = AJNanda_Search_AI_Discovery_Files::status('discovery-files' === $tab);
         $readiness = 'overview' === $tab ? AJNanda_Search_AI_Readiness::report() : array();
+        $stale_references = 'overview' === $tab ? AJNanda_Search_AI_Stale_References::scan() : array('count' => 0, 'findings' => array());
         $insights = 'insights' === $tab ? AJNanda_Search_AI_Insights::report() : array();
         $crawler_log = array();
         $crawler_event = null;
@@ -104,17 +105,11 @@ class AJNanda_Search_AI_Admin {
             }
         }
         $selected_important_pages = array();
+        $invalid_important_pages = array();
         if ('discovery-files' === $tab) {
-            $important_ids = AJNanda_Search_AI_Discovery_Files::important_page_ids();
-            if ($important_ids) {
-                $selected_important_pages = get_posts(array(
-                    'post_type' => 'page',
-                    'post_status' => 'publish',
-                    'post__in' => $important_ids,
-                    'orderby' => 'post__in',
-                    'numberposts' => count($important_ids),
-                ));
-            }
+            $resolved_important_pages = AJNanda_Search_AI_Important_Pages::resolve();
+            $selected_important_pages = array_values($resolved_important_pages['valid']);
+            $invalid_important_pages = $resolved_important_pages['invalid'];
         }
         $ownership = array();
         foreach (AJNanda_Search_AI_Capability_Ownership::capabilities() as $capability) {
@@ -223,11 +218,17 @@ class AJNanda_Search_AI_Admin {
     public static function save_llms_important_pages() {
         self::authorize('ajnanda_save_llms_important_pages');
         $ids = array_values(array_filter(array_unique(array_map('absint', (array) ($_POST['search_ai_llms_important_page_ids'] ?? array())))));
-        $valid_ids = array();
+        // Retain the administrator's stored intent for any real page, even one
+        // that is currently ineligible for discovery. Ineligible selections are
+        // flagged in the admin UI and withheld from public output at render
+        // time rather than being destructively dropped here. Only IDs with no
+        // backing page object are discarded.
+        $stored_ids = array();
         foreach ($ids as $id) {
-            if ('page' === get_post_type($id) && 'publish' === get_post_status($id)) { $valid_ids[] = $id; }
+            $post = get_post($id);
+            if ($post && 'page' === $post->post_type && 'auto-draft' !== $post->post_status) { $stored_ids[] = $id; }
         }
-        set_theme_mod('search_ai_llms_important_page_ids', $valid_ids);
+        set_theme_mod('search_ai_llms_important_page_ids', $stored_ids);
         self::redirect('discovery-files');
     }
 

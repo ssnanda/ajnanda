@@ -23,7 +23,7 @@ get_header();
         <div class="container">
             <div class="section-header">
                 <h2>Registered Agent Services</h2>
-                <p>Everything your North Carolina business needs to stay compliant</p>
+                <p>Everything your North Carolina business needs to meet its registered-agent requirement</p>
             </div>
             <div class="features-grid">
                 <div class="feature-card animate-on-scroll">
@@ -43,8 +43,8 @@ get_header();
                 </div>
                 <div class="feature-card animate-on-scroll">
                     <div class="feature-icon">🔒</div>
-                    <h3>Privacy Protection</h3>
-                    <p>Keep your home address private by using our Charlotte address for public records. Protect your personal information from public view.</p>
+                    <h3>Privacy</h3>
+                    <p>Use our Charlotte address for the registered-agent section of your public NC business record instead of your home address.</p>
                 </div>
                 <div class="feature-card animate-on-scroll">
                     <div class="feature-icon">⚖️</div>
@@ -117,16 +117,16 @@ get_header();
                     <p>North Carolina law requires all LLCs and corporations to maintain a registered agent with a physical address in the state. It's mandatory for compliance.</p>
                 </div>
                 <div class="feature-card animate-on-scroll" style="border-left: 4px solid var(--secondary);">
-                    <h3>Privacy Protection</h3>
-                    <p>Your registered agent's address is public record. Using our service keeps your home address private and off public databases.</p>
+                    <h3>Privacy</h3>
+                    <p>Your registered agent's address is public record. Using our service keeps your home address off the registered-agent section of that record.</p>
                 </div>
                 <div class="feature-card animate-on-scroll" style="border-left: 4px solid var(--accent);">
                     <h3>Professional Image</h3>
                     <p>A Charlotte business address looks more professional than a residential address, especially for client-facing businesses.</p>
                 </div>
                 <div class="feature-card animate-on-scroll" style="border-left: 4px solid var(--primary);">
-                    <h3>Availability Guarantee</h3>
-                    <p>Registered agents must be available during business hours. We ensure someone is always there to receive important documents.</p>
+                    <h3>Business-Hours Availability</h3>
+                    <p>Registered agents must be available during business hours to receive documents, and we staff our Charlotte office accordingly.</p>
                 </div>
                 <div class="feature-card animate-on-scroll" style="border-left: 4px solid var(--secondary);">
                     <h3>Avoid Embarrassment</h3>
@@ -187,7 +187,7 @@ get_header();
                         <span class="faq-toggle" aria-hidden="true">+</span>
                     </div>
                     <div class="faq-answer">
-                        Our service includes: acceptance of all legal documents and service of process, immediate email and phone notifications, secure online document portal, mail forwarding to your preferred address, and compliance with all NC Secretary of State requirements.
+                        Our service includes: acceptance of legal documents and service of process, email and phone notifications, an online document portal, mail forwarding to your preferred address, and handling of NC Secretary of State registered-agent correspondence.
                     </div>
                 </div>
                 
@@ -239,7 +239,7 @@ get_header();
         <div class="container">
             <h2>Ready to Get Started?</h2>
             <p>Professional registered agent service for your North Carolina business. Same-day setup available.</p>
-            <a href="<?php echo esc_url(home_url('/contact')); ?>" class="btn btn-primary">
+            <a href="<?php echo esc_url(home_url('/email-us/')); ?>" class="btn btn-primary">
                 Contact Us Today
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"/>

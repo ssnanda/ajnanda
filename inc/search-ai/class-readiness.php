@@ -40,6 +40,7 @@ class AJNanda_Search_AI_Readiness {
         self::content_checks($checks, $policy);
         self::page_entity_checks($checks);
         self::discovery_checks($checks, $discovery);
+        self::stale_reference_checks($checks);
         self::ownership_checks($checks);
         self::crawler_log_checks($checks);
 
@@ -74,11 +75,36 @@ class AJNanda_Search_AI_Readiness {
         self::add($checks, 'content', 'exclusions', 'pass', __('Explicit exclusions', 'ajnanda'), sprintf(_n('%d exclusion rule is configured and centrally applied.', '%d exclusion rules are configured and centrally applied.', $count, 'ajnanda'), $count), 'content-access', 0);
         $broad = array_intersect(array('post', 'page'), $policy['excluded_post_types']);
         self::add($checks, 'content', 'broad_exclusions', $broad ? 'warning' : 'pass', __('Broad content exclusions', 'ajnanda'), $broad ? sprintf(__('Entire public content types are excluded: %s. Confirm this is intentional.', 'ajnanda'), implode(', ', $broad)) : __('Posts and Pages are not broadly excluded.', 'ajnanda'), 'content-access', 2);
-        $conflicts = array();
-        foreach (AJNanda_Search_AI_Discovery_Files::important_page_ids() as $id) {
-            if (empty(AJNanda_Search_AI_Content_Policy::evaluate($id)['advertise']['llms_txt'])) { $conflicts[] = get_the_title($id) ?: '#' . $id; }
-        }
-        self::add($checks, 'content', 'important_conflicts', $conflicts ? 'warning' : 'pass', __('Important Page conflicts', 'ajnanda'), $conflicts ? sprintf(__('Selected Important Pages are excluded from llms.txt: %s.', 'ajnanda'), implode(', ', $conflicts)) : __('Selected Important Pages do not conflict with llms.txt exclusions.', 'ajnanda'), $conflicts ? 'content-access' : 'discovery-files', 1);
+    }
+
+    private static function stale_reference_checks(&$checks) {
+        if (! class_exists('AJNanda_Search_AI_Stale_References')) { return; }
+        $scan  = AJNanda_Search_AI_Stale_References::scan();
+        $count = (int) $scan['count'];
+        $sample = array_slice(wp_list_pluck($scan['findings'], 'label'), 0, 4);
+        $suffix = $count > 4 ? sprintf(__(' and %d more', 'ajnanda'), $count - 4) : '';
+        self::add(
+            $checks,
+            'outputs',
+            'stale_references',
+            $count ? 'warning' : 'pass',
+            __('Stale AI references', 'ajnanda'),
+            $count
+                ? sprintf(
+                    _n(
+                        '%1$d URL promoted through Search & AI is no longer a valid discovery target: %2$s%3$s.',
+                        '%1$d URLs promoted through Search & AI are no longer valid discovery targets: %2$s%3$s.',
+                        $count,
+                        'ajnanda'
+                    ),
+                    $count,
+                    implode(', ', $sample),
+                    $suffix
+                )
+                : __('No stale URLs are being promoted through Search & AI discovery.', 'ajnanda'),
+            'discovery-files',
+            2
+        );
     }
 
     private static function service_area_checks(&$checks) {

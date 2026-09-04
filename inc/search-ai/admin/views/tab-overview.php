@@ -32,6 +32,36 @@ $score = $readiness['score']['value'];
     </section>
 </div>
 
+<?php $stale_findings = isset($stale_references['findings']) ? $stale_references['findings'] : array(); $stale_count = isset($stale_references['count']) ? (int) $stale_references['count'] : 0; ?>
+<section class="ajnanda-admin-card ajnanda-admin-section ajnanda-stale-references">
+    <h2><?php esc_html_e('Stale AI references', 'ajnanda'); ?></h2>
+    <p>
+        <span class="ajnanda-readiness-score ajnanda-stale-count" aria-label="<?php echo esc_attr(sprintf(_n('%d stale AI reference', '%d stale AI references', $stale_count, 'ajnanda'), $stale_count)); ?>"><strong><?php echo esc_html($stale_count); ?></strong></span>
+        <?php esc_html_e('URLs promoted through Search & AI (llms.txt, Important Pages, custom schema, AJNanda discovery outputs) that are no longer appropriate discovery targets. A healthy site shows 0.', 'ajnanda'); ?>
+    </p>
+    <?php if (! $stale_count) : ?>
+        <p><span class="ajnanda-admin-pill is-pass"><?php esc_html_e('Pass', 'ajnanda'); ?></span> <?php esc_html_e('Every promoted URL is published, indexable, canonical, and allowed by Content Access.', 'ajnanda'); ?></p>
+    <?php else : ?>
+        <table class="widefat striped ajnanda-stale-references-table">
+            <thead><tr><th><?php esc_html_e('Reference', 'ajnanda'); ?></th><th><?php esc_html_e('Source', 'ajnanda'); ?></th><th><?php esc_html_e('Why it is stale', 'ajnanda'); ?></th><th><?php esc_html_e('Fix', 'ajnanda'); ?></th></tr></thead>
+            <tbody>
+            <?php foreach ($stale_findings as $finding) : ?>
+                <tr>
+                    <td>
+                        <strong><?php echo esc_html($finding['label']); ?></strong>
+                        <?php if (! empty($finding['url'])) : ?><br><small><?php echo esc_html($finding['url']); ?></small><?php endif; ?>
+                    </td>
+                    <td><?php echo esc_html($finding['source_label']); ?></td>
+                    <td><?php echo esc_html($finding['reason']); ?></td>
+                    <td><a href="<?php echo esc_url($tab_url($finding['tab'])); ?>"><?php esc_html_e('Review', 'ajnanda'); ?> &rarr;</a></td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+        <p class="description"><?php esc_html_e('These URLs are already withheld from public AI discovery output. Update or remove the stored selection to clear the warning. Intentional external authoritative links are not listed here.', 'ajnanda'); ?></p>
+    <?php endif; ?>
+</section>
+
 <details class="ajnanda-admin-section ajnanda-search-ai-advanced">
     <summary><strong><?php esc_html_e('All readiness checks', 'ajnanda'); ?></strong> <span><?php esc_html_e('See exactly how the result was calculated.', 'ajnanda'); ?></span></summary>
     <div class="ajnanda-search-ai-details-body"><?php foreach ($readiness['categories'] as $key => $category) : if ('ownership' === $key) { continue; } ?><h3><?php echo esc_html($category['label']); ?></h3><ul class="ajnanda-readiness-checks"><?php foreach ($category['checks'] as $check) : ?><li><span class="ajnanda-admin-pill is-<?php echo esc_attr($check['state']); ?>"><?php echo esc_html($state_labels[$check['state']]); ?></span><span><strong><?php echo esc_html($check['label']); ?></strong><small><?php echo esc_html($check['message']); ?><?php if ($check['weight'] && ! in_array($check['state'], array('not_applicable', 'externally_unverifiable'), true)) : ?> <?php printf(esc_html__('Weight: %d.', 'ajnanda'), (int) $check['weight']); ?><?php else : ?> <?php esc_html_e('Not scored.', 'ajnanda'); ?><?php endif; ?></small></span></li><?php endforeach; ?></ul><?php endforeach; ?></div>

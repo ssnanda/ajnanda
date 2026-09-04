@@ -52,7 +52,7 @@ class AJNanda_Search_AI_Insights {
             foreach ($page_visibility as $row) {
                 if (! empty($row['keys'][0])) { $observed[] = untrailingslashit($row['keys'][0]); }
             }
-            foreach (AJNanda_Search_AI_Discovery_Files::important_page_ids() as $id) {
+            foreach (AJNanda_Search_AI_Important_Pages::valid_ids() as $id) {
                 $url = get_permalink($id);
                 if ($url && ! in_array(untrailingslashit($url), $observed, true) && ! empty(AJNanda_Search_AI_Content_Policy::evaluate($id)['advertise']['traditional_search'])) {
                     $opportunities[] = self::opportunity('important_visibility', __('Important Page visibility', 'ajnanda'), __('No Search Console impressions were observed for this selected Important Page in the returned 28-day dataset.', 'ajnanda'), $url, 'info');

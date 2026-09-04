@@ -19,10 +19,15 @@ class AJNanda_Search_AI_Export {
         foreach ($policy['excluded_post_ids'] as $post_id) {
             $excluded[] = array('id' => $post_id, 'title' => get_the_title($post_id), 'url' => get_permalink($post_id), 'type' => get_post_type($post_id));
         }
+        $resolved_important = AJNanda_Search_AI_Important_Pages::resolve();
         $important = array();
-        foreach (AJNanda_Search_AI_Discovery_Files::important_page_ids() as $post_id) {
-            $important[] = array('id' => $post_id, 'title' => get_the_title($post_id), 'url' => get_permalink($post_id));
+        foreach ($resolved_important['valid'] as $post_id => $post) {
+            $important[] = array('id' => (int) $post_id, 'title' => get_the_title($post), 'url' => get_permalink($post), 'status' => 'valid');
         }
+        foreach ($resolved_important['invalid'] as $post_id => $info) {
+            $important[] = array('id' => (int) $post_id, 'title' => $info['title'], 'url' => $info['post'] ? get_permalink($info['post']) : '', 'status' => 'invalid', 'reasons' => array_values($info['reasons']));
+        }
+        $stale_references = AJNanda_Search_AI_Stale_References::scan();
         $suspicious_events = array_map(static function ($event) {
             return array(
                 'observed_at_utc' => $event['observed_at'],
@@ -36,6 +41,7 @@ class AJNanda_Search_AI_Export {
         }, $suspicious['recent']);
         $action_items = array(
             'readiness' => array_values(array_map(array(__CLASS__, 'readiness_action'), $readiness['issues'])),
+            'stale_ai_references' => array_values($stale_references['findings']),
             'search_and_performance' => array_values($insights['opportunities']),
             'suspicious_activity' => array_values($suspicious['guidance']),
         );
@@ -65,7 +71,7 @@ class AJNanda_Search_AI_Export {
                 'ai_training' => (bool) AJNanda_Search_AI_Settings::get('search_ai_allow_ai_training'),
                 'user_initiated_retrieval' => (bool) AJNanda_Search_AI_Settings::get('search_ai_allow_user_retrieval'),
             ),
-            'discovery' => array('status' => AJNanda_Search_AI_Discovery_Files::status(false), 'important_pages' => $important),
+            'discovery' => array('status' => AJNanda_Search_AI_Discovery_Files::status(false), 'important_pages' => $important, 'stale_references' => $stale_references['findings']),
             'capability_ownership' => $ownership,
             'crawler_activity_30_days' => $crawler,
             'suspicious_activity' => array(

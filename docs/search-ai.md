@@ -111,6 +111,64 @@ The Site Profile identity uses the business-default records for `areaServed`. Fo
 
 Service pages inherit the business defaults unless `_ajnanda_service_area_mode` is explicitly set to `override`; selected record IDs are stored in `_ajnanda_service_area_ids`. An intentionally empty override omits `areaServed` and is surfaced as an editor/readiness warning. Product and General pages do not receive service-area semantics. No geography is inferred from page titles, content, customer addresses, or free-form prose.
 
+## Discovery eligibility rules
+
+`AJNanda_Search_AI_Discovery_Files::eligible_for_discovery($subject, $channel)` is the
+single gate every generated AI discovery output shares (`llms.txt` entries, Important
+Pages, foundational pages, and the connected schema graph). A URL qualifies only when
+**all** of the following hold:
+
+- the object exists and is a real published post/page (`publish`, not draft, pending,
+  private, trashed, or deleted)
+- the post type is publicly viewable
+- the central Content Access policy reports it publicly accessible
+- it is search indexable — not `noindex` through the legacy per-post meta and not
+  `noindex` as a Content Access exclusion effect
+- it is not excluded through Content Access
+- Content Access still advertises it for the requested channel (`llms_txt`,
+  `schema_relationships`, `sitemap`, …)
+- its permalink is canonical — it round-trips through `url_to_postid()` (the static
+  front page and posts page are exempt because their URLs resolve to an archive query)
+
+WordPress still knowing that a page once existed is never sufficient. The
+`ajnanda_search_ai_discovery_eligibility` filter can add reasons.
+
+## Content Access and llms.txt
+
+`llms.txt` never enumerates the page tree. It advertises the Site Profile, the resolved
+Important Pages, the eligible foundational pages, and a bounded list of recent articles —
+each item re-checked through `eligible_for_discovery()` at render time. A page excluded
+in Content Access (or given the "Exclude from llms.txt" effect, or set to `noindex`) is
+withheld from `llms.txt` immediately, with no manual URL editing.
+
+## Important Page validation
+
+`AJNanda_Search_AI_Important_Pages::resolve()` splits the administrator's stored selection
+into `valid` and `invalid` buckets. The stored theme mod is preserved as intent: saving
+the Discovery Files form keeps any ID that still has a backing page object, even an
+ineligible one, and only discards IDs with no page at all. Invalid selections are shown
+in the admin with a "Not discoverable" badge and the specific reason, and are withheld
+from `discovery_ids()` so they never reach public output. `foundational_ids()` applies the
+same gate to the homepage and posts page.
+
+## Stale discovery detection
+
+`AJNanda_Search_AI_Stale_References::scan()` powers the **Stale AI references** check on
+Search & AI → Overview (healthy state: `0`) and a scored readiness check of the same name.
+It inspects the URLs AJNanda actively promotes and reports any that are no longer
+appropriate discovery targets:
+
+- Important Page selections that fail `eligible_for_discovery()` (unpublished, trashed,
+  deleted, `noindex`, excluded, non-canonical)
+- the homepage or posts page when either is ineligible
+- custom schema identity links that point at internal URLs which no longer resolve
+  (external authoritative links are never flagged)
+- AJNanda Content Access exclusions that reference deleted content
+
+Each finding carries the offending URL/label, the source system, and a plain-language
+reason. Findings also appear in the exported handoff report under
+`action_items.stale_ai_references` and `discovery.stale_references`.
+
 ## Live roadmap
 
 The canonical [Search & AI Roadmap](search-ai-roadmap.md) lives in GitHub. The WordPress Roadmap tab is a cached, sanitized viewer of that document and does not maintain a separate feature registry. When a deferred capability becomes worth tracking, update the Markdown roadmap. When it ships, move it from **What's Next** to **Already in AJNanda** and revise its description when necessary.

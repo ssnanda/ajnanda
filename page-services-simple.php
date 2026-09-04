@@ -38,8 +38,8 @@ get_header();
                 </div>
                 <div class="feature-card animate-on-scroll">
                     <div class="feature-icon">🔒</div>
-                    <h3>Privacy Protection</h3>
-                    <p>Keep your home address private by using our Charlotte address for public records. Protect your personal information.</p>
+                    <h3>Privacy</h3>
+                    <p>Use our Charlotte address for the registered-agent section of your public NC business record instead of your home address.</p>
                 </div>
                 <div class="feature-card animate-on-scroll">
                     <div class="feature-icon">📍</div>
@@ -48,8 +48,8 @@ get_header();
                 </div>
                 <div class="feature-card animate-on-scroll">
                     <div class="feature-icon">✅</div>
-                    <h3>100% Compliant</h3>
-                    <p>Stay compliant with NC Secretary of State requirements. We handle all registered agent responsibilities professionally.</p>
+                    <h3>NC Focused</h3>
+                    <p>Registered agent service focused specifically on North Carolina businesses and NC Secretary of State registered-agent requirements.</p>
                 </div>
                 <div class="feature-card animate-on-scroll">
                     <div class="feature-icon">💰</div>
@@ -81,8 +81,8 @@ get_header();
 
                 <div class="features-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
                     <div class="feature-card animate-on-scroll" style="border-left: 4px solid var(--primary);">
-                        <h3>Privacy Protection</h3>
-                        <p>Your registered agent's address is public record. Using our service keeps your home address private and off public databases.</p>
+                        <h3>Privacy</h3>
+                        <p>Your registered agent's address is public record. Using our service keeps your home address off the registered-agent section of that record.</p>
                     </div>
                     <div class="feature-card animate-on-scroll" style="border-left: 4px solid var(--secondary);">
                         <h3>Professional Image</h3>
@@ -146,7 +146,7 @@ get_header();
         <div class="container">
             <h2>Ready to Get Started?</h2>
             <p>Professional registered agent service for your North Carolina business. Same-day setup available.</p>
-            <a href="<?php echo esc_url(home_url('/contact')); ?>" class="btn btn-primary">
+            <a href="<?php echo esc_url(home_url('/email-us/')); ?>" class="btn btn-primary">
                 Contact Us Today
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"/>
