@@ -35,6 +35,7 @@ require_once __DIR__ . '/class-crawler-log-store.php';
 require_once __DIR__ . '/class-crawler-verifier.php';
 require_once __DIR__ . '/class-crawler-logger.php';
 require_once __DIR__ . '/class-suspicious-bot-detector.php';
+require_once __DIR__ . '/class-export.php';
 require_once __DIR__ . '/admin/class-search-ai-admin.php';
 
 add_action('after_setup_theme', array('AJNanda_Search_AI_Settings', 'maybe_migrate'), 20);

@@ -81,6 +81,10 @@ traffic and an intentional disabled state do not reduce Search & AI readiness.
 ## Suspicious bot activity
 
 The Suspicious Bots tab analyzes the existing bounded Crawler Log data for conservative credential-file, configuration-file, and exploit-path probes. It reports behavioral evidence rather than claiming an unverified sender is a confirmed spam bot. Recognized crawler names used on suspicious paths remain reported identities unless separately verified. The dashboard provides high-level counts, recent evidence, and rule-based guidance; it never blocks requests automatically and recommends hosting or edge-layer controls when intervention is warranted.
+
+## Actionable report export
+
+Search & AI provides a JSON handoff report for offline review and code-assisted website improvements. It combines readiness issues, provider-backed Insights, public configuration, capability ownership, bounded crawler aggregates, and sanitized suspicious-request evidence. API credentials, stored IP values, raw User-Agent strings, and the general event-level crawler log are deliberately excluded. The `action_items` section is the concise starting point; the remaining sections provide supporting evidence and policy context.
 ## Semantic content and schema graph
 
 AJNanda emits one connected, Site Profile-backed Schema.org graph when AJNanda owns the schema capability. The graph contains stable identity, WebSite, WebPage, and Article entities, then accepts provider-neutral semantic contributions from visible block content.

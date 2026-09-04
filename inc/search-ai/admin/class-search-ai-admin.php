@@ -22,6 +22,7 @@ class AJNanda_Search_AI_Admin {
         add_action('admin_post_ajnanda_save_llms_important_pages', array(__CLASS__, 'save_llms_important_pages'));
         add_action('admin_post_ajnanda_save_crawler_log_settings', array(__CLASS__, 'save_crawler_log_settings'));
         add_action('admin_post_ajnanda_refresh_search_ai_roadmap', array(__CLASS__, 'refresh_roadmap'));
+        add_action('admin_post_ajnanda_export_search_ai', array('AJNanda_Search_AI_Export', 'download'));
         add_action('wp_ajax_ajnanda_search_ai_find_content', array(__CLASS__, 'find_content'));
     }
 
