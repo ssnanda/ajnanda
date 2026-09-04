@@ -3,6 +3,22 @@
 if (! defined('ABSPATH')) { exit; }
 
 class AJNanda_Search_AI_Discovery_Files {
+    public static function custom_enabled($file) {
+        return (bool) get_theme_mod('search_ai_custom_' . sanitize_key($file) . '_enabled', false);
+    }
+
+    public static function custom_content($file) {
+        $content = trim((string) get_theme_mod('search_ai_custom_' . sanitize_key($file) . '_content', ''));
+        return str_replace('{{site_url}}', untrailingslashit(home_url('/')), $content);
+    }
+
+    public static function prepare_custom_content($content) {
+        $content = sanitize_textarea_field(wp_unslash($content));
+        $origins = array(untrailingslashit(home_url('/')));
+        $content = str_replace($origins, '{{site_url}}', $content);
+        return preg_replace('#https?://[A-Za-z0-9.-]+\.ddev\.site(?=[:/\s]|$)#i', '{{site_url}}', $content);
+    }
+
     public static function important_page_ids() {
         return array_values(array_filter(array_unique(array_map('absint', (array) get_theme_mod('search_ai_llms_important_page_ids', array())))));
     }
@@ -60,31 +76,22 @@ class AJNanda_Search_AI_Discovery_Files {
     }
 
     public static function render_llms_txt() {
+        if (self::custom_enabled('llms_txt') && self::custom_content('llms_txt')) {
+            return self::custom_content('llms_txt') . "\n";
+        }
         $profile = AJNanda_Search_AI_Site_Profile::get();
         $lines = array('# ' . ($profile['name'] ?: wp_parse_url(home_url(), PHP_URL_HOST)), '');
         if ($profile['description']) { $lines[] = '> ' . preg_replace('/\s+/', ' ', $profile['description']); $lines[] = ''; }
-        $details = array_filter(array(
-            $profile['alternate_name'] ? 'Also known as: ' . $profile['alternate_name'] : '',
-            $profile['industry'] ? 'Industry: ' . $profile['industry'] : '',
-            $profile['service_areas'] ? 'Service areas: ' . implode(', ', $profile['service_areas']) : '',
-            $profile['phone'] ? 'Phone: ' . $profile['phone'] : '',
-            $profile['email'] ? 'Email: ' . $profile['email'] : '',
-        ));
-        if ($details) { foreach ($details as $detail) { $lines[] = $detail; } $lines[] = ''; }
-        $important_ids = AJNanda_Search_AI_Important_Pages::discovery_ids();
+        $important_ids = AJNanda_Search_AI_Important_Pages::valid_ids();
         $important_pages = $important_ids ? get_posts(array(
             'post_type' => 'page', 'post_status' => 'publish', 'post__in' => $important_ids,
             'orderby' => 'post__in', 'numberposts' => count($important_ids),
         )) : array();
-        self::append_content_section($lines, __('Important Pages', 'ajnanda'), $important_pages, 20);
-        $important_lookup = array_fill_keys($important_ids, true);
-        $page_slugs = apply_filters('ajnanda_search_ai_llms_foundational_page_slugs', array(
-            'about', 'service', 'services', 'knowledge-base', 'contact', 'contact-us', 'email-us', 'guide-me',
-        ));
-        $pages = get_posts(array('post_type' => 'page', 'post_status' => 'publish', 'numberposts' => -1, 'post_name__in' => $page_slugs, 'orderby' => array('menu_order' => 'ASC', 'title' => 'ASC')));
-        $pages = array_values(array_filter($pages, function ($page) use ($important_lookup) { return empty($important_lookup[$page->ID]); }));
-        self::append_content_section($lines, __('Pages', 'ajnanda'), $pages, 30);
-        self::append_content_section($lines, __('Knowledge Base Articles', 'ajnanda'), get_posts(array('post_type' => 'post', 'post_status' => 'publish', 'numberposts' => -1, 'orderby' => 'date', 'order' => 'DESC')), PHP_INT_MAX);
+        self::append_content_section($lines, __('Important Pages', 'ajnanda'), $important_pages, PHP_INT_MAX);
+        self::append_content_section($lines, __('Recently Updated Articles', 'ajnanda'), get_posts(array(
+            'post_type' => 'post', 'post_status' => 'publish', 'numberposts' => -1,
+            'orderby' => 'modified', 'order' => 'DESC', 'suppress_filters' => false,
+        )), 16);
         $lines[] = '## Optional';
         $lines[] = '- [Full site content](' . home_url('/llms-full.txt') . '): Full text of public content permitted by the site’s Content Access policy.';
         $lines[] = '';
@@ -95,6 +102,9 @@ class AJNanda_Search_AI_Discovery_Files {
      * Render the optional full-content companion to llms.txt.
      */
     public static function render_llms_full_txt() {
+        if (self::custom_enabled('llms_full_txt') && self::custom_content('llms_full_txt')) {
+            return self::custom_content('llms_full_txt') . "\n";
+        }
         $profile = AJNanda_Search_AI_Site_Profile::get();
         $lines = array('# ' . ($profile['name'] ?: wp_parse_url(home_url(), PHP_URL_HOST)), '');
         if ($profile['description']) {
@@ -104,6 +114,7 @@ class AJNanda_Search_AI_Discovery_Files {
         $lines[] = 'Source: ' . home_url('/');
         $lines[] = 'Index: ' . home_url('/llms.txt');
         $lines[] = '';
+        self::append_profile_details($lines, $profile);
 
         $post_types = array_values(array_diff(get_post_types(array('public' => true), 'names'), array('attachment')));
         $posts = get_posts(array(
@@ -127,6 +138,20 @@ class AJNanda_Search_AI_Discovery_Files {
         }
 
         return apply_filters('ajnanda_search_ai_llms_full_txt', implode("\n", $lines) . "\n", $profile);
+    }
+
+    private static function append_profile_details(&$lines, $profile) {
+        $details = array_filter(array(
+            $profile['alternate_name'] ? 'Also known as: ' . $profile['alternate_name'] : '',
+            $profile['industry'] ? 'Industry: ' . $profile['industry'] : '',
+            $profile['service_areas'] ? 'Service areas: ' . implode(', ', $profile['service_areas']) : '',
+            $profile['phone'] ? 'Phone: ' . $profile['phone'] : '',
+            $profile['email'] ? 'Email: ' . $profile['email'] : '',
+        ));
+        if ('physical' === $profile['location_mode'] && array_filter($profile['address'])) {
+            $details[] = 'Address: ' . implode(', ', array_filter($profile['address']));
+        }
+        if ($details) { $lines[] = '## Site Profile'; $lines[] = ''; $lines = array_merge($lines, $details, array('')); }
     }
 
     private static function append_content_section(&$lines, $heading, $posts, $limit) {
@@ -190,6 +215,16 @@ class AJNanda_Search_AI_Discovery_Files {
                 'enabled' => self::llms_enabled(),
                 'ownership' => AJNanda_Search_AI_Capability_Ownership::get('llms_txt'),
                 'endpoint' => $probe_endpoints && self::llms_enabled() ? self::endpoint_status(home_url('/llms-full.txt'), 'llms-full') : null,
+            ),
+            'ai_txt' => array(
+                'url' => home_url('/ai.txt'),
+                'enabled' => true,
+                'endpoint' => $probe_endpoints ? self::endpoint_status(home_url('/ai.txt'), 'ai') : null,
+            ),
+            'security_txt' => array(
+                'url' => home_url('/.well-known/security.txt'),
+                'enabled' => true,
+                'endpoint' => $probe_endpoints ? self::endpoint_status(home_url('/.well-known/security.txt'), 'security') : null,
             ),
             'schema' => array(
                 'enabled' => (bool) get_theme_mod('seo_schema_enabled', true),

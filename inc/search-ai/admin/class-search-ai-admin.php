@@ -20,6 +20,7 @@ class AJNanda_Search_AI_Admin {
         add_action('admin_post_ajnanda_save_search_ai_policy', array(__CLASS__, 'save_policy'));
         add_action('admin_post_ajnanda_save_ai_discovery', array(__CLASS__, 'save_ai_discovery'));
         add_action('admin_post_ajnanda_save_llms_important_pages', array(__CLASS__, 'save_llms_important_pages'));
+        add_action('admin_post_ajnanda_save_discovery_file_editors', array(__CLASS__, 'save_discovery_file_editors'));
         add_action('admin_post_ajnanda_save_crawler_log_settings', array(__CLASS__, 'save_crawler_log_settings'));
         add_action('admin_post_ajnanda_refresh_search_ai_roadmap', array(__CLASS__, 'refresh_roadmap'));
         add_action('admin_post_ajnanda_export_search_ai', array('AJNanda_Search_AI_Export', 'download'));
@@ -229,6 +230,27 @@ class AJNanda_Search_AI_Admin {
             if ($post && 'page' === $post->post_type && 'auto-draft' !== $post->post_status) { $stored_ids[] = $id; }
         }
         set_theme_mod('search_ai_llms_important_page_ids', $stored_ids);
+        self::redirect('discovery-files');
+    }
+
+    public static function save_discovery_file_editors() {
+        self::authorize('ajnanda_save_discovery_file_editors');
+        foreach (array('robots_txt', 'llms_txt', 'llms_full_txt', 'ai_txt') as $file) {
+            set_theme_mod('search_ai_custom_' . $file . '_enabled', isset($_POST['search_ai_custom_' . $file . '_enabled']));
+            set_theme_mod('search_ai_custom_' . $file . '_content', AJNanda_Search_AI_Discovery_Files::prepare_custom_content($_POST['search_ai_custom_' . $file . '_content'] ?? ''));
+        }
+
+        $contact = esc_url_raw(wp_unslash($_POST['search_ai_security_contact'] ?? home_url('/email-us/')), array('https', 'mailto', 'tel'));
+        $canonical = esc_url_raw(wp_unslash($_POST['search_ai_security_canonical'] ?? home_url('/.well-known/security.txt')));
+        $languages = preg_replace('/[^A-Za-z0-9, -]/', '', sanitize_text_field(wp_unslash($_POST['search_ai_security_languages'] ?? 'en')));
+        $expires = sanitize_text_field(wp_unslash($_POST['search_ai_security_expires'] ?? ''));
+        if (! preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/', $expires) || strtotime($expires) <= time()) {
+            $expires = gmdate('Y-m-d\TH:i:s\Z', time() + YEAR_IN_SECONDS);
+        }
+        set_theme_mod('search_ai_security_contact', $contact ?: home_url('/email-us/'));
+        set_theme_mod('search_ai_security_canonical', $canonical ?: home_url('/.well-known/security.txt'));
+        set_theme_mod('search_ai_security_languages', $languages ?: 'en');
+        set_theme_mod('search_ai_security_expires', $expires);
         self::redirect('discovery-files');
     }
 

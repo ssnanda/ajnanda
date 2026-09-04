@@ -138,11 +138,19 @@ once existed is never sufficient. The
 
 ## Content Access and llms.txt
 
-`llms.txt` advertises the Site Profile, resolved Important Pages first, eligible public
-foundational public pages, and all eligible Knowledge Base posts. Every item is re-checked through
-`eligible_for_discovery()` at render time and must have a clean, non-empty summary. A page excluded
+`llms.txt` advertises the Site Profile, administrator-curated Important Pages, and the 16 most
+recently modified eligible WordPress posts. Article selection is dynamic: every candidate is
+re-checked through `eligible_for_discovery()` at render time and must have a clean, non-empty
+summary. Publishing, updating, deleting, setting `noindex`, or applying a Content Access exclusion
+is therefore reflected without maintaining a URL list in the theme. A page excluded
 in Content Access (or given the "Exclude from llms.txt" effect, or set to `noindex`) is
 withheld from `llms.txt` immediately, with no manual URL editing.
+
+`llms-full.txt` contains the Site Profile followed by the full readable text of eligible public
+WordPress content. It does not embed customer-specific business facts, legal guidance, article
+titles, slugs, or domains in the reusable theme. Those values come from WordPress content, the Site
+Profile, or Search & AI settings. Administrators can opt into static custom overrides for either
+file; an enabled override intentionally stops automatic content updates until it is disabled.
 
 AJNanda owns the endpoint at the earliest WordPress template-routing priority and sends
 no-cache headers, preventing a second plugin from serving a stale competing version.
@@ -157,8 +165,8 @@ into `valid` and `invalid` buckets. The stored theme mod is preserved as intent:
 the Discovery Files form keeps any ID that still has a backing page object, even an
 ineligible one, and only discards IDs with no page at all. Invalid selections are shown
 in the admin with a "Not discoverable" badge and the specific reason, and are withheld
-from `discovery_ids()` so they never reach public output. `foundational_ids()` applies the
-same gate to the homepage and posts page.
+from `valid_ids()` so they never reach public output. Only the administrator-curated valid
+IDs populate the `llms.txt` Important Pages section.
 
 ## Stale discovery detection
 

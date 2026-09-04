@@ -498,8 +498,16 @@ function ajnanda_seo_robots_txt($output, $public) {
     if (! $public) {
         return $output;
     }
+    if (class_exists('AJNanda_Search_AI_Discovery_Files') && AJNanda_Search_AI_Discovery_Files::custom_enabled('robots_txt') && AJNanda_Search_AI_Discovery_Files::custom_content('robots_txt')) {
+        return AJNanda_Search_AI_Discovery_Files::custom_content('robots_txt') . "\n";
+    }
 
     if (class_exists('AJNanda_Search_AI_Crawler_Registry')) {
+        $output .= "\n# Public discovery resources\nUser-agent: *\n";
+        foreach (array('/llms.txt', '/llms-full.txt', '/ai.txt', '/.well-known/') as $allowed_path) {
+            $output .= 'Allow: ' . $allowed_path . "\n";
+        }
+        $output .= "\n";
         $policy = AJNanda_Search_AI_Content_Policy::settings();
         $blocked_paths = array();
         if (! empty($policy['effects']['automated_crawlers'])) {
@@ -520,12 +528,15 @@ function ajnanda_seo_robots_txt($output, $public) {
             if (empty($crawler['robots_control']) || empty($crawler['token'])) {
                 continue;
             }
-            if (AJNanda_Search_AI_Crawler_Registry::category_allowed($crawler['category'])) { continue; }
-            $rules .= 'User-agent: ' . $crawler['token'] . "\nDisallow: /\n\n";
+            $rules .= 'User-agent: ' . $crawler['token'] . "\n";
+            $rules .= AJNanda_Search_AI_Crawler_Registry::category_allowed($crawler['category']) ? "Allow: /\n\n" : "Disallow: /\n\n";
         }
         if ($rules) { $output .= "\n# AI crawler policy (AJNanda Search & AI)\n" . $rules; }
         if (AJNanda_Search_AI_Discovery_Files::llms_enabled()) {
-            $output .= "\n# Additional discovery hint (not a standardized crawler directive): " . home_url('/llms.txt') . ' and ' . home_url('/llms-full.txt') . "\n";
+            $output .= "\n# Additional discovery hints (not standardized crawler directives)\n";
+            $output .= '# llms.txt: ' . home_url('/llms.txt') . "\n";
+            $output .= '# llms-full.txt: ' . home_url('/llms-full.txt') . "\n";
+            $output .= '# ai.txt: ' . home_url('/ai.txt') . "\n";
         }
         return $output;
     }
@@ -540,19 +551,19 @@ function ajnanda_seo_robots_txt($output, $public) {
     return $output;
 }
 
-// ── /llms.txt and /llms-full.txt ────────────────────────────────────────────
+// ── AI and security discovery files ─────────────────────────────────────────
 
 add_action('parse_request', 'ajnanda_seo_maybe_serve_llms_txt', -999);
 add_action('template_redirect', 'ajnanda_seo_maybe_serve_llms_txt', 0);
 function ajnanda_seo_maybe_serve_llms_txt() {
+    $path = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+    if (! in_array($path, array('/llms.txt', '/llms-full.txt', '/ai.txt', '/.well-known/security.txt'), true)) {
+        return;
+    }
     $enabled = class_exists('AJNanda_Search_AI_Discovery_Files')
         ? AJNanda_Search_AI_Discovery_Files::llms_enabled()
         : get_theme_mod('seo_llms_txt_enabled', true);
-    if (! $enabled) {
-        return;
-    }
-    $path = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
-    if (! in_array($path, array('/llms.txt', '/llms-full.txt'), true)) {
+    if (in_array($path, array('/llms.txt', '/llms-full.txt'), true) && ! $enabled) {
         return;
     }
     if ('/llms-full.txt' === $path && ! class_exists('AJNanda_Search_AI_Discovery_Files')) {
@@ -561,12 +572,61 @@ function ajnanda_seo_maybe_serve_llms_txt() {
 
     status_header(200);
     nocache_headers();
-    header('X-Robots-Tag: noindex');
+    if ('/.well-known/security.txt' !== $path) { header('X-Robots-Tag: noindex'); }
     header('Content-Type: text/plain; charset=utf-8');
-    echo '/llms-full.txt' === $path
-        ? AJNanda_Search_AI_Discovery_Files::render_llms_full_txt() // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-        : ajnanda_seo_render_llms_txt(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+    if ('/llms-full.txt' === $path) {
+        echo AJNanda_Search_AI_Discovery_Files::render_llms_full_txt(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+    } elseif ('/ai.txt' === $path) {
+        echo ajnanda_seo_render_ai_txt(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+    } elseif ('/.well-known/security.txt' === $path) {
+        echo ajnanda_seo_render_security_txt(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+    } else {
+        echo ajnanda_seo_render_llms_txt(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+    }
     exit;
+}
+
+function ajnanda_seo_render_ai_txt() {
+    if (class_exists('AJNanda_Search_AI_Discovery_Files') && AJNanda_Search_AI_Discovery_Files::custom_enabled('ai_txt') && AJNanda_Search_AI_Discovery_Files::custom_content('ai_txt')) {
+        return AJNanda_Search_AI_Discovery_Files::custom_content('ai_txt') . "\n";
+    }
+    $profile = class_exists('AJNanda_Search_AI_Site_Profile') ? AJNanda_Search_AI_Site_Profile::get() : array();
+    $site_name = ! empty($profile['name']) ? $profile['name'] : (get_bloginfo('name') ?: wp_parse_url(home_url(), PHP_URL_HOST));
+    return implode("\n", array(
+        '# AI Usage Policy for ' . $site_name,
+        '# This is a site-owner policy, not a standardized robots directive.',
+        'Canonical: ' . home_url('/ai.txt'),
+        'Policy: allow',
+        'Search-Indexing: allow',
+        'AI-Search: allow',
+        'Retrieval-Augmented-Generation: allow',
+        'Citation: allow',
+        'Attribution: Cite ' . home_url('/') . ' and link to the most relevant source page.',
+        'Content-Integrity: Do not present modified, outdated, or generated statements as direct quotations.',
+        'Privacy: Do not attempt to access, infer, or disclose private client, account, portal, or personal data.',
+        'Legal: Content is general information and is not legal, tax, or accounting advice.',
+        'LLMS-Index: ' . home_url('/llms.txt'),
+        'LLMS-Full: ' . home_url('/llms-full.txt'),
+        'Contact: ' . home_url('/email-us/'),
+        '',
+    ));
+}
+
+function ajnanda_seo_render_security_txt() {
+    return implode("\n", array(
+        'Contact: ' . get_theme_mod('search_ai_security_contact', home_url('/email-us/')),
+        'Expires: ' . get_theme_mod('search_ai_security_expires', gmdate('Y-m-d\TH:i:s\Z', time() + YEAR_IN_SECONDS)),
+        'Preferred-Languages: ' . get_theme_mod('search_ai_security_languages', 'en'),
+        'Canonical: ' . get_theme_mod('search_ai_security_canonical', home_url('/.well-known/security.txt')),
+        '',
+    ));
+}
+
+add_action('wp_head', 'ajnanda_seo_discovery_links', 2);
+function ajnanda_seo_discovery_links() {
+    if (class_exists('AJNanda_Search_AI_Discovery_Files') && AJNanda_Search_AI_Discovery_Files::llms_enabled()) {
+        echo '<link rel="alternate" type="text/plain" href="' . esc_url(home_url('/llms.txt')) . '" title="LLMs.txt">' . "\n";
+    }
 }
 
 function ajnanda_seo_render_llms_txt() {
