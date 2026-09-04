@@ -105,6 +105,68 @@
     margin-top: 0;
 }
 
+.ajnanda-file-workspace {
+    display: grid;
+    grid-template-columns: 190px minmax(0, 1fr);
+    min-height: 520px;
+    margin-top: 18px;
+    border: 1px solid #dcdcde;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.ajnanda-file-tree {
+    padding: 14px 10px;
+    border-right: 1px solid #dcdcde;
+    background: #f6f7f7;
+}
+
+.ajnanda-file-tree-heading {
+    margin: 0 8px 10px;
+    color: #646970;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.ajnanda-file-tree-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 8px;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: #1d2327;
+    text-align: left;
+    cursor: pointer;
+}
+
+.ajnanda-file-tree-item:hover { background: #fff; }
+.ajnanda-file-tree-item.is-active { background: #e7f0ff; color: #174ea6; font-weight: 600; }
+.ajnanda-file-tree-item small { margin-left: auto; color: #008a20; font-size: 10px; }
+.ajnanda-file-panels { min-width: 0; }
+.ajnanda-discovery-editor { padding: 18px 20px; }
+.ajnanda-file-editor-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid #dcdcde; padding-bottom: 12px; }
+.ajnanda-file-editor-header > div { display: flex; align-items: center; gap: 8px; }
+.ajnanda-file-editor-header h3 { margin: 0; font-size: 16px; }
+.ajnanda-discovery-editor textarea { min-height: 360px; max-height: 58vh; resize: vertical; }
+.ajnanda-file-editor-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.ajnanda-file-editor-actions .spinner { float: none; margin: 0; }
+.ajnanda-file-dirty { color: #996800; font-weight: 600; }
+
+@media screen and (max-width: 782px) {
+    .ajnanda-file-workspace { grid-template-columns: 1fr; }
+    .ajnanda-file-tree { display: flex; gap: 4px; overflow-x: auto; border-right: 0; border-bottom: 1px solid #dcdcde; }
+    .ajnanda-file-tree-heading { display: none; }
+    .ajnanda-file-tree-item { width: auto; flex: 0 0 auto; }
+    .ajnanda-file-tree-item span { display: none; }
+    .ajnanda-discovery-editor { padding: 14px; }
+}
+
 .ajnanda-admin-page-list {
     margin: 12px 0;
     padding: 0;
