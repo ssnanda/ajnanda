@@ -26,11 +26,6 @@ $site_scheme    = function_exists('ajnanda_get_active_color_scheme_slug') ? ajna
 $site_scheme_label = isset($color_schemes[$site_scheme]) ? $color_schemes[$site_scheme]['label'] : __('Custom', 'ajnanda');
 ?>
 <div class="wrap ajnanda-admin-wrap">
-    <div class="ajnanda-admin-hero">
-        <p class="ajnanda-admin-eyebrow"><?php esc_html_e('AJNanda', 'ajnanda'); ?></p>
-        <h1><?php esc_html_e('Page Library', 'ajnanda'); ?></h1>
-    </div>
-
     <?php if ($notice && !empty($notice['error'])) : ?>
         <div class="notice notice-error"><p><?php echo esc_html($notice['error']); ?></p></div>
     <?php endif; ?>

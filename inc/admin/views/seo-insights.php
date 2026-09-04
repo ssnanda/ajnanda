@@ -15,11 +15,6 @@ if (!defined('ABSPATH')) {
 }
 ?>
 <div class="wrap ajnanda-admin-wrap">
-    <div class="ajnanda-admin-hero">
-        <p class="ajnanda-admin-eyebrow"><?php esc_html_e('AJNanda', 'ajnanda'); ?></p>
-        <h1><?php esc_html_e('SEO Insights', 'ajnanda'); ?></h1>
-    </div>
-
     <div class="ajnanda-admin-card">
         <?php echo ajnanda_seo_render_site_kit_insights(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
     </div>

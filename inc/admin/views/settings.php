@@ -15,11 +15,6 @@ if (!defined('ABSPATH')) {
 }
 ?>
 <div class="wrap ajnanda-admin-wrap">
-    <div class="ajnanda-admin-hero">
-        <p class="ajnanda-admin-eyebrow"><?php esc_html_e('AJNanda', 'ajnanda'); ?></p>
-        <h1><?php esc_html_e('Theme Settings', 'ajnanda'); ?></h1>
-    </div>
-
     <div class="ajnanda-admin-grid">
         <div class="ajnanda-admin-card">
             <h2><?php esc_html_e('Customizer', 'ajnanda'); ?></h2>

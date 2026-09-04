@@ -18,11 +18,6 @@ if (!defined('ABSPATH')) {
 }
 ?>
 <div class="wrap ajnanda-admin-wrap">
-    <div class="ajnanda-admin-hero">
-        <p class="ajnanda-admin-eyebrow"><?php esc_html_e('AJNanda', 'ajnanda'); ?></p>
-        <h1><?php esc_html_e('SEO Settings', 'ajnanda'); ?></h1>
-    </div>
-
     <?php if ($saved) : ?>
         <div class="notice notice-success is-dismissible"><p><?php esc_html_e('SEO settings saved.', 'ajnanda'); ?></p></div>
     <?php endif; ?>

@@ -14,11 +14,6 @@ if (!defined('ABSPATH')) {
 }
 ?>
 <div class="wrap ajnanda-admin-wrap">
-    <div class="ajnanda-admin-hero">
-        <p class="ajnanda-admin-eyebrow"><?php esc_html_e('AJNanda Site Builder', 'ajnanda'); ?></p>
-        <h1><?php esc_html_e('Build websites with patterns, page designs, and starter sites', 'ajnanda'); ?></h1>
-    </div>
-
     <div class="ajnanda-admin-section">
         <h2><?php esc_html_e('Your site', 'ajnanda'); ?></h2>
         <ul class="ajnanda-admin-status-list">

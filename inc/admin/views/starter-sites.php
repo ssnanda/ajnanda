@@ -30,11 +30,6 @@ if (!defined('ABSPATH')) {
 $initial_slug = ($preview && isset($starters[$preview['slug']])) ? $preview['slug'] : (string) array_key_first($starters);
 ?>
 <div class="wrap ajnanda-admin-wrap">
-    <div class="ajnanda-admin-hero">
-        <p class="ajnanda-admin-eyebrow"><?php esc_html_e('AJNanda', 'ajnanda'); ?></p>
-        <h1><?php esc_html_e('Starter Sites', 'ajnanda'); ?></h1>
-    </div>
-
     <?php if ($notice) : ?>
         <?php if (!empty($notice['error'])) : ?>
             <div class="notice notice-error"><p><?php echo esc_html($notice['error']); ?></p></div>

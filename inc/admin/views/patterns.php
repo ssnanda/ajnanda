@@ -27,11 +27,6 @@ foreach ($patterns as $slug => $pattern) {
 ksort($groups);
 ?>
 <div class="wrap ajnanda-admin-wrap">
-    <div class="ajnanda-admin-hero">
-        <p class="ajnanda-admin-eyebrow"><?php esc_html_e('AJNanda', 'ajnanda'); ?></p>
-        <h1><?php esc_html_e('Section Patterns', 'ajnanda'); ?></h1>
-    </div>
-
     <p class="ajnanda-admin-search">
         <input
             type="search"

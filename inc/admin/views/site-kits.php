@@ -22,11 +22,6 @@ if (!defined('ABSPATH')) {
 }
 ?>
 <div class="wrap ajnanda-admin-wrap">
-    <div class="ajnanda-admin-hero">
-        <p class="ajnanda-admin-eyebrow"><?php esc_html_e('AJNanda', 'ajnanda'); ?></p>
-        <h1><?php esc_html_e('Site Kits', 'ajnanda'); ?></h1>
-    </div>
-
     <div class="ajnanda-admin-grid">
         <?php foreach ($kits as $slug => $kit) :
             $color_schemes = function_exists('ajnanda_get_color_schemes') ? ajnanda_get_color_schemes() : array();
