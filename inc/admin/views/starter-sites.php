@@ -96,18 +96,6 @@ $initial_slug = ($preview && isset($starters[$preview['slug']])) ? $preview['slu
         ?>
         <div class="ajnanda-admin-section">
             <h2><?php echo esc_html($starter['label']); ?> <span class="ajnanda-admin-pill"><?php echo esc_html($slug); ?></span></h2>
-            <p><?php echo esc_html($starter['description']); ?></p>
-            <?php if ($kit_label) : ?>
-                <p class="description">
-                    <?php
-                    printf(
-                        /* translators: %s: site kit label */
-                        esc_html__('🎨 Previews below default to the "%s" Site Kit\'s colors and fonts.', 'ajnanda'),
-                        esc_html($kit_label)
-                    );
-                    ?>
-                </p>
-            <?php endif; ?>
 
             <div class="ajnanda-admin-grid">
                 <?php foreach ($starter['pages'] as $page) :
@@ -149,7 +137,6 @@ $initial_slug = ($preview && isset($starters[$preview['slug']])) ? $preview['slu
                                     </span>
                                 </div>
                             <?php endif; ?>
-                            <p class="description"><?php echo esc_html($page['page_design']); ?></p>
                             <?php if ($thumb_url) : ?>
                                 <a class="button button-small ajnanda-preview-link" target="_blank" rel="noopener" href="<?php echo esc_url($thumb_url); ?>">
                                     <?php esc_html_e('Preview', 'ajnanda'); ?> ↗
@@ -174,7 +161,6 @@ $initial_slug = ($preview && isset($starters[$preview['slug']])) ? $preview['slu
                     <?php esc_html_e('Preview Import (no changes made)', 'ajnanda'); ?>
                 </a>
             </p>
-            <p class="description"><?php esc_html_e('"Preview Whole Site" opens a connected, click-through preview — every page links to every other page, just like a real visitor would navigate, before anything is imported.', 'ajnanda'); ?></p>
 
             <?php if ($preview && $preview['slug'] === $slug) : ?>
                 <table class="ajnanda-admin-diff-table">
@@ -248,20 +234,9 @@ $initial_slug = ($preview && isset($starters[$preview['slug']])) ? $preview['slu
                                 );
                                 ?>
                             </label>
-                            <br><span class="description"><?php esc_html_e('⚠️ This changes your whole site\'s colors and fonts, not just this starter\'s pages — leave unchecked to only import the pages, then apply a kit yourself later if you want.', 'ajnanda'); ?></span>
                         <?php endif; ?>
                     </div>
                 </div>
-
-                <p class="description">
-                    <?php
-                    printf(
-                        /* translators: %s: link to Color Schemes screen */
-                        esc_html__('Tip: pick your colors first — every page below automatically follows whatever scheme is active, so there\'s nothing to recolor after importing. %s', 'ajnanda'),
-                        '<a href="' . esc_url(admin_url('admin.php?page=ajnanda-color-schemes')) . '">' . esc_html__('Browse Color Schemes', 'ajnanda') . '</a>'
-                    );
-                    ?>
-                </p>
 
                 <div class="ajnanda-admin-actions">
                     <button type="submit" class="button button-primary"><?php esc_html_e('Import', 'ajnanda'); ?></button>

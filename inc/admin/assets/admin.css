@@ -105,10 +105,12 @@
     margin-top: 0;
 }
 
+.ajnanda-admin-card > .ajnanda-admin-pill + .button { margin-left: 8px; }
+
 .ajnanda-file-workspace {
     display: grid;
     grid-template-columns: 190px minmax(0, 1fr);
-    min-height: 410px;
+    min-height: 300px;
     margin-top: 12px;
     border: 1px solid #dcdcde;
     border-radius: 10px;
@@ -165,7 +167,9 @@
 .ajnanda-file-tree-item.is-active { background: #e7f0ff; color: #174ea6; font-weight: 600; }
 .ajnanda-file-tree-item small { margin-left: auto; color: #008a20; font-size: 10px; }
 .ajnanda-file-panels { min-width: 0; }
-.ajnanda-file-empty { display: grid; min-height: 410px; place-items: center; color: #646970; }
+.ajnanda-file-empty { display: grid; min-height: 300px; place-items: center; color: #646970; }
+.ajnanda-file-empty[hidden],
+.ajnanda-discovery-editor[hidden] { display: none !important; }
 .ajnanda-discovery-editor { padding: 14px 16px; }
 .ajnanda-file-editor-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid #dcdcde; padding-bottom: 12px; }
 .ajnanda-file-editor-header > div { display: flex; align-items: center; gap: 8px; }

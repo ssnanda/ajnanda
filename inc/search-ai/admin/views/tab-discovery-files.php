@@ -20,8 +20,8 @@ $endpoint_label = static function ($endpoint) {
     return __('Unverifiable', 'ajnanda');
 };
 ?>
-<details class="ajnanda-admin-section ajnanda-search-ai-advanced" id="ajnanda-discovery-status">
-    <summary><strong><?php esc_html_e('Output status', 'ajnanda'); ?></strong></summary>
+<section class="ajnanda-admin-section" id="ajnanda-discovery-status">
+    <h2><?php esc_html_e('Output status', 'ajnanda'); ?></h2>
     <div class="ajnanda-search-ai-details-body">
     <div class="ajnanda-output-status-list">
         <?php foreach (array(
@@ -35,7 +35,7 @@ $endpoint_label = static function ($endpoint) {
         ) as $row) : ?><div><strong><?php echo esc_html($row[0]); ?></strong><span class="ajnanda-admin-pill"><?php echo esc_html($row[2]); ?></span><?php if ($row[1]) : ?><a class="button button-small" target="_blank" rel="noopener" href="<?php echo esc_url($row[1]); ?>"><?php esc_html_e('View', 'ajnanda'); ?></a><?php endif; ?></div><?php endforeach; ?>
     </div>
     </div>
-</details>
+</section>
 
 <div class="ajnanda-discovery-layout">
 <div class="ajnanda-admin-section ajnanda-discovery-main">
