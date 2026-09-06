@@ -26,7 +26,7 @@ add_action('init', function () {
     wp_localize_script('ajnanda-reviews-editor', 'AJNandaReviewsBlocks', array('attributes' => $attributes));
     foreach (array('google-reviews', 'manual-testimonials') as $name) {
         register_block_type('ajnanda/' . $name, array(
-            'api_version' => 3, 'attributes' => $attributes,
+            'api_version' => 2, 'attributes' => $attributes,
             'editor_script' => 'ajnanda-reviews-editor', 'style' => 'ajnanda-reviews', 'view_script' => 'ajnanda-reviews-view',
             'supports' => array('html' => false, 'align' => array('wide', 'full'), 'color' => array('text' => true, 'background' => true), 'spacing' => array('margin' => true, 'padding' => true), 'typography' => array('fontSize' => true)),
             'render_callback' => $name === 'google-reviews' ? 'ajnanda_render_google_reviews' : 'ajnanda_render_manual_testimonials',
@@ -103,7 +103,7 @@ function ajnanda_render_review_collection($attrs, $kind) {
     }
     if ($google) { ajnanda_reviews_no_cache(); }
     $summary = $google ? ajcore_get_google_location_summary() : array();
-    $classes = 'aj-reviews aj-reviews--' . $kind . ' aj-reviews--' . $layout;
+    $classes = 'aj-reviews aj-reviews--' . $kind . ' aj-reviews--' . $layout . ' aj-reviews--columns-' . max(1, min(4, (int) $a['columns']));
     if ($google && $status['stale']) { $classes .= ' is-stale'; }
     $wrapper = get_block_wrapper_attributes(array('class' => $classes, 'style' => '--aj-reviews-columns:' . max(1, min(4, (int) $a['columns'])) . ';--aj-reviews-lines:' . max(1, min(20, (int) $a['textLines']))));
     $out = '<section ' . $wrapper . ($google ? ' data-nosnippet data-google-expires="' . (int) $status['expires_at'] . '"' : '') . '>';

@@ -7,7 +7,7 @@
     ['google-reviews', 'manual-testimonials'].forEach(function (slug) {
         var google = slug === 'google-reviews', name = 'ajnanda/' + slug;
         wp.blocks.registerBlockType(name, {
-            apiVersion: 3, title: google ? __('Google Reviews', 'ajnanda') : __('Manual Testimonials', 'ajnanda'),
+            apiVersion: 2, title: google ? __('Google Reviews', 'ajnanda') : __('Manual Testimonials', 'ajnanda'),
             description: __('Displays published, featured content managed by AJ Core.', 'ajnanda'),
             icon: 'format-quote', category: 'ajnanda-blocks', attributes: AJNandaReviewsBlocks.attributes, supports: supports,
             edit: function (props) {

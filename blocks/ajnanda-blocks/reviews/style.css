@@ -25,5 +25,5 @@
 .aj-reviews__empty { padding: 1.25rem; border: 1px dashed currentColor; border-radius: .5rem; }
 .aj-reviews :focus-visible { outline: 3px solid var(--primary, currentColor); outline-offset: 3px; }
 .editor-styles-wrapper .aj-reviews.is-stale { border-inline-start: 3px solid currentColor; padding-inline-start: 1rem; }
-@media (max-width: 900px) { .aj-reviews__items { grid-template-columns: repeat(min(var(--aj-reviews-columns), 2), minmax(0, 1fr)); } }
-@media (max-width: 600px) { .aj-reviews__items { grid-template-columns: minmax(0, 1fr); } .aj-review { padding: 1.15rem; } }
+@media (max-width: 900px) { .aj-reviews--grid.aj-reviews--columns-3 .aj-reviews__items, .aj-reviews--grid.aj-reviews--columns-4 .aj-reviews__items { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .aj-reviews.aj-reviews--grid .aj-reviews__items { grid-template-columns: minmax(0, 1fr); } .aj-review { padding: 1.15rem; } }
