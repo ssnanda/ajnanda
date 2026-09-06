@@ -224,3 +224,7 @@ form ID from **AJ Core → Forms**. AJCore forms are plain DB rows with a
 per-site numeric ID — there's no way to hard-code a working one into a
 theme-distributed pattern, so this placeholder approach is intentional, not
 a TODO.
+
+## Managed review patterns
+
+Five `ajnanda-social-proof` patterns use the new AJ Core-backed dynamic blocks: `ajnanda/reviews-google-section`, `ajnanda/reviews-manual-section`, `ajnanda/reviews-featured-summary`, `ajnanda/reviews-carousel`, and `ajnanda/reviews-call-to-action`. They insert editable block attributes with no copied review data or site-specific values. Existing static quote/testimonial patterns remain available. See [Reviews & Testimonials](reviews-testimonials.md) for layouts, dependency/empty states, attribution, and setup.

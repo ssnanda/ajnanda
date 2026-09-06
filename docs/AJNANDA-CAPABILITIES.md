@@ -190,7 +190,7 @@ defined inline in the two files above.
 | `ajnanda/taxonomy-list` | AJ Taxonomy List | Dynamic | Term list/pills for a taxonomy |
 | `ajnanda/login-placeholder` | AJ Login Placeholder | Dynamic | Login/logout link reflecting current user |
 | `ajnanda/slide` | AJ Slide | Dynamic (hybrid) | One slide; must be a child of `ajnanda/slider` |
-| `ajnanda/slider` | AJ Slider | Dynamic (hybrid) | Swiper.js carousel — genuinely wired up (`frontend.js` `initSliders()`, Swiper assets conditionally enqueued via `has_block()`) |
+| `ajnanda/slider` | AJ Slider | Dynamic (hybrid) | Shared native accessible carousel (`carousel.php/js/css`), also used by managed review blocks; no Swiper/CDN dependency |
 | `ajnanda/heading` | AJ Heading | Static | Styleable heading |
 | `ajnanda/text-editor` | AJ Paragraph/Text Editor | Static | Styleable rich-text paragraph |
 | `ajnanda/image` | AJ Image | Static | Styleable image + media picker |
@@ -220,6 +220,8 @@ defined inline in the two files above.
 | `ajnanda/modal` | AJ Modal Placeholder | Static | No modal open/close JS exists — static box only |
 | `ajnanda/lottie-animation` | AJ Lottie Animation Placeholder | Static | No Lottie player is enqueued anywhere — attributes captured, nothing renders |
 | `ajnanda/team` | AJ Team | Static | Team-member card (photo/name/bio) |
+| `ajnanda/google-reviews` | Google Reviews | Dynamic | AJ Core featured valid Google reviews, four layouts, attribution and expiry |
+| `ajnanda/manual-testimonials` | Manual Testimonials | Dynamic | AJ Core permanent published/featured testimonials, four layouts, no Google branding |
 | `ajnanda/testimonials` | AJ Testimonials | Static | Quote-based testimonial card; its "carousel" layout option is explicitly labeled "Carousel placeholder" |
 | `ajnanda/review` | AJ Review | Static | Star-rating + quote card; `enableSchema` toggle produces no schema.org output |
 | `ajnanda/price-list` | AJ Price List | Static | Simple price list card |
@@ -490,10 +492,13 @@ grep for `ajforms`/`AJForms`/`ajcore`/`AJCore` across every `.php`/`.js`/
   embedded form sits flush against a leading hero rather than with extra
   top spacing.
 
-There is no PHP-level dependency check (no `function_exists('ajcore')` or
-similar) anywhere — the integration is purely at the content/CSS level.
-If you find any other AJCore-specific reference while working in this
-codebase, treat it as worth double-checking against this list.
+Managed review blocks add a PHP integration through AJ Core's public interfaces:
+`blocks/ajnanda-blocks/reviews/loader.php` checks that AJ Core is available,
+then reads featured valid Google reviews and published featured manual testimonials.
+No AJ Core tables or internal options are accessed. The frontend renders nothing
+without AJ Core, while editor previews explain the missing dependency.
+See [`reviews-testimonials.md`](reviews-testimonials.md) for controls, patterns,
+expiry/cache requirements, attribution, policy limitations, and verification.
 
 ---
 

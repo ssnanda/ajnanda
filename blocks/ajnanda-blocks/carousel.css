@@ -1,0 +1,13 @@
+.aj-slider--accessible { overflow: visible; }
+.aj-carousel { min-width: 0; width: 100%; }
+.aj-carousel__track { display: flex; gap: 1.25rem; overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; padding: .35rem; scroll-padding: .35rem; align-items: stretch; }
+.aj-carousel__track > * { flex: 0 0 calc(100% - .7rem); min-width: 0; margin: 0; scroll-snap-align: start; box-sizing: border-box; }
+.aj-carousel__track.is-moving { scroll-snap-type: none; }
+.aj-carousel__controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .65rem; margin-top: 1rem; }
+.aj-carousel__controls[hidden] { display: none; }
+.aj-carousel button { min-width: 44px; min-height: 44px; border: 1px solid currentColor; border-radius: .4rem; padding: .5rem .85rem; font: inherit; color: inherit; background: transparent; cursor: pointer; }
+.aj-carousel button:disabled { opacity: .5; cursor: default; }
+.aj-carousel__dots { display: flex; gap: .4rem; flex-wrap: wrap; }
+.aj-carousel__dots [aria-current="true"] { box-shadow: inset 0 0 0 2px currentColor; font-weight: 700; }
+.aj-carousel :focus-visible { outline: 3px solid var(--primary, currentColor); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .aj-carousel__track { scroll-behavior: auto !important; } }

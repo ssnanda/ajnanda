@@ -12,6 +12,8 @@
 | [`search-ai-discovery-files.md`](search-ai-discovery-files.md) | Generated discovery endpoints, server redirects, head discovery, and endpoint verification | You're changing `robots.txt`, LLM files, `ai.txt`, `security.txt`, or their server integration |
 | [`documentation-standard.md`](documentation-standard.md) | The rule for keeping these docs in sync with code changes | You're not sure which doc a change should update |
 
+- [`reviews-testimonials.md`](reviews-testimonials.md): AJ Core-backed Google Reviews and Manual Testimonials blocks, patterns, shared carousel, and retention/accessibility requirements.
+
 ## Where to start
 
 New to AJNanda, or an AI agent about to make a change? Read

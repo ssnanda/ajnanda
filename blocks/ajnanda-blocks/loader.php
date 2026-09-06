@@ -450,56 +450,16 @@ function ajnanda_blocks_render_slider($attrs, $content) {
         'showDots'   => true,
     ));
 
-    $config = array(
-        'loop'   => (bool) $attrs['loop'],
-        'speed'  => absint($attrs['speed']),
-        'effect' => in_array($attrs['effect'], array('slide', 'fade'), true) ? $attrs['effect'] : 'slide',
-    );
-    if (!empty($attrs['autoplay'])) {
-        $config['autoplay'] = array('delay' => absint($attrs['delay']), 'disableOnInteraction' => false);
-    }
-    if (!empty($attrs['showDots'])) {
-        $config['pagination'] = true;
-    }
-    if (!empty($attrs['showArrows'])) {
-        $config['navigation'] = true;
-    }
-
-    $dots   = !empty($attrs['showDots'])   ? '<div class="swiper-pagination"></div>' : '';
-    $arrows = !empty($attrs['showArrows']) ? '<div class="swiper-button-prev"></div><div class="swiper-button-next"></div>' : '';
-
-    return '<div class="aj-block aj-slider" data-swiper="' . esc_attr(wp_json_encode($config)) . '">'
-         . '<div class="swiper"><div class="swiper-wrapper">' . $content . '</div>'
-         . $dots . $arrows
-         . '</div></div>';
+    return '<div class="aj-block aj-slider aj-slider--accessible">' . ajnanda_carousel_markup($content, array(
+        'label' => __('Content slider', 'ajnanda'),
+        'autoplay' => !empty($attrs['autoplay']),
+        'interval' => $attrs['delay'],
+        'dots' => !empty($attrs['showDots']),
+        'loop' => !empty($attrs['loop']),
+        'effect' => $attrs['effect'],
+        'speed' => $attrs['speed'],
+    )) . '</div>';
 }
-
-function ajnanda_blocks_enqueue_slider_assets() {
-    if (!is_singular()) {
-        return;
-    }
-    global $post;
-    if (!$post || !has_block('ajnanda/slider', $post)) {
-        return;
-    }
-
-    $uagb_assets = WP_CONTENT_DIR . '/plugins/ultimate-addons-for-gutenberg/assets/';
-    $uagb_url    = content_url('/plugins/ultimate-addons-for-gutenberg/assets/');
-
-    if (file_exists($uagb_assets . 'js/swiper-bundle.min.js')) {
-        $js_src  = $uagb_url . 'js/swiper-bundle.min.js';
-        $css_src = $uagb_url . 'css/swiper-bundle.min.css';
-        $ver     = (string) filemtime($uagb_assets . 'js/swiper-bundle.min.js');
-    } else {
-        $js_src  = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js';
-        $css_src = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css';
-        $ver     = '11';
-    }
-
-    wp_enqueue_style('aj-swiper-css', $css_src, array(), $ver);
-    wp_enqueue_script('aj-swiper-js', $js_src, array(), $ver, true);
-}
-add_action('wp_enqueue_scripts', 'ajnanda_blocks_enqueue_slider_assets', 15);
 
 function ajnanda_blocks_register_dynamic_blocks() {
     $post_attributes = array(
@@ -920,4 +880,3 @@ function ajnanda_safe_css_size($value) {
     if (preg_match('/^[0-9]+(?:\.[0-9]+)?(?:px|em|rem|vh|vw|vmin|vmax|%)$/', $value)) return $value;
     return '';
 }
-

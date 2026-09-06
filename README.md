@@ -102,3 +102,7 @@ For support, visit http://ncllc.ddev.site/
 ---
 
 Built with ❤️ for NCLLC
+
+## Managed Reviews & Testimonials
+
+AJNanda includes native Google Reviews and Manual Testimonials blocks backed by AJ Core, with editable patterns and an accessible shared carousel. See [setup, controls, attribution, and verification](docs/reviews-testimonials.md). Google synchronization requires approved API access configured in AJ Core.

@@ -5281,6 +5281,7 @@ require_once get_template_directory() . '/blocks/ajnanda-blocks/loader.php';
  * sites, admin UI, and WP-CLI commands. See docs/development.md.
  */
 require_once get_template_directory() . '/inc/site-builder.php';
+require_once get_template_directory() . '/blocks/ajnanda-blocks/reviews/loader.php';
 
 // =============================================================================
 // Menu Visibility Toggles
