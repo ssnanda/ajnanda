@@ -87,3 +87,83 @@ node --test /Users/sandip/Projects/ajwp/ajnanda/tests/reviews/carousel.test.js
 ```
 
 The default integration test bootstrap loads the sibling `ajcore` repository; override `AJCORE_TEST_PLUGIN_DIR` for another checkout. The inactive-plugin run skips integration cases and exercises registration/fallback behavior. Review new and existing slider instances in the editor/frontend at narrow/wide sizes, keyboard-only, touch, reduced-motion, dark/light styles, and with JavaScript disabled. Check transitions on existing slides as part of manual regression verification. No build, browser test, or test suite was run during implementation; see AJ Core's implementation report for the exact checks that were run.
+
+## Header Rate Us invitation
+
+AJNanda now renders an optional top header bar using AJ Core's **Display Settings**.
+Enable the prompt and configure both destinations there. Its colors and fonts use
+theme tokens. It is hidden when AJ Core is unavailable, the feature is disabled,
+or either destination is missing. No business-specific address, phone, or URL is
+embedded in the theme.
+
+The five labeled star buttons open one inline panel. Every rating gets the same
+**Send private feedback** and **Leave a Google review** links. The selected rating
+is explanatory only: it is not recorded, submitted, or appended to destination
+URLs. Nothing is automatically published as a Manual Testimonial.
+
+Buttons support keyboard activation; Escape and Close return focus to the chosen
+star. Outside clicks or leaving the component close it without stealing focus.
+The panel is not modal and does not trap focus. Labels, expanded state, status
+text, visible focus, and 44px star targets are provided. Without JavaScript both
+links remain visible and usable. The theme uses the existing Google-content expiry
+script and no-store mechanism when a link comes from a temporary API snapshot.
+
+Files: `reviews/prompt.php`, `reviews/prompt.js`, and `reviews/prompt.css` alongside
+the existing block files. `functions.php` loads the component; `header.php` renders
+it after the skip link. No new blocks, forms, dependencies, or build steps are added.
+
+### Current non-AJNanda header
+
+AJNanda's header cannot change an active Schema/child-theme header. That active
+theme can consume AJ Core's public PHP interface without loading AJNanda. Configure
+the explicit Google URL override for this minimal native-details example: it
+intentionally does not emit temporary API-derived links requiring expiry handling.
+Replace the old rating-dependent link group in the active theme's header template
+with the following, and adapt its `.dm-rate-us` styling in that theme:
+
+```php
+<?php
+$review_prompt = function_exists( 'ajcore_get_review_prompt_settings' )
+    ? ajcore_get_review_prompt_settings()
+    : array();
+if ( ! empty( $review_prompt['enabled'] ) && ! empty( $review_prompt['available'] )
+    && empty( $review_prompt['expires_at'] ) ) :
+?>
+<details class="dm-rate-us">
+    <summary>
+        <?php echo esc_html( $review_prompt['label'] ); ?>
+        <span aria-hidden="true">★★★★★</span>
+    </summary>
+    <p><a href="<?php echo esc_url( $review_prompt['feedback_url'] ); ?>"><?php esc_html_e( 'Send private feedback', 'ajcore' ); ?></a></p>
+    <p><a href="<?php echo esc_url( $review_prompt['google_review_url'] ); ?>"><?php esc_html_e( 'Leave a Google review', 'ajcore' ); ?></a></p>
+</details>
+<?php endif; ?>
+```
+
+All stars in this no-JavaScript legacy example belong to the same accessible
+summary and open the same choices. It does not record a selected numeric rating.
+No files on the live site were edited. Clear any page/CDN caches after changing
+these administrator-managed navigation settings or the legacy header template.
+
+### Manual verification for the prompt
+
+- Enable it with two HTTPS destinations and check all five stars: both link URLs
+  must remain identical, with neither automatically redirecting.
+- Test keyboard activation, Tab, Escape, Close, outside click, and a narrow viewport.
+- Disable JavaScript: both links must remain usable.
+- Remove either destination with no valid Google fallback: the prompt must disappear.
+- With no Google override, check expiry/disconnection and cache bypass; with an
+  explicit override, navigation remains independent of OAuth/synchronization.
+- Confirm the feedback form opens normally and submissions are not automatically
+  created or published as AJ Core testimonials.
+
+Quick syntax commands (no WordPress runtime or builds):
+
+```sh
+php -n -l /Users/sandip/Projects/ajwp/ajcore/modules/reviews/public-api.php
+php -n -l /Users/sandip/Projects/ajwp/ajcore/modules/reviews/class-ajcore-reviews-admin.php
+php -n -l /Users/sandip/Projects/ajwp/ajnanda/blocks/ajnanda-blocks/reviews/prompt.php
+php -n -l /Users/sandip/Projects/ajwp/ajnanda/header.php
+php -n -l /Users/sandip/Projects/ajwp/ajnanda/functions.php
+node --check /Users/sandip/Projects/ajwp/ajnanda/blocks/ajnanda-blocks/reviews/prompt.js
+```

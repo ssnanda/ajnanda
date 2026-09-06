@@ -17,6 +17,7 @@
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 <a class="skip-link screen-reader-text" href="#main-content"><?php esc_html_e('Skip to content', 'ajnanda'); ?></a>
+<?php ajnanda_render_review_prompt_bar(); ?>
 
 <?php
 $header_layout      = ajnanda_get_header_layout();

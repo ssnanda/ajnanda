@@ -5282,6 +5282,7 @@ require_once get_template_directory() . '/blocks/ajnanda-blocks/loader.php';
  */
 require_once get_template_directory() . '/inc/site-builder.php';
 require_once get_template_directory() . '/blocks/ajnanda-blocks/reviews/loader.php';
+require_once get_template_directory() . '/blocks/ajnanda-blocks/reviews/prompt.php';
 
 // =============================================================================
 // Menu Visibility Toggles

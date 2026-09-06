@@ -652,3 +652,12 @@ almost every release regardless of change size, so a specific version
 number here goes stale immediately — a date is more durable. If behavior
 looks different than described, verify against the code — this
 document should be corrected, not the other way around.*
+
+### Rating-neutral header invitation
+
+AJ Core Display Settings can enable AJNanda's reusable **Rate Us** top bar. Each
+of five stars offers the same private-feedback and Google-review links, with
+keyboard/no-JavaScript support and no automatic testimonial publication. Settings
+and public URL resolution stay in AJ Core; presentation is in
+`blocks/ajnanda-blocks/reviews/prompt.php/js/css`. See
+[the header guide and legacy-theme example](reviews-testimonials.md#header-rate-us-invitation).
