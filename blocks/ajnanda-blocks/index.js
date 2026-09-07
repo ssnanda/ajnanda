@@ -647,7 +647,10 @@
             description: description,
             category: category,
             icon: 'format-gallery',
-            supports: { align: ['wide', 'full'], anchor: true },
+            // ajnanda/basic-gallery and ajnanda/image-gallery were identical.
+            // Keep both registered so existing content renders, but hide the
+            // duplicate from the inserter — author new galleries with image-gallery.
+            supports: { align: ['wide', 'full'], anchor: true, inserter: name !== 'ajnanda/basic-gallery' },
             attributes: withStyleAttributes({
                 className: { type: 'string' },
                 columns: { type: 'number', default: 3 },
@@ -1363,7 +1366,7 @@
             title: title,
             category: category,
             icon: icon,
-            supports: { align: ['wide', 'full'], anchor: true },
+            supports: Object.assign({ align: ['wide', 'full'], anchor: true }, options.supports || {}),
             attributes: withStyleAttributes(options.attributes || {}),
             variations: options.variations || [],
             edit: function(props) {
@@ -1707,7 +1710,7 @@
         className: function(attrs) { return 'aj-how-to--' + attrs.stepStyle; }
     });
     editableTextBlock('ajnanda/inline-notice', __('AJ Inline Notice', 'ajnanda'), 'info', 'div', 'aj-inline-notice', 'Add an important notice.', 'Notice');
-    simpleCardBlock('ajnanda/modal', __('AJ Modal Placeholder', 'ajnanda'), 'welcome-comments', 'aj-modal-placeholder', [['core/heading', { level: 3, content: 'Modal Placeholder' }], ['core/paragraph', { placeholder: 'Static modal content placeholder.' }]], {
+    simpleCardBlock('ajnanda/modal', __('AJ Modal', 'ajnanda'), 'welcome-comments', 'aj-modal-placeholder', [['core/heading', { level: 3, content: 'Modal title' }], ['core/paragraph', { placeholder: 'Modal content — shown in a dialog when the trigger button is clicked.' }]], {
         attributes: { triggerText: { type: 'string', default: 'Open Modal' }, modalWidth: { type: 'number', default: 640 } },
         controls: function(props) {
             return [field(__('Trigger text', 'ajnanda'), props.attributes.triggerText, function(value) { props.setAttributes({ triggerText: value }); }), el(RangeControl, { label: __('Modal width', 'ajnanda'), min: 320, max: 1200, value: props.attributes.modalWidth || 640, onChange: function(value) { props.setAttributes({ modalWidth: value }); } })];
@@ -1800,7 +1803,12 @@
             isEligible: function() { return true; }
         }]
     });
-    simpleCardBlock('ajnanda/lottie-animation', __('AJ Lottie Animation Placeholder', 'ajnanda'), 'controls-repeat', 'aj-lottie-placeholder', [['core/paragraph', { content: 'Lottie animation placeholder.' }]], {
+    // Lottie needs an external player library, which this theme deliberately
+    // does not bundle or load from a CDN. Kept registered so any existing
+    // instances still render their inner content, but hidden from the inserter —
+    // use a dedicated animation plugin if you need real Lottie playback.
+    simpleCardBlock('ajnanda/lottie-animation', __('AJ Lottie Animation (unavailable)', 'ajnanda'), 'controls-repeat', 'aj-lottie-placeholder', [['core/paragraph', { content: 'Lottie animation placeholder.' }]], {
+        supports: { inserter: false },
         attributes: { jsonUrl: { type: 'string', default: '' }, loop: { type: 'boolean', default: true }, autoplay: { type: 'boolean', default: true } },
         controls: function(props) {
             return [field(__('Lottie JSON URL', 'ajnanda'), props.attributes.jsonUrl, function(value) { props.setAttributes({ jsonUrl: value }); }), el(ToggleControl, { label: __('Loop', 'ajnanda'), checked: !!props.attributes.loop, onChange: function(value) { props.setAttributes({ loop: value }); } }), el(ToggleControl, { label: __('Autoplay', 'ajnanda'), checked: !!props.attributes.autoplay, onChange: function(value) { props.setAttributes({ autoplay: value }); } })];
@@ -1819,7 +1827,7 @@
     simpleCardBlock('ajnanda/testimonials', __('AJ Testimonials', 'ajnanda'), 'format-chat', 'aj-testimonials', [['core/quote', { value: 'Add testimonial text.', citation: 'Customer Name' }]], {
         attributes: { layout: { type: 'string', default: 'single' }, showQuoteIcon: { type: 'boolean', default: true } },
         controls: function(props) {
-            return [el(SelectControl, { label: __('Layout', 'ajnanda'), value: props.attributes.layout || 'single', options: [{ label: __('Single', 'ajnanda'), value: 'single' }, { label: __('Grid', 'ajnanda'), value: 'grid' }, { label: __('Carousel placeholder', 'ajnanda'), value: 'carousel' }], onChange: function(value) { props.setAttributes({ layout: value }); } }), el(ToggleControl, { label: __('Show quote icon', 'ajnanda'), checked: !!props.attributes.showQuoteIcon, onChange: function(value) { props.setAttributes({ showQuoteIcon: value }); } })];
+            return [el(SelectControl, { label: __('Layout', 'ajnanda'), value: props.attributes.layout || 'single', options: [{ label: __('Single', 'ajnanda'), value: 'single' }, { label: __('Grid', 'ajnanda'), value: 'grid' }, { label: __('Carousel', 'ajnanda'), value: 'carousel' }], onChange: function(value) { props.setAttributes({ layout: value }); } }), el(ToggleControl, { label: __('Show quote icon', 'ajnanda'), checked: !!props.attributes.showQuoteIcon, onChange: function(value) { props.setAttributes({ showQuoteIcon: value }); } })];
         },
         className: function(attrs) { return 'aj-testimonials--' + attrs.layout; }
     });
@@ -1836,10 +1844,13 @@
         },
         className: function(attrs) { return 'aj-price-list--' + attrs.layout; }
     });
-    simpleCardBlock('ajnanda/social-share', __('AJ Social Share', 'ajnanda'), 'share', 'aj-social-share', [['core/buttons', {}, [['core/button', { text: 'Share' }], ['core/button', { text: 'LinkedIn' }], ['core/button', { text: 'Email' }]]]], {
-        attributes: { networks: { type: 'string', default: 'Facebook, LinkedIn, Email' }, iconOnly: { type: 'boolean', default: false } },
+    // Buttons are wired to real share URLs at runtime (frontend.js initSocialShare)
+    // by matching each button's label — Facebook / LinkedIn / X / Email / Share
+    // (native share sheet, else copy link) — against the current page URL.
+    simpleCardBlock('ajnanda/social-share', __('AJ Social Share', 'ajnanda'), 'share', 'aj-social-share', [['core/buttons', {}, [['core/button', { text: 'Share' }], ['core/button', { text: 'Facebook' }], ['core/button', { text: 'LinkedIn' }], ['core/button', { text: 'Email' }]]]], {
+        attributes: { iconOnly: { type: 'boolean', default: false } },
         controls: function(props) {
-            return [field(__('Networks', 'ajnanda'), props.attributes.networks, function(value) { props.setAttributes({ networks: value }); }, 'Facebook, LinkedIn, Email'), el(ToggleControl, { label: __('Icon only', 'ajnanda'), checked: !!props.attributes.iconOnly, onChange: function(value) { props.setAttributes({ iconOnly: value }); } })];
+            return [el(ToggleControl, { label: __('Icon only', 'ajnanda'), checked: !!props.attributes.iconOnly, onChange: function(value) { props.setAttributes({ iconOnly: value }); } }), el('p', { style: { margin: '8px 0 0', fontSize: '12px', opacity: 0.7 } }, __('Label each button Facebook, LinkedIn, X, Email, or Share — links are generated on the front end.', 'ajnanda'))];
         },
         className: function(attrs) { return attrs.iconOnly ? 'aj-social-share--icon-only' : ''; }
     });
@@ -1906,7 +1917,7 @@
         }
     });
 
-    registerContainerBlock('ajnanda/tabs', __('AJ Tabs', 'ajnanda'), __('Tabbed content placeholder.', 'ajnanda'), 'aj-tabs', [['core/heading', { level: 3, content: 'Tab Title' }], ['core/paragraph', { placeholder: 'Tab content' }]], {
+    registerContainerBlock('ajnanda/tabs', __('AJ Tabs', 'ajnanda'), __('Tabbed content — each heading you add becomes a tab.', 'ajnanda'), 'aj-tabs', [['core/heading', { level: 3, content: 'Tab Title' }], ['core/paragraph', { placeholder: 'Tab content' }]], {
         attributes: { tabPosition: { type: 'string', default: 'top' }, activeTab: { type: 'number', default: 1 } },
         controls: function(props) {
             return [el(SelectControl, { label: __('Tab position', 'ajnanda'), value: props.attributes.tabPosition || 'top', options: [{ label: __('Top', 'ajnanda'), value: 'top' }, { label: __('Left', 'ajnanda'), value: 'left' }, { label: __('Right', 'ajnanda'), value: 'right' }], onChange: function(value) { props.setAttributes({ tabPosition: value }); } }), el(RangeControl, { label: __('Default active tab', 'ajnanda'), min: 1, max: 10, value: props.attributes.activeTab || 1, onChange: function(value) { props.setAttributes({ activeTab: value }); } })];
@@ -2171,7 +2182,7 @@
 
     dynamicBlock('ajnanda/posts', __('AJ Posts', 'ajnanda'), 'admin-post', postAttrs(3), postControls);
     dynamicBlock('ajnanda/post-grid', __('AJ Post Grid', 'ajnanda'), 'grid-view', postAttrs(6), postControls);
-    dynamicBlock('ajnanda/post-carousel', __('AJ Post Carousel Placeholder', 'ajnanda'), 'images-alt2', Object.assign(postAttrs(6), { autoplay: { type: 'boolean', default: false }, delay: { type: 'number', default: 4 } }), function(props) {
+    dynamicBlock('ajnanda/post-carousel', __('AJ Post Carousel', 'ajnanda'), 'images-alt2', Object.assign(postAttrs(6), { autoplay: { type: 'boolean', default: false }, delay: { type: 'number', default: 4 } }), function(props) {
         return postControls(props).concat([el(ToggleControl, { label: __('Autoplay', 'ajnanda'), checked: !!props.attributes.autoplay, onChange: function(value) { props.setAttributes({ autoplay: value }); } }), el(RangeControl, { label: __('Delay seconds', 'ajnanda'), min: 1, max: 12, value: props.attributes.delay || 4, onChange: function(value) { props.setAttributes({ delay: value }); } })]);
     });
     dynamicBlock('ajnanda/post-timeline', __('AJ Post Timeline', 'ajnanda'), 'backup', Object.assign(postAttrs(5), { dateFormat: { type: 'string', default: 'M j, Y' } }), function(props) {

@@ -165,33 +165,48 @@ function ajnanda_blocks_render_posts_variant($attrs, $variant = 'grid') {
         return '<div class="aj-block aj-posts aj-posts--' . esc_attr($variant) . '"><p>' . esc_html__('No posts found.', 'ajnanda') . '</p></div>';
     }
 
-    ob_start();
-    ?>
-    <div class="aj-block aj-posts aj-posts--<?php echo esc_attr($variant); ?>" style="<?php echo esc_attr(ajnanda_blocks_posts_style($attrs)); ?>">
-        <?php while ($query->have_posts()) : $query->the_post(); ?>
-            <article class="aj-post-card">
-                <?php if ('timeline' === $variant) : ?>
-                    <time datetime="<?php echo esc_attr(get_the_date('c')); ?>"><?php echo esc_html(get_the_date($attrs['dateFormat'])); ?></time>
+    $cards = '';
+    while ($query->have_posts()) {
+        $query->the_post();
+        ob_start();
+        ?>
+        <article class="aj-post-card">
+            <?php if ('timeline' === $variant) : ?>
+                <time datetime="<?php echo esc_attr(get_the_date('c')); ?>"><?php echo esc_html(get_the_date($attrs['dateFormat'])); ?></time>
+            <?php endif; ?>
+            <?php if (!empty($attrs['showImage']) && has_post_thumbnail()) : ?>
+                <a class="aj-post-card__image" href="<?php the_permalink(); ?>">
+                    <?php the_post_thumbnail('medium_large'); ?>
+                </a>
+            <?php endif; ?>
+            <div class="aj-post-card__body">
+                <h3><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h3>
+                <?php if (!empty($attrs['showExcerpt'])) : ?>
+                    <p><?php echo esc_html(wp_trim_words(get_the_excerpt(), 24)); ?></p>
                 <?php endif; ?>
-                <?php if (!empty($attrs['showImage']) && has_post_thumbnail()) : ?>
-                    <a class="aj-post-card__image" href="<?php the_permalink(); ?>">
-                        <?php the_post_thumbnail('medium_large'); ?>
-                    </a>
-                <?php endif; ?>
-                <div class="aj-post-card__body">
-                    <h3><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h3>
-                    <?php if (!empty($attrs['showExcerpt'])) : ?>
-                        <p><?php echo esc_html(wp_trim_words(get_the_excerpt(), 24)); ?></p>
-                    <?php endif; ?>
-                    <a class="aj-button" href="<?php the_permalink(); ?>"><?php echo esc_html($attrs['buttonText']); ?></a>
-                </div>
-            </article>
-        <?php endwhile; ?>
-    </div>
-    <?php
+                <a class="aj-button" href="<?php the_permalink(); ?>"><?php echo esc_html($attrs['buttonText']); ?></a>
+            </div>
+        </article>
+        <?php
+        $cards .= ob_get_clean();
+    }
     wp_reset_postdata();
 
-    return ob_get_clean();
+    // Carousel variant: hand the cards to the shared accessible carousel
+    // (carousel.php/js) — the same one ajnanda/slider and the review blocks use —
+    // instead of a plain scroll strip.
+    if ('carousel' === $variant && function_exists('ajnanda_carousel_markup')) {
+        return '<div class="aj-block aj-posts aj-posts--carousel" style="' . esc_attr(ajnanda_blocks_posts_style($attrs)) . '">'
+            . ajnanda_carousel_markup($cards, array(
+                'label'    => __('Posts', 'ajnanda'),
+                'autoplay' => !empty($attrs['autoplay']),
+                'interval' => max(3000, absint($attrs['delay'] ?? 4) * 1000),
+                'dots'     => true,
+            ))
+            . '</div>';
+    }
+
+    return '<div class="aj-block aj-posts aj-posts--' . esc_attr($variant) . '" style="' . esc_attr(ajnanda_blocks_posts_style($attrs)) . '">' . $cards . '</div>';
 }
 
 function ajnanda_blocks_render_post_grid($attrs) {
@@ -879,4 +894,323 @@ function ajnanda_safe_css_size($value) {
     if (preg_match('/^[0-9]+(?:\.[0-9]+)?$/', $value)) return $value . 'px';
     if (preg_match('/^[0-9]+(?:\.[0-9]+)?(?:px|em|rem|vh|vw|vmin|vmax|%)$/', $value)) return $value;
     return '';
+}
+
+// ---------------------------------------------------------------------------
+// ajnanda/accordion: the block's own "Collapse other items" / "Expand first
+// item" toggles used to store attributes nothing read. Emit the same data
+// attributes ajnanda/faq uses so frontend.js (initFaq, run on .aj-accordion
+// too) wires up the behaviour. No saved-markup change → no re-validation.
+// ---------------------------------------------------------------------------
+
+add_filter('render_block', 'ajnanda_blocks_accordion_attrs', 10, 2);
+
+function ajnanda_blocks_accordion_attrs($block_content, $block) {
+    if ('ajnanda/accordion' !== ($block['blockName'] ?? '') || '' === trim((string) $block_content)) {
+        return $block_content;
+    }
+
+    $attrs    = $block['attrs'] ?? array();
+    $collapse = (!array_key_exists('collapseOtherItems', $attrs) || $attrs['collapseOtherItems']) ? 'true' : 'false';
+    $expand   = (!array_key_exists('expandFirstItem', $attrs) || $attrs['expandFirstItem']) ? 'true' : 'false';
+
+    return preg_replace(
+        '/(<div\b[^>]*\bclass="[^"]*\baj-accordion\b[^"]*")/',
+        '$1 data-collapse-other-items="' . $collapse . '" data-expand-first-item="' . $expand . '"',
+        $block_content,
+        1
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Structured data: emit schema.org JSON-LD for the blocks whose "describe this
+// as … content" toggle is on. Those toggles (ajnanda/faq enableSchema,
+// ajnanda/how-to showSchema, ajnanda/review enableSchema) previously stored an
+// attribute that produced no markup. Parsed from the rendered block HTML so it
+// always matches what the visitor sees.
+// ---------------------------------------------------------------------------
+
+add_filter('render_block', 'ajnanda_blocks_structured_data', 20, 2);
+
+function ajnanda_blocks_structured_data($block_content, $block) {
+    if ('' === trim((string) $block_content) || is_admin() || is_feed() || (defined('REST_REQUEST') && REST_REQUEST)) {
+        return $block_content;
+    }
+
+    $name  = $block['blockName'] ?? '';
+    $attrs = $block['attrs'] ?? array();
+
+    if ('ajnanda/faq' === $name && !empty($attrs['enableSchema'])) {
+        return $block_content . ajnanda_blocks_jsonld(ajnanda_blocks_faq_schema($block_content));
+    }
+    if ('ajnanda/how-to' === $name && !empty($attrs['showSchema'])) {
+        return $block_content . ajnanda_blocks_jsonld(ajnanda_blocks_howto_schema($block_content));
+    }
+    if ('ajnanda/review' === $name && !empty($attrs['enableSchema'])) {
+        return $block_content . ajnanda_blocks_jsonld(ajnanda_blocks_review_schema($block_content));
+    }
+
+    return $block_content;
+}
+
+function ajnanda_blocks_jsonld($data) {
+    if (empty($data)) {
+        return '';
+    }
+    return '<script type="application/ld+json">'
+        . wp_json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+        . '</script>';
+}
+
+/** Parse an HTML fragment for querying; null if DOM support is unavailable. */
+function ajnanda_blocks_schema_xpath($html) {
+    if (!class_exists('DOMDocument')) {
+        return null;
+    }
+    $dom  = new DOMDocument();
+    $prev = libxml_use_internal_errors(true);
+    $dom->loadHTML('<?xml encoding="UTF-8"><div id="ajnanda-schema-root">' . $html . '</div>', LIBXML_NOWARNING | LIBXML_NOERROR);
+    libxml_clear_errors();
+    libxml_use_internal_errors($prev);
+
+    return new DOMXPath($dom);
+}
+
+function ajnanda_blocks_schema_text($node) {
+    return $node ? trim(preg_replace('/\s+/', ' ', $node->textContent)) : '';
+}
+
+function ajnanda_blocks_faq_schema($html) {
+    $xp = ajnanda_blocks_schema_xpath($html);
+    if (!$xp) {
+        return null;
+    }
+
+    $entities = array();
+    foreach ($xp->query('//details') as $details) {
+        $summary = null;
+        foreach ($details->childNodes as $child) {
+            if ($child instanceof DOMElement && 'summary' === strtolower($child->nodeName)) {
+                $summary = $child;
+                break;
+            }
+        }
+        $question = ajnanda_blocks_schema_text($summary);
+        $answer   = trim(preg_replace('/^' . preg_quote($question, '/') . '/', '', ajnanda_blocks_schema_text($details)));
+        if ('' === $question || '' === $answer) {
+            continue;
+        }
+        $entities[] = array(
+            '@type'          => 'Question',
+            'name'           => $question,
+            'acceptedAnswer' => array('@type' => 'Answer', 'text' => $answer),
+        );
+    }
+
+    return $entities ? array('@context' => 'https://schema.org', '@type' => 'FAQPage', 'mainEntity' => $entities) : null;
+}
+
+function ajnanda_blocks_howto_schema($html) {
+    $xp = ajnanda_blocks_schema_xpath($html);
+    if (!$xp) {
+        return null;
+    }
+
+    $name  = ajnanda_blocks_schema_text($xp->query('//h1|//h2|//h3')->item(0));
+    $steps = array();
+    foreach ($xp->query('//li') as $li) {
+        $text = ajnanda_blocks_schema_text($li);
+        if ('' !== $text) {
+            $steps[] = array('@type' => 'HowToStep', 'text' => $text);
+        }
+    }
+
+    if (count($steps) < 2) {
+        return null;
+    }
+
+    return array(
+        '@context' => 'https://schema.org',
+        '@type'    => 'HowTo',
+        'name'     => '' !== $name ? $name : __('How to', 'ajnanda'),
+        'step'     => $steps,
+    );
+}
+
+function ajnanda_blocks_review_schema($html) {
+    $xp = ajnanda_blocks_schema_xpath($html);
+    if (!$xp) {
+        return null;
+    }
+
+    $body = ajnanda_blocks_schema_text($xp->query('//blockquote//p')->item(0));
+    if ('' === $body) {
+        $quote = $xp->query('//blockquote')->item(0);
+        if ($quote) {
+            foreach (iterator_to_array($xp->query('.//cite', $quote)) as $cite) {
+                $cite->parentNode->removeChild($cite);
+            }
+            $body = ajnanda_blocks_schema_text($quote);
+        }
+    }
+    if ('' === $body) {
+        return null;
+    }
+
+    $review = array(
+        '@context'     => 'https://schema.org',
+        '@type'        => 'Review',
+        'reviewBody'   => $body,
+        'itemReviewed' => array('@type' => 'Organization', 'name' => get_bloginfo('name')),
+    );
+
+    $author = ajnanda_blocks_schema_text($xp->query('//cite')->item(0));
+    if ('' !== $author) {
+        $review['author'] = array('@type' => 'Person', 'name' => $author);
+    }
+
+    $stars = $xp->query('//*[contains(concat(" ", normalize-space(@class), " "), " aj-stars ")]')->item(0);
+    if ($stars instanceof DOMElement) {
+        $label  = $stars->getAttribute('aria-label');
+        $rating = is_numeric($label) ? (float) $label : (float) substr_count($stars->textContent, "\xe2\x98\x85");
+        if ($rating > 0) {
+            $review['reviewRating'] = array('@type' => 'Rating', 'ratingValue' => $rating, 'bestRating' => 5, 'worstRating' => 1);
+        }
+    }
+
+    return $review;
+}
+
+// ---------------------------------------------------------------------------
+// ajnanda/modal: render a real trigger + native <dialog> around the saved
+// content (native dialog gives focus-trap, Esc and backdrop for free; no
+// library). ajnanda/tabs: split the saved content on its headings into a real
+// tablist + panels. Both transform at render time only — the saved block markup
+// (a plain styled <section>/<div> + InnerBlocks) never changes, so there is no
+// block re-validation and old content keeps working.
+// ---------------------------------------------------------------------------
+
+add_filter('render_block', 'ajnanda_blocks_interactive_containers', 15, 2);
+
+function ajnanda_blocks_interactive_containers($block_content, $block) {
+    $name = $block['blockName'] ?? '';
+    if ('' === trim((string) $block_content)) {
+        return $block_content;
+    }
+    if ('ajnanda/modal' === $name) {
+        return ajnanda_blocks_render_modal($block_content, $block['attrs'] ?? array());
+    }
+    if ('ajnanda/tabs' === $name) {
+        return ajnanda_blocks_render_tabs($block_content, $block['attrs'] ?? array());
+    }
+    if ('ajnanda/testimonials' === $name && 'carousel' === ($block['attrs']['layout'] ?? '')) {
+        return ajnanda_blocks_carousel_wrap($block_content, 'aj-testimonials', __('Testimonials', 'ajnanda'));
+    }
+    return $block_content;
+}
+
+/** Wrap a block's direct child elements in the shared accessible carousel. */
+function ajnanda_blocks_carousel_wrap($block_content, $class_needle, $label) {
+    if (!class_exists('DOMDocument') || !function_exists('ajnanda_carousel_markup')
+        || !preg_match('#<(section|div)\b[^>]*\bclass="([^"]*\b' . preg_quote($class_needle, '#') . '\b[^"]*)"[^>]*>(.*)</\1>\s*$#s', $block_content, $m)) {
+        return $block_content;
+    }
+
+    $dom  = new DOMDocument();
+    $prev = libxml_use_internal_errors(true);
+    $dom->loadHTML('<?xml encoding="UTF-8"><div id="aj-cw-root">' . $m[3] . '</div>', LIBXML_NOWARNING | LIBXML_NOERROR);
+    libxml_clear_errors();
+    libxml_use_internal_errors($prev);
+
+    $root = (new DOMXPath($dom))->query('//*[@id="aj-cw-root"]')->item(0);
+    if (!$root) {
+        return $block_content;
+    }
+
+    $slides = '';
+    foreach (iterator_to_array($root->childNodes) as $node) {
+        if ($node instanceof DOMElement) {
+            $slides .= $dom->saveHTML($node);
+        }
+    }
+    if ('' === trim($slides)) {
+        return $block_content;
+    }
+
+    return '<' . $m[1] . ' class="' . esc_attr($m[2]) . '">'
+        . ajnanda_carousel_markup($slides, array('label' => $label, 'dots' => true))
+        . '</' . $m[1] . '>';
+}
+
+function ajnanda_blocks_render_modal($block_content, $attrs) {
+    if (!preg_match('/<section\b[^>]*\baj-modal-placeholder\b[^>]*>(.*)<\/section>/s', $block_content, $m)) {
+        return $block_content;
+    }
+    $inner   = $m[1];
+    $trigger = trim((string) ($attrs['triggerText'] ?? ''));
+    if ('' === $trigger) {
+        $trigger = __('Open', 'ajnanda');
+    }
+    $width = max(320, min(1200, (int) ($attrs['modalWidth'] ?? 640)));
+    $id    = wp_unique_id('aj-modal-');
+
+    return '<div class="aj-block aj-modal" data-aj-modal>'
+        . '<button type="button" class="aj-button aj-modal__trigger" aria-haspopup="dialog" aria-controls="' . esc_attr($id) . '" data-aj-modal-open>' . esc_html($trigger) . '</button>'
+        . '<dialog id="' . esc_attr($id) . '" class="aj-modal__dialog" style="--aj-modal-width:' . $width . 'px">'
+        . '<form method="dialog"><button class="aj-modal__close" aria-label="' . esc_attr__('Close', 'ajnanda') . '" data-aj-modal-close>&times;</button></form>'
+        . '<div class="aj-modal__body">' . $inner . '</div>'
+        . '</dialog></div>';
+}
+
+function ajnanda_blocks_render_tabs($block_content, $attrs) {
+    if (!class_exists('DOMDocument')
+        || !preg_match('/<div\b[^>]*\bclass="([^"]*\baj-tabs\b[^"]*)"[^>]*>(.*)<\/div>\s*$/s', $block_content, $m)) {
+        return $block_content;
+    }
+
+    $wrap_class = $m[1];
+    $dom  = new DOMDocument();
+    $prev = libxml_use_internal_errors(true);
+    $dom->loadHTML('<?xml encoding="UTF-8"><div id="aj-tabs-root">' . $m[2] . '</div>', LIBXML_NOWARNING | LIBXML_NOERROR);
+    libxml_clear_errors();
+    libxml_use_internal_errors($prev);
+
+    $root = (new DOMXPath($dom))->query('//*[@id="aj-tabs-root"]')->item(0);
+    if (!$root) {
+        return $block_content;
+    }
+
+    $groups = array();
+    foreach (iterator_to_array($root->childNodes) as $node) {
+        if ($node instanceof DOMElement && preg_match('/^h[1-6]$/i', $node->nodeName)) {
+            $groups[] = array('label' => trim(preg_replace('/\s+/', ' ', $node->textContent)), 'html' => '');
+            continue;
+        }
+        if (empty($groups)) {
+            continue; // content before the first heading is dropped from the tab UI
+        }
+        $groups[count($groups) - 1]['html'] .= $dom->saveHTML($node);
+    }
+
+    if (count($groups) < 2) {
+        return $block_content;
+    }
+
+    $active = max(1, min(count($groups), (int) ($attrs['activeTab'] ?? 1)));
+    $id     = wp_unique_id('aj-tabs-');
+    $tabs   = '';
+    $panels = '';
+    foreach ($groups as $i => $group) {
+        $n        = $i + 1;
+        $selected = $n === $active;
+        $tabs   .= '<button type="button" role="tab" id="' . esc_attr("$id-t$n") . '" aria-controls="' . esc_attr("$id-p$n") . '"'
+            . ' aria-selected="' . ($selected ? 'true' : 'false') . '" tabindex="' . ($selected ? '0' : '-1') . '">'
+            . esc_html($group['label']) . '</button>';
+        $panels .= '<div class="aj-tabs__panel" role="tabpanel" id="' . esc_attr("$id-p$n") . '" aria-labelledby="' . esc_attr("$id-t$n") . '"'
+            . ($selected ? '' : ' hidden') . '>' . $group['html'] . '</div>';
+    }
+
+    return '<div class="' . esc_attr($wrap_class) . '" data-aj-tabs>'
+        . '<div class="aj-tabs__list" role="tablist">' . $tabs . '</div>'
+        . '<div class="aj-tabs__panels">' . $panels . '</div></div>';
 }

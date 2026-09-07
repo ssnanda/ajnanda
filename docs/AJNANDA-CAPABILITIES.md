@@ -185,7 +185,7 @@ defined inline in the two files above.
 | `ajnanda/svg` | AJ SVG | Dynamic | Sanitized inline SVG (server-filtered via `wp_kses`) |
 | `ajnanda/posts` | AJ Posts | Dynamic | List of recent posts (count/order/columns/excerpt/image) |
 | `ajnanda/post-grid` | AJ Post Grid | Dynamic | Grid layout of the same post query |
-| `ajnanda/post-carousel` | AJ Post Carousel Placeholder | Dynamic | Post carousel — title says "Placeholder"; no carousel JS wires up to it |
+| `ajnanda/post-carousel` | AJ Post Carousel | Dynamic | Post cards handed to the shared accessible carousel (`carousel.php/js`), same engine as `ajnanda/slider`; `autoplay`/`delay` attributes honored |
 | `ajnanda/post-timeline` | AJ Post Timeline | Dynamic | Chronological post list |
 | `ajnanda/search` | AJ Search | Dynamic | Search form (inline/stacked) |
 | `ajnanda/nav-menu` | AJ Menu | Dynamic | Renders `wp_nav_menu()` for a chosen location — not used by header/footer chrome (those call `wp_nav_menu()`/the builder directly); available for use inside page content |
@@ -208,38 +208,38 @@ defined inline in the two files above.
 | `ajnanda/flexbox` | AJ Flexbox | Static | Flex row/column container |
 | `ajnanda/container` | AJ Container | Static | The most elaborate layout block — width/layout-mode/columns/gap plus a first-use layout chooser |
 | `ajnanda/grid` | AJ Grid | Static | CSS grid container |
-| `ajnanda/form` | AJ Form | Static | Static form mockup — its own description says "Static form layout"; no submission handling exists anywhere |
-| `ajnanda/tabs` | AJ Tabs | Static | "Tabbed content placeholder" — no tab-switching CSS/JS exists |
-| `ajnanda/accordion` | AJ Accordion | Static | `core/details`-based expand/collapse container (works, native HTML). Its own `collapseOtherItems`/`expandFirstItem` attributes aren't wired to any runtime code |
+| `ajnanda/form` | AJ Form | Static | Layout-only form mockup — no submission handling. Use AJ Core / wp-formy for real forms |
+| `ajnanda/tabs` | AJ Tabs | Static + `render_block` | Each heading you add becomes a real tab: a `render_block` filter (`ajnanda_blocks_render_tabs()`) splits the saved content on its headings into an ARIA `tablist` + panels; `frontend.js` `initTabs()` adds click + arrow-key nav. Falls back to stacked content if there are fewer than two headings |
+| `ajnanda/accordion` | AJ Accordion | Static + `render_block` | `core/details`-based expand/collapse. `collapseOtherItems`/`expandFirstItem` now work — `ajnanda_blocks_accordion_attrs()` injects the data attributes and `frontend.js` `initFaq()` (also run on `.aj-accordion`) wires the behaviour |
 | `ajnanda/image-box` | AJ Image Box | Static | Image + heading + text card |
 | `ajnanda/icon-box` | AJ Icon Box | Static | Icon + heading + text card |
-| `ajnanda/basic-gallery` | AJ Basic Gallery | Static | Gallery wrapper — **functionally identical** to `ajnanda/image-gallery` below (same factory, same description) |
-| `ajnanda/image-gallery` | AJ Image Gallery | Static | Same implementation as `ajnanda/basic-gallery` |
+| `ajnanda/basic-gallery` | AJ Basic Gallery | Static, **hidden from inserter** | Was a duplicate of `ajnanda/image-gallery`; kept registered for old content, hidden from the inserter |
+| `ajnanda/image-gallery` | AJ Image Gallery | Static | Gallery wrapper around `core/gallery` (columns/gap). The one to use for new galleries |
 | `ajnanda/info-box` | AJ Info Box | Static | Icon/heading/text card |
 | `ajnanda/call-to-action` | AJ Call To Action | Static | Heading + text + button CTA card |
 | `ajnanda/marketing-button` | AJ Marketing Button | Static | Styled buttons wrapper with icon options |
 | `ajnanda/content-timeline` | AJ Content Timeline | Static | Timeline item card |
-| `ajnanda/how-to` | AJ How To | Static | Numbered "How To" card; its `showSchema` toggle produces no schema.org output |
-| `ajnanda/modal` | AJ Modal Placeholder | Static | No modal open/close JS exists — static box only |
-| `ajnanda/lottie-animation` | AJ Lottie Animation Placeholder | Static | No Lottie player is enqueued anywhere — attributes captured, nothing renders |
+| `ajnanda/how-to` | AJ How To | Static + `render_block` | Numbered "How To" card. `showSchema` on → `HowTo` JSON-LD (`ajnanda_blocks_howto_schema()`, headings + list items parsed from the rendered block) |
+| `ajnanda/modal` | AJ Modal | Static + `render_block` | `ajnanda_blocks_render_modal()` wraps the saved content in a real trigger button + native `<dialog>` (focus-trap, Esc, backdrop for free — no library); `frontend.js` `initModal()` opens it. `modalWidth` / `triggerText` honored |
+| `ajnanda/lottie-animation` | AJ Lottie Animation (unavailable) | Static, **hidden from inserter** | Real Lottie needs an external player library the theme won't bundle/CDN-load. Kept registered for old content, hidden from the inserter |
 | `ajnanda/team` | AJ Team | Static | Team-member card (photo/name/bio) |
 | `ajnanda/google-reviews` | Google Reviews | Dynamic | AJ Core featured valid Google reviews, four layouts, attribution and expiry |
 | `ajnanda/manual-testimonials` | Manual Testimonials | Dynamic | AJ Core permanent published/featured testimonials, four layouts, no Google branding |
-| `ajnanda/testimonials` | AJ Testimonials | Static | Quote-based testimonial card; its "carousel" layout option is explicitly labeled "Carousel placeholder" |
-| `ajnanda/review` | AJ Review | Static | Star-rating + quote card; `enableSchema` toggle produces no schema.org output |
+| `ajnanda/testimonials` | AJ Testimonials | Static + `render_block` | Quote-based testimonial card. The "Carousel" layout now runs the quotes through the shared accessible carousel (`ajnanda_blocks_carousel_wrap()`); single/grid unchanged |
+| `ajnanda/review` | AJ Review | Static + `render_block` | Star-rating + quote card. `enableSchema` on → `Review` JSON-LD (`ajnanda_blocks_review_schema()`: rating from `.aj-stars`, body/author from the quote, `itemReviewed` = site Organization) |
 | `ajnanda/price-list` | AJ Price List | Static | Simple price list card |
-| `ajnanda/social-share` | AJ Social Share | Static | Share-button row; its free-text `networks` field doesn't appear to drive the actual static buttons |
+| `ajnanda/social-share` | AJ Social Share | Static + `frontend.js` | Share-button row. `initSocialShare()` sets real hrefs by button label — Facebook / LinkedIn / X / Email, and "Share" uses `navigator.share()` (clipboard fallback), all for the current URL. The dead free-text `networks` field was removed |
 | `ajnanda/separator` | AJ Separator | Static | Horizontal rule with thickness/width controls |
 | `ajnanda/blockquote` | AJ Blockquote | Static | Editable rich-text blockquote |
 | `ajnanda/inline-notice` | AJ Inline Notice | Static | Editable rich-text notice box |
 | `ajnanda/buttons` | AJ Buttons | Static, **hidden from inserter** | Legacy multi-button wrapper — description says "use the native AJ Buttons variation instead" (see Core Block Enhancements); kept only for old content |
-| `ajnanda/faq` | AJ FAQ | Static | `core/details`-based FAQ accordion — genuinely functional (`frontend.js` `initFaq()` wires collapse-others/expand-first/disable-toggle). Its `enableSchema` toggle, despite the block description promising "FAQ schema," produces no JSON-LD |
+| `ajnanda/faq` | AJ FAQ | Static + `render_block` | `core/details`-based FAQ accordion; `frontend.js` `initFaq()` wires collapse-others/expand-first/disable-toggle. `enableSchema` on → `FAQPage` JSON-LD (`ajnanda_blocks_faq_schema()`, question/answer parsed from the rendered `<details>`) |
 | `ajnanda/input`, `ajnanda/label`, `ajnanda/text-area`, `ajnanda/checkbox`, `ajnanda/submit-button` | AJ Input/Label/Text Area/Checkbox/Submit Button | Static | Static form-field mockups used inside `ajnanda/form` — no real submission handling |
 | `ajnanda/icon-list` | AJ Icon List | Static | Icon-marked list wrapper; icon inheritance to children implemented in `frontend.js` |
 | `ajnanda/icon-list-item` | AJ List Item | Static | One list item, restricted to `ajnanda/icon-list` parent |
-| `ajnanda/counter` | AJ Counter | Static | Renders a static number — no count-up animation despite the name |
-| `ajnanda/progress-bar` | AJ Progress Bar | Static | Static progress bar at its final width — no scroll animation |
-| `ajnanda/countdown` | AJ Countdown | Static | Displays a raw target-date string — **no countdown-ticking JS exists** |
+| `ajnanda/counter` | AJ Counter | Static | Counts up to the saved number when scrolled into view (`frontend.js` `initCounter()`, `prefers-reduced-motion` aware) |
+| `ajnanda/progress-bar` | AJ Progress Bar | Static | Fill grows from 0 to the saved width when scrolled into view (`frontend.js` `initProgress()`, `prefers-reduced-motion` aware) |
+| `ajnanda/countdown` | AJ Countdown | Static | Live "Nd HH:MM:SS" tick from `data-target-date` (`frontend.js` `initCountdown()`); settles at zero when the target passes |
 | `ajnanda/star-ratings` | AJ Star Ratings | Static | Static 1–5 unicode-star rating + label |
 
 **Relationship to Section Patterns**: Section Patterns deliberately use
@@ -249,18 +249,26 @@ keeping pattern content portable and independent of the custom block
 library. The custom blocks are available for hand-building pages outside
 the pattern system.
 
-**Known gaps** (worth knowing before touching this block library):
-`ajnanda/basic-gallery` and `ajnanda/image-gallery` are duplicates of each
-other; several "Enable schema" toggles (`ajnanda/faq`, `ajnanda/how-to`,
-`ajnanda/review`) don't actually emit any schema.org markup; several
-blocks are explicitly placeholders with no runtime behavior
-(`ajnanda/modal`, `ajnanda/lottie-animation`, `ajnanda/post-carousel`,
-the "carousel" option on `ajnanda/testimonials`, `ajnanda/tabs`,
-`ajnanda/counter`, `ajnanda/countdown`); `ajnanda/buttons` is
-deprecated/hidden in favor of the `core/buttons` "AJ Buttons" variation
-(below). None of this blocks normal use of the working majority of the
-library — just don't assume a control does something because it exists
-in the UI.
+**Recent completeness pass** (2026): `ajnanda/counter`,
+`ajnanda/progress-bar`, `ajnanda/countdown`, `ajnanda/post-carousel`,
+`ajnanda/modal`, `ajnanda/tabs`, `ajnanda/accordion` (its two toggles),
+`ajnanda/social-share`, the `ajnanda/testimonials` carousel layout, and
+the "describe as … content" schema toggles on `ajnanda/faq` /
+`ajnanda/how-to` / `ajnanda/review` were all placeholder/inert and are now
+wired up — via `frontend.js`, the shared carousel, and four `render_block`
+filters in `loader.php` (`ajnanda_blocks_accordion_attrs`,
+`ajnanda_blocks_structured_data`, `ajnanda_blocks_interactive_containers`,
+plus the existing buttons/heading-anchor ones). None change saved markup,
+so no re-validation. `ajnanda/basic-gallery` (duplicate) and
+`ajnanda/lottie-animation` (needs an external player library) are now
+hidden from the inserter but still render existing content.
+
+**Remaining gaps**: `ajnanda/form` + its field blocks are layout-only
+mockups with no submission handling (by design — use AJ Core / wp-formy);
+`ajnanda/buttons` is deprecated/hidden in favor of the `core/buttons` "AJ
+Buttons" variation (below). Don't assume a control does something just
+because it's in the UI — but the working majority is now genuinely the
+majority.
 
 ## Core Block Enhancements
 
