@@ -348,6 +348,64 @@
     margin: 6px 0 10px;
 }
 
+.ajnanda-starter-page-tile-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+/* -----------------------------------------------------------------
+ * Starter Sites: the two preview modes
+ * ------------------------------------------------------------- */
+
+.ajnanda-preview-modes {
+    border: 1px solid #c3c4c7;
+    border-left: 4px solid #2271b1;
+    background: #fff;
+    border-radius: 6px;
+    padding: 16px 18px;
+    margin: 4px 0 18px;
+}
+
+.ajnanda-preview-modes-title {
+    margin: 0 0 12px;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.ajnanda-preview-modes-grid {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.ajnanda-preview-modes-grid .button.button-hero {
+    display: block;
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.ajnanda-preview-modes-grid p {
+    margin: 0;
+    color: #50575e;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.ajnanda-preview-modes-grid p em {
+    display: block;
+    margin-top: 6px;
+    color: #8c5e00;
+    font-style: normal;
+}
+
+.ajnanda-preview-modes-note {
+    margin: 14px 0 0;
+    color: #646970;
+    font-size: 12px;
+}
+
 /* -----------------------------------------------------------------
  * Live filter (Page Library, Patterns)
  * ------------------------------------------------------------- */

@@ -36,9 +36,13 @@ if (!defined('ABSPATH')) {
  * @param string $font_pairing    Optional font pairing slug (see ajnanda_get_font_pairings()).
  *                                  Omit to preview with the site's real, current fonts. Combine
  *                                  with $color_scheme to preview a full Site Kit (inc/site-kits.php).
- * @param array|null $starter_context  Optional array{starter:string,page_key:string}. When set,
- *                                       the rendered preview gets a connected click-through nav
- *                                       listing every other page in that Starter Site — see
+ * @param array|null $starter_context  Optional array{starter:string,page_key:string,mode?:string}.
+ *                                       When set, the rendered preview gets a connected
+ *                                       click-through nav listing every other page in that Starter
+ *                                       Site. `mode` is 'insite' (default — the starter's pages
+ *                                       wrapped in this site's real header/menu/logo/footer) or
+ *                                       'fresh' (a clean shell: the starter's own menu, no logo —
+ *                                       what a brand-new install looks like). See
  *                                       ajnanda_get_starter_preview_url(), the normal way to build
  *                                       this rather than passing it by hand.
  * @return string
@@ -57,6 +61,9 @@ function ajnanda_get_preview_url($pattern_slug, $color_scheme = '', $font_pairin
     if (is_array($starter_context) && !empty($starter_context['starter']) && !empty($starter_context['page_key'])) {
         $args['starter']  = $starter_context['starter'];
         $args['page_key'] = $starter_context['page_key'];
+        if (!empty($starter_context['mode']) && 'fresh' === $starter_context['mode']) {
+            $args['preview_mode'] = 'fresh';
+        }
     }
     return wp_nonce_url(
         add_query_arg($args, admin_url('admin-post.php')),
@@ -77,12 +84,17 @@ function ajnanda_get_preview_url($pattern_slug, $color_scheme = '', $font_pairin
  *                                 key), if it has one — otherwise the site's real current colors.
  * @param string $font_pairing  Optional font pairing slug, carried to every page as you click through.
  *                                 Same paired-kit default as $color_scheme.
+ * @param string $mode          'insite' (default) — the starter's pages wrapped in this site's real
+ *                                 header, menu, logo and footer. 'fresh' — a clean shell with the
+ *                                 starter's own menu and no logo, as a brand-new install would look.
+ *                                 Carried to every page as you click through.
  * @return string|null Null if the starter slug or page key doesn't exist.
  */
-function ajnanda_get_starter_preview_url($starter_slug, $page_key = '', $color_scheme = '', $font_pairing = '') {
+function ajnanda_get_starter_preview_url($starter_slug, $page_key = '', $color_scheme = '', $font_pairing = '', $mode = 'insite') {
     if (!class_exists('AJNanda_Starter_Sites')) {
         return null;
     }
+    $mode = 'fresh' === $mode ? 'fresh' : 'insite';
 
     $manifest = AJNanda_Starter_Sites::get($starter_slug);
     if (!$manifest || empty($manifest['pages'])) {
@@ -115,12 +127,82 @@ function ajnanda_get_starter_preview_url($starter_slug, $page_key = '', $color_s
                 $page['page_design'],
                 $color_scheme,
                 $font_pairing,
-                array('starter' => $starter_slug, 'page_key' => $page_key)
+                array('starter' => $starter_slug, 'page_key' => $page_key, 'mode' => $mode)
             );
         }
     }
 
     return null;
+}
+
+/**
+ * 'Fresh install' preview shell. Registers read-only filters (never saved)
+ * so the previewed page renders as if the site were brand new with this
+ * starter active:
+ *   - the primary navigation menu becomes the starter's own menu, each item
+ *     linking to that page's fresh preview;
+ *   - the footer navigation menu is emptied (a fresh install has none);
+ *   - the custom logo is dropped, so the header/footer show the site title
+ *     text the way a fresh install does.
+ *
+ * Deliberately does NOT touch the site title, footer widgets/builder, or
+ * header widget cells — those still reflect this install. The Starter Sites
+ * screen spells that caveat out next to the button.
+ *
+ * @param array  $manifest    A resolved starter manifest.
+ * @param string $scheme_slug Active color scheme slug (carried into menu links).
+ * @param string $font_slug   Active font pairing slug (carried into menu links).
+ * @param string $active_key  The page key currently being previewed.
+ */
+function ajnanda_preview_apply_fresh_shell($manifest, $scheme_slug, $font_slug, $active_key) {
+    add_filter('theme_mod_custom_logo', '__return_zero');
+
+    $pages_by_key = array();
+    foreach ($manifest['pages'] as $page) {
+        $pages_by_key[$page['key']] = $page;
+    }
+    $menu_keys = !empty($manifest['menu']['pages'])
+        ? $manifest['menu']['pages']
+        : wp_list_pluck($manifest['pages'], 'key');
+
+    add_filter('pre_wp_nav_menu', function ($output, $args) use ($manifest, $pages_by_key, $menu_keys, $scheme_slug, $font_slug, $active_key) {
+        $location = isset($args->theme_location) ? $args->theme_location : '';
+
+        // A fresh install has no footer menu assigned.
+        if ('footer' === $location) {
+            return '';
+        }
+        if ('primary' !== $location) {
+            return $output;
+        }
+
+        $items = '';
+        foreach ($menu_keys as $key) {
+            if (empty($pages_by_key[$key])) {
+                continue;
+            }
+            $page    = $pages_by_key[$key];
+            $classes = 'menu-item menu-item-type-post_type menu-item-object-page';
+            if ($key === $active_key) {
+                $classes .= ' current-menu-item current_page_item';
+            }
+            $url = ajnanda_get_preview_url(
+                $page['page_design'],
+                $scheme_slug,
+                $font_slug,
+                array('starter' => $manifest['slug'], 'page_key' => $key, 'mode' => 'fresh')
+            );
+            $items .= '<li class="' . esc_attr($classes) . '"><a href="' . esc_url($url) . '">' . esc_html($page['title']) . '</a></li>';
+        }
+        if ('' === $items) {
+            return $output;
+        }
+
+        $menu_id    = isset($args->menu_id) && $args->menu_id ? ' id="' . esc_attr($args->menu_id) . '"' : '';
+        $menu_class = isset($args->menu_class) && $args->menu_class ? $args->menu_class : 'nav-menu';
+
+        return '<ul' . $menu_id . ' class="' . esc_attr($menu_class) . '">' . $items . '</ul>';
+    }, 10, 2);
 }
 
 /**
@@ -209,6 +291,11 @@ function ajnanda_handle_preview_request() {
     $starter_manifest = ($starter_slug && class_exists('AJNanda_Starter_Sites')) ? AJNanda_Starter_Sites::get($starter_slug) : null;
     $starter_nav       = array();
 
+    // 'fresh' swaps in a clean shell (the starter's own menu, no logo) — what a
+    // brand-new install with this starter looks like. 'insite' (default) keeps
+    // this site's real header/menu/logo/footer around the starter's pages.
+    $preview_mode = (isset($_GET['preview_mode']) && 'fresh' === sanitize_key(wp_unslash($_GET['preview_mode']))) ? 'fresh' : 'insite';
+
     if ($starter_manifest) {
         foreach ($starter_manifest['pages'] as $starter_page) {
             $starter_nav[] = array(
@@ -218,9 +305,13 @@ function ajnanda_handle_preview_request() {
                     $starter_page['page_design'],
                     $scheme_slug,
                     $pairing_slug,
-                    array('starter' => $starter_slug, 'page_key' => $starter_page['key'])
+                    array('starter' => $starter_slug, 'page_key' => $starter_page['key'], 'mode' => $preview_mode)
                 ),
             );
+        }
+
+        if ('fresh' === $preview_mode) {
+            ajnanda_preview_apply_fresh_shell($starter_manifest, $scheme_slug, $pairing_slug, $starter_page_key);
         }
     }
 
@@ -294,7 +385,7 @@ function ajnanda_handle_preview_request() {
     // wp_body_open hook, header.php's own extension point for exactly
     // this kind of "right after <body>" insertion, instead of calling
     // get_header() a second time.
-    add_action('wp_body_open', function () use ($title, $scheme_slug, $schemes, $pairing_slug, $pairings, $starter_manifest, $starter_nav) {
+    add_action('wp_body_open', function () use ($title, $scheme_slug, $schemes, $pairing_slug, $pairings, $starter_manifest, $starter_nav, $preview_mode) {
         $back_url = admin_url($starter_manifest ? 'admin.php?page=ajnanda-starter-sites' : 'admin.php?page=ajnanda');
         ?>
         <div style="position:sticky;top:0;z-index:99999;background:#111827;color:#fff;font:600 13px/1.4 -apple-system,BlinkMacSystemFont,sans-serif;">
@@ -308,6 +399,9 @@ function ajnanda_handle_preview_request() {
                     <?php endif; ?>
                     <?php if ($scheme_slug) : ?> — <?php echo esc_html($schemes[$scheme_slug]['label']); ?> <?php esc_html_e('colors', 'ajnanda'); ?><?php endif; ?>
                     <?php if ($pairing_slug) : ?> — <?php echo esc_html($pairings[$pairing_slug]['label']); ?> <?php esc_html_e('fonts', 'ajnanda'); ?><?php endif; ?>
+                    <?php if ($starter_manifest) : ?>
+                        — <?php echo 'fresh' === $preview_mode ? esc_html__('viewing as a brand-new site', 'ajnanda') : esc_html__('viewing inside your current site', 'ajnanda'); ?>
+                    <?php endif; ?>
                     — <?php esc_html_e('nothing here is saved', 'ajnanda'); ?>
                 </span>
                 <a href="<?php echo esc_url($back_url); ?>" style="color:#fff;">← <?php esc_html_e('Back to AJNanda', 'ajnanda'); ?></a>

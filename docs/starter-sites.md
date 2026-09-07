@@ -90,7 +90,7 @@ is the single import engine used by:
 
 Separate from the import-plan preview above: every page listed under a
 starter site on the Starter Sites admin screen has its own "Preview"
-link, which opens a real, fully rendered page — actual header, footer,
+links, which open a real, fully rendered page — actual header, footer,
 and CSS — in an in-page modal (with a fallback link to open it in a new
 tab). Nothing is saved; it's the same non-destructive preview engine
 (`inc/preview.php`) used by the Page Library, Patterns, and Color Schemes
@@ -100,21 +100,46 @@ whether to import it — the status preview above only tells you whether it
 would be created, not what it contains. See `docs/development.md`
 ("Preview") for how the engine works.
 
+### Two preview modes
+
+Every preview link on the Starter Sites screen comes in two forms —
+"**Fresh site**" and "**In this site**" per page tile, and
+"**Preview as a brand-new site**" / "**Preview inside your current site**"
+for the whole starter (`?preview_mode=fresh` vs the default `insite`):
+
+- **In this site** (`insite`, the historical behaviour) renders the
+  starter's page content wrapped in *this* install's real header, primary
+  menu, custom logo and footer. It answers "how would these pages sit in my
+  site as it is now". Pages the site has no equivalent of just show the
+  demo content.
+- **Fresh site** (`fresh`) swaps in a clean shell so the page renders the
+  way a brand-new WordPress install with this starter would:
+  `ajnanda_preview_apply_fresh_shell()` filters `pre_wp_nav_menu` so the
+  **primary menu becomes the starter's own menu** (each item linking to
+  that page's fresh preview), empties the footer menu, and filters
+  `theme_mod_custom_logo` to `0` so the site-title text shows instead of a
+  logo. All read-only, nothing saved. It deliberately does **not** touch
+  the site title, footer widgets/builder, or header widget cells — those
+  still reflect the install, and the admin screen states that caveat next
+  to the button. The page tile thumbnails use the fresh view.
+
 Each page in the list also shows an inline "Already imported" / "Not
 imported yet" / "URL conflict" badge, computed the same way as the status
 preview above but shown by default — no need to click "Preview Import"
 just to check whether a starter site (or one of its pages) has already
 been imported.
 
-**Preview Whole Site**: the per-page Preview links above are independent —
-each renders one page with no way to get to the others. "Preview Whole
-Site" (`ajnanda_get_starter_preview_url()`, `inc/preview.php`) instead
-opens the starter's home page with a connected click-through nav bar
-added to the sticky preview banner, listing every other page in that
-starter (current page highlighted). Click through Home → Music → Shows →
-About like a real visitor would — still nothing saved, still no real nav
-menu or real pages involved; each click is just another
-`ajnanda_get_preview_url()` call carrying the same page list forward. Any
+**Whole-site preview**: the per-page Preview links above are independent —
+each renders one page with no way to get to the others. The two whole-site
+buttons (`ajnanda_get_starter_preview_url()`, `inc/preview.php`) instead
+open the starter's home page with a connected click-through nav bar added
+to the sticky preview banner, listing every other page in that starter
+(current page highlighted) — and, in `fresh` mode, the same list also
+becomes the site header's real primary menu. Click through Home → Music →
+Shows → About like a real visitor would — still nothing saved, still no
+real pages in the database; each click is just another
+`ajnanda_get_preview_url()` call carrying the same page list and mode
+forward. Any
 color scheme/font pairing override on the starting page is carried to
 every page you click through to, so you can preview a whole starter site
 in a specific Site Kit before deciding to import it or apply that kit.

@@ -64,7 +64,9 @@ Pages, Appearance:
   `AJNanda_Starter_Importer::preview()` for every starter on page load) —
   the explicit "Preview Import" button still exists for the full diff
   table. Each page also links to a full visual preview (see "Preview"
-  below), a "Preview Whole Site" button opens a connected click-through
+  below) in two modes — "Fresh site" (clean shell, the starter's own menu)
+  and "In this site" (this install's real header/menu/logo/footer) — and a
+  pair of whole-starter buttons open a connected click-through
   preview across every page in the starter, and a note above the Import
   button links to Color Schemes.
 - **Page Library** — browse Page Designs (with a live text filter), "Add as
@@ -129,13 +131,24 @@ four, and it automatically flows through to everywhere that already reads
 that theme_mod. A sticky banner (injected via the `wp_body_open` hook)
 makes clear nothing is saved.
 
-`$starter_context` (`array{starter, page_key}`, normally built via
-`ajnanda_get_starter_preview_url( $starter_slug, $page_key = '' )` rather
-than passed by hand) adds a second row to that banner: a link to every
-other page in the same Starter Site, current one highlighted, each link
-carrying the same color scheme/font pairing forward — a connected
-click-through preview of a whole starter site, still entirely built from
-per-request `ajnanda_get_preview_url()` calls with no session state.
+`$starter_context` (`array{starter, page_key, mode?}`, normally built via
+`ajnanda_get_starter_preview_url( $starter_slug, $page_key = '', $color_scheme = '', $font_pairing = '', $mode = 'insite' )`
+rather than passed by hand) adds a second row to that banner: a link to
+every other page in the same Starter Site, current one highlighted, each
+link carrying the same color scheme/font pairing and mode forward — a
+connected click-through preview of a whole starter site, still entirely
+built from per-request `ajnanda_get_preview_url()` calls with no session
+state.
+
+`mode` is `insite` (default) or `fresh` (`&preview_mode=fresh` on the
+URL). `fresh` calls `ajnanda_preview_apply_fresh_shell()`, which registers
+read-only request filters so the page renders like a brand-new install
+with this starter: `pre_wp_nav_menu` returns the **starter's own menu**
+for the `primary` location (items linking to each page's fresh preview)
+and an empty string for `footer`; `theme_mod_custom_logo` is filtered to
+`0`. Nothing else — site title, footer builder, header widget cells — is
+touched; the Starter Sites screen states that caveat by the button. The
+page-tile thumbnails render `fresh`.
 
 Two WordPress internals needed explicit handling to get a clean preview
 under `wp-admin/admin-post.php` (which never calls `set_current_screen()`

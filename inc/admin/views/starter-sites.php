@@ -94,10 +94,15 @@ $initial_slug = ($preview && isset($starters[$preview['slug']])) ? $preview['slu
 
             <div class="ajnanda-admin-grid">
                 <?php foreach ($starter['pages'] as $page) :
-                    $status    = isset($reports[$slug][$page['key']]['status']) ? $reports[$slug][$page['key']]['status'] : '';
-                    $thumb_url = function_exists('ajnanda_get_preview_url')
+                    $status     = isset($reports[$slug][$page['key']]['status']) ? $reports[$slug][$page['key']]['status'] : '';
+                    $insite_url = function_exists('ajnanda_get_preview_url')
                         ? ajnanda_get_preview_url($page['page_design'], $kit_colors, $kit_font, array('starter' => $slug, 'page_key' => $page['key']))
                         : '';
+                    $fresh_url  = function_exists('ajnanda_get_preview_url')
+                        ? ajnanda_get_preview_url($page['page_design'], $kit_colors, $kit_font, array('starter' => $slug, 'page_key' => $page['key'], 'mode' => 'fresh'))
+                        : '';
+                    // The thumbnail shows the fresh-site view — that's the one for judging the starter itself.
+                    $thumb_url  = $fresh_url ?: $insite_url;
                 ?>
                     <div class="ajnanda-admin-card ajnanda-starter-page-tile">
                         <?php if ($thumb_url) : ?>
@@ -132,26 +137,58 @@ $initial_slug = ($preview && isset($starters[$preview['slug']])) ? $preview['slu
                                     </span>
                                 </div>
                             <?php endif; ?>
-                            <?php if ($thumb_url) : ?>
-                                <a class="button button-small ajnanda-preview-link" target="_blank" rel="noopener" href="<?php echo esc_url($thumb_url); ?>">
-                                    <?php esc_html_e('Preview', 'ajnanda'); ?> ↗
-                                </a>
+                            <?php if ($fresh_url || $insite_url) : ?>
+                                <div class="ajnanda-starter-page-tile-actions">
+                                    <?php if ($fresh_url) : ?>
+                                        <a class="button button-small ajnanda-preview-link" target="_blank" rel="noopener" href="<?php echo esc_url($fresh_url); ?>">
+                                            <?php esc_html_e('Fresh site', 'ajnanda'); ?> ↗
+                                        </a>
+                                    <?php endif; ?>
+                                    <?php if ($insite_url) : ?>
+                                        <a class="button button-small ajnanda-preview-link" target="_blank" rel="noopener" href="<?php echo esc_url($insite_url); ?>">
+                                            <?php esc_html_e('In this site', 'ajnanda'); ?> ↗
+                                        </a>
+                                    <?php endif; ?>
+                                </div>
                             <?php endif; ?>
                         </div>
                     </div>
                 <?php endforeach; ?>
             </div>
 
+            <?php
+            $whole_fresh  = function_exists('ajnanda_get_starter_preview_url') ? ajnanda_get_starter_preview_url($slug, '', '', '', 'fresh') : null;
+            $whole_insite = function_exists('ajnanda_get_starter_preview_url') ? ajnanda_get_starter_preview_url($slug, '', '', '', 'insite') : null;
+            ?>
+            <?php if ($whole_fresh || $whole_insite) : ?>
+                <div class="ajnanda-preview-modes">
+                    <p class="ajnanda-preview-modes-title"><?php esc_html_e('Preview this starter two ways — nothing is saved either way', 'ajnanda'); ?></p>
+                    <div class="ajnanda-preview-modes-grid">
+                        <div>
+                            <?php if ($whole_fresh) : ?>
+                                <a href="<?php echo esc_url($whole_fresh); ?>" class="button button-hero button-primary ajnanda-preview-link" target="_blank" rel="noopener">
+                                    <?php esc_html_e('Preview as a brand-new site', 'ajnanda'); ?> ↗
+                                </a>
+                            <?php endif; ?>
+                            <p>
+                                <?php esc_html_e('The starter\'s own navigation menu, no logo, demo content on every page — what a fresh WordPress install with this starter looks like. Click through every page from the menu.', 'ajnanda'); ?>
+                                <em><?php esc_html_e('Caveat: your site title, footer, widget areas and any header buttons still come from this install — only the menu and logo are swapped out.', 'ajnanda'); ?></em>
+                            </p>
+                        </div>
+                        <div>
+                            <?php if ($whole_insite) : ?>
+                                <a href="<?php echo esc_url($whole_insite); ?>" class="button button-hero ajnanda-preview-link" target="_blank" rel="noopener">
+                                    <?php esc_html_e('Preview inside your current site', 'ajnanda'); ?> ↗
+                                </a>
+                            <?php endif; ?>
+                            <p><?php esc_html_e('The starter\'s pages wrapped in this site\'s real header, menu, logo and footer — how they would sit in your site exactly as it is now. Starter pages your site has no equivalent of just show the demo content.', 'ajnanda'); ?></p>
+                        </div>
+                    </div>
+                    <p class="ajnanda-preview-modes-note"><?php esc_html_e('Both apply the starter\'s Site Kit colors and fonts for the preview only. The per-page tiles above have the same two options.', 'ajnanda'); ?></p>
+                </div>
+            <?php endif; ?>
+
             <p style="display:flex;flex-wrap:wrap;gap:10px;">
-                <?php if (function_exists('ajnanda_get_starter_preview_url')) :
-                    $whole_site_url = ajnanda_get_starter_preview_url($slug);
-                ?>
-                    <?php if ($whole_site_url) : ?>
-                        <a href="<?php echo esc_url($whole_site_url); ?>" class="button button-primary ajnanda-preview-link" target="_blank" rel="noopener">
-                            <?php esc_html_e('Preview Whole Site', 'ajnanda'); ?> ↗
-                        </a>
-                    <?php endif; ?>
-                <?php endif; ?>
                 <a href="<?php echo esc_url(add_query_arg(array('page' => 'ajnanda-starter-sites', 'ajnanda_preview' => $slug), admin_url('admin.php')) . '#starter-' . $slug); ?>" class="button">
                     <?php esc_html_e('Preview Import (no changes made)', 'ajnanda'); ?>
                 </a>
