@@ -41,6 +41,25 @@
 .aj-carousel__overlay [data-next] { right: 4px; }
 .aj-carousel__overlay [data-pause] { left: 50%; bottom: 12px; transform: translateX(-50%); }
 .aj-carousel__chevron { display: block; width: 22px; height: 22px; }
+
+/* Dim "next slide in Ns" hint, bottom-right. JS shows it only while a countdown
+   is actually running; hidden entirely under reduced-motion. */
+.aj-carousel__countdown {
+    position: absolute;
+    right: 10px; bottom: 10px;
+    z-index: 2;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 11px; line-height: 1.7;
+    font-variant-numeric: tabular-nums;
+    color: #fff;
+    background: rgba(15, 23, 42, .45);
+    pointer-events: none;
+    user-select: none;
+}
+.aj-carousel__countdown[hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) { .aj-carousel__countdown { display: none !important; } }
+
 .aj-carousel__ico { display: block; }
 .aj-carousel__ico--play,
 .aj-carousel__overlay [data-pause][data-paused] .aj-carousel__ico--pause { display: none; }

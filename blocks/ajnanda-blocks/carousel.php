@@ -38,7 +38,11 @@ function ajnanda_carousel_markup($content, $args = array()) {
         . '<div class="aj-carousel__overlay" hidden><button type="button" data-prev aria-controls="' . esc_attr($id) . '"><span class="screen-reader-text">' . esc_html__('Previous', 'ajnanda') . '</span>' . ajnanda_carousel_chevron('prev') . '</button>'
         . '<button type="button" data-next aria-controls="' . esc_attr($id) . '"><span class="screen-reader-text">' . esc_html__('Next', 'ajnanda') . '</span>' . ajnanda_carousel_chevron('next') . '</button>'
         . ($args['autoplay'] ? '<button type="button" data-pause data-play-label="' . esc_attr__('Start automatic rotation', 'ajnanda') . '" data-pause-label="' . esc_attr__('Pause automatic rotation', 'ajnanda') . '"><span class="screen-reader-text" data-pause-text>' . esc_html__('Pause automatic rotation', 'ajnanda') . '</span>' . ajnanda_carousel_playpause_icon() . '</button>' : '')
-        . '</div></div>'
+        . '</div>'
+        // Dim "next slide in Ns" hint, bottom-right. Decorative (aria-hidden), JS
+        // only shows it while autoplay is actually counting down.
+        . ($args['autoplay'] ? '<div class="aj-carousel__countdown" data-countdown="' . esc_attr__('Next slide in %ds', 'ajnanda') . '" aria-hidden="true" hidden></div>' : '')
+        . '</div>'
         . '<div class="aj-carousel__controls" hidden>'
         . ($args['dots'] ? '<div class="aj-carousel__dots" data-dots aria-label="' . esc_attr__('Choose slide', 'ajnanda') . '"></div>' : '')
         . '<span class="screen-reader-text" data-position aria-live="polite" data-slide-label="' . esc_attr__('Slide %1$d of %2$d', 'ajnanda') . '"></span></div></div>';
