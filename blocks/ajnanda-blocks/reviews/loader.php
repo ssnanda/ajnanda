@@ -9,7 +9,7 @@ function ajnanda_reviews_attributes() {
         'layout' => array('type' => 'string', 'enum' => array('grid', 'list', 'carousel', 'featured'), 'default' => 'grid'),
         'order' => array('type' => 'string', 'enum' => array('configured', 'manual', 'date'), 'default' => 'configured'),
         'limit' => array('type' => 'number', 'default' => 6), 'columns' => array('type' => 'number', 'default' => 3),
-        'textLines' => array('type' => 'number', 'default' => 0), 'interval' => array('type' => 'number', 'default' => 6000),
+        'textLines' => array('type' => 'number', 'default' => 0), 'interval' => array('type' => 'number', 'default' => 4000),
         'viewLabel' => array('type' => 'string', 'default' => ''), 'writeLabel' => array('type' => 'string', 'default' => ''),
     );
     foreach (array('showAvatar', 'showDate', 'showText', 'showRating', 'showSource', 'showOverallRating', 'showTotal', 'showViewButton', 'showWriteButton', 'showDots') as $name) { $attrs[$name] = array('type' => 'boolean', 'default' => true); }

@@ -26,7 +26,7 @@ function ajnanda_carousel_playpause_icon() {
 }
 
 function ajnanda_carousel_markup($content, $args = array()) {
-    $args = wp_parse_args($args, array('label' => __('Carousel', 'ajnanda'), 'autoplay' => false, 'interval' => 6000, 'dots' => true, 'loop' => true, 'effect' => 'slide', 'speed' => 400));
+    $args = wp_parse_args($args, array('label' => __('Carousel', 'ajnanda'), 'autoplay' => false, 'interval' => 4000, 'dots' => true, 'loop' => true, 'effect' => 'slide', 'speed' => 400));
     ajnanda_carousel_assets();
     $id = wp_unique_id('ajnanda-carousel-');
     return '<div class="aj-carousel" role="region" aria-roledescription="' . esc_attr__('carousel', 'ajnanda') . '" aria-label="' . esc_attr($args['label']) . '" data-aj-carousel data-effect="' . ($args['effect'] === 'fade' ? 'fade' : 'slide') . '" data-speed="' . max(0, min(2000, (int) $args['speed'])) . '" data-autoplay="' . ($args['autoplay'] ? 'true' : 'false') . '" data-loop="' . ($args['loop'] ? 'true' : 'false') . '" data-interval="' . max(3000, min(30000, (int) $args['interval'])) . '">'
