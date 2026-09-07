@@ -653,11 +653,11 @@ number here goes stale immediately — a date is more durable. If behavior
 looks different than described, verify against the code — this
 document should be corrected, not the other way around.*
 
-### Rating-neutral header invitation
+### Header review invitation
 
-AJ Core Display Settings can enable AJNanda's reusable **Rate Us** top bar. Each
-of five stars offers the same private-feedback and Google-review links, with
+AJ Core Display Settings can enable AJNanda's reusable **Rate Us** top bar. Stars
+1–4 open private feedback and star 5 opens the configured Google review URL, with
 keyboard/no-JavaScript support and no automatic testimonial publication. Settings
 and public URL resolution stay in AJ Core; presentation is in
-`blocks/ajnanda-blocks/reviews/prompt.php/js/css`. See
+`blocks/ajnanda-blocks/reviews/prompt.php` and `blocks/ajnanda-blocks/reviews/prompt.css`. See
 [the header guide and legacy-theme example](reviews-testimonials.md#header-rate-us-invitation).

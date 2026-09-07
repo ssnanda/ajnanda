@@ -96,19 +96,17 @@ theme tokens. It is hidden when AJ Core is unavailable, the feature is disabled,
 or either destination is missing. No business-specific address, phone, or URL is
 embedded in the theme.
 
-The five labeled star buttons open one inline panel. Every rating gets the same
-**Send private feedback** and **Leave a Google review** links. The selected rating
-is explanatory only: it is not recorded, submitted, or appended to destination
-URLs. Nothing is automatically published as a Manual Testimonial.
+The five individually labeled star links navigate directly: **1–4 stars** open
+**Send private feedback** in the current tab; **5 stars** opens the configured
+Google review URL in a new tab. The separate feedback link remains visible.
+Ratings are not recorded, submitted, or appended to destination URLs. Nothing is
+automatically published as a Manual Testimonial.
 
-Buttons support keyboard activation; Escape and Close return focus to the chosen
-star. Outside clicks or leaving the component close it without stealing focus.
-The panel is not modal and does not trap focus. Labels, expanded state, status
-text, visible focus, and 44px star targets are provided. Without JavaScript both
-links remain visible and usable. The theme uses the existing Google-content expiry
-script and no-store mechanism when a link comes from a temporary API snapshot.
+Native links support keyboard activation and work without JavaScript, with visible
+focus and 44px star targets. The existing expiry script and no-store mechanism
+still apply when the Google link comes from a temporary API snapshot.
 
-Files: `reviews/prompt.php`, `reviews/prompt.js`, and `reviews/prompt.css` alongside
+Files: `reviews/prompt.php` and `reviews/prompt.css` alongside
 the existing block files. `functions.php` loads the component; `header.php` renders
 it after the skip link. No new blocks, forms, dependencies, or build steps are added.
 
@@ -147,10 +145,10 @@ these administrator-managed navigation settings or the legacy header template.
 
 ### Manual verification for the prompt
 
-- Enable it with two HTTPS destinations and check all five stars: both link URLs
-  must remain identical, with neither automatically redirecting.
-- Test keyboard activation, Tab, Escape, Close, outside click, and a narrow viewport.
-- Disable JavaScript: both links must remain usable.
+- Enable it with two HTTPS destinations: stars 1–4 must open private feedback;
+  star 5 must open the configured Google URL in a new tab.
+- Test Tab/Enter activation and a narrow viewport.
+- Disable JavaScript: all five star links and the separate feedback link must work.
 - Remove either destination with no valid Google fallback: the prompt must disappear.
 - With no Google override, check expiry/disconnection and cache bypass; with an
   explicit override, navigation remains independent of OAuth/synchronization.
@@ -165,5 +163,4 @@ php -n -l /Users/sandip/Projects/ajwp/ajcore/modules/reviews/class-ajcore-review
 php -n -l /Users/sandip/Projects/ajwp/ajnanda/blocks/ajnanda-blocks/reviews/prompt.php
 php -n -l /Users/sandip/Projects/ajwp/ajnanda/header.php
 php -n -l /Users/sandip/Projects/ajwp/ajnanda/functions.php
-node --check /Users/sandip/Projects/ajwp/ajnanda/blocks/ajnanda-blocks/reviews/prompt.js
 ```

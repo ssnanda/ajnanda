@@ -1,5 +1,5 @@
 <?php
-/** Theme presentation for AJ Core's rating-neutral review invitation. */
+/** Theme presentation for AJ Core's review invitation. */
 defined('ABSPATH') || exit;
 
 function ajnanda_review_prompt_settings() {
@@ -83,8 +83,7 @@ add_action('wp_enqueue_scripts', function () {
     if (!$settings) { return; }
     $uri = get_template_directory_uri() . '/blocks/ajnanda-blocks/reviews/';
     wp_enqueue_style('ajnanda-review-prompt', $uri . 'prompt.css', array(), ajnanda_blocks_asset_version('reviews/prompt.css'));
-    // The prompt bar is now plain links (stars -> Google, plus a private-feedback
-    // link) — no popup, no JS needed.
+    // Native star links work without JavaScript.
     if ($settings['expires_at']) { wp_enqueue_script('ajnanda-reviews-view'); }
 });
 
@@ -103,14 +102,16 @@ function ajnanda_render_review_prompt_bar() {
                 <?php if ('' !== $items['before']) { echo $items["before"]; } ?>
             <div class="aj-rate-us">
                 <span class="aj-rate-us__label" id="<?php echo esc_attr($id); ?>-label"><?php echo esc_html($settings['label']); ?></span>
-                <?php
-                // The stars are a single link to the Google review page. The rating
-                // is decorative only — it is never captured, and it never chooses a
-                // destination (that would be review gating: Google policy + FTC).
-                ?>
-                <a class="aj-rate-us__stars" href="<?php echo esc_url($settings['google_review_url']); ?>" target="_blank" rel="noopener noreferrer" aria-describedby="<?php echo esc_attr($id); ?>-label" aria-label="<?php esc_attr_e('Leave a review on Google', 'ajnanda'); ?>">
-                    <?php for ($star = 1; $star <= 5; ++$star) : ?><span class="aj-rate-us__star" aria-hidden="true">★</span><?php endfor; ?>
-                </a>
+                <div class="aj-rate-us__stars" role="group" aria-labelledby="<?php echo esc_attr($id); ?>-label">
+                    <?php for ($star = 1; $star <= 5; ++$star) :
+                        $is_google = 5 === $star;
+                        $url = $is_google ? $settings['google_review_url'] : $settings['feedback_url'];
+                        /* translators: %d: selected star rating. */
+                        $label = $is_google ? __('5 stars: Leave a review on Google', 'ajnanda') : sprintf(__('%d stars: Send private feedback', 'ajnanda'), $star);
+                        ?>
+                        <a class="aj-rate-us__star" href="<?php echo esc_url($url); ?>"<?php if ($is_google) : ?> target="_blank" rel="noopener noreferrer"<?php endif; ?> aria-label="<?php echo esc_attr($label); ?>"><span aria-hidden="true">★</span></a>
+                    <?php endfor; ?>
+                </div>
                 <a class="aj-rate-us__feedback" href="<?php echo esc_url($settings['feedback_url']); ?>"><?php esc_html_e('Send private feedback', 'ajnanda'); ?></a>
             </div>
                 <?php if ('' !== $items['after']) { echo $items["after"]; } ?>
