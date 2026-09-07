@@ -7,18 +7,24 @@
 .aj-carousel__track::-webkit-scrollbar { width: 0; height: 0; display: none; }
 .aj-carousel__track > * { flex: 0 0 calc(100% - .7rem); min-width: 0; margin: 0; scroll-snap-align: start; box-sizing: border-box; }
 .aj-carousel__track.is-moving { scroll-snap-type: none; }
+.aj-carousel__viewport { position: relative; }
+/* Full-size layer over the track so the buttons anchor to the slide box exactly;
+   the layer itself is click-through, the buttons opt back in. */
+.aj-carousel__overlay { position: absolute; inset: 0; pointer-events: none; }
+.aj-carousel__overlay[hidden] { display: none; }
+.aj-carousel__overlay button { pointer-events: auto; }
 .aj-carousel__controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .65rem; margin-top: 1rem; }
 .aj-carousel__controls[hidden] { display: none; }
 .aj-carousel button { min-width: 44px; min-height: 44px; border: 1px solid currentColor; border-radius: .4rem; padding: .5rem .85rem; font: inherit; color: inherit; background: transparent; cursor: pointer; }
 .aj-carousel button:disabled { opacity: .5; cursor: default; }
 
-/* Prev / Next: round icon buttons overlaid on the track edges, vertically
-   centred. Pause + dots stay in the row below. */
-.aj-carousel__controls [data-prev],
-.aj-carousel__controls [data-next] {
+/* Overlaid controls — round icon buttons on the slide box itself: prev/next on
+   the left/right edges (vertically centred), pause bottom-centre. Dots + the
+   live-region sit in .aj-carousel__controls below. */
+.aj-carousel__overlay [data-prev],
+.aj-carousel__overlay [data-next],
+.aj-carousel__overlay [data-pause] {
     position: absolute;
-    top: 40%;
-    transform: translateY(-50%);
     z-index: 2;
     width: 44px; height: 44px;
     padding: 0;
@@ -29,16 +35,24 @@
     color: var(--gray-900, #0f172a);
     box-shadow: 0 6px 18px rgba(15, 23, 42, .18);
 }
-.aj-carousel__controls [data-prev] { left: 4px; }
-.aj-carousel__controls [data-next] { right: 4px; }
+.aj-carousel__overlay [data-prev],
+.aj-carousel__overlay [data-next] { top: 50%; transform: translateY(-50%); }
+.aj-carousel__overlay [data-prev] { left: 4px; }
+.aj-carousel__overlay [data-next] { right: 4px; }
+.aj-carousel__overlay [data-pause] { left: 50%; bottom: 12px; transform: translateX(-50%); }
 .aj-carousel__chevron { display: block; width: 22px; height: 22px; }
+.aj-carousel__ico { display: block; }
+.aj-carousel__ico--play,
+.aj-carousel__overlay [data-pause][data-paused] .aj-carousel__ico--pause { display: none; }
+.aj-carousel__overlay [data-pause][data-paused] .aj-carousel__ico--play { display: block; }
 @media (min-width: 640px) {
-    .aj-carousel__controls [data-prev] { left: -12px; }
-    .aj-carousel__controls [data-next] { right: -12px; }
+    .aj-carousel__overlay [data-prev] { left: -12px; }
+    .aj-carousel__overlay [data-next] { right: -12px; }
 }
 @media (prefers-color-scheme: dark) {
-    .aj-carousel__controls [data-prev],
-    .aj-carousel__controls [data-next] { background: rgba(17, 24, 39, .92); color: #f8fafc; border-color: rgba(248, 250, 252, .18); }
+    .aj-carousel__overlay [data-prev],
+    .aj-carousel__overlay [data-next],
+    .aj-carousel__overlay [data-pause] { background: rgba(17, 24, 39, .92); color: #f8fafc; border-color: rgba(248, 250, 252, .18); }
 }
 
 /* Standard visually-hidden utility — the theme uses .screen-reader-text (e.g.

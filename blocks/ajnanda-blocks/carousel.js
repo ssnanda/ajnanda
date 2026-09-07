@@ -6,8 +6,10 @@
         var track = root.querySelector('.aj-carousel__track');
         var slides = Array.prototype.slice.call(track.children);
         var controls = root.querySelector('.aj-carousel__controls');
+        var overlay = root.querySelector('.aj-carousel__overlay');
         if (slides.length < 2) return;
         controls.hidden = false;
+        if (overlay) overlay.hidden = false;
         var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
         var index = 0, timer = null, hover = false, focused = false;
         var stopped = root.dataset.autoplay !== 'true' || reduced.matches;
@@ -73,8 +75,16 @@
         }
         function schedule() {
             window.clearTimeout(timer);
-            if (pause) pause.textContent = stopped || reduced.matches ? pause.dataset.playLabel : pause.dataset.pauseLabel;
-            if (pause) pause.disabled = reduced.matches;
+            if (pause) {
+                var isPaused = stopped || reduced.matches;
+                var label = isPaused ? pause.dataset.playLabel : pause.dataset.pauseLabel;
+                var pauseText = pause.querySelector('[data-pause-text]');
+                if (pauseText) { pauseText.textContent = label; } else { pause.textContent = label; }
+                pause.setAttribute('aria-label', label);
+                pause.setAttribute('aria-pressed', isPaused ? 'true' : 'false');
+                pause.toggleAttribute('data-paused', isPaused);
+                pause.disabled = reduced.matches;
+            }
             if (stopped || reduced.matches || hover || focused || document.hidden || !root.isConnected) return;
             timer = window.setTimeout(function () { go(index + 1, true); schedule(); }, interval);
         }
