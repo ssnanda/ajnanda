@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 2.0.25
+Version: 2.0.26
 License: GNU General Public License v2 or later
 Text Domain: ajnanda
 */
@@ -364,6 +364,15 @@ body.admin-bar .site-header {
     color: var(--ajn-footer-text-color);
     font-style: var(--ajn-footer-font-style);
     text-decoration: var(--ajn-footer-text-decoration);
+}
+
+/* Customizer > Footer > "Render the footer logo in white" — for a coloured or
+   dark-subtext logo that vanishes on a dark footer, when there's no dedicated
+   light footer-logo asset. brightness(0) collapses it to black, invert(1) flips
+   that to white. */
+.ajn-footer-logo-white .footer-builder-container .custom-logo,
+.ajn-footer-logo-white .footer-builder-container .custom-logo-link img {
+    filter: brightness(0) invert(1);
 }
 
 /* Optional branding badge/mark + tagline (header, footer, and header/footer

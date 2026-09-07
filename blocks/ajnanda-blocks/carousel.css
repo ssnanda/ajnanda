@@ -1,6 +1,10 @@
 .aj-slider--accessible { overflow: visible; }
 .aj-carousel { position: relative; min-width: 0; width: 100%; }
-.aj-carousel__track { display: flex; gap: 1.25rem; overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; padding: .35rem; scroll-padding: .35rem; align-items: stretch; }
+.aj-carousel__track { display: flex; gap: 1.25rem; overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; padding: .35rem; scroll-padding: .35rem; align-items: stretch; scrollbar-width: none; -ms-overflow-style: none; }
+/* Hide the native horizontal scrollbar — the carousel already exposes prev/next
+   buttons, dots and full keyboard nav; the bar was just visual noise under every
+   slider. The track stays scrollable by touch/trackpad. */
+.aj-carousel__track::-webkit-scrollbar { width: 0; height: 0; display: none; }
 .aj-carousel__track > * { flex: 0 0 calc(100% - .7rem); min-width: 0; margin: 0; scroll-snap-align: start; box-sizing: border-box; }
 .aj-carousel__track.is-moving { scroll-snap-type: none; }
 .aj-carousel__controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .65rem; margin-top: 1rem; }

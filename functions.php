@@ -396,7 +396,11 @@ function ajnanda_body_classes($classes) {
     if (is_front_page()) {
         $classes[] = 'ajnanda-home';
     }
-    
+
+    if (get_theme_mod('ajn_footer_logo_white', false)) {
+        $classes[] = 'ajn-footer-logo-white';
+    }
+
     return $classes;
 }
 add_filter('body_class', 'ajnanda_body_classes');
@@ -953,13 +957,42 @@ function ajnanda_render_branding_extras() {
     }
 }
 
-function ajnanda_render_builder_site_identity() {
+/**
+ * Renders the site logo / name for a header or footer builder "site-logo" cell.
+ *
+ * @param string $context 'header' (default) or 'footer'. In the footer, an
+ *                         optional dedicated footer logo (Customizer > Footer >
+ *                         Footer Logo) is used when set — a light wordmark on a
+ *                         dark footer often needs its own asset.
+ */
+function ajnanda_render_builder_site_identity($context = 'header') {
     $has_extras = '' !== trim((string) get_theme_mod('ajn_branding_badge_text', ''))
         || get_theme_mod('ajn_branding_show_tagline', false);
 
-    if (!$has_extras) {
+    $footer_logo_id = 'footer' === $context ? absint(get_theme_mod('ajn_footer_logo', 0)) : 0;
+    // Same registered size the header logo uses (add_theme_support('custom-logo')),
+    // so the footer logo isn't served at full upload resolution.
+    $footer_logo    = $footer_logo_id ? wp_get_attachment_image(
+        $footer_logo_id,
+        'custom-logo',
+        false,
+        array('class' => 'custom-logo ajn-footer-logo', 'alt' => get_bloginfo('name'))
+    ) : '';
+
+    $render_logo = static function () use ($footer_logo) {
+        if ('' !== $footer_logo) {
+            echo '<a href="' . esc_url(home_url('/')) . '" class="custom-logo-link ajn-footer-logo-link" rel="home">' . $footer_logo . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            return true;
+        }
         if (has_custom_logo()) {
             the_custom_logo();
+            return true;
+        }
+        return false;
+    };
+
+    if (!$has_extras) {
+        if ($render_logo()) {
             return;
         }
 
@@ -968,9 +1001,7 @@ function ajnanda_render_builder_site_identity() {
     }
 
     echo '<span class="site-branding-group">';
-    if (has_custom_logo()) {
-        the_custom_logo();
-    } else {
+    if (!$render_logo()) {
         echo '<a href="' . esc_url(home_url('/')) . '" class="site-logo" rel="home">' . esc_html(get_bloginfo('name')) . '</a>';
     }
     ajnanda_render_branding_extras();
@@ -1163,7 +1194,7 @@ add_filter('nav_menu_css_class', 'ajnanda_apply_nav_cta_menu_class', 10, 3);
 function ajnanda_render_builder_element($builder, $element) {
     switch ($element) {
         case 'site-logo':
-            ajnanda_render_builder_site_identity();
+            ajnanda_render_builder_site_identity($builder);
             break;
         case 'primary-menu':
             ajnanda_render_builder_menu('primary', 'nav-menu');
@@ -3281,6 +3312,39 @@ function ajnanda_customize_register($wp_customize) {
         'priority' => 26,
     ));
 
+    // Optional dedicated footer logo — the header logo often has dark sub-text
+    // that disappears on a dark footer. Falls back to the site's custom logo.
+    $wp_customize->add_setting('ajn_footer_logo', array(
+        'default'           => 0,
+        'sanitize_callback' => 'absint',
+        'transport'         => 'refresh',
+    ));
+
+    if (class_exists('WP_Customize_Media_Control')) {
+        $wp_customize->add_control(new WP_Customize_Media_Control(
+            $wp_customize,
+            'ajn_footer_logo',
+            array(
+                'label'       => __('Footer Logo', 'ajnanda'),
+                'description' => __('Used in the footer "Site Logo" builder cell instead of the header logo. Leave empty to reuse the header logo.', 'ajnanda'),
+                'section'     => 'ajnanda_footer',
+                'mime_type'   => 'image',
+            )
+        ));
+    }
+
+    $wp_customize->add_setting('ajn_footer_logo_white', array(
+        'default'           => false,
+        'sanitize_callback' => 'ajnanda_sanitize_checkbox',
+        'transport'         => 'refresh',
+    ));
+
+    $wp_customize->add_control('ajn_footer_logo_white', array(
+        'label'       => __('Render the footer logo in white', 'ajnanda'),
+        'description' => __('Applies a brightness/invert filter so a coloured or dark logo reads on a dark footer. Skip it if you uploaded a footer logo that is already light.', 'ajnanda'),
+        'section'     => 'ajnanda_footer',
+        'type'        => 'checkbox',
+    ));
 
     $wp_customize->add_setting('footer_background_color', array(
         'default'           => '#111827',
