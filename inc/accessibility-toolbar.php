@@ -21,7 +21,64 @@ function ajnanda_a11y_toolbar_enabled() {
 }
 
 /**
- * Customizer: a single on/off toggle plus a corner choice.
+ * The four screen corners the floating button can sit in.
+ */
+function ajnanda_a11y_toolbar_corners() {
+    return array(
+        'top-left'     => __('Top left', 'ajnanda'),
+        'top-right'    => __('Top right', 'ajnanda'),
+        'bottom-left'  => __('Bottom left', 'ajnanda'),
+        'bottom-right' => __('Bottom right', 'ajnanda'),
+    );
+}
+
+/**
+ * Resolved corner for the given context ('desktop' or 'mobile').
+ * Old left/right values are migrated to a top corner.
+ */
+function ajnanda_a11y_toolbar_position($context = 'desktop') {
+    $mod     = 'mobile' === $context ? 'ajnanda_a11y_toolbar_position_mobile' : 'ajnanda_a11y_toolbar_position';
+    $default = 'mobile' === $context ? 'bottom-right' : 'top-right';
+    $value   = get_theme_mod($mod, $default);
+    // Migrate the old left/right values.
+    if ('left' === $value)  { $value = 'top-left'; }
+    if ('right' === $value) { $value = 'top-right'; }
+    return array_key_exists($value, ajnanda_a11y_toolbar_corners()) ? $value : $default;
+}
+
+/**
+ * Tools => theme-mod name. Order here is the order they appear in the panel.
+ */
+function ajnanda_a11y_toolbar_tool_map() {
+    return array(
+        'textSize'       => 'ajnanda_a11y_tool_text_size',
+        'grayscale'      => 'ajnanda_a11y_tool_grayscale',
+        'invert'         => 'ajnanda_a11y_tool_invert',
+        'underlineLinks' => 'ajnanda_a11y_tool_underline_links',
+        'highlightLinks' => 'ajnanda_a11y_tool_highlight_links',
+        'readableFont'   => 'ajnanda_a11y_tool_readable_font',
+    );
+}
+
+/**
+ * The tool keys the site owner has left switched on. "Reset" is always present
+ * and is not in this list.
+ *
+ * @return string[]
+ */
+function ajnanda_a11y_toolbar_tools() {
+    $enabled = array();
+    foreach (ajnanda_a11y_toolbar_tool_map() as $key => $mod) {
+        if (get_theme_mod($mod, true)) {
+            $enabled[] = $key;
+        }
+    }
+    return array_values((array) apply_filters('ajnanda_a11y_toolbar_tools', $enabled));
+}
+
+/**
+ * Customizer: on/off, a corner for desktop, a separate corner for phones, and a
+ * checkbox per tool.
  */
 add_action('customize_register', 'ajnanda_a11y_toolbar_customize_register');
 function ajnanda_a11y_toolbar_customize_register($wp_customize) {
@@ -43,25 +100,62 @@ function ajnanda_a11y_toolbar_customize_register($wp_customize) {
         'type'        => 'checkbox',
     ));
 
+    $corners = ajnanda_a11y_toolbar_corners();
+
     $wp_customize->add_setting('ajnanda_a11y_toolbar_position', array(
-        'default'           => 'right',
+        'default'           => 'top-right',
         'sanitize_callback' => 'ajnanda_a11y_sanitize_position',
         'transport'         => 'refresh',
     ));
-
     $wp_customize->add_control('ajnanda_a11y_toolbar_position', array(
-        'label'   => __('Toolbar side', 'ajnanda'),
+        'label'   => __('Corner on desktop / tablet', 'ajnanda'),
         'section' => 'ajnanda_accessibility',
-        'type'    => 'radio',
-        'choices' => array(
-            'right' => __('Right', 'ajnanda'),
-            'left'  => __('Left', 'ajnanda'),
-        ),
+        'type'    => 'select',
+        'choices' => $corners,
     ));
+
+    $wp_customize->add_setting('ajnanda_a11y_toolbar_position_mobile', array(
+        'default'           => 'bottom-right',
+        'sanitize_callback' => 'ajnanda_a11y_sanitize_position',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ajnanda_a11y_toolbar_position_mobile', array(
+        'label'       => __('Corner on phones', 'ajnanda'),
+        'description' => __('Set independently from the desktop corner — e.g. top on desktop, bottom on phones.', 'ajnanda'),
+        'section'     => 'ajnanda_accessibility',
+        'type'        => 'select',
+        'choices'     => $corners,
+    ));
+
+    $tool_labels = array(
+        'textSize'       => __('Increase / Decrease Text', 'ajnanda'),
+        'grayscale'      => __('Grayscale', 'ajnanda'),
+        'invert'         => __('Invert Colors', 'ajnanda'),
+        'underlineLinks' => __('Underline Links', 'ajnanda'),
+        'highlightLinks' => __('Highlight Links', 'ajnanda'),
+        'readableFont'   => __('Readable Font', 'ajnanda'),
+    );
+    $first = true;
+    foreach (ajnanda_a11y_toolbar_tool_map() as $key => $mod) {
+        $wp_customize->add_setting($mod, array(
+            'default'           => true,
+            'sanitize_callback' => 'ajnanda_sanitize_checkbox',
+            'transport'         => 'refresh',
+        ));
+        $wp_customize->add_control($mod, array(
+            'label'       => $tool_labels[$key],
+            'description' => $first ? __('Choose which tools appear in the panel. Reset is always shown.', 'ajnanda') : '',
+            'section'     => 'ajnanda_accessibility',
+            'type'        => 'checkbox',
+        ));
+        $first = false;
+    }
 }
 
 function ajnanda_a11y_sanitize_position($value) {
-    return in_array($value, array('left', 'right'), true) ? $value : 'right';
+    if ('left' === $value)  { return 'top-left'; }
+    if ('right' === $value) { return 'top-right'; }
+    return array_key_exists($value, ajnanda_a11y_toolbar_corners()) ? $value : 'top-right';
 }
 
 /**
@@ -89,7 +183,9 @@ function ajnanda_a11y_toolbar_assets() {
     );
 
     wp_localize_script('ajnanda-a11y-toolbar', 'ajnandaA11y', array(
-        'position' => get_theme_mod('ajnanda_a11y_toolbar_position', 'right') === 'left' ? 'left' : 'right',
+        'position'       => ajnanda_a11y_toolbar_position('desktop'),
+        'positionMobile' => ajnanda_a11y_toolbar_position('mobile'),
+        'tools'          => ajnanda_a11y_toolbar_tools(),
         'i18n'     => array(
             'open'      => __('Accessibility tools', 'ajnanda'),
             'close'     => __('Close accessibility tools', 'ajnanda'),

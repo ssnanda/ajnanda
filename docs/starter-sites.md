@@ -124,20 +124,40 @@ in a specific Site Kit before deciding to import it or apply that kit.
 `corporate`, `technology`, `professional-services`, `product-reseller`,
 `property-management`, `insurance-financial`, `minimal-business`,
 `music-artist`, `personal-creative`, `baby-announcement`, `family-blog`,
-`developer-portfolio`, `ubuntu-portfolio` — see `wp ajnanda starter list`
-or the Starter Sites admin screen for each one's page list. Slugs are
-stable identifiers (see docs/development.md's Future Automation note) and
-are never renamed — **labels are not**: several of these are labeled with
-a real person's name by request (e.g. `music-artist`'s label is "Aad -
-Music Artist / DJ") rather than the fully generic label the slug's own
-name suggests. Relabel a manifest's `'label'` value freely; never touch
-its `'slug'`.
+`developer-portfolio`, `ubuntu-portfolio`, `nanda-dentist`,
+`aad-astrophysicist`, `viraj-orthopedic` — see `wp ajnanda starter list` or
+the Starter Sites admin screen for each one's page list. Slugs are stable
+identifiers (see docs/development.md's Future Automation note) and are never
+renamed — **labels are not**: several of these are labeled with a real
+person's name by request (e.g. `music-artist`'s label is "Aad - Music
+Artist / DJ", `nanda-dentist`'s is "Nanda - Dentist", `viraj-orthopedic`'s
+is "Viraj - Orthopedic") rather than the fully generic label the slug's own
+name suggests. Relabel a manifest's `'label'` value freely; never touch its
+`'slug'`.
 
-Six of these are also each written to pair with a specific Site Kit
+`nanda-dentist` and `viraj-orthopedic` are the widest starters — 12 pages
+plus an 11-item primary menu each. `nanda-dentist` pairs with
+`corporate-blue` and defines five dental-specific page designs
+(`page-home-dental`, `page-about-dental`, `page-services-dental`,
+`page-new-patients-dental`, `page-dental-financing`) plus
+`page-patient-reviews`. `viraj-orthopedic` pairs with `kinetic-clinic` and
+defines five orthopedic page designs (`page-home-orthopedic`,
+`page-conditions-treatments`, `page-for-patients`, `page-insurance-billing`,
+`page-sports-medicine`), reusing `page-patient-reviews`,
+`page-about-professional`, `page-service-single`, `page-team`, `page-faq`,
+`page-blog-landing`, `page-contact`. `aad-astrophysicist` pairs with
+`deep-space`, defines five researcher page designs (`page-home-scientist`,
+`page-research`, `page-publications`, `page-talks-media`, `page-outreach`)
+and reuses `page-about-story`, `page-blog-landing`, `page-contact`. All
+ship placeholder copy and placeholder image cards — no real photos.
+
+Eight of these are also each written to pair with a specific Site Kit
 (`docs/site-kits.md`): `music-artist` → "Neon Night", `personal-creative`
 → "Bubblegum Pop", `baby-announcement` → "Little One", `family-blog` →
 "Family Warmth", `developer-portfolio` → "Developer Portfolio",
-`ubuntu-portfolio` → "Ubuntu Terminal" — though nothing enforces that; a
+`ubuntu-portfolio` → "Ubuntu Terminal", `aad-astrophysicist` → "Deep
+Space", `viraj-orthopedic` → "Kinetic Clinic" — though nothing enforces
+that; a
 starter site's pages just follow whatever color scheme/font pairing
 happen to be active, same as any other page. `family-blog` is a good
 example of composition at the starter-site level, not just within a page

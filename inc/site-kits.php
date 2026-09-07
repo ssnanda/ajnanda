@@ -95,6 +95,19 @@ function ajnanda_get_site_kits() {
             'dark_surface' => true,
             'mood'         => __('Deep charcoal with a warm terminal-orange glow — Ubuntu/GNOME-desktop-inspired, for developer portfolios that mean it.', 'ajnanda'),
         ),
+        'deep-space' => array(
+            'label'        => __('Deep Space', 'ajnanda'),
+            'color_scheme' => 'violet',
+            'font_pairing' => 'elegant-serif',
+            'dark_surface' => true,
+            'mood'         => __('Dark, violet-lit and scholarly — observatories, research groups, science communicators.', 'ajnanda'),
+        ),
+        'kinetic-clinic' => array(
+            'label'        => __('Kinetic Clinic', 'ajnanda'),
+            'color_scheme' => 'emerald',
+            'font_pairing' => 'bold-display',
+            'mood'         => __('Fresh green and high-energy — orthopedics, physical therapy, sports medicine, movement.', 'ajnanda'),
+        ),
     );
 }
 

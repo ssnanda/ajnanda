@@ -8,6 +8,67 @@ function ajnanda_review_prompt_settings() {
     return $settings['enabled'] && $settings['available'] ? $settings : array();
 }
 
+/**
+ * Where the prompt bar sits. `top` and `bottom` are full-width bars; `left` and
+ * `right` are a compact card pinned to that edge, vertically centred. A separate
+ * choice applies on phones.
+ */
+function ajnanda_review_prompt_positions() {
+    return array(
+        'top'    => __('Top (full-width bar)', 'ajnanda'),
+        'bottom' => __('Bottom (full-width bar)', 'ajnanda'),
+        'left'   => __('Left (compact card)', 'ajnanda'),
+        'right'  => __('Right (compact card)', 'ajnanda'),
+    );
+}
+
+function ajnanda_review_prompt_sanitize_position($value) {
+    return array_key_exists($value, ajnanda_review_prompt_positions()) ? $value : 'top';
+}
+
+/**
+ * @param string $context 'desktop' or 'mobile'.
+ */
+function ajnanda_review_prompt_position($context = 'desktop') {
+    $mod = 'mobile' === $context ? 'ajnanda_review_prompt_position_mobile' : 'ajnanda_review_prompt_position';
+    return ajnanda_review_prompt_sanitize_position(get_theme_mod($mod, 'top'));
+}
+
+add_action('customize_register', function ($wp_customize) {
+    $wp_customize->add_section('ajnanda_reviews_prompt', array(
+        'title'       => __('Reviews & Testimonials', 'ajnanda'),
+        'description' => __('Placement of the "Rate Us" invitation bar. Whether it shows at all, its label, and the review links are set in AJ Core → Reviews & Testimonials.', 'ajnanda'),
+        'priority'    => 126,
+    ));
+
+    $choices = ajnanda_review_prompt_positions();
+
+    $wp_customize->add_setting('ajnanda_review_prompt_position', array(
+        'default'           => 'top',
+        'sanitize_callback' => 'ajnanda_review_prompt_sanitize_position',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ajnanda_review_prompt_position', array(
+        'label'   => __('Position on desktop / tablet', 'ajnanda'),
+        'section' => 'ajnanda_reviews_prompt',
+        'type'    => 'select',
+        'choices' => $choices,
+    ));
+
+    $wp_customize->add_setting('ajnanda_review_prompt_position_mobile', array(
+        'default'           => 'top',
+        'sanitize_callback' => 'ajnanda_review_prompt_sanitize_position',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ajnanda_review_prompt_position_mobile', array(
+        'label'       => __('Position on phones', 'ajnanda'),
+        'description' => __('Set independently from desktop. At the top on phones the bar stays hidden until the visitor scrolls down past it.', 'ajnanda'),
+        'section'     => 'ajnanda_reviews_prompt',
+        'type'        => 'select',
+        'choices'     => $choices,
+    ));
+});
+
 /** Small inline glyphs for the prompt bar's address / phone items. */
 function ajnanda_review_prompt_icon($name) {
     if ('pin' === $name) {
@@ -83,7 +144,9 @@ add_action('wp_enqueue_scripts', function () {
     if (!$settings) { return; }
     $uri = get_template_directory_uri() . '/blocks/ajnanda-blocks/reviews/';
     wp_enqueue_style('ajnanda-review-prompt', $uri . 'prompt.css', array(), ajnanda_blocks_asset_version('reviews/prompt.css'));
-    // Native star links work without JavaScript.
+    // Native star links work without JavaScript; this only adds the phone-only
+    // "slide the strip in once you scroll past the top" reveal (progressive).
+    wp_enqueue_script('ajnanda-review-prompt', $uri . 'prompt.js', array(), ajnanda_blocks_asset_version('reviews/prompt.js'), true);
     if ($settings['expires_at']) { wp_enqueue_script('ajnanda-reviews-view'); }
 });
 
@@ -92,8 +155,11 @@ function ajnanda_render_review_prompt_bar() {
     if (!$settings) { return; }
     $id    = wp_unique_id('aj-rate-us-');
     $items = ajnanda_review_prompt_bar_items($settings);
+    $pos_d = ajnanda_review_prompt_position('desktop');
+    $pos_m = ajnanda_review_prompt_position('mobile');
+    $classes = 'aj-review-prompt-bar aj-review-prompt-bar--d-' . $pos_d . ' aj-review-prompt-bar--m-' . $pos_m;
     ?>
-    <div class="aj-review-prompt-bar"<?php if ($settings['expires_at']) : ?> data-nosnippet data-google-expires="<?php echo (int) $settings['expires_at']; ?>"<?php endif; ?>>
+    <div class="<?php echo esc_attr($classes); ?>" data-m-position="<?php echo esc_attr($pos_m); ?>"<?php if ($settings['expires_at']) : ?> data-nosnippet data-google-expires="<?php echo (int) $settings['expires_at']; ?>"<?php endif; ?>>
         <div class="container aj-review-prompt-bar__inner">
             <?php if ('' !== $items['lead']) : ?>
                 <div class="aj-review-prompt-bar__lead"><?php echo $items["lead"]; ?></div>
@@ -112,7 +178,6 @@ function ajnanda_render_review_prompt_bar() {
                         <a class="aj-rate-us__star" href="<?php echo esc_url($url); ?>"<?php if ($is_google) : ?> target="_blank" rel="noopener noreferrer"<?php endif; ?> aria-label="<?php echo esc_attr($label); ?>"><span aria-hidden="true">★</span></a>
                     <?php endfor; ?>
                 </div>
-                <a class="aj-rate-us__feedback" href="<?php echo esc_url($settings['feedback_url']); ?>"><?php esc_html_e('Send private feedback', 'ajnanda'); ?></a>
             </div>
                 <?php if ('' !== $items['after']) { echo $items["after"]; } ?>
             </div>

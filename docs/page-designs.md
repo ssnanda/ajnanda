@@ -73,13 +73,21 @@ sections freely.
 ## Current page designs
 
 Grouped by type (see `wp ajnanda page-design list` or the Page Library
-admin screen for the live list): Home (10 variants, including a "Super
+admin screen for the live list): Home (13 variants, including a "Super
 Bold" high-contrast design, a Technology/SaaS design, a Music Artist/DJ
-design, a Personal design, a Baby Announcement design, and a Developer
-Portfolio design), About (4, including an Artist bio variant), Services
-(4), Products (3), Marketing/Landing (3), Company — Team, Partners,
-Careers, FAQ, Contact, Locations (6), Content — Blog Landing, Resource
-Center, Gallery (3), Music — Releases, Tour Dates (2), Projects (1).
+design, a Personal design, a Baby Announcement design, a Developer
+Portfolio design, a Dental Practice design, a Researcher/Scientist design,
+and an Orthopedic Practice design), About (5, including an Artist bio
+variant and a Dental Practice variant), Services (5, including a Dental
+Practice variant), Products (3), Marketing/Landing (3), Company — Team,
+Partners, Careers, FAQ, Contact, Locations (6), Content — Blog Landing,
+Resource Center, Gallery (3), Music — Releases, Tour Dates (2), Projects
+(1). A number are persona-specific compositions used by the persona
+starters: `nanda-dentist` (`page-*-dental`, `page-patient-reviews`),
+`aad-astrophysicist` (`page-home-scientist`, `page-research`,
+`page-publications`, `page-talks-media`, `page-outreach`), and
+`viraj-orthopedic` (`page-home-orthopedic`, `page-conditions-treatments`,
+`page-for-patients`, `page-insurance-billing`, `page-sports-medicine`).
 
 ## Adding a new page design
 

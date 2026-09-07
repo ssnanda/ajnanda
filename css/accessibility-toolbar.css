@@ -77,19 +77,30 @@ html.ajn-a11y-readable-font body th {
 }
 
 /* ---- Toolbar shell -------------------------------------------------- */
+/* JS pins the widget to one of four corners (a separate choice for phones) by
+   adding .ajn-a11y--{corner}. The toggle button hugs the screen edge; the panel
+   opens inward next to it. */
 .ajn-a11y {
     position: fixed;
-    top: 96px;
-    right: 0;
     z-index: 2147483001;
     display: flex;
-    align-items: flex-start;
-    flex-direction: row-reverse;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     line-height: 1.3;
 }
-.ajn-a11y--left { right: auto; left: 0; flex-direction: row; }
-.admin-bar .ajn-a11y { top: 128px; }
+.ajn-a11y--top-left,
+.ajn-a11y--top-right { top: 96px; align-items: flex-start; }
+.ajn-a11y--bottom-left,
+.ajn-a11y--bottom-right { bottom: 16px; align-items: flex-end; }
+.ajn-a11y--top-left,
+.ajn-a11y--bottom-left { left: 0; flex-direction: row; }
+.ajn-a11y--top-right,
+.ajn-a11y--bottom-right { right: 0; flex-direction: row-reverse; }
+.admin-bar .ajn-a11y--top-left,
+.admin-bar .ajn-a11y--top-right { top: 128px; }
+@media (max-width: 782px) {
+    .admin-bar .ajn-a11y--top-left,
+    .admin-bar .ajn-a11y--top-right { top: 92px; }
+}
 
 .ajn-a11y__toggle {
     flex: 0 0 auto;
@@ -105,7 +116,8 @@ html.ajn-a11y-readable-font body th {
     cursor: pointer;
     box-shadow: 0 6px 20px rgba(15, 23, 42, 0.28);
 }
-.ajn-a11y--left .ajn-a11y__toggle { border-radius: 0 10px 10px 0; }
+.ajn-a11y--top-left .ajn-a11y__toggle,
+.ajn-a11y--bottom-left .ajn-a11y__toggle { border-radius: 0 10px 10px 0; }
 .ajn-a11y__toggle:hover { background: #1e40af; }
 .ajn-a11y__toggle:focus-visible,
 .ajn-a11y__item:focus-visible {
@@ -166,6 +178,13 @@ html.ajn-a11y-readable-font body th {
 }
 
 @media (max-width: 600px) {
-    .ajn-a11y { top: auto; bottom: 12px; }
-    .admin-bar .ajn-a11y { bottom: 12px; top: auto; }
+    /* Corner still comes from the JS class; just tighten the edge offsets and
+       keep the panel within the viewport. */
+    .ajn-a11y--top-left,
+    .ajn-a11y--top-right { top: 12px; }
+    .admin-bar .ajn-a11y--top-left,
+    .admin-bar .ajn-a11y--top-right { top: 58px; }
+    .ajn-a11y--bottom-left,
+    .ajn-a11y--bottom-right { bottom: 12px; }
+    .ajn-a11y__panel { max-height: calc(100vh - 90px); }
 }

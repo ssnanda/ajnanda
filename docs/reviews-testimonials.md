@@ -90,25 +90,49 @@ The default integration test bootstrap loads the sibling `ajcore` repository; ov
 
 ## Header Rate Us invitation
 
-AJNanda now renders an optional top header bar using AJ Core's **Display Settings**.
+AJNanda renders an optional "Rate Us" bar using AJ Core's **Display Settings**.
 Enable the prompt and configure both destinations there. Its colors and fonts use
 theme tokens. It is hidden when AJ Core is unavailable, the feature is disabled,
 or either destination is missing. No business-specific address, phone, or URL is
 embedded in the theme.
 
+**Placement** is a theme concern, set in **Customizer → Reviews & Testimonials**,
+with an independent value for desktop/tablet and for phones:
+
+- **top** / **bottom** — a full-width bar. `top` is in normal flow above the
+  header; `bottom` is fixed to the bottom of the viewport.
+- **left** / **right** — a compact card (`position: fixed`) pinned to that edge
+  and vertically centred, contents stacked. The address and social rows are
+  dropped in this mode.
+
+Defaults are `top` for both. Only the phone `top` case loads any scroll logic.
+
 The five individually labeled star links navigate directly: **1–4 stars** open
-**Send private feedback** in the current tab; **5 stars** opens the configured
-Google review URL in a new tab. The separate feedback link remains visible.
-Ratings are not recorded, submitted, or appended to destination URLs. Nothing is
-automatically published as a Manual Testimonial.
+private feedback in the current tab; **5 stars** opens the configured Google
+review URL in a new tab. There is no separate visible "Send private feedback"
+link — the stars are the only control. By default the stars sit dimmed and fill
+left-to-right, up to the pointer, on hover or keyboard focus, so the row reads as
+an invitation rather than a filled-in rating. Ratings are not recorded, submitted,
+or appended to destination URLs. Nothing is automatically published as a Manual
+Testimonial.
 
 Native links support keyboard activation and work without JavaScript, with visible
-focus and 44px star targets. The existing expiry script and no-store mechanism
-still apply when the Google link comes from a temporary API snapshot.
+focus and 44px star targets (38px on phones). The existing expiry script and
+no-store mechanism still apply when the Google link comes from a temporary API
+snapshot.
 
-Files: `reviews/prompt.php` and `reviews/prompt.css` alongside
-the existing block files. `functions.php` loads the component; `header.php` renders
-it after the skip link. No new blocks, forms, dependencies, or build steps are added.
+When the **phone** position is `top`, the bar is not shown in place at the top of
+the page: a small always-loaded script (`reviews/prompt.js`) pulls it out of the
+flow and slides it back in as a fixed strip once the visitor scrolls past ~64px,
+then hides it again at the very top; while it shows, the sticky header is offset
+down by its height so nothing is covered. Without JavaScript the bar renders in
+place. Any other phone position (`bottom` / `left` / `right`) is static CSS and
+loads no script. On phones the address and social-icon rows are always dropped.
+
+Files: `reviews/prompt.php`, `reviews/prompt.css`, and `reviews/prompt.js`
+alongside the existing block files. `functions.php` loads the component;
+`header.php` renders it after the skip link. No new blocks, forms, dependencies,
+or build steps are added.
 
 ### Current non-AJNanda header
 

@@ -14,6 +14,13 @@
     var STORAGE_KEY = 'ajnandaA11y';
     var ROOT = document.documentElement;
 
+    var CORNERS = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
+    // Which tools the site owner left switched on. Absent config = all of them.
+    var TOOLS = Array.isArray(CONFIG.tools)
+        ? CONFIG.tools
+        : ['textSize', 'grayscale', 'invert', 'underlineLinks', 'highlightLinks', 'readableFont'];
+    function enabled(tool) { return TOOLS.indexOf(tool) !== -1; }
+
     // Text-size steps, as a multiplier applied to the root font size.
     var FONT_STEPS = [1, 1.1, 1.2, 1.35, 1.5];
 
@@ -117,11 +124,26 @@
         return b;
     }
 
+    // Pin the widget to the configured corner — a separate choice for phones.
+    function positionWidget(wrap) {
+        var mobile = window.matchMedia('(max-width: 600px)').matches;
+        var corner = mobile ? CONFIG.positionMobile : CONFIG.position;
+        if (CORNERS.indexOf(corner) === -1) { corner = mobile ? 'bottom-right' : 'top-right'; }
+        CORNERS.forEach(function (c) { wrap.classList.remove('ajn-a11y--' + c); });
+        wrap.classList.add('ajn-a11y--' + corner);
+    }
+
     function build() {
         var wrap = document.getElementById('ajn-a11y');
         if (!wrap) { return; }
+        // Nothing to offer if every tool has been switched off in Customizer.
+        if (!TOOLS.length) { return; }
         wrap.hidden = false;
-        if (CONFIG.position === 'left') { wrap.classList.add('ajn-a11y--left'); }
+        positionWidget(wrap);
+        var mq = window.matchMedia('(max-width: 600px)');
+        var relayout = function () { positionWidget(wrap); };
+        if (mq.addEventListener) { mq.addEventListener('change', relayout); }
+        else if (mq.addListener) { mq.addListener(relayout); }
 
         toggleBtn = document.createElement('button');
         toggleBtn.type = 'button';
@@ -147,26 +169,28 @@
         list.className = 'ajn-a11y__list';
 
         // Text size — two buttons that step a shared scale.
-        var inc = document.createElement('button');
-        inc.type = 'button';
-        inc.className = 'ajn-a11y__item';
-        inc.innerHTML = '<span class="ajn-a11y__ico">' + ICONS.increase + '</span><span class="ajn-a11y__label">' + (T.increase || 'Increase Text') + '</span>';
-        inc.addEventListener('click', function () {
-            state.fontStep = Math.min(FONT_STEPS.length - 1, (state.fontStep | 0) + 1);
-            apply();
-        });
+        if (enabled('textSize')) {
+            var inc = document.createElement('button');
+            inc.type = 'button';
+            inc.className = 'ajn-a11y__item';
+            inc.innerHTML = '<span class="ajn-a11y__ico">' + ICONS.increase + '</span><span class="ajn-a11y__label">' + (T.increase || 'Increase Text') + '</span>';
+            inc.addEventListener('click', function () {
+                state.fontStep = Math.min(FONT_STEPS.length - 1, (state.fontStep | 0) + 1);
+                apply();
+            });
 
-        var dec = document.createElement('button');
-        dec.type = 'button';
-        dec.className = 'ajn-a11y__item';
-        dec.innerHTML = '<span class="ajn-a11y__ico">' + ICONS.decrease + '</span><span class="ajn-a11y__label">' + (T.decrease || 'Decrease Text') + '</span>';
-        dec.addEventListener('click', function () {
-            state.fontStep = Math.max(0, (state.fontStep | 0) - 1);
-            apply();
-        });
+            var dec = document.createElement('button');
+            dec.type = 'button';
+            dec.className = 'ajn-a11y__item';
+            dec.innerHTML = '<span class="ajn-a11y__ico">' + ICONS.decrease + '</span><span class="ajn-a11y__label">' + (T.decrease || 'Decrease Text') + '</span>';
+            dec.addEventListener('click', function () {
+                state.fontStep = Math.max(0, (state.fontStep | 0) - 1);
+                apply();
+            });
 
-        list.appendChild(inc);
-        list.appendChild(dec);
+            list.appendChild(inc);
+            list.appendChild(dec);
+        }
 
         var toggles = [
             ['grayscale', T.grayscale || 'Grayscale', ICONS.grayscale],
@@ -176,6 +200,7 @@
             ['readableFont', T.readable || 'Readable Font', ICONS.readable]
         ];
         toggles.forEach(function (t) {
+            if (!enabled(t[0])) { return; }
             var b = makeToggle(t[0], t[1], t[2]);
             b.addEventListener('click', function () {
                 state[t[0]] = !state[t[0]];
@@ -226,7 +251,17 @@
         });
     }
 
+    // A tool the owner has since switched off must not stay "on" from a past
+    // visit's saved state — there'd be no button to clear it.
+    function pruneDisabled() {
+        if (!enabled('textSize')) { state.fontStep = 0; }
+        ['grayscale', 'invert', 'underlineLinks', 'highlightLinks', 'readableFont'].forEach(function (k) {
+            if (!enabled(k)) { state[k] = DEFAULT_STATE[k]; }
+        });
+    }
+
     function start() {
+        pruneDisabled();
         build();
         apply();
     }

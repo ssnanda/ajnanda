@@ -106,11 +106,13 @@ when explicitly asked.
 - **Main implementation**:
   `inc/starter-sites/class-ajnanda-starter-sites.php` (manifest registry),
   `inc/starter-sites/class-ajnanda-starter-importer.php` (import engine),
-  `inc/starter-sites/manifests/*.php` (12 starter sites today: corporate,
+  `inc/starter-sites/manifests/*.php` (16 starter sites today: corporate,
   technology, professional-services, product-reseller,
   property-management, insurance-financial, minimal-business,
   music-artist, personal-creative, baby-announcement, family-blog,
-  developer-portfolio)
+  developer-portfolio, ubuntu-portfolio, nanda-dentist,
+  aad-astrophysicist, viraj-orthopedic — the last three each pair with a
+  Site Kit: corporate-blue, deep-space, kinetic-clinic)
 - **Related systems**: each manifest page references a Page Design slug;
   the importer calls the same `ajnanda_get_pattern_content()` /
   `wp_insert_post()` path as manual insertion
@@ -655,9 +657,14 @@ document should be corrected, not the other way around.*
 
 ### Header review invitation
 
-AJ Core Display Settings can enable AJNanda's reusable **Rate Us** top bar. Stars
+AJ Core Display Settings can enable AJNanda's reusable **Rate Us** bar. Stars
 1–4 open private feedback and star 5 opens the configured Google review URL, with
-keyboard/no-JavaScript support and no automatic testimonial publication. Settings
-and public URL resolution stay in AJ Core; presentation is in
-`blocks/ajnanda-blocks/reviews/prompt.php` and `blocks/ajnanda-blocks/reviews/prompt.css`. See
+keyboard/no-JavaScript support and no automatic testimonial publication. The
+stars sit dimmed and fill on hover/focus (an invitation, not a rating); there is
+no separate "Send private feedback" link. Settings and public URL resolution stay
+in AJ Core. Presentation is in `blocks/ajnanda-blocks/reviews/prompt.php`,
+`prompt.css`, and `prompt.js`. Placement — **top / bottom** (full-width bar) or
+**left / right** (compact edge card), with a separate choice for phones — is in
+**Customizer → Reviews & Testimonials**; at the top on phones the bar stays hidden
+until the visitor scrolls past it. See
 [the header guide and legacy-theme example](reviews-testimonials.md#header-rate-us-invitation).
