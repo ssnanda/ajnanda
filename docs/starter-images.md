@@ -13,10 +13,17 @@ should launch with real (or AI-generated) imagery, the workflow is:
    `wp ajnanda starter import <slug>`).
 2. Generate the images you want — see the per-starter prompt sets below —
    at roughly **1600×1000** for hero/feature images and **800×800** for
-   portraits and team photos.
+   portraits and team photos. Ask for realistic/photographic results, not
+   illustration or 3D-render styles.
 3. Open each page, select the placeholder card, replace it with an **Image**
    block, and upload. Set meaningful alt text.
 4. For team grids, replace each of the four photo placeholders.
+
+If you would rather the import place the images automatically, that needs a
+small build (an `images/starter/` asset dir + an importer pass that swaps
+the placeholder card for a real Image block when a matching file exists,
+falling back to the card when it does not). Not built yet — request it and
+hand over a folder of files named per the slots below.
 
 The prompts below are starting points — adjust the person's appearance,
 setting, and palette to match the real practice or individual. Keep a
