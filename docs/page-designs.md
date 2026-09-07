@@ -85,9 +85,11 @@ Resource Center, Gallery (3), Music — Releases, Tour Dates (2), Projects
 (1). A number are persona-specific compositions used by the persona
 starters: `nanda-dentist` (`page-*-dental`, `page-patient-reviews`),
 `aad-astrophysicist` (`page-home-scientist`, `page-research`,
-`page-publications`, `page-talks-media`, `page-outreach`), and
+`page-publications`, `page-talks-media`, `page-outreach`),
 `viraj-orthopedic` (`page-home-orthopedic`, `page-conditions-treatments`,
-`page-for-patients`, `page-insurance-billing`, `page-sports-medicine`).
+`page-for-patients`, `page-insurance-billing`, `page-sports-medicine`), and
+`raunak-virologist` (`page-outbreak-response`, plus the researcher designs
+above reused as-is).
 
 ## Adding a new page design
 

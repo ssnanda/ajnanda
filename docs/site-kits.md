@@ -119,15 +119,17 @@ needs the Customizer checkbox or `set_theme_mod('ajnanda_dark_surface_mode', tru
 
 A **kit** is a color scheme slug + a font pairing slug, bundled under one
 name — plus, since Dark Surface Mode above was added, an optional third
-`'dark_surface' => true` key. `ajnanda_get_site_kits()` returns 14:
+`'dark_surface' => true` key. `ajnanda_get_site_kits()` returns 15:
 Corporate Blue, Elegant Gold, Modern Tech, Bold Startup, Minimal Slate,
 Dark Premium, Neon Night, Bubblegum Pop, Little One, Family Warmth,
-Developer Portfolio, Ubuntu Terminal, Deep Space, Kinetic Clinic. Three set
-`dark_surface`: Ubuntu Terminal (Aubergine + Developer Mono — warm
-terminal-orange on deep charcoal, a Linux/open-source-desktop look) and
-Deep Space (Violet + Elegant Serif — a dark, scholarly, observatory feel,
-paired with the `aad-astrophysicist` starter). Kinetic Clinic (Emerald +
-Bold Display, light surfaces) is the fresh-green, high-energy kit paired
+Developer Portfolio, Ubuntu Terminal, Deep Space, Kinetic Clinic, Lab
+Fluoro. Three set `dark_surface`: Ubuntu Terminal (Aubergine + Developer
+Mono — warm terminal-orange on deep charcoal, a Linux/open-source-desktop
+look), Deep Space (Violet + Elegant Serif — a dark, scholarly, observatory
+feel, paired with the `aad-astrophysicist` starter), and Lab Fluoro
+(Fuchsia + Modern Sans — magenta on near-black, a fluorescence-microscopy
+look, paired with the `raunak-virologist` starter). Kinetic Clinic (Emerald
++ Bold Display, light surfaces) is the fresh-green, high-energy kit paired
 with the `viraj-orthopedic` starter.
 
 - **"Quick Kits"** — a control at the very top of the native Colors panel

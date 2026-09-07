@@ -108,6 +108,13 @@ function ajnanda_get_site_kits() {
             'font_pairing' => 'bold-display',
             'mood'         => __('Fresh green and high-energy — orthopedics, physical therapy, sports medicine, movement.', 'ajnanda'),
         ),
+        'lab-fluoro' => array(
+            'label'        => __('Lab Fluoro', 'ajnanda'),
+            'color_scheme' => 'fuchsia',
+            'font_pairing' => 'modern-sans',
+            'dark_surface' => true,
+            'mood'         => __('Magenta on near-black, like a fluorescence-microscopy image — virology, cell biology, research labs.', 'ajnanda'),
+        ),
     );
 }
 

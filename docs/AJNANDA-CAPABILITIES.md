@@ -106,13 +106,14 @@ when explicitly asked.
 - **Main implementation**:
   `inc/starter-sites/class-ajnanda-starter-sites.php` (manifest registry),
   `inc/starter-sites/class-ajnanda-starter-importer.php` (import engine),
-  `inc/starter-sites/manifests/*.php` (16 starter sites today: corporate,
+  `inc/starter-sites/manifests/*.php` (17 starter sites today: corporate,
   technology, professional-services, product-reseller,
   property-management, insurance-financial, minimal-business,
   music-artist, personal-creative, baby-announcement, family-blog,
   developer-portfolio, ubuntu-portfolio, nanda-dentist,
-  aad-astrophysicist, viraj-orthopedic — the last three each pair with a
-  Site Kit: corporate-blue, deep-space, kinetic-clinic)
+  aad-astrophysicist, viraj-orthopedic, raunak-virologist — the last four
+  each pair with a Site Kit: corporate-blue, deep-space, kinetic-clinic,
+  lab-fluoro)
 - **Related systems**: each manifest page references a Page Design slug;
   the importer calls the same `ajnanda_get_pattern_content()` /
   `wp_insert_post()` path as manual insertion

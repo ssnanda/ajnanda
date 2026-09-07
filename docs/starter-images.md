@@ -61,6 +61,19 @@ one shoot.
 | Our Care Team | Team grid ×4 | "Studio portrait of a clinician against a soft green-grey backdrop, friendly, natural light" (vary role: surgeon, PA, physiotherapist, nurse) |
 | Patient Stories | (testimonial cards / featured quote are text) | Optional: candid photos of active people — hiking, cycling, playing with kids — bright and hopeful |
 
+## `raunak-virologist` — "Raunak - Virologist" (palette: Lab Fluoro — magenta on near-black)
+
+| Page | Slot | Prompt |
+|---|---|---|
+| Home | Hero (split) | "Environmental portrait of a virologist in PPE at a biosafety cabinet, magenta and cyan lab lighting, near-black background, cinematic, 85mm" |
+| Home | — | (statement, research areas, stats, quote, CTA are text-only) |
+| Research | (rows / feature grid are text) | Optional per row: "Fluorescence-microscopy image of infected cells — magenta nuclei, cyan cytoplasm, green viral protein — on black, confocal style" |
+| The Lab | Team grid ×4 | "Studio portrait of a lab researcher in a white coat against a dark charcoal backdrop, subtle magenta rim light, focused" (vary role: PI, postdoc, technician, PhD student) |
+| Outbreak Response | (steps / metrics / capability grid are text) | Optional: "A gloved hand loading a sequencing flow cell, shallow focus, magenta instrument glow, dark lab" |
+| Talks & Media | Feature (image right) | "A scientist presenting outbreak data on a large dark screen, magenta charts, lecture-hall silhouettes, dramatic light" |
+| About | Story (image right) | "Candid photo of a researcher reviewing genome data on two monitors in a dim office, magenta screen glow, thoughtful" |
+| Field Notes | (blog landing — thumbnails come from posts) | — |
+
 ---
 
 ## If you want a starter to ship images by default
