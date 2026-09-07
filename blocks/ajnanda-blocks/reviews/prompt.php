@@ -83,7 +83,8 @@ add_action('wp_enqueue_scripts', function () {
     if (!$settings) { return; }
     $uri = get_template_directory_uri() . '/blocks/ajnanda-blocks/reviews/';
     wp_enqueue_style('ajnanda-review-prompt', $uri . 'prompt.css', array(), ajnanda_blocks_asset_version('reviews/prompt.css'));
-    wp_enqueue_script('ajnanda-review-prompt', $uri . 'prompt.js', array(), ajnanda_blocks_asset_version('reviews/prompt.js'), true);
+    // The prompt bar is now plain links (stars -> Google, plus a private-feedback
+    // link) — no popup, no JS needed.
     if ($settings['expires_at']) { wp_enqueue_script('ajnanda-reviews-view'); }
 });
 
@@ -100,20 +101,17 @@ function ajnanda_render_review_prompt_bar() {
             <?php endif; ?>
             <div class="aj-review-prompt-bar__actions">
                 <?php if ('' !== $items['before']) { echo $items["before"]; } ?>
-            <div class="aj-rate-us" data-aj-rate-us>
+            <div class="aj-rate-us">
                 <span class="aj-rate-us__label" id="<?php echo esc_attr($id); ?>-label"><?php echo esc_html($settings['label']); ?></span>
-                <div class="aj-rate-us__stars" role="group" aria-labelledby="<?php echo esc_attr($id); ?>-label" hidden>
-                    <?php for ($rating = 1; $rating <= 5; ++$rating) : ?>
-                        <button type="button" data-rating="<?php echo (int) $rating; ?>" aria-controls="<?php echo esc_attr($id); ?>-choices" aria-expanded="false" aria-label="<?php echo esc_attr(sprintf(_n('%d star: choose feedback options', '%d stars: choose feedback options', $rating, 'ajnanda'), $rating)); ?>" data-message="<?php echo esc_attr(sprintf(_n('You selected %d star. Choose where to share your experience.', 'You selected %d stars. Choose where to share your experience.', $rating, 'ajnanda'), $rating)); ?>"><span aria-hidden="true">★</span></button>
-                    <?php endfor; ?>
-                </div>
-                <div class="aj-rate-us__choices" id="<?php echo esc_attr($id); ?>-choices">
-                    <p class="aj-rate-us__status" role="status"><?php esc_html_e('Choose where to share your experience.', 'ajnanda'); ?></p>
-                    <a href="<?php echo esc_url($settings['feedback_url']); ?>"><?php esc_html_e('Send private feedback', 'ajnanda'); ?></a>
-                    <a href="<?php echo esc_url($settings['google_review_url']); ?>"><?php esc_html_e('Leave a Google review', 'ajnanda'); ?></a>
-                    <p class="aj-rate-us__note"><?php esc_html_e('Both options are available for every rating. Your star selection is not submitted here.', 'ajnanda'); ?></p>
-                    <button class="aj-rate-us__close" type="button" hidden><?php esc_html_e('Close', 'ajnanda'); ?></button>
-                </div>
+                <?php
+                // The stars are a single link to the Google review page. The rating
+                // is decorative only — it is never captured, and it never chooses a
+                // destination (that would be review gating: Google policy + FTC).
+                ?>
+                <a class="aj-rate-us__stars" href="<?php echo esc_url($settings['google_review_url']); ?>" target="_blank" rel="noopener noreferrer" aria-describedby="<?php echo esc_attr($id); ?>-label" aria-label="<?php esc_attr_e('Leave a review on Google', 'ajnanda'); ?>">
+                    <?php for ($star = 1; $star <= 5; ++$star) : ?><span class="aj-rate-us__star" aria-hidden="true">★</span><?php endfor; ?>
+                </a>
+                <a class="aj-rate-us__feedback" href="<?php echo esc_url($settings['feedback_url']); ?>"><?php esc_html_e('Send private feedback', 'ajnanda'); ?></a>
             </div>
                 <?php if ('' !== $items['after']) { echo $items["after"]; } ?>
             </div>

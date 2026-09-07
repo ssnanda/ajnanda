@@ -11,17 +11,14 @@ a.aj-review-prompt-bar__phone:hover, a.aj-review-prompt-bar__phone:focus-visible
 .aj-review-prompt-bar__social { gap: .15rem; }
 .aj-review-prompt-bar__social a { display: inline-flex; padding: 6px; color: inherit; border-radius: .25rem; }
 .aj-review-prompt-bar__social a:hover, .aj-review-prompt-bar__social a:focus-visible { background: rgb(255 255 255 / 18%); }
-.aj-rate-us { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; max-width: 100%; }
+.aj-rate-us { display: flex; flex-wrap: wrap; align-items: center; gap: .1rem .55rem; max-width: 100%; }
 .aj-rate-us__label { font-weight: 600; }
-.aj-rate-us__stars { display: flex; }
-.aj-rate-us [hidden] { display: none !important; }
-.aj-rate-us__stars button { display: inline-flex; align-items: center; justify-content: center; width: 44px; min-height: 44px; padding: 0; border: 0; border-radius: .2rem; background: transparent; color: inherit; font: inherit; font-size: 1.55rem; cursor: pointer; }
-.aj-rate-us__stars button.is-selected, .aj-rate-us__stars button:hover { background: rgb(255 255 255 / 18%); }
-.aj-rate-us__choices { display: grid; gap: .75rem; box-sizing: border-box; width: min(23rem, calc(100vw - 2rem)); padding: 1rem; border: 1px solid var(--gray-200, #e5e7eb); border-radius: .5rem; background: var(--white, #fff); color: var(--gray-900, #111827); box-shadow: 0 .5rem 1.5rem rgb(0 0 0 / 15%); }
-.aj-rate-us.is-enhanced .aj-rate-us__choices { position: absolute; inset-inline-end: 0; top: calc(100% + .4rem); }
-.aj-rate-us__choices p { margin: 0; }
-.aj-rate-us__choices a, .aj-rate-us__close { display: block; padding: .65rem .8rem; min-height: 44px; box-sizing: border-box; border: 1px solid currentColor; border-radius: .3rem; color: inherit; background: transparent; font: inherit; text-align: center; text-decoration: underline; cursor: pointer; }
-.aj-rate-us__note { font-size: .85em; }
+/* Stars: one link to the Google review page. The rating is decorative — it is
+   never captured and never chooses a destination. */
+.aj-rate-us__stars { display: inline-flex; align-items: center; padding: 2px 4px; border-radius: .25rem; color: inherit; text-decoration: none; line-height: 1; }
+.aj-rate-us__star { font-size: 1.5rem; }
+.aj-rate-us__stars:hover, .aj-rate-us__stars:focus-visible { background: rgb(255 255 255 / 18%); }
+.aj-rate-us__feedback { color: inherit; font-size: .9em; text-decoration: underline; text-underline-offset: .15em; white-space: nowrap; }
 .aj-rate-us :focus-visible { outline: 3px solid currentColor; outline-offset: 2px; }
 @media (max-width: 640px) {
     .aj-review-prompt-bar__lead { display: none; } /* address lives in the footer; keep the bar compact */
