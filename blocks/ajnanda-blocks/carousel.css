@@ -1,5 +1,5 @@
 .aj-slider--accessible { overflow: visible; }
-.aj-carousel { min-width: 0; width: 100%; }
+.aj-carousel { position: relative; min-width: 0; width: 100%; }
 .aj-carousel__track { display: flex; gap: 1.25rem; overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; padding: .35rem; scroll-padding: .35rem; align-items: stretch; }
 .aj-carousel__track > * { flex: 0 0 calc(100% - .7rem); min-width: 0; margin: 0; scroll-snap-align: start; box-sizing: border-box; }
 .aj-carousel__track.is-moving { scroll-snap-type: none; }
@@ -7,6 +7,53 @@
 .aj-carousel__controls[hidden] { display: none; }
 .aj-carousel button { min-width: 44px; min-height: 44px; border: 1px solid currentColor; border-radius: .4rem; padding: .5rem .85rem; font: inherit; color: inherit; background: transparent; cursor: pointer; }
 .aj-carousel button:disabled { opacity: .5; cursor: default; }
+
+/* Prev / Next: round icon buttons overlaid on the track edges, vertically
+   centred. Pause + dots stay in the row below. */
+.aj-carousel__controls [data-prev],
+.aj-carousel__controls [data-next] {
+    position: absolute;
+    top: 40%;
+    transform: translateY(-50%);
+    z-index: 2;
+    width: 44px; height: 44px;
+    padding: 0;
+    display: grid; place-items: center;
+    border: 1px solid var(--gray-200, rgba(15, 23, 42, .14));
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .92);
+    color: var(--gray-900, #0f172a);
+    box-shadow: 0 6px 18px rgba(15, 23, 42, .18);
+}
+.aj-carousel__controls [data-prev] { left: 4px; }
+.aj-carousel__controls [data-next] { right: 4px; }
+.aj-carousel__chevron { display: block; width: 22px; height: 22px; }
+@media (min-width: 640px) {
+    .aj-carousel__controls [data-prev] { left: -12px; }
+    .aj-carousel__controls [data-next] { right: -12px; }
+}
+@media (prefers-color-scheme: dark) {
+    .aj-carousel__controls [data-prev],
+    .aj-carousel__controls [data-next] { background: rgba(17, 24, 39, .92); color: #f8fafc; border-color: rgba(248, 250, 252, .18); }
+}
+
+/* Standard visually-hidden utility — the theme uses .screen-reader-text (e.g.
+   carousel.php's position live-region, the button labels) but ships no rule for
+   it; define it here so it's guaranteed wherever the carousel loads. */
+.screen-reader-text {
+    position: absolute !important;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0);
+    white-space: nowrap; border: 0;
+}
+.screen-reader-text:focus {
+    position: fixed !important; top: 8px; left: 8px;
+    width: auto; height: auto;
+    padding: .75rem 1rem; margin: 0;
+    clip: auto; white-space: normal;
+    background: #fff; color: #111; z-index: 100000;
+}
 .aj-carousel__dots { display: flex; gap: .4rem; flex-wrap: wrap; }
 .aj-carousel__dots [aria-current="true"] { box-shadow: inset 0 0 0 2px currentColor; font-weight: 700; }
 .aj-carousel :focus-visible { outline: 3px solid var(--primary, currentColor); outline-offset: 3px; }

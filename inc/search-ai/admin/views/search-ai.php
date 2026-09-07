@@ -41,6 +41,7 @@ $base_url = admin_url('admin.php?page=' . AJNanda_Search_AI_Admin::PAGE_SLUG);
                 'seo_meta_description_default' => get_theme_mod('seo_meta_description_default', ''),
                 'seo_default_social_image'     => get_theme_mod('seo_default_social_image', ''),
                 'seo_twitter_handle'           => get_theme_mod('seo_twitter_handle', ''),
+                'seo_analytics_measurement_id' => get_theme_mod('seo_analytics_measurement_id', ''),
                 'seo_schema_enabled'           => get_theme_mod('seo_schema_enabled', true),
                 'seo_allow_ai_crawlers'        => get_theme_mod('seo_allow_ai_crawlers', true),
                 'seo_llms_txt_enabled'         => get_theme_mod('seo_llms_txt_enabled', true),

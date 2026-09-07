@@ -50,6 +50,13 @@ if (!defined('ABSPATH')) {
                 <td><input type="text" id="seo_twitter_handle" name="seo_twitter_handle" value="<?php echo esc_attr($values['seo_twitter_handle']); ?>" class="regular-text" placeholder="@yourbusiness"></td>
             </tr>
             <tr>
+                <th scope="row"><label for="seo_analytics_measurement_id"><?php esc_html_e('Analytics Measurement ID', 'ajnanda'); ?></label></th>
+                <td>
+                    <input type="text" id="seo_analytics_measurement_id" name="seo_analytics_measurement_id" value="<?php echo esc_attr($values['seo_analytics_measurement_id']); ?>" class="regular-text" placeholder="G-XXXXXXXXXX">
+                    <p class="description"><?php esc_html_e('Google Analytics 4 (G-), Google tag (GT-), Google Ads (AW-) or Campaign Manager (DC-). When set, AJNanda emits the standard gtag.js snippet on every page. A consent plugin can defer loading via the ajnanda_analytics_should_load filter.', 'ajnanda'); ?></p>
+                </td>
+            </tr>
+            <tr>
                 <th scope="row"><label for="seo_business_phone"><?php esc_html_e('Business Phone', 'ajnanda'); ?></label></th>
                 <td>
                     <input type="text" id="seo_business_phone" name="seo_business_phone" value="<?php echo esc_attr($values['seo_business_phone']); ?>" class="regular-text">

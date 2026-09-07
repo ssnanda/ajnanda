@@ -1200,14 +1200,27 @@ function ajnanda_render_builder_element($builder, $element) {
             echo '<div class="ajn-builder-html">' . wp_kses_post(get_theme_mod('ajn_builder_html_2', '')) . '</div>';
             break;
         case 'social':
-            $social_url   = get_theme_mod('ajn_builder_social_1_url', '#');
-            $social_label = get_theme_mod('ajn_builder_social_1_label', __('Social', 'ajnanda'));
-            echo '<div class="ajn-builder-social">';
-            echo '<a href="' . esc_url($social_url) . '" aria-label="' . esc_attr($social_label) . '" target="_blank" rel="noopener noreferrer">';
-            echo ajnanda_social_icon_svg($social_url);
-            echo '<span class="ajn-social-label">' . esc_html($social_label) . '</span>';
-            echo '</a>';
-            echo '</div>';
+            $social_links = array();
+            for ($social_i = 1; $social_i <= 5; $social_i++) {
+                $social_url = trim((string) get_theme_mod('ajn_builder_social_' . $social_i . '_url', ''));
+                if ('' === $social_url || '#' === $social_url) {
+                    continue;
+                }
+                $social_links[] = array(
+                    'url'   => $social_url,
+                    'label' => get_theme_mod('ajn_builder_social_' . $social_i . '_label', __('Social', 'ajnanda')),
+                );
+            }
+            if ($social_links) {
+                echo '<div class="ajn-builder-social">';
+                foreach ($social_links as $social_link) {
+                    echo '<a href="' . esc_url($social_link['url']) . '" aria-label="' . esc_attr($social_link['label']) . '" target="_blank" rel="noopener noreferrer">';
+                    echo ajnanda_social_icon_svg($social_link['url']);
+                    echo '<span class="ajn-social-label">' . esc_html($social_link['label']) . '</span>';
+                    echo '</a>';
+                }
+                echo '</div>';
+            }
             break;
         case 'woo-cart':
             if (function_exists('WC') && WC()->cart) {
@@ -1326,14 +1339,15 @@ function ajnanda_builder_default($builder, $row, $cell) {
             2 => array(1 => 'none', 2 => 'none', 3 => 'none', 4 => 'none'),
             3 => array(1 => 'none', 2 => 'none', 3 => 'none', 4 => 'none'),
         ),
-        // Row 1 mirrors the header's non-empty default (brand, nav, and a
-        // closing element) instead of shipping every cell as 'none' — a
-        // fresh site otherwise renders a completely blank <footer> until
-        // someone manually configures it, since ajnanda_render_builder_layout()
-        // skips 'none' cells and empty rows outright.
+        // Two-row default. Row 1 is a widget-column strip (brand + three footer
+        // widget areas — assign widgets in Appearance > Widgets); empty widget
+        // areas simply collapse. Row 2 is a legal bar: copyright left, a short
+        // links menu (the `footer` menu location) right. The old single-row
+        // `site-logo | footer-menu | copyright` default jammed the © inside the
+        // nav list and wrapped a normal-length menu into ragged centred lines.
         'footer' => array(
-            1 => array(1 => 'site-logo', 2 => 'footer-menu', 3 => 'copyright', 4 => 'none'),
-            2 => array(1 => 'none', 2 => 'none', 3 => 'none', 4 => 'none'),
+            1 => array(1 => 'site-logo', 2 => 'widget-1', 3 => 'widget-2', 4 => 'widget-3'),
+            2 => array(1 => 'copyright', 2 => 'footer-menu', 3 => 'none', 4 => 'none'),
             3 => array(1 => 'none', 2 => 'none', 3 => 'none', 4 => 'none'),
         ),
     );
@@ -1350,7 +1364,8 @@ function ajnanda_builder_row_columns_setting_id($builder, $row) {
 }
 
 function ajnanda_builder_row_count_default($builder) {
-    return 1;
+    // Footer ships a 2-row default (widget strip + legal bar); header is 1 row.
+    return 'footer' === $builder ? 2 : 1;
 }
 
 function ajnanda_builder_row_columns_default($builder, $row) {
@@ -1358,8 +1373,9 @@ function ajnanda_builder_row_columns_default($builder, $row) {
         return 3;
     }
 
-    if ('footer' === $builder && 1 === (int) $row) {
-        return 3;
+    if ('footer' === $builder) {
+        // Row 1: brand + three widget areas. Row 2: copyright + links menu.
+        return 1 === (int) $row ? 4 : 2;
     }
 
     return 1;
@@ -3676,6 +3692,39 @@ function ajnanda_customize_register($wp_customize) {
         'active_callback' => 'ajnanda_header_builder_social_active',
     ));
 
+    // Social links 2-5. The "social" builder element renders every entry whose
+    // URL is set, so a local-business footer can list Facebook + Google +
+    // Instagram etc. The settings are shared by the header and footer element.
+    for ($social_i = 2; $social_i <= 5; $social_i++) {
+        $wp_customize->add_setting('ajn_builder_social_' . $social_i . '_label', array(
+            'default'           => '',
+            'sanitize_callback' => 'sanitize_text_field',
+            'transport'         => 'refresh',
+        ));
+
+        $wp_customize->add_control('ajn_builder_social_' . $social_i . '_label', array(
+            /* translators: %d: social link number */
+            'label'           => sprintf(__('Social %d Label', 'ajnanda'), $social_i),
+            'section'         => 'ajnanda_header',
+            'type'            => 'text',
+            'active_callback' => 'ajnanda_header_builder_social_active',
+        ));
+
+        $wp_customize->add_setting('ajn_builder_social_' . $social_i . '_url', array(
+            'default'           => '',
+            'sanitize_callback' => 'esc_url_raw',
+            'transport'         => 'refresh',
+        ));
+
+        $wp_customize->add_control('ajn_builder_social_' . $social_i . '_url', array(
+            /* translators: %d: social link number */
+            'label'           => sprintf(__('Social %d URL', 'ajnanda'), $social_i),
+            'section'         => 'ajnanda_header',
+            'type'            => 'url',
+            'active_callback' => 'ajnanda_header_builder_social_active',
+        ));
+    }
+
     ajnanda_register_builder_controls($wp_customize, 'footer', 'ajnanda_footer', __('Footer', 'ajnanda'));
 
     $footer_columns = ajnanda_get_footer_columns();
@@ -5272,6 +5321,7 @@ add_action('after_setup_theme', 'ajnanda_gutenberg_support');
 
 require_once get_template_directory() . '/inc/github-theme-updater.php';
 require_once get_template_directory() . '/inc/duplicate-content.php';
+require_once get_template_directory() . '/inc/accessibility-toolbar.php';
 require_once get_template_directory() . '/inc/seo.php';
 require_once get_template_directory() . '/inc/search-ai/bootstrap.php';
 require_once get_template_directory() . '/blocks/ajnanda-blocks/loader.php';

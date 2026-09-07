@@ -1727,7 +1727,20 @@
         },
         save: function() {
             return el(InnerBlocks.Content);
-        }
+        },
+        // This block is server-rendered (ajnanda_blocks_render_slide) — the front
+        // end is built entirely from $content, so any editor block-validation
+        // drift on an inner block (core/cover / core/image markup changing across
+        // a WP update, or content inserted programmatically) is purely cosmetic.
+        // The deprecation below has the same save() as above but an unconditional
+        // isEligible, so a "drifted" slide is silently migrated instead of showing
+        // "This block contains unexpected or invalid content". Inner blocks are
+        // passed through untouched and re-serialized normally on the next save.
+        deprecated: [{
+            attributes: {},
+            save: function() { return el(InnerBlocks.Content); },
+            isEligible: function() { return true; }
+        }]
     });
 
     registerBlockType('ajnanda/slider', {
@@ -1767,7 +1780,25 @@
         },
         save: function() {
             return el(InnerBlocks.Content);
-        }
+        },
+        // See ajnanda/slide above — same rationale. Server-rendered
+        // (ajnanda_blocks_render_slider), so inner-block validation drift is
+        // cosmetic; this deprecation silently migrates a drifted slider instead
+        // of surfacing the invalid-content warning. Attributes mirror the block's
+        // own so parsed values survive the migration unchanged.
+        deprecated: [{
+            attributes: {
+                loop:       { type: 'boolean', default: true },
+                autoplay:   { type: 'boolean', default: false },
+                delay:      { type: 'number',  default: 4000 },
+                speed:      { type: 'number',  default: 400 },
+                effect:     { type: 'string',  default: 'slide' },
+                showArrows: { type: 'boolean', default: true },
+                showDots:   { type: 'boolean', default: true }
+            },
+            save: function() { return el(InnerBlocks.Content); },
+            isEligible: function() { return true; }
+        }]
     });
     simpleCardBlock('ajnanda/lottie-animation', __('AJ Lottie Animation Placeholder', 'ajnanda'), 'controls-repeat', 'aj-lottie-placeholder', [['core/paragraph', { content: 'Lottie animation placeholder.' }]], {
         attributes: { jsonUrl: { type: 'string', default: '' }, loop: { type: 'boolean', default: true }, autoplay: { type: 'boolean', default: true } },

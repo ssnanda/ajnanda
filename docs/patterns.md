@@ -83,8 +83,12 @@ Patterns are built entirely from:
   block attributes, never inline hex values.
 - **Existing structural classes** already defined in `style.css`:
   `builder-section` / `builder-section-soft`, `builder-hero-section` (+
-  `hero-width-*` / `hero-height-*` / `hero-text-*` modifiers),
-  `builder-split`, `builder-cta-panel`.
+  `hero-width-*` / `hero-height-*` / `hero-text-*` modifiers, and
+  `builder-hero-section--cover` to drop the theme background/centring when
+  the hero is a `core/cover`), `builder-split`, `builder-cta-panel`.
+  `builder-section-soft` is a **modifier** — always pair it with
+  `builder-section` (`class="builder-section builder-section-soft"`) so it
+  inherits the padding, width constraint and gradient `h2`.
 - **Existing native block styles**, registered client-side in
   `js/editor-controls.js` (`registerAjnandaBlockStyles()`) —
   `is-style-ajnanda-card` / `-card-elevated` / `-card-bordered` /

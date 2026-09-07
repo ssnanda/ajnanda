@@ -1,0 +1,171 @@
+/**
+ * AJNanda accessibility toolbar.
+ * Paired with js/accessibility-toolbar.js and inc/accessibility-toolbar.php.
+ * Self-contained palette (not brand tokens) so the control surface stays
+ * legible and predictable on any site, in light or dark.
+ */
+
+/* No-JS: the container ships empty and hidden. */
+.ajn-a11y[hidden] { display: none !important; }
+
+/* ---- Text size -------------------------------------------------------- */
+/* Applied to <html>; the toolbar itself is sized in px below so it never
+   scales with this. AJNanda's type is rem/clamp-based, so this reflows type
+   site-wide without touching layout. */
+html.ajn-a11y-font-scaled {
+    font-size: calc(100% * var(--ajn-a11y-font-scale, 1));
+}
+
+/* ---- Link emphasis --------------------------------------------------- */
+html.ajn-a11y-underline-links a:not([class*="button"]):not(.wp-element-button) {
+    text-decoration: underline !important;
+    text-underline-offset: 0.15em;
+}
+html.ajn-a11y-highlight-links a:not([class*="button"]):not(.wp-element-button) {
+    outline: 2px solid #1d4ed8 !important;
+    outline-offset: 1px;
+    background-color: #fff3bf !important;
+    color: #1a1a1a !important;
+    box-shadow: none !important;
+}
+/* Never restyle the toolbar's own links/controls. */
+.ajn-a11y a,
+.ajn-a11y button { text-decoration: none !important; background-image: none !important; }
+
+/* ---- Readable font ------------------------------------------------------ */
+html.ajn-a11y-readable-font body {
+    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif !important;
+    letter-spacing: 0.012em;
+    word-spacing: 0.05em;
+    line-height: 1.7;
+}
+html.ajn-a11y-readable-font body h1,
+html.ajn-a11y-readable-font body h2,
+html.ajn-a11y-readable-font body h3,
+html.ajn-a11y-readable-font body h4,
+html.ajn-a11y-readable-font body h5,
+html.ajn-a11y-readable-font body h6,
+html.ajn-a11y-readable-font body p,
+html.ajn-a11y-readable-font body li,
+html.ajn-a11y-readable-font body a,
+html.ajn-a11y-readable-font body span,
+html.ajn-a11y-readable-font body blockquote,
+html.ajn-a11y-readable-font body figcaption,
+html.ajn-a11y-readable-font body label,
+html.ajn-a11y-readable-font body input,
+html.ajn-a11y-readable-font body textarea,
+html.ajn-a11y-readable-font body select,
+html.ajn-a11y-readable-font body button,
+html.ajn-a11y-readable-font body td,
+html.ajn-a11y-readable-font body th {
+    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif !important;
+}
+/* The toolbar keeps its own system font and default spacing regardless. */
+.ajn-a11y,
+.ajn-a11y * {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+    letter-spacing: normal !important;
+    word-spacing: normal !important;
+}
+
+/* ---- Greyscale / invert overlay -------------------------------------- */
+#ajn-a11y-fx {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2147483000;
+}
+
+/* ---- Toolbar shell -------------------------------------------------- */
+.ajn-a11y {
+    position: fixed;
+    top: 96px;
+    right: 0;
+    z-index: 2147483001;
+    display: flex;
+    align-items: flex-start;
+    flex-direction: row-reverse;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.3;
+}
+.ajn-a11y--left { right: auto; left: 0; flex-direction: row; }
+.admin-bar .ajn-a11y { top: 128px; }
+
+.ajn-a11y__toggle {
+    flex: 0 0 auto;
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 10px 0 0 10px;
+    background: #1d4ed8;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.28);
+}
+.ajn-a11y--left .ajn-a11y__toggle { border-radius: 0 10px 10px 0; }
+.ajn-a11y__toggle:hover { background: #1e40af; }
+.ajn-a11y__toggle:focus-visible,
+.ajn-a11y__item:focus-visible {
+    outline: 3px solid #f59e0b;
+    outline-offset: 2px;
+}
+
+.ajn-a11y__panel {
+    width: 268px;
+    max-width: calc(100vw - 60px);
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    margin: 0 6px;
+    padding: 16px;
+    border-radius: 14px;
+    background: #ffffff;
+    color: #1a1a1a;
+    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.3);
+}
+.ajn-a11y__heading {
+    margin: 0 0 12px;
+    font-size: 18px;
+    font-weight: 800;
+    color: #111827;
+}
+.ajn-a11y__list { display: grid; gap: 6px; }
+
+.ajn-a11y__item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 44px;
+    padding: 9px 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 9px;
+    background: #f9fafb;
+    color: #1f2937;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+}
+.ajn-a11y__item:hover { background: #eef2ff; border-color: #c7d2fe; }
+.ajn-a11y__item.is-active {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+    color: #fff;
+}
+.ajn-a11y__ico { flex: 0 0 auto; display: grid; place-items: center; width: 24px; height: 24px; }
+.ajn-a11y__label { flex: 1 1 auto; }
+.ajn-a11y__reset { margin-top: 4px; background: #fff; border-color: #d1d5db; }
+.ajn-a11y__reset:hover { background: #f3f4f6; }
+
+@media (prefers-reduced-motion: no-preference) {
+    .ajn-a11y__toggle,
+    .ajn-a11y__item { transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease; }
+}
+
+@media (max-width: 600px) {
+    .ajn-a11y { top: auto; bottom: 12px; }
+    .admin-bar .ajn-a11y { bottom: 12px; top: auto; }
+}

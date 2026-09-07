@@ -125,6 +125,7 @@ function ajnanda_seo_render_settings_page() {
         'seo_schema_enabled'           => get_theme_mod('seo_schema_enabled', true),
         'seo_allow_ai_crawlers'        => get_theme_mod('seo_allow_ai_crawlers', true),
         'seo_llms_txt_enabled'         => get_theme_mod('seo_llms_txt_enabled', true),
+        'seo_analytics_measurement_id' => get_theme_mod('seo_analytics_measurement_id', ''),
     );
     $saved = isset($_GET['ajnanda_seo_saved']);
 
@@ -141,6 +142,7 @@ function ajnanda_seo_save_settings() {
     set_theme_mod('seo_meta_description_default', sanitize_text_field(wp_unslash($_POST['seo_meta_description_default'] ?? '')));
     set_theme_mod('seo_default_social_image', esc_url_raw(ajnanda_seo_relative_site_url(wp_unslash($_POST['seo_default_social_image'] ?? ''))));
     set_theme_mod('seo_twitter_handle', sanitize_text_field(wp_unslash($_POST['seo_twitter_handle'] ?? '')));
+    set_theme_mod('seo_analytics_measurement_id', ajnanda_seo_sanitize_measurement_id($_POST['seo_analytics_measurement_id'] ?? ''));
     if (isset($_POST['seo_business_phone']) || ! class_exists('AJNanda_Search_AI_Admin')) {
         set_theme_mod('seo_business_phone', sanitize_text_field(wp_unslash($_POST['seo_business_phone'] ?? '')));
     }
@@ -160,6 +162,54 @@ function ajnanda_seo_save_settings() {
         admin_url('admin.php')
     ));
     exit;
+}
+
+/**
+ * Normalises a Google measurement / tag ID: uppercased, must be a supported
+ * prefix (GA4 `G-`, Google tag `GT-`, Google Ads `AW-`, Campaign Manager `DC-`)
+ * followed by an alphanumeric/hyphen suffix. Anything else becomes ''.
+ */
+function ajnanda_seo_sanitize_measurement_id($raw) {
+    $id = strtoupper(trim((string) wp_unslash($raw)));
+    return preg_match('/^(G|GT|AW|DC)-[A-Z0-9-]+$/', $id) ? $id : '';
+}
+
+/**
+ * Emits the standard Google gtag.js snippet when an Analytics measurement ID is
+ * configured (Search & AI > SEO). A consent-management plugin can hold it by
+ * hooking `ajnanda_analytics_should_load` and returning false until consent is
+ * given — the ID is passed as the second argument.
+ */
+add_action('wp_head', 'ajnanda_seo_analytics_tag', 20);
+function ajnanda_seo_analytics_tag() {
+    if (is_admin() || is_customize_preview()) {
+        return;
+    }
+
+    $id = ajnanda_seo_sanitize_measurement_id(get_theme_mod('seo_analytics_measurement_id', ''));
+    if ('' === $id) {
+        return;
+    }
+
+    /**
+     * Gate third-party analytics loading (e.g. behind a cookie-consent signal).
+     *
+     * @param bool   $should_load Default true.
+     * @param string $id          The configured measurement/tag ID.
+     */
+    if (! apply_filters('ajnanda_analytics_should_load', true, $id)) {
+        return;
+    }
+    ?>
+<!-- Google tag (gtag.js) — AJNanda -->
+<script async src="<?php echo esc_url('https://www.googletagmanager.com/gtag/js?id=' . $id); ?>"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', <?php echo wp_json_encode($id); ?>);
+</script>
+    <?php
 }
 
 function ajnanda_seo_render_insights_page() {

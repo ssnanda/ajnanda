@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 2.0.24
+Version: 2.0.25
 License: GNU General Public License v2 or later
 Text Domain: ajnanda
 */
@@ -1200,14 +1200,48 @@ body.admin-bar .site-header {
     bottom: 0;
 }
 
+/* Footer builder gets its own row/cell rules — the shared .ajn-builder-row is
+   `align-items: center` (right for a header bar, wrong for a footer). Here rows
+   top-align so column headings line up, and wrap instead of squishing. */
 .footer-builder-container .ajn-builder-row {
     min-height: 64px;
     max-width: var(--ajn-footer-container-width);
     margin-inline: auto;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 2rem 2.5rem;
 }
 
 .footer-builder-container .ajn-builder-cell {
     color: var(--ajn-footer-text-color);
+    flex: 1 1 200px;
+}
+
+/* Widget areas and free-HTML cells are real stacked columns; the small "chrome"
+   elements (logo / menu / copyright / social / buttons) stay inline as before. */
+.footer-builder-container .ajn-builder-cell-widget-1,
+.footer-builder-container .ajn-builder-cell-widget-2,
+.footer-builder-container .ajn-builder-cell-widget-3,
+.footer-builder-container .ajn-builder-cell-widget-4,
+.footer-builder-container .ajn-builder-cell-html-1,
+.footer-builder-container .ajn-builder-cell-html-2 {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+/* Row 2 is the legal bar in the shipped default: copyright and a short links
+   menu on one centred line, pushed apart. Cells size to content, not equally. */
+.footer-builder-container .ajn-builder-row-2 {
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem 1.5rem;
+    margin-top: 1rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid var(--ajn-footer-divider-color);
+}
+
+.footer-builder-container .ajn-builder-row-2 .ajn-builder-cell {
+    flex: 0 1 auto;
 }
 
 .ajn-customizer-builder-preview {
@@ -2128,6 +2162,21 @@ body.page-client-portal .page-content-section,
     margin: 0 auto;
 }
 
+/* Opt-in modifier for a core/cover-based hero: keep `position/overflow` and the
+   `hero-height-*` utilities, but drop the theme's own gradient background,
+   forced centring, flex-column layout and padding so they don't fight the
+   cover's overlay, contentPosition and its own spacing controls. Add it
+   alongside `builder-hero-section`: `builder-hero-section builder-hero-section--cover`.
+   (The base rules use :where() — zero specificity — so this one class wins.) */
+.builder-hero-section--cover {
+    display: block;
+    align-items: initial;
+    padding: 0;
+    background: none;
+    color: inherit;
+    text-align: inherit;
+}
+
 :where(.builder-hero-section.hero-height-compact) {
     padding-top: 1rem;
     padding-bottom: 1rem;
@@ -2531,7 +2580,11 @@ body.page-client-portal .page-content-section,
     margin-right: auto;
 }
 
-.builder-section h2 {
+/* `builder-section-soft` is a modifier meant to sit alongside `builder-section`
+   (see docs/patterns.md) — but list it explicitly so a heading still gets the
+   brand gradient if a section is built with only the `-soft` class. */
+.builder-section h2,
+.builder-section-soft h2 {
     margin-bottom: 1rem;
     font-size: clamp(2rem, 4vw, 3.25rem);
     font-weight: 850;
@@ -2550,6 +2603,17 @@ body.page-client-portal .page-content-section,
 
 .builder-card-grid {
     gap: 1.5rem;
+}
+
+/* core/media-text inside a section — give the content column breathing room from
+   the image and vertical rhythm between its own blocks (core ships neither). */
+.builder-section .wp-block-media-text,
+.builder-section-soft .wp-block-media-text {
+    gap: 2.5rem;
+}
+.builder-section .wp-block-media-text__content > * + *,
+.builder-section-soft .wp-block-media-text__content > * + * {
+    margin-top: 1rem;
 }
 
 .builder-card {
@@ -2699,10 +2763,16 @@ body.page-client-portal .page-content-section,
 
 .wp-block-columns.is-style-ajnanda-equal-height > .wp-block-column {
     display: flex;
+    /* Without this the column is a flex ROW, so a column holding more than one
+       top-level block (heading + paragraph + button) lays them out side by side.
+       The card patterns wrap one group per column so they're unaffected. */
+    flex-direction: column;
 }
 
 .wp-block-columns.is-style-ajnanda-equal-height > .wp-block-column > * {
     width: 100%;
+    /* Keep each block at its natural height; only the column stretches. */
+    flex: 0 0 auto;
 }
 
 /* Icon / initial tile: a compact badge for a short text initial, emoji, or
@@ -3019,6 +3089,27 @@ body.page-client-portal .page-content-section,
        responds to Dark Surface Mode like every other surface in the
        theme — see the "Token-based" comments elsewhere in this file. */
     background: linear-gradient(180deg, var(--gray-50, #f8fbff) 0%, var(--white, #ffffff) 45%);
+}
+
+/* Blog / category / tag / author / search archive heading (index.php). Modest,
+   centred — not a full gradient hero — so every fresh AJNanda site gets a real
+   <h1> on its archives without a visual redesign. */
+.blog-index-header {
+    max-width: 760px;
+    margin: 0 auto 2.75rem;
+    text-align: center;
+}
+.blog-index-title {
+    margin: 0 0 0.75rem;
+    font-size: clamp(1.875rem, 5vw, 2.75rem);
+    line-height: 1.15;
+    color: var(--gray-900, #0f172a);
+}
+.blog-index-intro {
+    margin: 0;
+    color: var(--gray-600, #475569);
+    font-size: clamp(1rem, 2.2vw, 1.15rem);
+    line-height: 1.6;
 }
 
 .blog-grid {
