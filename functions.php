@@ -3986,6 +3986,47 @@ function ajnanda_force_discussion_option_closed($value) {
     return $value;
 }
 
+// The filters above only govern what WordPress *reports* at runtime — every post still
+// carries its own comment_status/ping_status columns, and those are what Quick Edit, the
+// Discussion panel, the REST API, importers and Site Sync read and write. Left alone they
+// keep saying "open", so the admin UI contradicts the theme, and anything that reads the
+// column directly rather than calling comments_open() (a plugin, an importer, a different
+// theme activated later) can still accept comments. Drop 'comments'/'trackbacks' post type
+// support so core itself defaults new posts to closed and stops drawing the controls, and
+// force the columns closed on every write as a backstop for callers that pass 'open'
+// explicitly. Both are reversed the moment the customizer toggle is turned back on.
+add_action('init', 'ajnanda_remove_comment_post_type_support', 100);
+function ajnanda_remove_comment_post_type_support() {
+    if (get_theme_mod('enable_comments', false)) {
+        return;
+    }
+    foreach (get_post_types(array(), 'names') as $post_type) {
+        remove_post_type_support($post_type, 'comments');
+        remove_post_type_support($post_type, 'trackbacks');
+    }
+}
+
+// Same treatment for post types registered after the init:100 sweep above (plugins are
+// free to register on later hooks), so nothing slips through by being late to the party.
+add_action('registered_post_type', 'ajnanda_remove_comment_support_for_late_post_type');
+function ajnanda_remove_comment_support_for_late_post_type($post_type) {
+    if (get_theme_mod('enable_comments', false)) {
+        return;
+    }
+    remove_post_type_support($post_type, 'comments');
+    remove_post_type_support($post_type, 'trackbacks');
+}
+
+add_filter('wp_insert_post_data', 'ajnanda_force_post_comment_status_closed', 10, 2);
+function ajnanda_force_post_comment_status_closed($data, $postarr) {
+    if (get_theme_mod('enable_comments', false)) {
+        return $data;
+    }
+    $data['comment_status'] = 'closed';
+    $data['ping_status']    = 'closed';
+    return $data;
+}
+
 // Hide the wp-admin "Comments" menu item (and its unread-count badge) while the theme
 // has comments disabled — comments_open()/pings_open() are already forced closed
 // sitewide, so there's nothing to moderate and the menu is just clutter. This only
