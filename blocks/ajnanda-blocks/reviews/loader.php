@@ -116,7 +116,13 @@ function ajnanda_render_review_collection($attrs, $kind) {
         if ($a['showTotal'] && isset($summary['total'])) { $out .= '<span>' . esc_html(sprintf(_n('%s total Google review', '%s total Google reviews', $summary['total'], 'ajnanda'), number_format_i18n($summary['total']))) . '</span>'; }
         $out .= '<span>' . esc_html(sprintf(__('As of %s', 'ajnanda'), wp_date(get_option('date_format'), $status['last_success']))) . '</span></div>';
         if ($editor && $status['stale']) { $out .= '<p class="aj-reviews__empty">' . esc_html__('Refresh is due or the last attempt failed. Only content still within its original expiry is shown.', 'ajnanda') . '</p>'; }
-    } else { $out .= '<p class="aj-reviews__disclosure">' . esc_html__('Manual testimonials selected by the business', 'ajnanda') . '</p>'; }
+    } elseif ($layout !== 'carousel') {
+        // Manual testimonials carry no third-party attribution requirement, so
+        // the disclosure is context, not a licence term. Static layouts have the
+        // room for it; the carousel is a compact promotional strip where a
+        // standing line of small print above a moving track just reads as noise.
+        $out .= '<p class="aj-reviews__disclosure">' . esc_html__('Manual testimonials selected by the business', 'ajnanda') . '</p>';
+    }
     $cards = '';
     foreach ($items as $item) { $cards .= ajnanda_review_card($item, $a, $summary); }
     $out .= $layout === 'carousel' ? ajnanda_carousel_markup($cards, array('label' => $a['heading'] ?: ($google ? __('Featured Google reviews', 'ajnanda') : __('Manual testimonials', 'ajnanda')), 'autoplay' => !$editor && $a['autoplay'], 'interval' => $a['interval'], 'dots' => $a['showDots'])) : '<div class="aj-reviews__items">' . $cards . '</div>';

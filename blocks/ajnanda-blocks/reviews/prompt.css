@@ -32,10 +32,15 @@ a.aj-review-prompt-bar__phone:hover, a.aj-review-prompt-bar__phone:focus-visible
    right, up to the pointer — on hover or keyboard focus. */
 .aj-rate-us__stars { display: inline-flex; align-items: center; gap: 0; line-height: 1; }
 .aj-rate-us__stars a.aj-rate-us__star { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; border-radius: .25rem; color: rgb(255 255 255 / 42%); text-decoration: none; font-size: 1.5rem; transition: color .12s ease, transform .12s ease; }
-.aj-rate-us__star:hover, .aj-rate-us__star:focus-visible { color: #ffd35c; }
-.aj-rate-us__star:has(~ .aj-rate-us__star:hover),
-.aj-rate-us__star:has(~ .aj-rate-us__star:focus-visible) { color: #ffd35c; }
-.aj-rate-us__star:hover { transform: scale(1.08); }
+/* Every fill rule carries the same `.aj-rate-us__stars a` prefix as the dim
+   base rule above: without it the base selector is the more specific one and
+   the hovered star itself never lights up (only the ones before it, via the
+   sibling rule, which have the extra weight of :has()). */
+.aj-rate-us__stars a.aj-rate-us__star:hover,
+.aj-rate-us__stars a.aj-rate-us__star:focus-visible,
+.aj-rate-us__stars a.aj-rate-us__star:has(~ .aj-rate-us__star:hover),
+.aj-rate-us__stars a.aj-rate-us__star:has(~ .aj-rate-us__star:focus-visible) { color: #ffd35c; }
+.aj-rate-us__stars a.aj-rate-us__star:hover { transform: scale(1.08); }
 .aj-rate-us :focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
 
 /* Clip the card's rounded corner regardless of which edge it's on. */
@@ -281,5 +286,5 @@ a.aj-review-prompt-bar__phone:hover, a.aj-review-prompt-bar__phone:focus-visible
     .aj-review-prompt-bar--reveal.is-visible,
     body.aj-review-prompt-visible .site-header,
     .aj-rate-us__star { transition: none; }
-    .aj-rate-us__star:hover { transform: none; }
+    .aj-rate-us__stars a.aj-rate-us__star:hover { transform: none; }
 }
