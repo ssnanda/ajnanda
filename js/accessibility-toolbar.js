@@ -14,7 +14,11 @@
     var STORAGE_KEY = 'ajnandaA11y';
     var ROOT = document.documentElement;
 
-    var CORNERS = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
+    // The spots the floating button can be pinned to; each maps to a CSS class.
+    var POSITIONS = [
+        'top-left', 'top-right', 'bottom-left', 'bottom-right',
+        'bottom-center', 'left-middle', 'right-middle'
+    ];
     // Which tools the site owner left switched on. Absent config = all of them.
     var TOOLS = Array.isArray(CONFIG.tools)
         ? CONFIG.tools
@@ -124,13 +128,13 @@
         return b;
     }
 
-    // Pin the widget to the configured corner — a separate choice for phones.
+    // Pin the widget to the configured position — a separate choice for phones.
     function positionWidget(wrap) {
         var mobile = window.matchMedia('(max-width: 600px)').matches;
-        var corner = mobile ? CONFIG.positionMobile : CONFIG.position;
-        if (CORNERS.indexOf(corner) === -1) { corner = mobile ? 'bottom-right' : 'top-right'; }
-        CORNERS.forEach(function (c) { wrap.classList.remove('ajn-a11y--' + c); });
-        wrap.classList.add('ajn-a11y--' + corner);
+        var position = mobile ? CONFIG.positionMobile : CONFIG.position;
+        if (POSITIONS.indexOf(position) === -1) { position = mobile ? 'bottom-right' : 'top-right'; }
+        POSITIONS.forEach(function (c) { wrap.classList.remove('ajn-a11y--' + c); });
+        wrap.classList.add('ajn-a11y--' + position);
     }
 
     function build() {

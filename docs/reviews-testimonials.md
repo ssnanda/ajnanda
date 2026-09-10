@@ -102,8 +102,19 @@ with an independent value for desktop/tablet and for phones:
 - **top** / **bottom** — a full-width bar. `top` is in normal flow above the
   header; `bottom` is fixed to the bottom of the viewport.
 - **left** / **right** — a compact card (`position: fixed`) pinned to that edge
-  and vertically centred, contents stacked. The address and social rows are
-  dropped in this mode.
+  and vertically centred, contents stacked.
+- **top-card** / **bottom-card** — a compact card fixed to the top or bottom
+  edge and horizontally centred, contents kept on one row.
+
+All four compact-card positions drop the address and social rows, and carry a
+**collapse handle** on the card's inner edge: a chevron button that folds the
+card down to a 44px handle and back. The choice is stored in the visitor's own
+browser (`localStorage`, key `ajnandaReviewPrompt`) and nothing is sent
+anywhere. Because desktop and phones can use different positions, `prompt.js`
+resolves which one is live at the current breakpoint and only then marks the
+element (`--collapsible` plus `data-active-card`); with JavaScript off the
+handle never appears and the card stays open. Full-width bars are never
+collapsible.
 
 Defaults are `top` for both. Only the phone `top` case loads any scroll logic.
 

@@ -9,17 +9,31 @@ function ajnanda_review_prompt_settings() {
 }
 
 /**
- * Where the prompt bar sits. `top` and `bottom` are full-width bars; `left` and
- * `right` are a compact card pinned to that edge, vertically centred. A separate
- * choice applies on phones.
+ * Where the prompt bar sits. `top` and `bottom` are full-width bars; the four
+ * `*-card` / edge values are a compact card pinned to that edge — `left` and
+ * `right` vertically centred, `top-card` and `bottom-card` horizontally centred.
+ * Every compact card can be collapsed to a small handle by the visitor. A
+ * separate choice applies on phones.
  */
 function ajnanda_review_prompt_positions() {
     return array(
-        'top'    => __('Top (full-width bar)', 'ajnanda'),
-        'bottom' => __('Bottom (full-width bar)', 'ajnanda'),
-        'left'   => __('Left (compact card)', 'ajnanda'),
-        'right'  => __('Right (compact card)', 'ajnanda'),
+        'top'         => __('Top (full-width bar)', 'ajnanda'),
+        'bottom'      => __('Bottom (full-width bar)', 'ajnanda'),
+        'top-card'    => __('Top (compact card)', 'ajnanda'),
+        'bottom-card' => __('Bottom (compact card)', 'ajnanda'),
+        'left'        => __('Left (compact card)', 'ajnanda'),
+        'right'       => __('Right (compact card)', 'ajnanda'),
     );
+}
+
+/**
+ * The positions that render as a compact card — the ones the visitor can
+ * collapse. Mirrored in prompt.js.
+ *
+ * @return string[]
+ */
+function ajnanda_review_prompt_card_positions() {
+    return array('top-card', 'bottom-card', 'left', 'right');
 }
 
 function ajnanda_review_prompt_sanitize_position($value) {
@@ -49,10 +63,11 @@ add_action('customize_register', function ($wp_customize) {
         'transport'         => 'refresh',
     ));
     $wp_customize->add_control('ajnanda_review_prompt_position', array(
-        'label'   => __('Position on desktop / tablet', 'ajnanda'),
-        'section' => 'ajnanda_reviews_prompt',
-        'type'    => 'select',
-        'choices' => $choices,
+        'label'       => __('Position on desktop / tablet', 'ajnanda'),
+        'description' => __('Compact cards carry a handle visitors can use to collapse them out of the way; the choice is remembered in their own browser.', 'ajnanda'),
+        'section'     => 'ajnanda_reviews_prompt',
+        'type'        => 'select',
+        'choices'     => $choices,
     ));
 
     $wp_customize->add_setting('ajnanda_review_prompt_position_mobile', array(
@@ -62,7 +77,7 @@ add_action('customize_register', function ($wp_customize) {
     ));
     $wp_customize->add_control('ajnanda_review_prompt_position_mobile', array(
         'label'       => __('Position on phones', 'ajnanda'),
-        'description' => __('Set independently from desktop. At the top on phones the bar stays hidden until the visitor scrolls down past it.', 'ajnanda'),
+        'description' => __('Set independently from desktop. At the top on phones the full-width bar stays hidden until the visitor scrolls down past it.', 'ajnanda'),
         'section'     => 'ajnanda_reviews_prompt',
         'type'        => 'select',
         'choices'     => $choices,
@@ -158,9 +173,24 @@ function ajnanda_render_review_prompt_bar() {
     $pos_d = ajnanda_review_prompt_position('desktop');
     $pos_m = ajnanda_review_prompt_position('mobile');
     $classes = 'aj-review-prompt-bar aj-review-prompt-bar--d-' . $pos_d . ' aj-review-prompt-bar--m-' . $pos_m;
+    $cards   = ajnanda_review_prompt_card_positions();
+    // The collapse handle is only meaningful for a compact card, and only with
+    // JavaScript — prompt.js reveals it once it knows the active breakpoint uses
+    // one. Rendering it unconditionally keeps the markup breakpoint-agnostic.
+    $collapsible = in_array($pos_d, $cards, true) || in_array($pos_m, $cards, true);
     ?>
-    <div class="<?php echo esc_attr($classes); ?>" data-m-position="<?php echo esc_attr($pos_m); ?>"<?php if ($settings['expires_at']) : ?> data-nosnippet data-google-expires="<?php echo (int) $settings['expires_at']; ?>"<?php endif; ?>>
-        <div class="container aj-review-prompt-bar__inner">
+    <div class="<?php echo esc_attr($classes); ?>" data-d-position="<?php echo esc_attr($pos_d); ?>" data-m-position="<?php echo esc_attr($pos_m); ?>"<?php if ($settings['expires_at']) : ?> data-nosnippet data-google-expires="<?php echo (int) $settings['expires_at']; ?>"<?php endif; ?>>
+        <?php if ($collapsible) : ?>
+            <button type="button" class="aj-review-prompt-bar__collapse"
+                aria-expanded="true"
+                aria-controls="<?php echo esc_attr($id); ?>-inner"
+                aria-label="<?php esc_attr_e('Hide the review invitation', 'ajnanda'); ?>"
+                data-label-collapse="<?php esc_attr_e('Hide the review invitation', 'ajnanda'); ?>"
+                data-label-expand="<?php esc_attr_e('Show the review invitation', 'ajnanda'); ?>">
+                <span class="aj-review-prompt-bar__chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></span>
+            </button>
+        <?php endif; ?>
+        <div class="container aj-review-prompt-bar__inner" id="<?php echo esc_attr($id); ?>-inner">
             <?php if ('' !== $items['lead']) : ?>
                 <div class="aj-review-prompt-bar__lead"><?php echo $items["lead"]; ?></div>
             <?php endif; ?>

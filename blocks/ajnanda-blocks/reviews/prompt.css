@@ -5,9 +5,10 @@
    for desktop/tablet and for phones); PHP puts both on the element as
    .aj-review-prompt-bar--d-{pos} and --m-{pos}. Desktop rules live under
    min-width: 641px and key off --d-*; phone rules under max-width: 640px and
-   key off --m-*. `top` / `bottom` are full-width bars, `left` / `right` a
-   compact card pinned to that edge. prompt.js only ever touches the phone
-   `top` case (hide until scrolled).
+   key off --m-*. `top` / `bottom` are full-width bars; `left` / `right` and
+   `top-card` / `bottom-card` are a compact card pinned to that edge, which the
+   visitor can collapse to a handle. prompt.js handles the phone `top` reveal
+   (hide until scrolled) and the collapse handle.
    ============================================================================ */
 
 .aj-review-prompt-bar { position: relative; z-index: 1001; background: var(--primary, #2563eb); color: var(--white, #fff); font-family: var(--font-body, sans-serif); }
@@ -39,7 +40,52 @@ a.aj-review-prompt-bar__phone:hover, a.aj-review-prompt-bar__phone:focus-visible
 
 /* Clip the card's rounded corner regardless of which edge it's on. */
 .aj-review-prompt-bar--d-left, .aj-review-prompt-bar--d-right,
-.aj-review-prompt-bar--m-left, .aj-review-prompt-bar--m-right { overflow: hidden; }
+.aj-review-prompt-bar--d-top-card, .aj-review-prompt-bar--d-bottom-card,
+.aj-review-prompt-bar--m-left, .aj-review-prompt-bar--m-right,
+.aj-review-prompt-bar--m-top-card, .aj-review-prompt-bar--m-bottom-card { overflow: hidden; }
+
+/* ===== Collapse handle (compact cards only) ==============================
+   Which of the two positions is live depends on the breakpoint, so prompt.js
+   resolves it and marks the element: `--collapsible` reveals the handle and
+   `data-active-card` says which edge the card is on, driving both the handle's
+   side and the chevron's direction. Without JavaScript neither lands and the
+   card simply stays open — the handle never appears.
+   ========================================================================= */
+.aj-review-prompt-bar__collapse { display: none; }
+
+.aj-review-prompt-bar--collapsible { display: flex; align-items: stretch; }
+.aj-review-prompt-bar--collapsible .aj-review-prompt-bar__collapse {
+    display: grid; place-items: center; flex: 0 0 auto;
+    min-width: 30px; min-height: 30px; padding: 0 2px;
+    border: 0; background: rgb(0 0 0 / 14%); color: inherit; cursor: pointer;
+}
+.aj-review-prompt-bar--collapsible .aj-review-prompt-bar__collapse:hover,
+.aj-review-prompt-bar--collapsible .aj-review-prompt-bar__collapse:focus-visible { background: rgb(0 0 0 / 26%); }
+.aj-review-prompt-bar__collapse:focus-visible { outline: 3px solid #fff; outline-offset: -3px; }
+
+/* Collapsed: the handle is all that is left, so give it a full tap target. */
+.aj-review-prompt-bar--collapsible.is-collapsed .aj-review-prompt-bar__inner { display: none; }
+.aj-review-prompt-bar--collapsible.is-collapsed .aj-review-prompt-bar__collapse {
+    min-width: 44px; min-height: 44px; background: none;
+}
+
+/* Handle sits on the card's inner edge: opposite the screen edge it is pinned
+   to. The button is first in the DOM, so the reversed directions put it last. */
+.aj-review-prompt-bar[data-active-card="left"] { flex-direction: row-reverse; }
+.aj-review-prompt-bar[data-active-card="right"] { flex-direction: row; }
+.aj-review-prompt-bar[data-active-card="top-card"] { flex-direction: column-reverse; }
+.aj-review-prompt-bar[data-active-card="bottom-card"] { flex-direction: column; }
+
+/* The chevron points the way the card will move; collapsed, it points back. */
+.aj-review-prompt-bar__chevron { display: inline-flex; transform: rotate(var(--aj-rp-chevron, 0deg)); }
+.aj-review-prompt-bar[data-active-card="left"] .aj-review-prompt-bar__chevron { --aj-rp-chevron: 0deg; }
+.aj-review-prompt-bar[data-active-card="right"] .aj-review-prompt-bar__chevron { --aj-rp-chevron: 180deg; }
+.aj-review-prompt-bar[data-active-card="top-card"] .aj-review-prompt-bar__chevron { --aj-rp-chevron: 90deg; }
+.aj-review-prompt-bar[data-active-card="bottom-card"] .aj-review-prompt-bar__chevron { --aj-rp-chevron: -90deg; }
+.aj-review-prompt-bar.is-collapsed .aj-review-prompt-bar__chevron { transform: rotate(calc(var(--aj-rp-chevron, 0deg) + 180deg)); }
+@media (prefers-reduced-motion: no-preference) {
+    .aj-review-prompt-bar__chevron { transition: transform .2s ease; }
+}
 
 /* ===== Desktop / tablet ================================================== */
 @media (min-width: 641px) {
@@ -72,6 +118,33 @@ a.aj-review-prompt-bar__phone:hover, a.aj-review-prompt-bar__phone:focus-visible
     .aj-review-prompt-bar--d-left  .aj-review-prompt-bar__social,
     .aj-review-prompt-bar--d-right .aj-review-prompt-bar__lead,
     .aj-review-prompt-bar--d-right .aj-review-prompt-bar__social { display: none; }
+
+    /* Compact card centred on the top or bottom edge. Unlike the side cards
+       this one keeps its contents on one row — it is a shrunk bar, not a
+       column. */
+    .aj-review-prompt-bar--d-top-card,
+    .aj-review-prompt-bar--d-bottom-card {
+        position: fixed; left: 50%; transform: translateX(-50%);
+        width: max-content; max-width: min(30rem, 92vw);
+        box-shadow: 0 14px 38px rgb(0 0 0 / 28%);
+    }
+    .aj-review-prompt-bar--d-top-card    { top: 0; border-radius: 0 0 14px 14px; }
+    .aj-review-prompt-bar--d-bottom-card { bottom: 0; border-radius: 14px 14px 0 0; }
+    body.admin-bar .aj-review-prompt-bar--d-top-card { top: 32px; }
+
+    .aj-review-prompt-bar--d-top-card    .aj-review-prompt-bar__inner,
+    .aj-review-prompt-bar--d-bottom-card .aj-review-prompt-bar__inner {
+        max-width: none; margin: 0; width: auto;
+        justify-content: center; gap: .2rem .75rem; padding: .25rem .9rem;
+    }
+    .aj-review-prompt-bar--d-top-card    .aj-review-prompt-bar__actions,
+    .aj-review-prompt-bar--d-bottom-card .aj-review-prompt-bar__actions {
+        margin-inline-start: 0; justify-content: center;
+    }
+    .aj-review-prompt-bar--d-top-card    .aj-review-prompt-bar__lead,
+    .aj-review-prompt-bar--d-top-card    .aj-review-prompt-bar__social,
+    .aj-review-prompt-bar--d-bottom-card .aj-review-prompt-bar__lead,
+    .aj-review-prompt-bar--d-bottom-card .aj-review-prompt-bar__social { display: none; }
 }
 
 /* ===== Phones (≤ 640px) ================================================= */
@@ -124,6 +197,35 @@ a.aj-review-prompt-bar__phone:hover, a.aj-review-prompt-bar__phone:focus-visible
     .aj-review-prompt-bar--m-right .aj-review-prompt-bar__social { display: none; }
     .aj-review-prompt-bar--m-left  .aj-rate-us__stars a.aj-rate-us__star,
     .aj-review-prompt-bar--m-right .aj-rate-us__stars a.aj-rate-us__star { min-width: 34px; min-height: 34px; font-size: 1.2rem; }
+
+    /* Compact card centred on the top or bottom edge. */
+    .aj-review-prompt-bar--m-top-card,
+    .aj-review-prompt-bar--m-bottom-card {
+        position: fixed; left: 50%; transform: translateX(-50%);
+        width: max-content; max-width: 92vw;
+        box-shadow: 0 12px 30px rgb(0 0 0 / 30%);
+    }
+    .aj-review-prompt-bar--m-top-card    { top: 0; border-radius: 0 0 12px 12px; }
+    .aj-review-prompt-bar--m-bottom-card { bottom: 0; border-radius: 12px 12px 0 0; }
+    body.admin-bar .aj-review-prompt-bar--m-top-card { top: 46px; }
+
+    .aj-review-prompt-bar--m-top-card    .aj-review-prompt-bar__inner,
+    .aj-review-prompt-bar--m-bottom-card .aj-review-prompt-bar__inner {
+        max-width: none; margin: 0; width: auto;
+        justify-content: center; gap: .15rem .5rem; padding: .25rem .6rem;
+    }
+    .aj-review-prompt-bar--m-top-card    .aj-review-prompt-bar__actions,
+    .aj-review-prompt-bar--m-bottom-card .aj-review-prompt-bar__actions {
+        margin-inline-start: 0; justify-content: center; gap: .1rem .5rem;
+    }
+    .aj-review-prompt-bar--m-top-card    .aj-review-prompt-bar__lead,
+    .aj-review-prompt-bar--m-top-card    .aj-review-prompt-bar__social,
+    .aj-review-prompt-bar--m-bottom-card .aj-review-prompt-bar__lead,
+    .aj-review-prompt-bar--m-bottom-card .aj-review-prompt-bar__social { display: none; }
+    .aj-review-prompt-bar--m-top-card    .aj-rate-us__label,
+    .aj-review-prompt-bar--m-bottom-card .aj-rate-us__label { font-size: .95em; }
+    .aj-review-prompt-bar--m-top-card    .aj-rate-us__stars a.aj-rate-us__star,
+    .aj-review-prompt-bar--m-bottom-card .aj-rate-us__stars a.aj-rate-us__star { min-width: 38px; min-height: 38px; font-size: 1.3rem; }
 
     /* Phone `top` only: prompt.js lifts the bar off the top of the page and
        slides it back in as a fixed strip once you scroll past ~64px, then hides

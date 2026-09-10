@@ -77,9 +77,10 @@ html.ajn-a11y-readable-font body th {
 }
 
 /* ---- Toolbar shell -------------------------------------------------- */
-/* JS pins the widget to one of four corners (a separate choice for phones) by
-   adding .ajn-a11y--{corner}. The toggle button hugs the screen edge; the panel
-   opens inward next to it. */
+/* JS pins the widget to one of seven spots — the four corners, the middle of
+   the left or right edge, or the bottom centre (a separate choice for phones) —
+   by adding .ajn-a11y--{position}. The toggle button hugs the screen edge; the
+   panel opens inward next to it (upward, for bottom centre). */
 .ajn-a11y {
     position: fixed;
     z-index: 2147483001;
@@ -102,6 +103,25 @@ html.ajn-a11y-readable-font body th {
     .admin-bar .ajn-a11y--top-right { top: 92px; }
 }
 
+/* Edge-centred spots. Left/right middle behave like the matching corners but
+   are centred vertically; bottom centre stacks the panel above the button. */
+.ajn-a11y--left-middle,
+.ajn-a11y--right-middle {
+    top: 50%;
+    transform: translateY(-50%);
+    align-items: center;
+}
+.ajn-a11y--left-middle  { left: 0;  flex-direction: row; }
+.ajn-a11y--right-middle { right: 0; flex-direction: row-reverse; }
+
+.ajn-a11y--bottom-center {
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    flex-direction: column-reverse;
+    align-items: center;
+}
+
 .ajn-a11y__toggle {
     flex: 0 0 auto;
     width: 48px;
@@ -117,7 +137,9 @@ html.ajn-a11y-readable-font body th {
     box-shadow: 0 6px 20px rgba(15, 23, 42, 0.28);
 }
 .ajn-a11y--top-left .ajn-a11y__toggle,
-.ajn-a11y--bottom-left .ajn-a11y__toggle { border-radius: 0 10px 10px 0; }
+.ajn-a11y--bottom-left .ajn-a11y__toggle,
+.ajn-a11y--left-middle .ajn-a11y__toggle { border-radius: 0 10px 10px 0; }
+.ajn-a11y--bottom-center .ajn-a11y__toggle { border-radius: 10px 10px 0 0; }
 .ajn-a11y__toggle:hover { background: #1e40af; }
 .ajn-a11y__toggle:focus-visible,
 .ajn-a11y__item:focus-visible {
@@ -136,6 +158,12 @@ html.ajn-a11y-readable-font body th {
     background: #ffffff;
     color: #1a1a1a;
     box-shadow: 0 18px 44px rgba(15, 23, 42, 0.3);
+}
+/* Bottom centre opens upward, so the gap sits under the panel instead. */
+.ajn-a11y--bottom-center .ajn-a11y__panel {
+    margin: 0 0 6px;
+    max-width: calc(100vw - 24px);
+    max-height: calc(100vh - 96px);
 }
 .ajn-a11y__heading {
     margin: 0 0 12px;
@@ -178,8 +206,8 @@ html.ajn-a11y-readable-font body th {
 }
 
 @media (max-width: 600px) {
-    /* Corner still comes from the JS class; just tighten the edge offsets and
-       keep the panel within the viewport. */
+    /* Position still comes from the JS class; just tighten the edge offsets
+       and keep the panel within the viewport. */
     .ajn-a11y--top-left,
     .ajn-a11y--top-right { top: 12px; }
     .admin-bar .ajn-a11y--top-left,
@@ -187,4 +215,5 @@ html.ajn-a11y-readable-font body th {
     .ajn-a11y--bottom-left,
     .ajn-a11y--bottom-right { bottom: 12px; }
     .ajn-a11y__panel { max-height: calc(100vh - 90px); }
+    .ajn-a11y--bottom-center .ajn-a11y__panel { max-height: calc(100vh - 78px); }
 }
