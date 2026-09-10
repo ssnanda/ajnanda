@@ -9,6 +9,7 @@ $llms_endpoint = $discovery_status['llms_txt']['endpoint'];
 $llms_full_endpoint = $discovery_status['llms_full_txt']['endpoint'];
 $ai_endpoint = $discovery_status['ai_txt']['endpoint'];
 $security_endpoint = $discovery_status['security_txt']['endpoint'];
+include __DIR__ . '/hostinger-status.php';
 $important_nonce = wp_create_nonce('ajnanda_save_llms_important_pages');
 $available_important_pages = array_values(array_filter(get_pages(array('post_status' => 'publish', 'sort_column' => 'menu_order,post_title')), static function ($page) {
     return AJNanda_Search_AI_Discovery_Files::eligible_for_discovery($page->ID, 'llms_txt')['eligible'];
@@ -37,6 +38,22 @@ $endpoint_label = static function ($endpoint) {
     </div>
 </section>
 
+<section class="ajnanda-admin-section">
+    <h2><?php esc_html_e('llms.txt integrity', 'ajnanda'); ?></h2>
+    <p><?php echo esc_html($discovery_status['llms_txt']['enabled'] ? __('AJNanda’s canonical llms.txt output is enabled.', 'ajnanda') : __('AJNanda output is disabled or ownership has been assigned to another provider.', 'ajnanda')); ?></p>
+    <?php if ($llms_endpoint && array_key_exists('content_match', $llms_endpoint)) : ?>
+        <p><strong><?php echo esc_html(null === $llms_endpoint['content_match'] ? __('Public content exceeds the 1 MiB comparison limit; unverifiable.', 'ajnanda') : ($llms_endpoint['content_match'] ? __('Public content matches AJNanda’s current curated output.', 'ajnanda') : __('Conflict: public content differs from AJNanda’s current curated output.', 'ajnanda'))); ?></strong></p>
+        <?php if (! empty($llms_endpoint['hostinger_signature'])) : ?><p><?php esc_html_e('The response contains Hostinger’s generator signature. This is evidence of generated content, not proof of which server or plugin served it.', 'ajnanda'); ?></p><?php endif; ?>
+        <?php if (! $discovery_status['llms_txt']['enabled']) : ?><p><?php esc_html_e('A public file is still being served while AJNanda output is inactive. Review the physical file, external owner, and caches.', 'ajnanda'); ?></p><?php endif; ?>
+    <?php else : ?><p><?php esc_html_e('Public content could not be compared. Check the response status, redirects, and TLS/loopback access; a transport failure is not a content conflict.', 'ajnanda'); ?></p><?php endif; ?>
+    <?php foreach ($discovery_status['llms_txt']['physical'] as $physical) : ?>
+        <p><strong><?php esc_html_e('Physical file:', 'ajnanda'); ?></strong> <code><?php echo esc_html($physical['path']); ?></code><br>
+            <?php echo esc_html(null === $physical['match'] ? __('Unreadable or over the comparison limit.', 'ajnanda') : ($physical['match'] ? __('Matches now, but can become stale and override dynamic output.', 'ajnanda') : __('Differs from AJNanda’s curated content and can override dynamic output.', 'ajnanda'))); ?>
+            <?php if ($physical['hostinger_signature']) { esc_html_e(' Hostinger generator signature found.', 'ajnanda'); } ?></p>
+    <?php endforeach; ?>
+    <p class="description"><?php esc_html_e('Public checks are cached for five minutes and compare the entire response byte for byte, up to 1 MiB. A mismatch may come from a physical file, another plugin, Hostinger, or a stale cache; the response alone cannot identify the serving component. Review the source before changing it. No files are overwritten or removed.', 'ajnanda'); ?></p>
+</section>
+
 <div class="ajnanda-discovery-layout">
 <div class="ajnanda-admin-section ajnanda-discovery-main">
     <h2><?php esc_html_e('Edit discovery files', 'ajnanda'); ?></h2>
@@ -63,6 +80,10 @@ $endpoint_label = static function ($endpoint) {
         <?php
         foreach ($text_editors as $file => $editor) :
             $custom_content = AJNanda_Search_AI_Discovery_Files::custom_content($file);
+            // Never seed the canonical llms editor from a potentially conflicting public file.
+            if ('llms_txt' === $file && '' === $custom_content) {
+                $custom_content = AJNanda_Search_AI_Discovery_Files::render_llms_txt();
+            }
         ?>
             <section class="ajnanda-discovery-editor" data-file-panel="<?php echo esc_attr($file); ?>" hidden>
                 <header class="ajnanda-file-editor-header"><div><h3><?php echo esc_html($editor['label']); ?></h3><span class="ajnanda-admin-pill"><?php echo esc_html($editor['format']); ?></span></div><a href="<?php echo esc_url($editor['url']); ?>" target="_blank" rel="noopener"><?php esc_html_e('View public file', 'ajnanda'); ?> &rarr;</a></header>

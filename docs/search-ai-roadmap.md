@@ -80,6 +80,15 @@ Let a Service page explicitly target a geographic service area such as Charlotte
 
 AJNanda already includes these Search & AI capabilities.
 
+### Optional Hostinger AI Integration
+
+Hostinger-only status, native Web2Agent opt-in navigation, saved opt-in and derived
+MCP endpoint display, and host-independent llms.txt content/physical-file conflict
+checks. AJNanda remains the canonical content source. Safe automatic synchronization
+is deferred until Hostinger exposes a complete-content integration contract covering
+background writes. Native consent, remote provisioning, cache precedence, and remote
+policy enforcement still require real Hostinger verification.
+
 ### Site Profile
 
 Give search engines and AI systems a consistent understanding of your business, organization, identity, contact information, and website.

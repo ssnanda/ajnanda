@@ -193,3 +193,13 @@ reason. Findings also appear in the exported handoff report under
 ## Live roadmap
 
 The canonical [Search & AI Roadmap](search-ai-roadmap.md) lives in GitHub. The WordPress Roadmap tab is a cached, sanitized viewer of that document and does not maintain a separate feature registry. When a deferred capability becomes worth tracking, update the Markdown roadmap. When it ships, move it from **What's Next** to **Already in AJNanda** and revise its description when necessary.
+
+## Optional Hostinger integration
+
+AI Discovery and Discovery Files display Hostinger platform, Tools, generator,
+Web2Agent opt-in, and a derived MCP endpoint when relevant. Native Hostinger controls
+retain consent. AJNanda remains the curated content source; automatic physical-file
+synchronization is deliberately unsupported because the reviewed Hostinger generator
+has no full-content filter and performs later batch writes. Discovery Files checks
+public content and physical-file conflicts on every hosting provider.
+See [Hostinger behavior, limitations, and verification](search-ai-discovery-files.md#hostinger-tools-integration).

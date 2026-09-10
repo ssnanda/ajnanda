@@ -1,6 +1,7 @@
 <?php
 if (! defined('ABSPATH')) { exit; }
 $categories = AJNanda_Search_AI_Crawler_Registry::categories();
+include __DIR__ . '/hostinger-status.php';
 ?>
 <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
     <input type="hidden" name="action" value="ajnanda_save_ai_discovery">
