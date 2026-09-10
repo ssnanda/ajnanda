@@ -147,15 +147,13 @@ add_action('enqueue_block_editor_assets', 'ajnanda_block_editor_assets');
  * Register widget areas
  */
 function ajnanda_widgets_init() {
-    register_sidebar(array(
-        'name'          => __('Sidebar', 'ajnanda'),
-        'id'            => 'sidebar-1',
-        'description'   => __('Add widgets here.', 'ajnanda'),
-        'before_widget' => '<section id="%1$s" class="widget %2$s">',
-        'after_widget'  => '</section>',
-        'before_title'  => '<h3 class="widget-title">',
-        'after_title'   => '</h3>',
-    ));
+    // No generic "Sidebar" area is registered. AJNanda has no sidebar template —
+    // nothing in the theme calls get_sidebar() or dynamic_sidebar() outside the
+    // header/footer builder cells below — so registering one only offered a
+    // widget area whose contents silently never appeared on the front end.
+    // Widgets previously placed there move to Appearance > Widgets > Inactive
+    // Widgets, where they can be recovered or deleted; because the area was
+    // never rendered, no site's front end changes.
 
     for ($i = 1; $i <= 4; $i++) {
         register_sidebar(array(
@@ -4121,15 +4119,14 @@ function ajnanda_lock_discussion_comment_settings() {
     <?php
 }
 
-// Remove the built-in Menus panel — all menu settings live in Appearance → Menus.
-// Filtering out the nav_menus component before it loads (WordPress core's
-// recommended approach) rather than calling remove_panel() after
-// registration, which WP_Customize_Manager flags as incorrect usage
-// because the nav_menus component has already hooked its own JS/behavior
-// expecting the panel to exist.
-add_filter('customize_loaded_components', function(array $components): array {
-    return array_diff($components, array('nav_menus'));
-});
+// The Menus panel intentionally stays. A `customize_loaded_components` filter
+// used to try to drop the nav_menus component here, but it never ran: WordPress
+// builds WP_Customize_Manager on `plugins_loaded`, which fires before a theme's
+// functions.php is even included, so the filter was always registered too late
+// to be applied. Re-instating it in a hook that does run would be a regression
+// rather than a fix — the builder's menu cells focus `nav_menu_locations[...]`
+// controls (see ajnanda_get_builder_element_focus_control), and those controls
+// only exist while the nav_menus component is loaded.
 
 function ajnanda_save_footer_color_scheme_settings($wp_customize) {
     $scheme_id = '';

@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 2.0.45
+Version: 2.0.46
 License: GNU General Public License v2 or later
 Text Domain: ajnanda
 */
@@ -4055,7 +4055,12 @@ body.page-client-portal .page-content-section,
     box-shadow: 0 12px 24px rgba(37,99,235,0.24);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1199px) {
+    /* Header/navigation collapse. Split out of the ≤768px mobile block: the
+       desktop nav needs roughly 1295px once a site has a full menu, so between
+       769px and that width it overflowed the viewport and gave the whole page a
+       horizontal scrollbar. Only the header rules move to this wider
+       breakpoint — page and footer layout still switch at 768px. */
     body.admin-bar .site-header {
         top: 46px;
     }
@@ -4143,20 +4148,6 @@ body.page-client-portal .page-content-section,
         flex-shrink: 1;
         text-align: left;
     }
-    .ajn-builder-cell {
-        flex: var(--ajn-builder-width-mobile, 1) 1 0;
-    }
-    .footer-builder-container .ajn-builder-row {
-        align-items: stretch;
-        flex-direction: column;
-    }
-    .footer-builder-container .ajn-builder-cell,
-    .footer-builder-container .ajn-builder-cell-primary-menu,
-    .footer-builder-container .ajn-builder-cell-footer-menu,
-    .footer-builder-container .ajn-builder-cell-site-logo {
-        justify-content: center;
-        width: 100%;
-    }
     .nav-menu {
         display: none;
         width: 100%;
@@ -4218,6 +4209,44 @@ body.page-client-portal .page-content-section,
     }
     .mobile-menu-toggle {
         display: flex;
+    }
+}
+
+/* Safety net above the collapse breakpoint. How much room the desktop nav needs
+   depends on how many items a site puts in its menu, so no single breakpoint can
+   guarantee a fit — Ardent's eight-item menu wants ~1295px and overflowed the
+   page between 1200px and that width. Allowing the header and menu to wrap makes
+   the nav take a second row instead of pushing the document wider, so a long menu
+   can never give the whole page a horizontal scrollbar. min-width:0 lets the
+   navigation shrink below its content width, which flex items otherwise refuse. */
+@media (min-width: 1200px) {
+    .header-container {
+        flex-wrap: wrap;
+    }
+
+    .main-navigation {
+        min-width: 0;
+    }
+
+    .nav-menu {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 768px) {
+    .ajn-builder-cell {
+        flex: var(--ajn-builder-width-mobile, 1) 1 0;
+    }
+    .footer-builder-container .ajn-builder-row {
+        align-items: stretch;
+        flex-direction: column;
+    }
+    .footer-builder-container .ajn-builder-cell,
+    .footer-builder-container .ajn-builder-cell-primary-menu,
+    .footer-builder-container .ajn-builder-cell-footer-menu,
+    .footer-builder-container .ajn-builder-cell-site-logo {
+        justify-content: center;
+        width: 100%;
     }
     .footer-menu-bar {
         align-items: center;
