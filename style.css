@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 2.0.44
+Version: 2.0.45
 License: GNU General Public License v2 or later
 Text Domain: ajnanda
 */
@@ -1214,6 +1214,13 @@ body.admin-bar .site-header {
    top-align so column headings line up, and wrap instead of squishing. */
 .footer-builder-container .ajn-builder-row {
     min-height: 64px;
+    /* The container is a grid, and an auto inline margin on a grid item shrinks
+       it to max-content instead of centring a full-width box. Without an
+       explicit width the rows therefore collapse to however wide their text
+       happens to be — each row a different width, none of them filling the
+       footer, and the row 2 divider never lining up with the columns above it.
+       width:100% fills the grid area; max-width still caps it on wide screens. */
+    width: 100%;
     max-width: var(--ajn-footer-container-width);
     margin-inline: auto;
     align-items: flex-start;
@@ -1236,6 +1243,13 @@ body.admin-bar .site-header {
 .footer-builder-container .ajn-builder-cell-html-2 {
     flex-direction: column;
     align-items: stretch;
+}
+
+/* The logo is chrome, not a content column. Sharing the row equally leaves it
+   with a mostly empty quarter while the real columns wrap their text, so let it
+   size to the mark and give the remainder to the widget areas. */
+.footer-builder-container .ajn-builder-cell-site-logo {
+    flex: 0 1 auto;
 }
 
 /* Row 2 is the legal bar in the shipped default: copyright and a short links
