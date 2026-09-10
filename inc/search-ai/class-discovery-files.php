@@ -98,6 +98,10 @@ class AJNanda_Search_AI_Discovery_Files {
         )), 16);
         $lines[] = '## Optional';
         $lines[] = '- [Full site content](' . home_url('/llms-full.txt') . '): Full text of public content permitted by the site’s Content Access policy.';
+        if (class_exists('AJNanda_Search_AI_Hostinger')) {
+            $agent_link = AJNanda_Search_AI_Hostinger::agent_link();
+            if ('' !== $agent_link) { $lines[] = $agent_link; }
+        }
         $lines[] = '';
         $rendered = apply_filters('ajnanda_search_ai_llms_txt', implode("\n", $lines) . "\n", $profile);
         return $rendered;
@@ -215,6 +219,8 @@ class AJNanda_Search_AI_Discovery_Files {
                 'ownership' => AJNanda_Search_AI_Capability_Ownership::get('llms_txt'),
                 'endpoint' => $probe_endpoints ? self::endpoint_status(home_url('/llms.txt'), 'llms') : null,
                 'physical' => $probe_endpoints ? self::physical_llms_status() : array(),
+                'foreign_hosts' => self::foreign_link_hosts(self::render_llms_txt()),
+                'custom_override' => self::custom_enabled('llms_txt') && '' !== self::custom_content('llms_txt'),
             ),
             'llms_full_txt' => array(
                 'url' => home_url('/llms-full.txt'),
@@ -279,6 +285,80 @@ class AJNanda_Search_AI_Discovery_Files {
         if ($compare_llms) { $status['checked_at'] = time(); }
         set_transient($cache_key, $status, 5 * MINUTE_IN_SECONDS);
         return $status;
+    }
+
+    /**
+     * Link destinations in Markdown discovery output, keyed by host.
+     *
+     * A saved custom override captured on a development or staging host keeps
+     * serving that host's URLs after migration, and comparing the override
+     * against itself can never reveal it. Reading the link targets does.
+     */
+    public static function link_hosts($content) {
+        $hosts = array();
+        if (! is_string($content) || '' === $content) { return $hosts; }
+        // Only Markdown link destinations, so prose that merely mentions a URL
+        // is not reported as a broken discovery link.
+        if (! preg_match_all('#\]\(\s*(https?://[^\s)]+)#i', $content, $matches)) { return $hosts; }
+        foreach ($matches[1] as $url) {
+            $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
+            if ('' === $host) { continue; }
+            if (! isset($hosts[$host])) { $hosts[$host] = 0; }
+            $hosts[$host]++;
+        }
+        arsort($hosts);
+        return $hosts;
+    }
+
+    /** Link hosts that are not this site's own host. */
+    public static function foreign_link_hosts($content) {
+        $home = strtolower((string) wp_parse_url(home_url('/'), PHP_URL_HOST));
+        $hosts = self::link_hosts($content);
+        if ('' === $home) { return array(); }
+        unset($hosts[$home]);
+        return $hosts;
+    }
+
+    /**
+     * Own-host links AJNanda currently advertises in llms.txt.
+     *
+     * Returns normalised URL => link title, which is what an external index can
+     * be compared against and what can be used as a retrieval query.
+     */
+    public static function published_llms_links() {
+        $home = strtolower((string) wp_parse_url(home_url('/'), PHP_URL_HOST));
+        $links = array();
+        if (! preg_match_all('#\[([^\]]*)\]\(\s*(https?://[^\s)]+)#i', self::render_llms_txt(), $matches, PREG_SET_ORDER)) { return $links; }
+        foreach ($matches as $match) {
+            if (strtolower((string) wp_parse_url($match[2], PHP_URL_HOST)) !== $home) { continue; }
+            $normalised = self::normalise_url($match[2]);
+            if ('' === $normalised || isset($links[$normalised])) { continue; }
+            // Companion discovery files are not crawlable pages and must not
+            // count against page-level coverage.
+            if (self::is_discovery_file_url($normalised)) { continue; }
+            $links[$normalised] = trim($match[1]);
+        }
+        return $links;
+    }
+
+    /** Own-host URLs AJNanda currently advertises in llms.txt, normalised for comparison. */
+    public static function published_llms_urls() {
+        return array_keys(self::published_llms_links());
+    }
+
+    /** A companion discovery file rather than a content page. */
+    public static function is_discovery_file_url($normalised) {
+        $path = (string) strstr((string) $normalised, '/');
+        if ('' === $path) { return false; }
+        return '.txt' === substr($path, -4) || 0 === strpos($path, '/.well-known');
+    }
+
+    /** Compare URLs by host and path only; scheme, trailing slash, query and fragment vary harmlessly. */
+    public static function normalise_url($url) {
+        $parts = wp_parse_url((string) $url);
+        if (empty($parts['host'])) { return ''; }
+        $path = isset($parts['path']) ? rtrim($parts['path'], '/') : '';
+        return strtolower($parts['host']) . ('' === $path ? '/' : $path);
     }
 
     /** Read bounded local evidence, including split home/site installations. Never write files. */

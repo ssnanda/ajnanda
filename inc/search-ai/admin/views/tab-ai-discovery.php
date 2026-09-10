@@ -15,6 +15,11 @@ include __DIR__ . '/hostinger-status.php';
             <label><input type="checkbox" name="search_ai_allow_ai_training" value="1" <?php checked(AJNanda_Search_AI_Settings::get('search_ai_allow_ai_training')); ?>> <span><strong><?php esc_html_e('Allow AI companies to use public content for model development', 'ajnanda'); ?></strong><small><?php esc_html_e('Controls supported training/model-development crawler tokens separately from AI Search.', 'ajnanda'); ?></small></span></label>
             <label><input type="checkbox" name="search_ai_allow_user_retrieval" value="1" <?php checked(AJNanda_Search_AI_Settings::get('search_ai_allow_user_retrieval')); ?>> <span><strong><?php esc_html_e('Allow user-initiated AI retrieval where controllable', 'ajnanda'); ?></strong><small><?php esc_html_e('Some agents fetch a page because a user requested it. Some providers state that robots.txt may not apply, so this preference cannot guarantee blocking.', 'ajnanda'); ?></small></span></label>
         </div>
+        <?php if (AJNanda_Search_AI_Hostinger::status()['relevant']) : ?>
+            <div class="ajnanda-search-ai-toggle-list">
+                <label><input type="checkbox" name="search_ai_llms_advertise_agent" value="1" <?php checked(AJNanda_Search_AI_Settings::get('search_ai_llms_advertise_agent', true)); ?>> <span><strong><?php esc_html_e('Advertise the Hostinger Web2Agent endpoint in llms.txt', 'ajnanda'); ?></strong><small><?php esc_html_e('Adds the MCP endpoint to AJNanda’s own llms.txt when Web2Agent is enabled, so Hostinger’s competing file generator is not needed for discovery.', 'ajnanda'); ?></small></span></label>
+            </div>
+        <?php endif; ?>
         <?php submit_button(__('Save AI Discovery', 'ajnanda')); ?>
     </div>
 </form>

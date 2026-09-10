@@ -82,12 +82,15 @@ AJNanda already includes these Search & AI capabilities.
 
 ### Optional Hostinger AI Integration
 
-Hostinger-only status, native Web2Agent opt-in navigation, saved opt-in and derived
-MCP endpoint display, and host-independent llms.txt content/physical-file conflict
-checks. AJNanda remains the canonical content source. Safe automatic synchronization
-is deferred until Hostinger exposes a complete-content integration contract covering
-background writes. Native consent, remote provisioning, cache precedence, and remote
-policy enforcement still require real Hostinger verification.
+Hostinger-only status, one-click Web2Agent opt-in through Hostinger's own settings
+API, derived MCP endpoint display, optional advertising of that endpoint in
+AJNanda's llms.txt, an on-demand Web2Agent index coverage report, and
+host-independent llms.txt content, physical-file, and link-host conflict checks.
+AJNanda remains the canonical content source. Safe automatic synchronization of
+Hostinger's generated file is deferred until Hostinger exposes a complete-content
+integration contract covering background writes. Confirmed on a live Hostinger site:
+the MCP endpoint is provisioned on opt-in, indexes rendered pages independently of
+llms.txt, and does not honour AJNanda's Content Access exclusions.
 
 ### Site Profile
 

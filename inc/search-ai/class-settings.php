@@ -29,6 +29,7 @@ class AJNanda_Search_AI_Settings {
             'search_ai_crawler_ip_mode'          => 'anonymized',
             'search_ai_suspicious_bot_detection_enabled' => true,
             'search_ai_suspicious_bot_period_days' => 7,
+            'search_ai_llms_advertise_agent'     => true,
         );
     }
 

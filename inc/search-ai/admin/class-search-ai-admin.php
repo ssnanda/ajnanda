@@ -24,6 +24,8 @@ class AJNanda_Search_AI_Admin {
         add_action('admin_post_ajnanda_save_crawler_log_settings', array(__CLASS__, 'save_crawler_log_settings'));
         add_action('admin_post_ajnanda_refresh_search_ai_roadmap', array(__CLASS__, 'refresh_roadmap'));
         add_action('admin_post_ajnanda_refresh_search_ai_insights', array(__CLASS__, 'refresh_insights'));
+        add_action('admin_post_ajnanda_probe_hostinger_index', array(__CLASS__, 'probe_hostinger_index'));
+        add_action('admin_post_ajnanda_enable_hostinger_web2agent', array(__CLASS__, 'enable_hostinger_web2agent'));
         add_action('admin_post_ajnanda_export_search_ai', array('AJNanda_Search_AI_Export', 'download'));
         add_action('wp_ajax_ajnanda_search_ai_find_content', array(__CLASS__, 'find_content'));
         add_action('wp_ajax_ajnanda_save_llms_important_pages', array(__CLASS__, 'ajax_save_llms_important_pages'));
@@ -127,6 +129,35 @@ class AJNanda_Search_AI_Admin {
         exit;
     }
 
+    private static function hostinger_tab() {
+        $tab = sanitize_key(wp_unslash($_POST['ajnanda_tab'] ?? ''));
+        return in_array($tab, array('ai-discovery', 'discovery-files'), true) ? $tab : 'discovery-files';
+    }
+
+    private static function hostinger_redirect($tab, $notice) {
+        wp_safe_redirect(add_query_arg(
+            array('page' => self::PAGE_SLUG, 'tab' => $tab, 'ajnanda_hostinger' => rawurlencode($notice)),
+            admin_url('admin.php')
+        ));
+        exit;
+    }
+
+    public static function probe_hostinger_index() {
+        self::authorize('ajnanda_probe_hostinger_index');
+        $report = AJNanda_Search_AI_Hostinger_Index::probe();
+        self::hostinger_redirect(self::hostinger_tab(), $report['error'] ? 'index-error' : 'index-ok');
+    }
+
+    public static function enable_hostinger_web2agent() {
+        self::authorize('ajnanda_enable_hostinger_web2agent');
+        $result = AJNanda_Search_AI_Hostinger::enable_web2agent();
+        if (is_wp_error($result)) {
+            set_transient('ajnanda_hostinger_notice', $result->get_error_message(), MINUTE_IN_SECONDS);
+            self::hostinger_redirect(self::hostinger_tab(), 'web2agent-error');
+        }
+        self::hostinger_redirect(self::hostinger_tab(), 'web2agent-ok');
+    }
+
     public static function refresh_insights() {
         self::authorize('ajnanda_refresh_search_ai_insights');
         AJNanda_Search_AI_Insights::refresh();
@@ -212,6 +243,9 @@ class AJNanda_Search_AI_Admin {
         AJNanda_Search_AI_Settings::set('search_ai_allow_ai_search', $ai_search);
         AJNanda_Search_AI_Settings::set('search_ai_allow_ai_training', $ai_training);
         AJNanda_Search_AI_Settings::set('search_ai_allow_user_retrieval', isset($_POST['search_ai_allow_user_retrieval']));
+        if (AJNanda_Search_AI_Hostinger::status()['relevant']) {
+            AJNanda_Search_AI_Settings::set('search_ai_llms_advertise_agent', isset($_POST['search_ai_llms_advertise_agent']));
+        }
         // Preserve the best possible value for legacy integrations with only one combined switch.
         set_theme_mod('seo_allow_ai_crawlers', $ai_search || $ai_training);
         self::redirect('ai-discovery');

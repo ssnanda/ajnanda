@@ -51,6 +51,19 @@ $endpoint_label = static function ($endpoint) {
             <?php echo esc_html(null === $physical['match'] ? __('Unreadable or over the comparison limit.', 'ajnanda') : ($physical['match'] ? __('Matches now, but can become stale and override dynamic output.', 'ajnanda') : __('Differs from AJNanda’s curated content and can override dynamic output.', 'ajnanda'))); ?>
             <?php if ($physical['hostinger_signature']) { esc_html_e(' Hostinger generator signature found.', 'ajnanda'); } ?></p>
     <?php endforeach; ?>
+    <?php $foreign_hosts = $discovery_status['llms_txt']['foreign_hosts']; ?>
+    <?php if ($foreign_hosts) : ?>
+        <div class="notice notice-error inline"><p>
+            <strong><?php esc_html_e('llms.txt links point at another host.', 'ajnanda'); ?></strong>
+            <?php foreach ($foreign_hosts as $foreign_host => $foreign_count) : ?>
+                <br><code><?php echo esc_html($foreign_host); ?></code> &mdash; <?php echo esc_html(sprintf(_n('%d link', '%d links', $foreign_count, 'ajnanda'), $foreign_count)); ?>
+            <?php endforeach; ?>
+            <br><?php esc_html_e('AI clients cannot reach these URLs.', 'ajnanda'); ?>
+            <?php if ($discovery_status['llms_txt']['custom_override']) { esc_html_e('A saved custom llms.txt is being served instead of the live renderer; it was most likely captured on a development or staging site. Disable the custom override below, or clear its content and save to rebuild it from this site.', 'ajnanda'); } ?>
+        </p></div>
+    <?php elseif ($discovery_status['llms_txt']['custom_override']) : ?>
+        <p><?php esc_html_e('A saved custom llms.txt override is being served. Its links point at this site, but it does not follow content or policy changes automatically.', 'ajnanda'); ?></p>
+    <?php endif; ?>
     <p class="description"><?php esc_html_e('Public checks are cached for five minutes and compare the entire response byte for byte, up to 1 MiB. A mismatch may come from a physical file, another plugin, Hostinger, or a stale cache; the response alone cannot identify the serving component. Review the source before changing it. No files are overwritten or removed.', 'ajnanda'); ?></p>
 </section>
 

@@ -140,8 +140,33 @@ class AJNanda_Search_AI_Readiness {
         } else {
             self::add($checks, 'outputs', 'llms', $probe_endpoints ? self::diagnostic_state($llms['endpoint']) : 'pass', __('llms.txt', 'ajnanda'), $probe_endpoints ? self::diagnostic_message($llms['endpoint']) : __('AJNanda is configured to publish llms.txt.', 'ajnanda'), 'discovery-files', 1);
         }
+        self::llms_link_host_check($checks, $llms);
         $schema = $discovery['schema'];
         self::add($checks, 'outputs', 'schema', ($schema['active'] || ! $schema['ownership']['ajnanda']) ? 'pass' : 'warning', __('Structured data', 'ajnanda'), ! $schema['ownership']['ajnanda'] ? self::ownership_message($schema['ownership']) : ($schema['active'] ? __('AJNanda structured data is active.', 'ajnanda') : __('AJNanda owns structured data, but schema output is disabled.', 'ajnanda')), 'seo', 2);
+    }
+
+    /**
+     * Discovery links must point at this site.
+     *
+     * A custom llms.txt saved on a development or staging host survives
+     * migration and keeps publishing that host's unreachable URLs. Comparing
+     * the stored override against itself cannot detect this, so check the
+     * link destinations against the site's own host instead.
+     */
+    private static function llms_link_host_check(&$checks, $llms) {
+        if (! $llms['ownership']['ajnanda'] || ! $llms['enabled']) { return; }
+        $foreign = isset($llms['foreign_hosts']) ? (array) $llms['foreign_hosts'] : array();
+        if (empty($foreign)) {
+            self::add($checks, 'outputs', 'llms_link_hosts', 'pass', __('llms.txt link destinations', 'ajnanda'), __('Every llms.txt link points at this site.', 'ajnanda'), 'discovery-files', 2);
+            return;
+        }
+        $summary = array();
+        foreach ($foreign as $host => $count) { $summary[] = sprintf(_n('%1$s (%2$d link)', '%1$s (%2$d links)', $count, 'ajnanda'), $host, $count); }
+        $message = sprintf(__('llms.txt publishes links to another host: %s. AI clients cannot reach them.', 'ajnanda'), implode(', ', $summary));
+        if (! empty($llms['custom_override'])) {
+            $message .= ' ' . __('A saved custom llms.txt is being served; it was most likely captured on a development or staging site. Disable the custom override or clear and re-save it.', 'ajnanda');
+        }
+        self::add($checks, 'outputs', 'llms_link_hosts', 'warning', __('llms.txt link destinations', 'ajnanda'), $message, 'discovery-files', 2);
     }
 
     private static function ownership_checks(&$checks) {

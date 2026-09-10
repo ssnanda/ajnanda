@@ -201,5 +201,9 @@ Web2Agent opt-in, and a derived MCP endpoint when relevant. Native Hostinger con
 retain consent. AJNanda remains the curated content source; automatic physical-file
 synchronization is deliberately unsupported because the reviewed Hostinger generator
 has no full-content filter and performs later batch writes. Discovery Files checks
-public content and physical-file conflicts on every hosting provider.
+public content, physical-file, and link-host conflicts on every hosting provider —
+the link-host check catches a custom llms.txt captured on a development or staging
+site that keeps publishing unreachable URLs after migration. An on-demand coverage
+report asks the Web2Agent endpoint which pages it actually holds and compares that
+with what AJNanda advertises.
 See [Hostinger behavior, limitations, and verification](search-ai-discovery-files.md#hostinger-tools-integration).

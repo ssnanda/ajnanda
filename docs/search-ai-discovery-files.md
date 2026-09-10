@@ -190,3 +190,77 @@ behavior; queued Hostinger generation after content changes; physical-file prece
 under LiteSpeed; CDN cache purges; MCP provisioning/client connectivity; canonical
 hostname versus admin hostname; and excluded/private/noindex content enforcement.
 Retest the adapter when Hostinger changes its settings APIs or endpoint convention.
+
+### Discovery link host verification (all hosts)
+
+A custom llms.txt saved from the editor is served verbatim, so an override captured
+on a development or staging site keeps publishing that host's URLs after migration.
+Byte comparison cannot reveal this, because the override is compared against itself.
+
+`AJNanda_Search_AI_Discovery_Files::link_hosts()` therefore parses Markdown link
+destinations from the curated output and `foreign_link_hosts()` reports every host
+that is not the site's own. Only link destinations are read, so prose that merely
+mentions a URL is not reported. Discovery Files shows an error notice listing each
+foreign host and its link count, and readiness adds a weighted
+`llms_link_hosts` check. When a custom override is active the notice says so and
+points to the override, which is the usual cause. Nothing is rewritten
+automatically: disable the override, or clear its content and save to rebuild it
+from the live renderer.
+
+Companion discovery files are excluded from link comparisons through
+`is_discovery_file_url()`; `/llms-full.txt` and `/.well-known/` entries are not
+crawlable pages and must not count against page coverage.
+
+### Web2Agent index coverage
+
+`inc/search-ai/class-hostinger-index.php` implements a minimal MCP client over
+`wp_safe_remote_post`: `initialize`, then `notifications/initialized` with the
+returned `Mcp-Session-Id`, then `tools/call` against Hostinger's `ask` tool. Both a
+plain JSON body and a `text/event-stream` body are decoded. It runs only from the
+Discovery Files or AI Discovery button, never on page load, reads only public
+content, and writes nothing to Hostinger. Results are cached for twelve hours.
+
+Queries are the link titles AJNanda advertises, on the reasoning that a page which
+never surfaces under its own title is probably absent rather than merely ranked low.
+At most twelve queries run within a twenty-five second budget; when more pages are
+advertised than queries are run the report is flagged `sampled`, and a report that
+hits the time budget is flagged `truncated`. Both caveats are shown in the UI,
+because either can understate coverage.
+
+The report lists pages advertised but not indexed, and pages indexed but not
+advertised. The second list is the one to read against the Content Access policy:
+Hostinger crawls rendered pages independently, so its index neither follows
+llms.txt nor honours AJNanda's exclusions.
+
+**Verified against a live Hostinger site on 2026-09-09.** A production site
+advertising 22 pages returned 8 indexed, with its portal login page indexed but not
+advertised. Hostinger's `ask` tool returns a fixed ten chunks per query with no
+relevance threshold, and chunk text includes site navigation because no content
+extraction is performed. Coverage gaps and indexed-but-unadvertised URLs are
+therefore expected findings rather than integration faults.
+
+### Enabling Web2Agent from AJNanda
+
+`AJNanda_Search_AI_Hostinger::enable_web2agent()` loads Hostinger's own
+`PluginSettings`, calls `set_optin_mcp(true)`, and saves through
+`save_plugin_settings()`. Hostinger hooks the generic `updated_option`, so this
+fires the same `MCP_EVENT_OPTIN_TOGGLED` notification its own screen does; the
+opt-in pipeline is used rather than bypassed. `enable_llms_txt` is never touched.
+
+Enabling only is supported. Hostinger's file-generation delete path runs solely
+from its REST route (`hostinger_tools_setting_enable_llms_txt_update`), never from
+`updated_option`, so a direct option write could disable generation while leaving
+the physical file in place to keep shadowing AJNanda. Turning either feature off
+belongs on the Hostinger Tools screen. Every failure mode — plugin inactive,
+accessor missing, temporary domain, value not recorded — returns a `WP_Error` that
+is shown in the admin notice.
+
+### Advertising the agent in AJNanda's llms.txt
+
+Hostinger advertises the MCP endpoint only from inside its own generated file, so
+disabling that file would otherwise cost the advertisement. When Web2Agent is
+enabled and the site is eligible, `AJNanda_Search_AI_Hostinger::agent_link()` adds
+the endpoint to AJNanda's `## Optional` section instead. The setting
+`search_ai_llms_advertise_agent` defaults to on and appears on the AI Discovery tab
+only when Hostinger is relevant. AJNanda emits an absolute `https://` URL;
+Hostinger's parser writes the same host without a scheme.
