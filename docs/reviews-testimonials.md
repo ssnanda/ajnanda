@@ -107,8 +107,14 @@ with an independent value for desktop/tablet and for phones:
   edge and horizontally centred, contents kept on one row.
 
 All four compact-card positions drop the address and social rows, and carry a
-**collapse handle** on the card's inner edge: a chevron button that folds the
-card down to a 44px handle and back. The choice is stored in the visitor's own
+**collapse handle** on the card's inner edge: a button that folds the card down
+to a 44px handle and back. **Collapsed handle** in the same Customizer section
+chooses what that handle shows once folded — *Arrow and label* (default),
+*Arrow only*, or *Label only*. The label is AJ Core's own "Rate Us" wording, so
+there is no second place to set it. While the card is open the handle stays a
+bare chevron: the card itself already carries the label, and the strip stays
+thin. On the side cards the collapsed handle is a vertical tab and the label
+runs along the edge. The choice is stored in the visitor's own
 browser (`localStorage`, key `ajnandaReviewPrompt`) and nothing is sent
 anywhere. Because desktop and phones can use different positions, `prompt.js`
 resolves which one is live at the current breakpoint and only then marks the

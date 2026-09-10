@@ -676,6 +676,7 @@ in AJ Core. Presentation is in `blocks/ajnanda-blocks/reviews/prompt.php`,
 **top-card / bottom-card / left / right** (compact edge card), with a separate
 choice for phones — is in **Customizer → Reviews & Testimonials**; at the top on
 phones the full-width bar stays hidden until the visitor scrolls past it. Every
-compact card carries a collapse handle that folds it to a small chevron, with the
-visitor's choice remembered in their own browser. See
+compact card carries a collapse handle that folds it away, with the visitor's
+choice remembered in their own browser; **Collapsed handle** sets whether that
+handle reads as an arrow, the "Rate Us" label, or both. See
 [the header guide and legacy-theme example](reviews-testimonials.md#header-rate-us-invitation).

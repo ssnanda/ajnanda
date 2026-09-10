@@ -36,6 +36,28 @@ function ajnanda_review_prompt_card_positions() {
     return array('top-card', 'bottom-card', 'left', 'right');
 }
 
+/**
+ * What the collapse handle shows once the card is folded away: a bare chevron,
+ * the prompt's own label ("Rate Us", set in AJ Core), or both. While the card is
+ * open the handle is always just the chevron — the card itself carries the
+ * label, and a thin strip is all that is wanted there.
+ */
+function ajnanda_review_prompt_handle_styles() {
+    return array(
+        'both'  => __('Arrow and label', 'ajnanda'),
+        'arrow' => __('Arrow only', 'ajnanda'),
+        'label' => __('Label only', 'ajnanda'),
+    );
+}
+
+function ajnanda_review_prompt_sanitize_handle_style($value) {
+    return array_key_exists($value, ajnanda_review_prompt_handle_styles()) ? $value : 'both';
+}
+
+function ajnanda_review_prompt_handle_style() {
+    return ajnanda_review_prompt_sanitize_handle_style(get_theme_mod('ajnanda_review_prompt_handle_style', 'both'));
+}
+
 function ajnanda_review_prompt_sanitize_position($value) {
     return array_key_exists($value, ajnanda_review_prompt_positions()) ? $value : 'top';
 }
@@ -81,6 +103,19 @@ add_action('customize_register', function ($wp_customize) {
         'section'     => 'ajnanda_reviews_prompt',
         'type'        => 'select',
         'choices'     => $choices,
+    ));
+
+    $wp_customize->add_setting('ajnanda_review_prompt_handle_style', array(
+        'default'           => 'both',
+        'sanitize_callback' => 'ajnanda_review_prompt_sanitize_handle_style',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('ajnanda_review_prompt_handle_style', array(
+        'label'       => __('Collapsed handle', 'ajnanda'),
+        'description' => __('What the handle shows once a compact card is collapsed. The label is the "Rate Us" wording set in AJ Core. Full-width bars have no handle.', 'ajnanda'),
+        'section'     => 'ajnanda_reviews_prompt',
+        'type'        => 'select',
+        'choices'     => ajnanda_review_prompt_handle_styles(),
     ));
 });
 
@@ -178,6 +213,9 @@ function ajnanda_render_review_prompt_bar() {
     // JavaScript — prompt.js reveals it once it knows the active breakpoint uses
     // one. Rendering it unconditionally keeps the markup breakpoint-agnostic.
     $collapsible = in_array($pos_d, $cards, true) || in_array($pos_m, $cards, true);
+    if ($collapsible) {
+        $classes .= ' aj-review-prompt-bar--handle-' . ajnanda_review_prompt_handle_style();
+    }
     ?>
     <div class="<?php echo esc_attr($classes); ?>" data-d-position="<?php echo esc_attr($pos_d); ?>" data-m-position="<?php echo esc_attr($pos_m); ?>"<?php if ($settings['expires_at']) : ?> data-nosnippet data-google-expires="<?php echo (int) $settings['expires_at']; ?>"<?php endif; ?>>
         <?php if ($collapsible) : ?>
@@ -187,6 +225,7 @@ function ajnanda_render_review_prompt_bar() {
                 aria-label="<?php esc_attr_e('Hide the review invitation', 'ajnanda'); ?>"
                 data-label-collapse="<?php esc_attr_e('Hide the review invitation', 'ajnanda'); ?>"
                 data-label-expand="<?php esc_attr_e('Show the review invitation', 'ajnanda'); ?>">
+                <span class="aj-review-prompt-bar__handle-label" aria-hidden="true"><?php echo esc_html($settings['label']); ?></span>
                 <span class="aj-review-prompt-bar__chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></span>
             </button>
         <?php endif; ?>

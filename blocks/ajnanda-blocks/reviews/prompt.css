@@ -55,9 +55,11 @@ a.aj-review-prompt-bar__phone:hover, a.aj-review-prompt-bar__phone:focus-visible
 
 .aj-review-prompt-bar--collapsible { display: flex; align-items: stretch; }
 .aj-review-prompt-bar--collapsible .aj-review-prompt-bar__collapse {
-    display: grid; place-items: center; flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: center; gap: .35rem;
+    flex: 0 0 auto;
     min-width: 30px; min-height: 30px; padding: 0 2px;
     border: 0; background: rgb(0 0 0 / 14%); color: inherit; cursor: pointer;
+    font: inherit; line-height: 1;
 }
 .aj-review-prompt-bar--collapsible .aj-review-prompt-bar__collapse:hover,
 .aj-review-prompt-bar--collapsible .aj-review-prompt-bar__collapse:focus-visible { background: rgb(0 0 0 / 26%); }
@@ -66,8 +68,20 @@ a.aj-review-prompt-bar__phone:hover, a.aj-review-prompt-bar__phone:focus-visible
 /* Collapsed: the handle is all that is left, so give it a full tap target. */
 .aj-review-prompt-bar--collapsible.is-collapsed .aj-review-prompt-bar__inner { display: none; }
 .aj-review-prompt-bar--collapsible.is-collapsed .aj-review-prompt-bar__collapse {
-    min-width: 44px; min-height: 44px; background: none;
+    min-width: 44px; min-height: 44px; padding: .35rem .75rem; background: none;
 }
+
+/* Handle wording. Open, the card already reads "Rate Us", so the handle stays a
+   bare chevron; collapsed, Customizer → Reviews & Testimonials decides between
+   the chevron, the label, or both (`--handle-{arrow|label|both}`). The chevron
+   always survives an "arrow only" *and* an expanded card, so the control is
+   never an empty box. */
+.aj-review-prompt-bar__handle-label {
+    display: none;
+    font-size: .82rem; font-weight: 600; white-space: nowrap;
+}
+.aj-review-prompt-bar--collapsible.is-collapsed:not(.aj-review-prompt-bar--handle-arrow) .aj-review-prompt-bar__handle-label { display: block; }
+.aj-review-prompt-bar--collapsible.is-collapsed.aj-review-prompt-bar--handle-label .aj-review-prompt-bar__chevron { display: none; }
 
 /* Handle sits on the card's inner edge: opposite the screen edge it is pinned
    to. The button is first in the DOM, so the reversed directions put it last. */
@@ -75,6 +89,17 @@ a.aj-review-prompt-bar__phone:hover, a.aj-review-prompt-bar__phone:focus-visible
 .aj-review-prompt-bar[data-active-card="right"] { flex-direction: row; }
 .aj-review-prompt-bar[data-active-card="top-card"] { flex-direction: column-reverse; }
 .aj-review-prompt-bar[data-active-card="bottom-card"] { flex-direction: column; }
+
+/* Side cards collapse to a narrow vertical tab, so the handle stacks and its
+   label runs along the edge — reading top-to-bottom on the right, bottom-to-top
+   on the left, the way an edge tab normally does. */
+.aj-review-prompt-bar[data-active-card="left"] .aj-review-prompt-bar__collapse,
+.aj-review-prompt-bar[data-active-card="right"] .aj-review-prompt-bar__collapse { flex-direction: column; }
+.aj-review-prompt-bar[data-active-card="left"].is-collapsed .aj-review-prompt-bar__collapse,
+.aj-review-prompt-bar[data-active-card="right"].is-collapsed .aj-review-prompt-bar__collapse { padding: .75rem .35rem; }
+.aj-review-prompt-bar[data-active-card="left"] .aj-review-prompt-bar__handle-label,
+.aj-review-prompt-bar[data-active-card="right"] .aj-review-prompt-bar__handle-label { writing-mode: vertical-rl; }
+.aj-review-prompt-bar[data-active-card="left"] .aj-review-prompt-bar__handle-label { transform: rotate(180deg); }
 
 /* The chevron points the way the card will move; collapsed, it points back. */
 .aj-review-prompt-bar__chevron { display: inline-flex; transform: rotate(var(--aj-rp-chevron, 0deg)); }
