@@ -4386,6 +4386,45 @@ function ajnanda_customizer_controls_css() {
 }
 add_action('customize_controls_print_styles', 'ajnanda_customizer_controls_css');
 
+/**
+ * Give footer widget areas the footer's own background inside the block widget
+ * editors.
+ *
+ * Footer widget content is authored to sit on the dark footer bar, so it
+ * routinely sets white text (`has-white-color`). Both block widget editors —
+ * Appearance > Widgets and the Customizer — paint every widget area on a white
+ * canvas, so that content renders white-on-white: present, saved, and rendering
+ * correctly on the front end, but invisible while editing, which reads as an
+ * empty widget area. Painting the editing surface with the real footer colour
+ * makes it legible and previews closer to what visitors see.
+ *
+ * The two editors need different selectors. The Customizer wraps each area in a
+ * section whose id carries the sidebar id, so footer areas can be matched
+ * exactly. Appearance > Widgets exposes only random client ids, so there we key
+ * off the symptom instead — an area that actually contains white text — which
+ * is precisely the case that would otherwise be unreadable.
+ */
+function ajnanda_widget_editor_footer_surface_css() {
+    $background = get_theme_mod('footer_background_color', '#111827');
+    $text       = get_theme_mod('footer_text_color', '#c9dbe1');
+    ?>
+    <style id="ajnanda-widget-editor-footer-surface">
+        [id^="sub-accordion-section-sidebar-widgets-footer-builder-"] .editor-styles-wrapper,
+        .wp-block-widget-area:has(.has-white-color) {
+            background-color: <?php echo esc_html($background); ?>;
+            color: <?php echo esc_html($text); ?>;
+        }
+
+        [id^="sub-accordion-section-sidebar-widgets-footer-builder-"] .editor-styles-wrapper {
+            padding: 12px;
+            border-radius: 4px;
+        }
+    </style>
+    <?php
+}
+add_action('customize_controls_print_styles', 'ajnanda_widget_editor_footer_surface_css');
+add_action('admin_print_styles-widgets.php', 'ajnanda_widget_editor_footer_surface_css');
+
 function ajnanda_customizer_controls_js() {
     $header_color_schemes = ajnanda_header_color_scheme_values();
     $footer_color_scheme_settings = array();
