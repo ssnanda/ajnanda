@@ -2,6 +2,9 @@
 /** Theme presentation for AJ Core's review invitation. */
 defined('ABSPATH') || exit;
 
+/** What a collapsed compact card shows when the site owner has not chosen. */
+define('AJNANDA_REVIEW_PROMPT_HANDLE_DEFAULT', 'label');
+
 function ajnanda_review_prompt_settings() {
     if (!function_exists('ajcore_get_review_prompt_settings')) { return array(); }
     $settings = ajcore_get_review_prompt_settings();
@@ -15,15 +18,31 @@ function ajnanda_review_prompt_settings() {
  * Every compact card can be collapsed to a small handle by the visitor. A
  * separate choice applies on phones.
  */
-function ajnanda_review_prompt_positions() {
-    return array(
-        'top'         => __('Top (full-width bar)', 'ajnanda'),
-        'bottom'      => __('Bottom (full-width bar)', 'ajnanda'),
-        'top-card'    => __('Top (compact card)', 'ajnanda'),
-        'bottom-card' => __('Bottom (compact card)', 'ajnanda'),
-        'left'        => __('Left (compact card)', 'ajnanda'),
-        'right'       => __('Right (compact card)', 'ajnanda'),
+function ajnanda_review_prompt_positions($context = null) {
+    $positions = array(
+        'top'         => __('Top — full-width bar', 'ajnanda'),
+        'bottom'      => __('Bottom — full-width bar', 'ajnanda'),
+        'top-card'    => __('Top — compact card', 'ajnanda'),
+        'bottom-card' => __('Bottom — compact card', 'ajnanda'),
+        'left'        => __('Left — compact card', 'ajnanda'),
+        'right'       => __('Right — compact card', 'ajnanda'),
     );
+    if (null === $context) {
+        return $positions;
+    }
+    $default = ajnanda_review_prompt_default_position($context);
+    if (isset($positions[$default])) {
+        /* translators: %s: a position name, e.g. "Top — full-width bar". */
+        $positions[$default] = sprintf(__('%s (Default)', 'ajnanda'), $positions[$default]);
+    }
+    return $positions;
+}
+
+/**
+ * The position the bar falls back to when the site owner has not chosen one.
+ */
+function ajnanda_review_prompt_default_position($context = 'desktop') {
+    return 'mobile' === $context ? 'bottom-card' : 'top';
 }
 
 /**
@@ -42,20 +61,25 @@ function ajnanda_review_prompt_card_positions() {
  * open the handle is always just the chevron — the card itself carries the
  * label, and a thin strip is all that is wanted there.
  */
-function ajnanda_review_prompt_handle_styles() {
-    return array(
-        'both'  => __('Arrow and label', 'ajnanda'),
-        'arrow' => __('Arrow only', 'ajnanda'),
+function ajnanda_review_prompt_handle_styles($mark_default = false) {
+    $styles = array(
         'label' => __('Label only', 'ajnanda'),
+        'arrow' => __('Arrow only', 'ajnanda'),
+        'both'  => __('Arrow and label', 'ajnanda'),
     );
+    if ($mark_default && isset($styles[AJNANDA_REVIEW_PROMPT_HANDLE_DEFAULT])) {
+        /* translators: %s: a handle style name, e.g. "Label only". */
+        $styles[AJNANDA_REVIEW_PROMPT_HANDLE_DEFAULT] = sprintf(__('%s (Default)', 'ajnanda'), $styles[AJNANDA_REVIEW_PROMPT_HANDLE_DEFAULT]);
+    }
+    return $styles;
 }
 
 function ajnanda_review_prompt_sanitize_handle_style($value) {
-    return array_key_exists($value, ajnanda_review_prompt_handle_styles()) ? $value : 'both';
+    return array_key_exists($value, ajnanda_review_prompt_handle_styles()) ? $value : AJNANDA_REVIEW_PROMPT_HANDLE_DEFAULT;
 }
 
 function ajnanda_review_prompt_handle_style() {
-    return ajnanda_review_prompt_sanitize_handle_style(get_theme_mod('ajnanda_review_prompt_handle_style', 'both'));
+    return ajnanda_review_prompt_sanitize_handle_style(get_theme_mod('ajnanda_review_prompt_handle_style', AJNANDA_REVIEW_PROMPT_HANDLE_DEFAULT));
 }
 
 function ajnanda_review_prompt_sanitize_position($value) {
@@ -66,8 +90,10 @@ function ajnanda_review_prompt_sanitize_position($value) {
  * @param string $context 'desktop' or 'mobile'.
  */
 function ajnanda_review_prompt_position($context = 'desktop') {
-    $mod = 'mobile' === $context ? 'ajnanda_review_prompt_position_mobile' : 'ajnanda_review_prompt_position';
-    return ajnanda_review_prompt_sanitize_position(get_theme_mod($mod, 'top'));
+    $mod     = 'mobile' === $context ? 'ajnanda_review_prompt_position_mobile' : 'ajnanda_review_prompt_position';
+    $default = ajnanda_review_prompt_default_position($context);
+    $value   = get_theme_mod($mod, $default);
+    return array_key_exists($value, ajnanda_review_prompt_positions()) ? $value : $default;
 }
 
 add_action('customize_register', function ($wp_customize) {
@@ -77,10 +103,8 @@ add_action('customize_register', function ($wp_customize) {
         'priority'    => 126,
     ));
 
-    $choices = ajnanda_review_prompt_positions();
-
     $wp_customize->add_setting('ajnanda_review_prompt_position', array(
-        'default'           => 'top',
+        'default'           => ajnanda_review_prompt_default_position('desktop'),
         'sanitize_callback' => 'ajnanda_review_prompt_sanitize_position',
         'transport'         => 'refresh',
     ));
@@ -89,11 +113,11 @@ add_action('customize_register', function ($wp_customize) {
         'description' => __('Compact cards carry a handle visitors can use to collapse them out of the way; the choice is remembered in their own browser.', 'ajnanda'),
         'section'     => 'ajnanda_reviews_prompt',
         'type'        => 'select',
-        'choices'     => $choices,
+        'choices'     => ajnanda_review_prompt_positions('desktop'),
     ));
 
     $wp_customize->add_setting('ajnanda_review_prompt_position_mobile', array(
-        'default'           => 'top',
+        'default'           => ajnanda_review_prompt_default_position('mobile'),
         'sanitize_callback' => 'ajnanda_review_prompt_sanitize_position',
         'transport'         => 'refresh',
     ));
@@ -102,11 +126,11 @@ add_action('customize_register', function ($wp_customize) {
         'description' => __('Set independently from desktop. At the top on phones the full-width bar stays hidden until the visitor scrolls down past it.', 'ajnanda'),
         'section'     => 'ajnanda_reviews_prompt',
         'type'        => 'select',
-        'choices'     => $choices,
+        'choices'     => ajnanda_review_prompt_positions('mobile'),
     ));
 
     $wp_customize->add_setting('ajnanda_review_prompt_handle_style', array(
-        'default'           => 'both',
+        'default'           => AJNANDA_REVIEW_PROMPT_HANDLE_DEFAULT,
         'sanitize_callback' => 'ajnanda_review_prompt_sanitize_handle_style',
         'transport'         => 'refresh',
     ));
@@ -115,7 +139,7 @@ add_action('customize_register', function ($wp_customize) {
         'description' => __('What the handle shows once a compact card is collapsed. The label is the "Rate Us" wording set in AJ Core. Full-width bars have no handle.', 'ajnanda'),
         'section'     => 'ajnanda_reviews_prompt',
         'type'        => 'select',
-        'choices'     => ajnanda_review_prompt_handle_styles(),
+        'choices'     => ajnanda_review_prompt_handle_styles(true),
     ));
 });
 

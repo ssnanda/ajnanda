@@ -72,16 +72,24 @@ a.aj-review-prompt-bar__phone:hover, a.aj-review-prompt-bar__phone:focus-visible
 }
 
 /* Handle wording. Open, the card already reads "Rate Us", so the handle stays a
-   bare chevron; collapsed, Customizer → Reviews & Testimonials decides between
-   the chevron, the label, or both (`--handle-{arrow|label|both}`). The chevron
-   always survives an "arrow only" *and* an expanded card, so the control is
-   never an empty box. */
+   bare chevron. Collapsed, Customizer → Reviews & Testimonials decides between
+   the label, the chevron, or both, via `--handle-{label|arrow|both}` on the bar.
+   Each style is spelled out from the collapsed base rather than carved out with
+   a :not(), so a page cached before the style class existed collapses to the
+   default (label only) instead of landing in a half-applied arrow-and-label
+   state. */
 .aj-review-prompt-bar__handle-label {
     display: none;
     font-size: .82rem; font-weight: 600; white-space: nowrap;
 }
-.aj-review-prompt-bar--collapsible.is-collapsed:not(.aj-review-prompt-bar--handle-arrow) .aj-review-prompt-bar__handle-label { display: block; }
-.aj-review-prompt-bar--collapsible.is-collapsed.aj-review-prompt-bar--handle-label .aj-review-prompt-bar__chevron { display: none; }
+/* Collapsed, default style: label only. */
+.aj-review-prompt-bar--collapsible.is-collapsed .aj-review-prompt-bar__handle-label { display: block; }
+.aj-review-prompt-bar--collapsible.is-collapsed .aj-review-prompt-bar__chevron { display: none; }
+/* Arrow only. */
+.aj-review-prompt-bar--collapsible.is-collapsed.aj-review-prompt-bar--handle-arrow .aj-review-prompt-bar__handle-label { display: none; }
+/* Both styles that keep the chevron. */
+.aj-review-prompt-bar--collapsible.is-collapsed.aj-review-prompt-bar--handle-arrow .aj-review-prompt-bar__chevron,
+.aj-review-prompt-bar--collapsible.is-collapsed.aj-review-prompt-bar--handle-both .aj-review-prompt-bar__chevron { display: inline-flex; }
 
 /* Handle sits on the card's inner edge: opposite the screen edge it is pinned
    to. The button is first in the DOM, so the reversed directions put it last. */

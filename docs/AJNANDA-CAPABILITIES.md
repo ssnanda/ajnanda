@@ -678,5 +678,6 @@ choice for phones — is in **Customizer → Reviews & Testimonials**; at the to
 phones the full-width bar stays hidden until the visitor scrolls past it. Every
 compact card carries a collapse handle that folds it away, with the visitor's
 choice remembered in their own browser; **Collapsed handle** sets whether that
-handle reads as an arrow, the "Rate Us" label, or both. See
+handle reads as the "Rate Us" label (default), an arrow, or both. Defaults are
+the full-width top bar on desktop and the bottom compact card on phones. See
 [the header guide and legacy-theme example](reviews-testimonials.md#header-rate-us-invitation).

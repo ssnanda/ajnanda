@@ -21,11 +21,21 @@ function ajnanda_a11y_toolbar_enabled() {
 }
 
 /**
+ * The spot the button falls back to when the site owner has not chosen one.
+ */
+function ajnanda_a11y_toolbar_default_position($context = 'desktop') {
+    return 'mobile' === $context ? 'bottom-left' : 'top-right';
+}
+
+/**
  * Where the floating button can sit: the four screen corners, plus three
  * edge-centred spots (bottom centre, and the middle of the left / right edge).
+ *
+ * @param string|null $context 'desktop' or 'mobile' to tag that context's
+ *                             default with "(Default)"; null for bare labels.
  */
-function ajnanda_a11y_toolbar_positions() {
-    return array(
+function ajnanda_a11y_toolbar_positions($context = null) {
+    $positions = array(
         'top-left'      => __('Top left', 'ajnanda'),
         'top-right'     => __('Top right', 'ajnanda'),
         'bottom-left'   => __('Bottom left', 'ajnanda'),
@@ -34,6 +44,15 @@ function ajnanda_a11y_toolbar_positions() {
         'left-middle'   => __('Left middle', 'ajnanda'),
         'right-middle'  => __('Right middle', 'ajnanda'),
     );
+    if (null === $context) {
+        return $positions;
+    }
+    $default = ajnanda_a11y_toolbar_default_position($context);
+    if (isset($positions[$default])) {
+        /* translators: %s: a position name, e.g. "Top right". */
+        $positions[$default] = sprintf(__('%s (Default)', 'ajnanda'), $positions[$default]);
+    }
+    return $positions;
 }
 
 /**
@@ -51,7 +70,7 @@ function ajnanda_a11y_toolbar_corners() {
  */
 function ajnanda_a11y_toolbar_position($context = 'desktop') {
     $mod     = 'mobile' === $context ? 'ajnanda_a11y_toolbar_position_mobile' : 'ajnanda_a11y_toolbar_position';
-    $default = 'mobile' === $context ? 'bottom-right' : 'top-right';
+    $default = ajnanda_a11y_toolbar_default_position($context);
     $value   = get_theme_mod($mod, $default);
     // Migrate the old left/right values.
     if ('left' === $value)  { $value = 'top-left'; }
@@ -113,10 +132,8 @@ function ajnanda_a11y_toolbar_customize_register($wp_customize) {
         'type'        => 'checkbox',
     ));
 
-    $positions = ajnanda_a11y_toolbar_positions();
-
     $wp_customize->add_setting('ajnanda_a11y_toolbar_position', array(
-        'default'           => 'top-right',
+        'default'           => ajnanda_a11y_toolbar_default_position('desktop'),
         'sanitize_callback' => 'ajnanda_a11y_sanitize_position',
         'transport'         => 'refresh',
     ));
@@ -124,20 +141,20 @@ function ajnanda_a11y_toolbar_customize_register($wp_customize) {
         'label'   => __('Position on desktop / tablet', 'ajnanda'),
         'section' => 'ajnanda_accessibility',
         'type'    => 'select',
-        'choices' => $positions,
+        'choices' => ajnanda_a11y_toolbar_positions('desktop'),
     ));
 
     $wp_customize->add_setting('ajnanda_a11y_toolbar_position_mobile', array(
-        'default'           => 'bottom-right',
+        'default'           => ajnanda_a11y_toolbar_default_position('mobile'),
         'sanitize_callback' => 'ajnanda_a11y_sanitize_position',
         'transport'         => 'refresh',
     ));
     $wp_customize->add_control('ajnanda_a11y_toolbar_position_mobile', array(
         'label'       => __('Position on phones', 'ajnanda'),
-        'description' => __('Set independently from the desktop position — e.g. right middle on desktop, bottom middle on phones.', 'ajnanda'),
+        'description' => __('Set independently from the desktop position — e.g. top right on desktop, bottom left on phones.', 'ajnanda'),
         'section'     => 'ajnanda_accessibility',
         'type'        => 'select',
-        'choices'     => $positions,
+        'choices'     => ajnanda_a11y_toolbar_positions('mobile'),
     ));
 
     $tool_labels = array(

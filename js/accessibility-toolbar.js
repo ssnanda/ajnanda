@@ -132,7 +132,7 @@
     function positionWidget(wrap) {
         var mobile = window.matchMedia('(max-width: 600px)').matches;
         var position = mobile ? CONFIG.positionMobile : CONFIG.position;
-        if (POSITIONS.indexOf(position) === -1) { position = mobile ? 'bottom-right' : 'top-right'; }
+        if (POSITIONS.indexOf(position) === -1) { position = mobile ? 'bottom-left' : 'top-right'; }
         POSITIONS.forEach(function (c) { wrap.classList.remove('ajn-a11y--' + c); });
         wrap.classList.add('ajn-a11y--' + position);
     }

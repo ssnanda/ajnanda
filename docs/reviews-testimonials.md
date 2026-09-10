@@ -109,8 +109,8 @@ with an independent value for desktop/tablet and for phones:
 All four compact-card positions drop the address and social rows, and carry a
 **collapse handle** on the card's inner edge: a button that folds the card down
 to a 44px handle and back. **Collapsed handle** in the same Customizer section
-chooses what that handle shows once folded — *Arrow and label* (default),
-*Arrow only*, or *Label only*. The label is AJ Core's own "Rate Us" wording, so
+chooses what that handle shows once folded — *Label only* (default), *Arrow
+only*, or *Arrow and label*. The label is AJ Core's own "Rate Us" wording, so
 there is no second place to set it. While the card is open the handle stays a
 bare chevron: the card itself already carries the label, and the strip stays
 thin. On the side cards the collapsed handle is a vertical tab and the label
@@ -122,7 +122,9 @@ element (`--collapsible` plus `data-active-card`); with JavaScript off the
 handle never appears and the card stays open. Full-width bars are never
 collapsible.
 
-Defaults are `top` for both. Only the phone `top` case loads any scroll logic.
+Defaults are `top` on desktop/tablet and `bottom-card` on phones; the Customizer
+lists tag each context's own default with **(Default)**. Only the phone `top`
+case loads any scroll logic.
 
 The five individually labeled star links navigate directly: **1–4 stars** open
 private feedback in the current tab; **5 stars** opens the configured Google
