@@ -451,6 +451,7 @@ directly is the current documentation.
 | `ajnanda_hero_defaults` | `functions.php` | Default hero colors and responsive min-height/padding for editable hero blocks |
 | `ajnanda_footer` | `functions.php` | Footer background/text/link colors, footer font, footer color-scheme picker, footer builder button/HTML/social settings |
 | `ajnanda_post_meta` | `functions.php` | Show/hide date, author, read-time on the blog listing |
+| `ajnanda_comments` | `functions.php`, `inc/comments-purge.php` | "Enable Comments" toggle (off by default; enforced site-wide) and, while it's unchecked, a "Delete all comments…" tool that permanently purges every comment/pingback/trackback in batched AJAX requests (`manage_options` only, typed DELETE confirmation; plugin comment types such as WooCommerce order notes/reviews are left untouched) |
 | `ajnanda_seo` | `inc/seo.php` | Default meta description/social image, Twitter handle, business phone/address (LocalBusiness schema), schema/AI-crawler/`llms.txt` toggles, read-only sitemap-URL note |
 | `ajnanda_seo_insights` | `inc/seo.php` | Read-only Google Site Kit suggestions panel (soft-dependent — only populates if Site Kit is active) |
 
@@ -460,6 +461,7 @@ dead code — the `NCLLC_Pro_*` naming is legacy, see Legacy notes below):
 `NCLLC_Pro_Header_Color_Schemes_Control`, `NCLLC_Pro_Footer_Font_Control`,
 `NCLLC_Pro_Footer_Color_Schemes_Control` (all `functions.php`),
 `AJNanda_Color_Preset_Control` (`inc/color-schemes.php`),
+`AJNanda_Comments_Purge_Control` (`inc/comments-purge.php`),
 `AJNanda_SEO_Insights_Control` (`inc/seo.php`).
 
 ---
