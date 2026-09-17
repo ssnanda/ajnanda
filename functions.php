@@ -140,6 +140,13 @@ function ajnanda_block_editor_assets() {
         ajnanda_asset_version('js/editor-controls.js'),
         true
     );
+    wp_enqueue_script(
+        'ajnanda-editor-cover-rotator',
+        get_template_directory_uri() . '/js/editor-cover-rotator.js',
+        array('wp-blocks', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-core-data', 'wp-data', 'wp-element', 'wp-hooks'),
+        ajnanda_asset_version('js/editor-cover-rotator.js'),
+        true
+    );
 }
 add_action('enqueue_block_editor_assets', 'ajnanda_block_editor_assets');
 
@@ -5464,6 +5471,7 @@ require_once get_template_directory() . '/inc/github-theme-updater.php';
 require_once get_template_directory() . '/inc/duplicate-content.php';
 require_once get_template_directory() . '/inc/comments-purge.php';
 require_once get_template_directory() . '/inc/accessibility-toolbar.php';
+require_once get_template_directory() . '/inc/cover-rotator.php';
 require_once get_template_directory() . '/inc/seo.php';
 require_once get_template_directory() . '/inc/search-ai/bootstrap.php';
 require_once get_template_directory() . '/blocks/ajnanda-blocks/loader.php';
@@ -5506,12 +5514,18 @@ function ajnanda_menu_toggle_defaults(): array {
         'office_shortcuts_mobile'        => 0,
         'office_shortcuts_mode'          => 'floating',
         'office_shortcuts_exclude_urls'  => '',
+        'office_shortcuts_submenu_style' => 'inline',
+        'office_shortcuts_menu_source'   => 'location',
+        'office_shortcuts_branch_item'   => 0,
         'store_shortcuts'                => 1,
         'store_shortcuts_desktop'        => 1,
         'store_shortcuts_tablet'         => 0,
         'store_shortcuts_mobile'         => 0,
         'store_shortcuts_mode'           => 'floating',
         'store_shortcuts_exclude_urls'   => '',
+        'store_shortcuts_submenu_style'  => 'inline',
+        'store_shortcuts_menu_source'    => 'location',
+        'store_shortcuts_branch_item'    => 0,
         'panel_menu_width'               => 270,
         'panel_menu_font_size'           => 19,
         'panel_menu_radius'              => 22,
@@ -5566,6 +5580,26 @@ function ajnanda_menu_toggle_enabled(string $key): bool {
 function ajnanda_menu_toggle_mode(string $key): string {
     $mode = ajnanda_get_menu_toggles()[$key] ?? 'floating';
     return in_array($mode, ['floating', 'inline'], true) ? $mode : 'floating';
+}
+
+/**
+ * Floater panel submenu style: 'inline' (default — the whole tree listed at
+ * depth 2, as panels always rendered) or 'flyout' (up to 3 levels, side
+ * flyouts on desktop, tap/focus-expand beneath the item below 922px).
+ */
+function ajnanda_panel_menu_submenu_style(string $prefix, ?array $settings = null): string {
+    $settings = $settings ?? ajnanda_get_menu_toggles();
+    return 'flyout' === ($settings["{$prefix}_submenu_style"] ?? 'inline') ? 'flyout' : 'inline';
+}
+
+/**
+ * Floater panel menu source: 'location' (default — the menu assigned to the
+ * panel's own location) or 'primary_branch' (one top-level Primary menu item
+ * as the primary button, its descendants as the links).
+ */
+function ajnanda_panel_menu_source(string $prefix, ?array $settings = null): string {
+    $settings = $settings ?? ajnanda_get_menu_toggles();
+    return 'primary_branch' === ($settings["{$prefix}_menu_source"] ?? 'location') ? 'primary_branch' : 'location';
 }
 
 function ajnanda_menu_toggle_visible_on_device(string $prefix, string $device): bool {
@@ -5702,8 +5736,46 @@ function ajnanda_render_panel_menu(string $location, string $prefix, string $sid
         return;
     }
 
-    if (!has_nav_menu($location)) {
+    $submenu_style = ajnanda_panel_menu_submenu_style($prefix, $settings);
+    $menu_args     = array(
+        'theme_location' => $location,
+        'menu_class'     => 'ajnanda-panel-menu-list',
+        'container'      => false,
+        'fallback_cb'    => false,
+        'depth'          => 2,
+    );
+
+    if ('primary_branch' === ajnanda_panel_menu_source($prefix, $settings)) {
+        $locations = get_nav_menu_locations();
+        $branch_id = absint($settings["{$prefix}_branch_item"] ?? 0);
+        $menu_id   = (int) ($locations['primary'] ?? 0);
+
+        if (!$branch_id || !$menu_id || !ajnanda_panel_menu_branch_exists($menu_id, $branch_id)) {
+            return;
+        }
+
+        // Render by menu ID rather than theme_location so Primary-location
+        // filters (e.g. the Nav CTA class) don't leak into the panel, and give
+        // the list/items their own IDs so they don't duplicate the header's.
+        $menu_args['theme_location']       = '';
+        $menu_args['menu']                 = $menu_id;
+        $menu_args['menu_id']              = "ajnanda-{$side}-panel-menu-list";
+        $menu_args['ajnanda_panel_branch'] = $branch_id;
+    } elseif (!has_nav_menu($location)) {
         return;
+    }
+
+    if ('flyout' === $submenu_style) {
+        $menu_args['depth']  = 3;
+        $menu_args['walker'] = new AJNanda_Panel_Flyout_Walker();
+
+        wp_enqueue_script(
+            'ajnanda-panel-flyout',
+            get_template_directory_uri() . '/js/panel-flyout.js',
+            array(),
+            ajnanda_asset_version('js/panel-flyout.js'),
+            true
+        );
     }
 
     $mode    = ajnanda_menu_toggle_mode($prefix);
@@ -5717,6 +5789,7 @@ function ajnanda_render_panel_menu(string $location, string $prefix, string $sid
         str_replace('_', '-', $prefix),
         "menu-" . str_replace('_', '-', $prefix),
         "ajnanda-panel-menu-{$mode}",
+        'flyout' === $submenu_style ? 'ajnanda-panel-menu-flyout' : '',
         ajnanda_menu_toggle_visibility_classes($prefix),
     ]);
     ?>
@@ -5724,16 +5797,158 @@ function ajnanda_render_panel_menu(string $location, string $prefix, string $sid
         <?php if ('right' === $side) : ?>
             <span class="ajnanda-panel-menu-label"><?php echo esc_html($label); ?></span>
         <?php endif; ?>
-        <?php
-        wp_nav_menu(array(
-            'theme_location' => $location,
-            'menu_class'     => 'ajnanda-panel-menu-list',
-            'container'      => false,
-            'fallback_cb'    => false,
-            'depth'          => 2,
-        ));
-        ?>
+        <?php wp_nav_menu($menu_args); ?>
     </nav>
+    <?php
+}
+
+/**
+ * Whether $branch_id is a published top-level item of nav menu $menu_id.
+ */
+function ajnanda_panel_menu_branch_exists(int $menu_id, int $branch_id): bool {
+    foreach ((array) wp_get_nav_menu_items($menu_id) as $item) {
+        if ($item instanceof WP_Post && (int) $item->ID === $branch_id) {
+            return 0 === (int) $item->menu_item_parent && 'publish' === $item->post_status;
+        }
+    }
+    return false;
+}
+
+/**
+ * For a panel rendering a Primary-menu branch, narrow the menu to that item
+ * plus its descendants: the item stays first (styled as the primary button)
+ * and its direct children are lifted to the top level as the panel links.
+ * Items are cloned so the shared menu-item cache used by the header menu is
+ * never mutated.
+ */
+function ajnanda_panel_menu_branch_objects($sorted_menu_items, $args) {
+    $branch_id = isset($args->ajnanda_panel_branch) ? absint($args->ajnanda_panel_branch) : 0;
+    if (!$branch_id || !is_array($sorted_menu_items)) {
+        return $sorted_menu_items;
+    }
+
+    $children = array();
+    foreach ($sorted_menu_items as $item) {
+        $children[(int) $item->menu_item_parent][] = (int) $item->ID;
+    }
+
+    $keep  = array($branch_id => true);
+    $queue = array($branch_id);
+    while ($queue) {
+        foreach ($children[array_shift($queue)] ?? array() as $child_id) {
+            if (!isset($keep[$child_id])) {
+                $keep[$child_id] = true;
+                $queue[]         = $child_id;
+            }
+        }
+    }
+
+    $branch = array();
+    foreach ($sorted_menu_items as $item) {
+        if (!isset($keep[(int) $item->ID])) {
+            continue;
+        }
+
+        $item = clone $item;
+        if ((int) $item->ID === $branch_id) {
+            $item->classes = array_values(array_diff((array) $item->classes, array('menu-item-has-children')));
+        } elseif ((int) $item->menu_item_parent === $branch_id) {
+            $item->menu_item_parent = '0';
+        }
+        $branch[] = $item;
+    }
+
+    return $branch;
+}
+add_filter('wp_nav_menu_objects', 'ajnanda_panel_menu_branch_objects', 10, 2);
+
+function ajnanda_panel_menu_branch_item_id($id, $item, $args) {
+    return !empty($args->ajnanda_panel_branch) ? '' : $id;
+}
+add_filter('nav_menu_item_id', 'ajnanda_panel_menu_branch_item_id', 10, 3);
+
+/**
+ * Whether a menu item is a "#" placeholder (a heading for its sub-items
+ * rather than a destination).
+ */
+function ajnanda_panel_menu_item_is_placeholder($item): bool {
+    $url = trim((string) ($item->url ?? ''));
+    return '#' === $url || home_url('#') === $url || home_url('/#') === $url;
+}
+
+/**
+ * Walker for "Submenu style → Flyout" panels. Delegates to core for the item
+ * markup (so nav_menu_* filters still apply), then:
+ * - adds a › caret and aria-expanded (kept in sync by js/panel-flyout.js) to
+ *   items with children;
+ * - renders "#" items as a <span> instead of a link — focusable with
+ *   role="button" when it has children, so keyboard users can open it.
+ */
+class AJNanda_Panel_Flyout_Walker extends Walker_Nav_Menu {
+    public function start_el(&$output, $data_object, $depth = 0, $args = null, $current_object_id = 0) {
+        $item_output = '';
+        parent::start_el($item_output, $data_object, $depth, $args, $current_object_id);
+
+        $has_children = !empty($this->has_children);
+        $caret        = $has_children ? '<span class="ajnanda-panel-menu-caret" aria-hidden="true">&rsaquo;</span>' : '';
+        $close_at     = strrpos($item_output, '</a>');
+
+        if (false === $close_at) {
+            $output .= $item_output;
+            return;
+        }
+
+        if (ajnanda_panel_menu_item_is_placeholder($data_object)) {
+            $open = '<span class="ajnanda-panel-menu-placeholder"'
+                . ($has_children ? ' role="button" tabindex="0" aria-expanded="false"' : '')
+                . '>';
+            $item_output = substr_replace($item_output, $caret . '</span>', $close_at, 4);
+            $item_output = preg_replace('/<a\b[^>]*>/', $open, $item_output, 1);
+        } elseif ($has_children) {
+            $item_output = substr_replace($item_output, $caret . '</a>', $close_at, 4);
+            $item_output = preg_replace('/<a\b/', '<a aria-expanded="false"', $item_output, 1);
+        }
+
+        $output .= $item_output;
+    }
+}
+
+/**
+ * Per-panel "Submenu style" and "Menu source" fields (Appearance → Menus →
+ * Manage Locations → Menu Visibility & Behaviour).
+ */
+function ajnanda_render_panel_menu_structure_fields(string $prefix, array $settings): void {
+    $option    = AJNANDA_MENU_TOGGLES_OPTION;
+    $style     = ajnanda_panel_menu_submenu_style($prefix, $settings);
+    $source    = ajnanda_panel_menu_source($prefix, $settings);
+    $branch_id = absint($settings["{$prefix}_branch_item"] ?? 0);
+    $top_level = ajnanda_get_primary_menu_top_level_items();
+    $hint      = 'display:block;margin-top:4px;color:#646970;font-size:12px;';
+    ?>
+    <p style="margin:12px 0 0;"><strong><?php esc_html_e('Submenu style:', 'ajnanda'); ?></strong></p>
+    <p style="margin-top:8px;">
+        <label style="margin-right:16px;"><input type="radio" name="<?php echo esc_attr($option); ?>[<?php echo esc_attr("{$prefix}_submenu_style"); ?>]" value="inline" <?php checked('inline', $style); ?>> <?php esc_html_e('Inline list', 'ajnanda'); ?></label>
+        <label><input type="radio" name="<?php echo esc_attr($option); ?>[<?php echo esc_attr("{$prefix}_submenu_style"); ?>]" value="flyout" <?php checked('flyout', $style); ?>> <?php esc_html_e('Flyout', 'ajnanda'); ?></label>
+        <span style="<?php echo esc_attr($hint); ?>"><?php esc_html_e('Flyout shows up to 3 levels: sub-items open to the side on computers (towards the page) and expand beneath the item on tablets and phones. Items linked to "#" become non-clickable headings.', 'ajnanda'); ?></span>
+    </p>
+    <p style="margin:12px 0 0;"><strong><?php esc_html_e('Menu source:', 'ajnanda'); ?></strong></p>
+    <p style="margin-top:8px;">
+        <label style="display:block;margin-bottom:6px;"><input type="radio" name="<?php echo esc_attr($option); ?>[<?php echo esc_attr("{$prefix}_menu_source"); ?>]" value="location" <?php checked('location', $source); ?>> <?php esc_html_e('Menu assigned to this panel\'s location', 'ajnanda'); ?></label>
+        <label><input type="radio" name="<?php echo esc_attr($option); ?>[<?php echo esc_attr("{$prefix}_menu_source"); ?>]" value="primary_branch" <?php checked('primary_branch', $source); ?>> <?php esc_html_e('Branch of the Primary menu:', 'ajnanda'); ?></label>
+        <select name="<?php echo esc_attr($option); ?>[<?php echo esc_attr("{$prefix}_branch_item"); ?>]" style="margin-left:6px;" <?php disabled(empty($top_level)); ?>>
+            <option value="0"><?php esc_html_e('— Select a top-level item —', 'ajnanda'); ?></option>
+            <?php foreach ($top_level as $item_id => $item_title) : ?>
+                <option value="<?php echo esc_attr($item_id); ?>" <?php selected($branch_id, (int) $item_id); ?>><?php echo esc_html(wp_strip_all_tags($item_title)); ?></option>
+            <?php endforeach; ?>
+        </select>
+        <span style="<?php echo esc_attr($hint); ?>">
+            <?php
+            empty($top_level)
+                ? esc_html_e('Assign a menu to the Primary Menu location to use this option.', 'ajnanda')
+                : esc_html_e('The chosen item becomes the panel\'s main button and its sub-items become the panel links.', 'ajnanda');
+            ?>
+        </span>
+    </p>
     <?php
 }
 
@@ -5793,6 +6008,18 @@ add_action('admin_init', function (): void {
                     if (in_array($key, ['panel_menu_primary_color', 'panel_menu_primary_hover_color'], true)) {
                         $color = sanitize_hex_color($value[$key] ?? $defaults[$key]);
                         $sanitized[$key] = $color ?: $defaults[$key];
+                        continue;
+                    }
+                    if (str_ends_with($key, '_submenu_style')) {
+                        $sanitized[$key] = ($value[$key] ?? 'inline') === 'flyout' ? 'flyout' : 'inline';
+                        continue;
+                    }
+                    if (str_ends_with($key, '_menu_source')) {
+                        $sanitized[$key] = ($value[$key] ?? 'location') === 'primary_branch' ? 'primary_branch' : 'location';
+                        continue;
+                    }
+                    if (str_ends_with($key, '_branch_item')) {
+                        $sanitized[$key] = absint($value[$key] ?? 0);
                         continue;
                     }
                     if (str_ends_with($key, '_mode')) {
@@ -5885,6 +6112,7 @@ add_action('admin_footer-nav-menus.php', function (): void {
                                 <label style="margin-right:16px;"><input type="radio" name="<?php echo esc_attr($option); ?>[office_shortcuts_mode]" value="floating" <?php checked(($settings['office_shortcuts_mode'] ?? 'floating') === 'floating'); ?>> <?php esc_html_e('Floating', 'ajnanda'); ?></label>
                                 <label><input type="radio" name="<?php echo esc_attr($option); ?>[office_shortcuts_mode]" value="inline" <?php checked(($settings['office_shortcuts_mode'] ?? 'floating') === 'inline'); ?>> <?php esc_html_e('Inline / non-floating', 'ajnanda'); ?></label>
                             </p>
+                            <?php ajnanda_render_panel_menu_structure_fields('office_shortcuts', $settings); ?>
                             <?php ajnanda_render_menu_exclude_urls_field('office_shortcuts', $settings); ?>
                         </td>
                     </tr>
@@ -5902,6 +6130,7 @@ add_action('admin_footer-nav-menus.php', function (): void {
                                 <label style="margin-right:16px;"><input type="radio" name="<?php echo esc_attr($option); ?>[store_shortcuts_mode]" value="floating" <?php checked(($settings['store_shortcuts_mode'] ?? 'floating') === 'floating'); ?>> <?php esc_html_e('Floating', 'ajnanda'); ?></label>
                                 <label><input type="radio" name="<?php echo esc_attr($option); ?>[store_shortcuts_mode]" value="inline" <?php checked(($settings['store_shortcuts_mode'] ?? 'floating') === 'inline'); ?>> <?php esc_html_e('Inline / non-floating', 'ajnanda'); ?></label>
                             </p>
+                            <?php ajnanda_render_panel_menu_structure_fields('store_shortcuts', $settings); ?>
                             <?php ajnanda_render_menu_exclude_urls_field('store_shortcuts', $settings); ?>
                         </td>
                     </tr>
@@ -5995,6 +6224,44 @@ add_action('wp_head', function (): void {
     $css .= "@media (max-width:1200px) and (min-width:922px) { .ajnanda-left-panel-menu.ajnanda-panel-menu-floating { left:16px; } .ajnanda-right-panel-menu.ajnanda-panel-menu-floating { right:16px; } .ajnanda-panel-menu { --ajn-panel-width:min({$panel_width}px, 230px); } }\n";
     $css .= "@media (min-width:768px) and (max-width:921px) { .ajnanda-panel-menu-floating { top:220px; } .ajnanda-left-panel-menu.ajnanda-panel-menu-floating { left:16px; } .ajnanda-right-panel-menu.ajnanda-panel-menu-floating { right:16px; } }\n";
     $css .= "@media (max-width:767px) { .ajnanda-panel-menu-floating, body.admin-bar .ajnanda-panel-menu-floating { position:static; width:auto; max-width:none; margin:24px 16px; } }\n";
+
+    // Flyout submenus — only printed when a panel opts in, so sites on the
+    // default inline list get exactly the CSS they always did.
+    if ('flyout' === ajnanda_panel_menu_submenu_style('office_shortcuts', $settings) || 'flyout' === ajnanda_panel_menu_submenu_style('store_shortcuts', $settings)) {
+        $f     = '.ajnanda-panel-menu-flyout';
+        $fl    = '.ajnanda-left-panel-menu.ajnanda-panel-menu-flyout';
+        $fr    = '.ajnanda-right-panel-menu.ajnanda-panel-menu-flyout';
+        $list  = '.ajnanda-panel-menu-list';
+        $ph    = '.ajnanda-panel-menu-placeholder';
+        $css .= "$f $list li { position:relative; }\n";
+        $css .= "$f $list .menu-item-has-children > a, $f $list .menu-item-has-children > $ph { display:flex; align-items:center; justify-content:space-between; gap:12px; }\n";
+        $css .= "$f .ajnanda-panel-menu-caret { flex:none; font-size:1.3em; line-height:1; color:var(--ajn-panel-primary); transition:transform 0.18s ease; }\n";
+        $css .= "$f $list > li:first-child > a .ajnanda-panel-menu-caret, $f $list > li:first-child > $ph .ajnanda-panel-menu-caret { color:inherit; }\n";
+        $css .= "$f $ph { display:block; padding:14px 16px; border-radius:var(--ajn-panel-inner-radius); font-weight:600; font-size:var(--ajn-panel-font-size); line-height:1.35; cursor:default; }\n";
+        $css .= "$f {$ph}[role=\"button\"] { cursor:pointer; }\n";
+        $css .= "$f $list > li:first-child > $ph { margin-bottom:2px; padding:16px 18px; background:var(--ajn-panel-primary); border:1px solid var(--ajn-panel-primary); color:#ffffff; font-weight:700; line-height:1.2; text-align:center; }\n";
+        $css .= "$fl $list li:not(:first-child) > $ph, $fl $list ul $ph { background:#2d383b; border:1px solid rgba(220,230,226,0.08); color:#dce6e2; }\n";
+        $css .= "$fl $list li:not(:first-child) > {$ph}[role=\"button\"]:hover, $fl $list li:not(:first-child) > {$ph}[role=\"button\"]:focus { background:#37464a; border-color:rgba(147,197,253,0.22); color:#ffffff; }\n";
+        $css .= "$fr $list li:not(:first-child) > $ph, $fr $list ul $ph { background:#f8fbff; border:1px solid rgba(2,71,81,0.1); color:#0f172a; }\n";
+        $css .= "$fr $list li:not(:first-child) > {$ph}[role=\"button\"]:hover, $fr $list li:not(:first-child) > {$ph}[role=\"button\"]:focus { background:#eff6ff; border-color:rgba(37,99,235,0.24); color:var(--ajn-panel-primary-hover); }\n";
+        // Desktop: side flyouts (right panel opens towards the left), opened by hover, keyboard focus, or tap.
+        $css .= "@media (min-width:922px) { "
+            . "$f $list ul { position:absolute; top:0; left:calc(100% + 12px); z-index:6; min-width:240px; width:max-content; max-width:320px; margin:0; padding:16px; border-radius:var(--ajn-panel-radius); opacity:0; visibility:hidden; transform:translateX(8px); transition:opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease; } "
+            . "$fl $list ul { background:rgba(36,45,48,0.98); border:1px solid rgba(220,230,226,0.12); box-shadow:0 18px 40px rgba(0,0,0,0.24); } "
+            . "$fr $list ul { left:auto; right:calc(100% + 12px); transform:translateX(-8px); background:rgba(248,251,255,0.98); border:1px solid rgba(2,71,81,0.12); box-shadow:0 18px 40px rgba(2,71,81,0.12); } "
+            . "$fr .ajnanda-panel-menu-caret { transform:rotate(180deg); } "
+            . "$f $list li:hover > ul, $f $list li:focus-within > ul, $f $list li.is-open > ul { opacity:1; visibility:visible; transform:translateX(0); } "
+            . "$f $list li.is-dismissed > ul { opacity:0; visibility:hidden; } "
+            . "}\n";
+        // Tablet/phone: sub-items expand beneath their item. Without JS, hover/focus opens them.
+        $css .= "@media (max-width:921px) { "
+            . "$f $list ul { display:none; } "
+            . "$f:not(.ajnanda-panel-menu-js) $list li:hover > ul, $f:not(.ajnanda-panel-menu-js) $list li:focus-within > ul, $f $list li.is-open > ul { display:grid; } "
+            . "$f $list li.is-dismissed > ul { display:none; } "
+            . "$f $list li.is-open > a .ajnanda-panel-menu-caret, $f $list li.is-open > $ph .ajnanda-panel-menu-caret { transform:rotate(90deg); } "
+            . "}\n";
+        $css .= "@media (prefers-reduced-motion:reduce) { $f $list ul, $f .ajnanda-panel-menu-caret { transition:none; } }\n";
+    }
 
     if (!ajnanda_menu_toggle_enabled('top_navigation')) {
         $css .= "$nav { display:none !important; }\n";

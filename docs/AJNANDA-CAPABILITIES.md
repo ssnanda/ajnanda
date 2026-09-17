@@ -287,6 +287,22 @@ Registered client-side in `js/editor-controls.js`, loaded via
 - **`core/group`** — an "AJNanda Hero" block variation (pre-filled
   `builder-hero-section` group) and an "AJNanda Hero (Image Background)"
   variation on **`core/cover`**.
+- **`core/cover` background rotation (opt-in)** — a "Background rotation"
+  inspector panel (`js/editor-cover-rotator.js`) with a "Rotate background
+  images" toggle, an ordered image picker, seconds per image (2–30, default
+  5) and fade duration (0–3s, default 0.8). Stored only as comment
+  attributes (`ajnRotateEnabled`, `ajnRotateImageIds`, `ajnRotateInterval`,
+  `ajnRotateFade`) — `save()` markup is untouched, so Covers that never
+  enable it are byte-for-byte unchanged. `inc/cover-rotator.php`
+  (`render_block_core/cover`) adds a `data-ajn-cover-rotate` JSON attribute
+  (full-size `src` + `srcset` per extra image) and enqueues
+  `js/cover-rotator.js` only when a rendered Cover has rotation on, an image
+  background, and at least one image besides its own background. The
+  Cover's own background is slide 1; the rest are preloaded before rotation
+  starts. No rotation under `prefers-reduced-motion`; ticks skip while the
+  tab is hidden; a light/dark switcher can dispatch
+  `document.dispatchEvent(new Event('ajnanda:theme-change'))` to pause it
+  briefly (AJNanda itself has no front-end theme toggle today).
 - **Block styles** (`registerBlockStyle`) — the `is-style-ajnanda-*`
   family used throughout Section Patterns: card variants (`ajnanda-card`,
   `-elevated`, `-bordered`, `-soft`, `-linked`) on group/column, icon/eyebrow
@@ -425,7 +441,27 @@ builder-driven, there is no static-footer branch.
   class in `header.php`.
 - **Optional floater-panel menus**: `ajnanda_get_menu_toggles()`
   (`functions.php`) conditionally registers extra nav menu locations
-  (`office_shortcuts`, `store_shortcuts`) when enabled.
+  (`office_shortcuts`, `store_shortcuts`) when enabled. Rendered by
+  `ajnanda_render_panel_menu()`; per-panel options in Appearance → Menus →
+  Manage Locations → Menu Visibility & Behaviour (option
+  `ajnanda_menu_toggles`, keys prefixed `office_shortcuts_` = left,
+  `store_shortcuts_` = right):
+  - `_submenu_style`: `inline` (default — depth-2 list, the original
+    output) or `flyout` — depth 3 via `AJNanda_Panel_Flyout_Walker` (›
+    caret + `aria-expanded` on parents; `#` items render as a `<span>`,
+    focusable `role="button"` when they have children). ≥922px sub-items fly
+    out to the side (right panel → left) on hover/focus-within; below that
+    they expand beneath the item. `js/panel-flyout.js` (enqueued only for
+    flyout panels) syncs `aria-expanded`, toggles `#` headings on
+    tap/Enter/Space, opens on keyboard focus, closes on Escape. Flyout CSS
+    is only printed when a panel uses it.
+  - `_menu_source`: `location` (default) or `primary_branch` with
+    `_branch_item` = a top-level Primary menu item ID. That item becomes
+    the panel's primary button and its children the links
+    (`ajnanda_panel_menu_branch_objects()` on `wp_nav_menu_objects`,
+    rendered by menu ID so Primary-location filters don't apply, `li` IDs
+    stripped to avoid duplicating the header's). Renders nothing if the
+    item is deleted.
 - **Customizer sections**: `ajnanda_header`, `ajnanda_hero_defaults`,
   `ajnanda_footer` — see the Colors/Customizer subsection above for the
   full section list and custom control classes.
@@ -621,6 +657,7 @@ inc/
   page-designs.php             Page Design composer/insert helpers
   color-schemes.php            Preset swatches + editor color-gap fix
   dark-surface-mode.php        Site-wide dark UI toggle (neutral-ramp override)
+  cover-rotator.php            core/cover background rotation render filter
   font-pairings.php            Font pairing presets, Typography Customizer
                                 control, --font-heading/--font-body CSS vars
   site-kits.php                Color scheme + font pairing bundles ("Quick Kits")
@@ -649,6 +686,9 @@ inc/
 js/
   main.js                      Frontend behavior (mobile menu, etc.)
   editor-controls.js           Block-editor-side variations/styles/controls
+  editor-cover-rotator.js      Editor panel for core/cover background rotation
+  cover-rotator.js             Frontend Cover rotation (enqueued on demand)
+  panel-flyout.js              Floater panel flyout a11y/toggles (on demand)
 
 css/                         Empty — unused
 
