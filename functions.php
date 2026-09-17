@@ -5519,6 +5519,8 @@ function ajnanda_menu_toggle_defaults(): array {
         'office_shortcuts_branch_item'   => 0,
         'office_shortcuts_float_min_width' => 0,
         'office_shortcuts_below_min_width' => 'hide',
+        'office_shortcuts_single_line'     => 0,
+        'office_shortcuts_compact_primary' => 0,
         'store_shortcuts'                => 1,
         'store_shortcuts_desktop'        => 1,
         'store_shortcuts_tablet'         => 0,
@@ -5530,6 +5532,8 @@ function ajnanda_menu_toggle_defaults(): array {
         'store_shortcuts_branch_item'    => 0,
         'store_shortcuts_float_min_width' => 0,
         'store_shortcuts_below_min_width' => 'hide',
+        'store_shortcuts_single_line'     => 0,
+        'store_shortcuts_compact_primary' => 0,
         'panel_menu_width'               => 270,
         'panel_menu_font_size'           => 19,
         'panel_menu_radius'              => 22,
@@ -5808,6 +5812,15 @@ function ajnanda_render_panel_menu(string $location, string $prefix, string $sid
         return;
     }
 
+    // Panel-only args, read by the nav_menu_item_title / nav_menu_link_attributes
+    // filters so per-item "Panel label"s never reach the header, mobile or footer menus.
+    $menu_args['ajnanda_panel_labels'] = true;
+    if (!empty($settings["{$prefix}_single_line"])) {
+        $menu_args['ajnanda_panel_single_line'] = true;
+        $menu_args['link_before']               = '<span class="ajnanda-panel-menu-text">';
+        $menu_args['link_after']                = '</span>';
+    }
+
     if ('flyout' === $submenu_style) {
         $menu_args['depth']  = 3;
         $menu_args['walker'] = new AJNanda_Panel_Flyout_Walker();
@@ -5920,6 +5933,74 @@ function ajnanda_panel_menu_item_is_placeholder($item): bool {
 }
 
 /**
+ * A menu item's optional "Panel label" (Appearance → Menus), used only by the
+ * floater panels. Empty when unset or when $args isn't a panel wp_nav_menu().
+ */
+function ajnanda_panel_menu_item_label($item, $args): string {
+    if (empty($args->ajnanda_panel_labels) || empty($item->ID)) {
+        return '';
+    }
+    return trim((string) get_post_meta((int) $item->ID, '_ajnanda_panel_label', true));
+}
+
+/**
+ * Whether a panel item should carry its full name as a title attribute: its
+ * text was replaced by a panel label, or the panel may truncate it.
+ */
+function ajnanda_panel_menu_item_wants_title($item, $args): bool {
+    return !empty($args->ajnanda_panel_single_line) || '' !== ajnanda_panel_menu_item_label($item, $args);
+}
+
+add_filter('nav_menu_item_title', static function ($title, $item, $args) {
+    $label = ajnanda_panel_menu_item_label($item, $args);
+    return '' === $label ? $title : esc_html($label);
+}, 10, 3);
+
+add_filter('nav_menu_link_attributes', static function ($atts, $item, $args) {
+    if (empty($atts['title']) && ajnanda_panel_menu_item_wants_title($item, $args)) {
+        $full = trim(wp_strip_all_tags((string) ($item->title ?? '')));
+        if ('' !== $full) {
+            $atts['title'] = $full;
+        }
+    }
+    return $atts;
+}, 10, 3);
+
+add_action('wp_nav_menu_item_custom_fields', static function ($item_id, $item): void {
+    $item_id = (int) $item_id;
+    wp_nonce_field('ajnanda_panel_label', 'ajnanda_panel_label_nonce', false);
+    ?>
+    <p class="field-ajnanda-panel-label description description-wide">
+        <label for="edit-menu-item-ajnanda-panel-label-<?php echo esc_attr($item_id); ?>">
+            <?php esc_html_e('Panel label', 'ajnanda'); ?><br>
+            <input type="text" id="edit-menu-item-ajnanda-panel-label-<?php echo esc_attr($item_id); ?>" class="widefat" name="menu-item-ajnanda-panel-label[<?php echo esc_attr($item_id); ?>]" value="<?php echo esc_attr((string) get_post_meta($item_id, '_ajnanda_panel_label', true)); ?>">
+        </label>
+        <span class="description"><?php esc_html_e('Optional shorter text shown only in the floating side panel menus. Other menus keep the Navigation Label.', 'ajnanda'); ?></span>
+    </p>
+    <?php
+}, 10, 2);
+
+add_action('wp_update_nav_menu_item', static function ($menu_id, $item_id): void {
+    $item_id = (int) $item_id;
+    if (
+        !current_user_can('edit_theme_options')
+        || !isset($_POST['ajnanda_panel_label_nonce'], $_POST['menu-item-ajnanda-panel-label'])
+        || !is_array($_POST['menu-item-ajnanda-panel-label'])
+        || !array_key_exists($item_id, $_POST['menu-item-ajnanda-panel-label'])
+        || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['ajnanda_panel_label_nonce'])), 'ajnanda_panel_label')
+    ) {
+        return;
+    }
+
+    $label = sanitize_text_field(wp_unslash((string) $_POST['menu-item-ajnanda-panel-label'][$item_id]));
+    if ('' === $label) {
+        delete_post_meta($item_id, '_ajnanda_panel_label');
+    } else {
+        update_post_meta($item_id, '_ajnanda_panel_label', $label);
+    }
+}, 10, 2);
+
+/**
  * Walker for "Submenu style → Flyout" panels. Delegates to core for the item
  * markup (so nav_menu_* filters still apply), then:
  * - adds a › caret and aria-expanded (kept in sync by js/panel-flyout.js) to
@@ -5942,7 +6023,14 @@ class AJNanda_Panel_Flyout_Walker extends Walker_Nav_Menu {
         }
 
         if (ajnanda_panel_menu_item_is_placeholder($data_object)) {
+            // Keep the full-name title attribute only when a panel label or
+            // single-line option added it, so default output is unchanged.
+            $title_attr = '';
+            if (ajnanda_panel_menu_item_wants_title($data_object, $args) && preg_match('/<a\b[^>]*?(\stitle="[^"]*")/', $item_output, $match)) {
+                $title_attr = $match[1];
+            }
             $open = '<span class="ajnanda-panel-menu-placeholder"'
+                . $title_attr
                 . ($has_children ? ' role="button" tabindex="0" aria-expanded="false"' : '')
                 . '>';
             $item_output = substr_replace($item_output, $caret . '</span>', $close_at, 4);
@@ -5993,6 +6081,51 @@ function ajnanda_render_panel_menu_structure_fields(string $prefix, array $setti
         </span>
     </p>
     <?php
+}
+
+/**
+ * Per-panel "Keep items on one line" + "Compact main button" checkboxes.
+ */
+function ajnanda_render_panel_menu_text_fields(string $prefix, array $settings): void {
+    $option = AJNANDA_MENU_TOGGLES_OPTION;
+    $hint   = 'display:block;margin-top:4px;color:#646970;font-size:12px;';
+    ?>
+    <p style="margin-top:12px;">
+        <label style="display:block;margin-bottom:6px;"><input type="checkbox" name="<?php echo esc_attr($option); ?>[<?php echo esc_attr("{$prefix}_single_line"); ?>]" value="1" <?php checked(!empty($settings["{$prefix}_single_line"])); ?>> <?php esc_html_e('Keep items on one line', 'ajnanda'); ?></label>
+        <label><input type="checkbox" name="<?php echo esc_attr($option); ?>[<?php echo esc_attr("{$prefix}_compact_primary"); ?>]" value="1" <?php checked(!empty($settings["{$prefix}_compact_primary"])); ?>> <?php esc_html_e('Compact main button', 'ajnanda'); ?></label>
+        <span style="<?php echo esc_attr($hint); ?>"><?php esc_html_e('One line: text that does not fit ends with "…" and the full name shows on hover. Set a shorter "Panel label" on long menu items in Appearance → Menus. Compact: less side padding on the first (main) button.', 'ajnanda'); ?></span>
+    </p>
+    <?php
+}
+
+/**
+ * CSS for a panel's "Keep items on one line" / "Compact main button" options;
+ * empty unless that panel opts in.
+ */
+function ajnanda_panel_menu_text_css(string $prefix, string $side, array $settings): string {
+    if (empty($settings["{$side}_panel_enabled"]) || empty($settings[$prefix])) {
+        return '';
+    }
+
+    $p    = ".ajnanda-{$side}-panel-menu";
+    $list = '.ajnanda-panel-menu-list';
+    $ph   = '.ajnanda-panel-menu-placeholder';
+    $css  = '';
+
+    if (!empty($settings["{$prefix}_single_line"])) {
+        // The text sits in its own span (link_before/link_after), so the › caret
+        // beside it in flyout items is never cut off.
+        $css .= "$p .ajnanda-panel-menu-text { display:block; flex:1 1 auto; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }\n";
+        // Grid tracks/items default to their min-content width, which nowrap text
+        // would stretch past the panel (or the flyout's max-width) — let them shrink.
+        $css .= "$p $list, $p $list ul { grid-template-columns:minmax(0, 1fr); }\n";
+        $css .= "$p $list li, $p $list a, $p $list $ph { min-width:0; }\n";
+    }
+    if (!empty($settings["{$prefix}_compact_primary"])) {
+        $css .= "$p $list > li:first-child > a, $p $list > li:first-child > $ph { padding-left:10px; padding-right:10px; }\n";
+    }
+
+    return $css;
 }
 
 /**
@@ -6189,6 +6322,7 @@ add_action('admin_footer-nav-menus.php', function (): void {
                             </p>
                             <?php ajnanda_render_panel_float_min_width_fields('office_shortcuts', $settings); ?>
                             <?php ajnanda_render_panel_menu_structure_fields('office_shortcuts', $settings); ?>
+                            <?php ajnanda_render_panel_menu_text_fields('office_shortcuts', $settings); ?>
                             <?php ajnanda_render_menu_exclude_urls_field('office_shortcuts', $settings); ?>
                         </td>
                     </tr>
@@ -6208,6 +6342,7 @@ add_action('admin_footer-nav-menus.php', function (): void {
                             </p>
                             <?php ajnanda_render_panel_float_min_width_fields('store_shortcuts', $settings); ?>
                             <?php ajnanda_render_panel_menu_structure_fields('store_shortcuts', $settings); ?>
+                            <?php ajnanda_render_panel_menu_text_fields('store_shortcuts', $settings); ?>
                             <?php ajnanda_render_menu_exclude_urls_field('store_shortcuts', $settings); ?>
                         </td>
                     </tr>
@@ -6417,6 +6552,10 @@ add_action('wp_head', function (): void {
     // Opt-in "float only on screens at least N px wide" — prints nothing by default.
     $css .= ajnanda_panel_float_min_width_css('office_shortcuts', 'left', $settings);
     $css .= ajnanda_panel_float_min_width_css('store_shortcuts', 'right', $settings);
+
+    // Opt-in "Keep items on one line" / "Compact main button" — prints nothing by default.
+    $css .= ajnanda_panel_menu_text_css('office_shortcuts', 'left', $settings);
+    $css .= ajnanda_panel_menu_text_css('store_shortcuts', 'right', $settings);
 
     // A floating side panel sits fixed 16px off the viewport edge (full $panel_width wide above
     // 1200px, min($panel_width, 230) between 922-1200px per the media query above) — but

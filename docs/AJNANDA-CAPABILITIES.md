@@ -454,6 +454,24 @@ builder-driven, there is no static-footer branch.
     panels that set it (skipped for Inline mode, URL-excluded pages, or
     panels shown on neither Computer nor Tablet). Device checkboxes still
     apply on top; phones keep the existing static layout.
+  - Per-menu-item **Panel label** (Appearance → Menus item field via
+    `wp_nav_menu_item_custom_fields`, saved on `wp_update_nav_menu_item`
+    with nonce + `edit_theme_options`; post meta `_ajnanda_panel_label`,
+    deleted when emptied). Only panel `wp_nav_menu()` calls pass
+    `ajnanda_panel_labels`, so the `nav_menu_item_title` swap never reaches
+    the header/mobile/footer menus; works for both submenu styles and both
+    menu sources. A replaced title keeps the full name as the `title`
+    attribute (unless the item already has one; the flyout walker carries
+    it onto `#` placeholder spans).
+  - `_single_line` (0/1, default 0): panel args add
+    `ajnanda_panel_single_line` + `link_before/after` wrapping the text in
+    `.ajnanda-panel-menu-text`, and `ajnanda_panel_menu_text_css()` prints
+    nowrap/ellipsis for that span (caret stays outside it) plus
+    `minmax(0,1fr)` grid columns / `min-width:0` so lists, desktop flyouts
+    and tablet/phone expanded lists can shrink. Every item gets its full
+    name as `title`.
+  - `_compact_primary` (0/1, default 0): first item's side padding 18px →
+    10px. Both CSS options print only for the panel that enables them.
   - `_submenu_style`: `inline` (default — depth-2 list, the original
     output) or `flyout` — depth 3 via `AJNanda_Panel_Flyout_Walker` (›
     caret + `aria-expanded` on parents; `#` items render as a `<span>`,
