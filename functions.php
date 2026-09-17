@@ -5517,6 +5517,8 @@ function ajnanda_menu_toggle_defaults(): array {
         'office_shortcuts_submenu_style' => 'inline',
         'office_shortcuts_menu_source'   => 'location',
         'office_shortcuts_branch_item'   => 0,
+        'office_shortcuts_float_min_width' => 0,
+        'office_shortcuts_below_min_width' => 'hide',
         'store_shortcuts'                => 1,
         'store_shortcuts_desktop'        => 1,
         'store_shortcuts_tablet'         => 0,
@@ -5526,6 +5528,8 @@ function ajnanda_menu_toggle_defaults(): array {
         'store_shortcuts_submenu_style'  => 'inline',
         'store_shortcuts_menu_source'    => 'location',
         'store_shortcuts_branch_item'    => 0,
+        'store_shortcuts_float_min_width' => 0,
+        'store_shortcuts_below_min_width' => 'hide',
         'panel_menu_width'               => 270,
         'panel_menu_font_size'           => 19,
         'panel_menu_radius'              => 22,
@@ -5600,6 +5604,45 @@ function ajnanda_panel_menu_submenu_style(string $prefix, ?array $settings = nul
 function ajnanda_panel_menu_source(string $prefix, ?array $settings = null): string {
     $settings = $settings ?? ajnanda_get_menu_toggles();
     return 'primary_branch' === ($settings["{$prefix}_menu_source"] ?? 'location') ? 'primary_branch' : 'location';
+}
+
+/**
+ * Floater panel "Float only on screens at least N px wide": 0 = off (the
+ * panel floats at every width it is shown on, as it always has). Phones
+ * (<768px) already get a static panel, so anything below 768 is treated as off.
+ */
+function ajnanda_sanitize_panel_float_min_width($value): int {
+    $width = absint($value);
+    return $width < 768 ? 0 : min(3840, $width);
+}
+
+/**
+ * Media-query CSS that stops a floating panel floating below its minimum
+ * width, either hiding it or dropping it into the page flow (like the
+ * Inline mode). Empty unless the panel opts in, so default sites keep their
+ * exact CSS. Scoped to 768px+ because phones already render it static, and
+ * layered under the device checkboxes' display:none rules.
+ */
+function ajnanda_panel_float_min_width_css(string $prefix, string $side, array $settings): string {
+    $min_width = ajnanda_sanitize_panel_float_min_width($settings["{$prefix}_float_min_width"] ?? 0);
+    if (
+        !$min_width
+        || empty($settings["{$side}_panel_enabled"])
+        || empty($settings[$prefix])
+        || 'floating' !== ($settings["{$prefix}_mode"] ?? 'floating')
+        || (empty($settings["{$prefix}_desktop"]) && empty($settings["{$prefix}_tablet"]))
+        || ajnanda_menu_toggle_url_matches_patterns((string) ($settings["{$prefix}_exclude_urls"] ?? ''))
+    ) {
+        return '';
+    }
+
+    $sel   = ".ajnanda-{$side}-panel-menu.ajnanda-panel-menu-floating";
+    $query = '@media (min-width:768px) and (max-width:' . ($min_width - 1) . 'px)';
+
+    if ('inline' === ($settings["{$prefix}_below_min_width"] ?? 'hide')) {
+        return "{$query} { {$sel} { position:static; margin:24px auto; } }\n";
+    }
+    return "{$query} { {$sel} { display:none !important; } }\n";
 }
 
 function ajnanda_menu_toggle_visible_on_device(string $prefix, string $device): bool {
@@ -5952,6 +5995,30 @@ function ajnanda_render_panel_menu_structure_fields(string $prefix, array $setti
     <?php
 }
 
+/**
+ * Per-panel "Float only on screens at least N px wide" + "Below that width"
+ * fields (Appearance → Menus → Manage Locations → Menu Visibility & Behaviour).
+ */
+function ajnanda_render_panel_float_min_width_fields(string $prefix, array $settings): void {
+    $option    = AJNANDA_MENU_TOGGLES_OPTION;
+    $min_width = ajnanda_sanitize_panel_float_min_width($settings["{$prefix}_float_min_width"] ?? 0);
+    $below     = 'inline' === ($settings["{$prefix}_below_min_width"] ?? 'hide') ? 'inline' : 'hide';
+    $hint      = 'display:block;margin-top:4px;color:#646970;font-size:12px;';
+    ?>
+    <p style="margin-top:8px;">
+        <label><?php esc_html_e('Float only on screens at least', 'ajnanda'); ?>
+            <input type="number" min="0" max="3840" step="1" name="<?php echo esc_attr($option); ?>[<?php echo esc_attr("{$prefix}_float_min_width"); ?>]" value="<?php echo esc_attr($min_width ?: ''); ?>" placeholder="0" style="width:90px;">
+            <?php esc_html_e('px wide', 'ajnanda'); ?></label>
+        <span style="<?php echo esc_attr($hint); ?>"><?php esc_html_e('Floating mode only. Leave empty or 0 to float at every width the panel is shown on. Phones (under 768px) always show the panel in the page flow.', 'ajnanda'); ?></span>
+    </p>
+    <p style="margin-top:8px;">
+        <strong><?php esc_html_e('Below that width:', 'ajnanda'); ?></strong>
+        <label style="margin:0 16px 0 8px;"><input type="radio" name="<?php echo esc_attr($option); ?>[<?php echo esc_attr("{$prefix}_below_min_width"); ?>]" value="hide" <?php checked('hide', $below); ?>> <?php esc_html_e('Hide', 'ajnanda'); ?></label>
+        <label><input type="radio" name="<?php echo esc_attr($option); ?>[<?php echo esc_attr("{$prefix}_below_min_width"); ?>]" value="inline" <?php checked('inline', $below); ?>> <?php esc_html_e('Show inline (non-floating)', 'ajnanda'); ?></label>
+    </p>
+    <?php
+}
+
 function ajnanda_render_panel_menus(): void {
     $settings = ajnanda_get_menu_toggles();
 
@@ -6016,6 +6083,14 @@ add_action('admin_init', function (): void {
                     }
                     if (str_ends_with($key, '_menu_source')) {
                         $sanitized[$key] = ($value[$key] ?? 'location') === 'primary_branch' ? 'primary_branch' : 'location';
+                        continue;
+                    }
+                    if (str_ends_with($key, '_float_min_width')) {
+                        $sanitized[$key] = ajnanda_sanitize_panel_float_min_width($value[$key] ?? 0);
+                        continue;
+                    }
+                    if (str_ends_with($key, '_below_min_width')) {
+                        $sanitized[$key] = ($value[$key] ?? 'hide') === 'inline' ? 'inline' : 'hide';
                         continue;
                     }
                     if (str_ends_with($key, '_branch_item')) {
@@ -6112,6 +6187,7 @@ add_action('admin_footer-nav-menus.php', function (): void {
                                 <label style="margin-right:16px;"><input type="radio" name="<?php echo esc_attr($option); ?>[office_shortcuts_mode]" value="floating" <?php checked(($settings['office_shortcuts_mode'] ?? 'floating') === 'floating'); ?>> <?php esc_html_e('Floating', 'ajnanda'); ?></label>
                                 <label><input type="radio" name="<?php echo esc_attr($option); ?>[office_shortcuts_mode]" value="inline" <?php checked(($settings['office_shortcuts_mode'] ?? 'floating') === 'inline'); ?>> <?php esc_html_e('Inline / non-floating', 'ajnanda'); ?></label>
                             </p>
+                            <?php ajnanda_render_panel_float_min_width_fields('office_shortcuts', $settings); ?>
                             <?php ajnanda_render_panel_menu_structure_fields('office_shortcuts', $settings); ?>
                             <?php ajnanda_render_menu_exclude_urls_field('office_shortcuts', $settings); ?>
                         </td>
@@ -6130,6 +6206,7 @@ add_action('admin_footer-nav-menus.php', function (): void {
                                 <label style="margin-right:16px;"><input type="radio" name="<?php echo esc_attr($option); ?>[store_shortcuts_mode]" value="floating" <?php checked(($settings['store_shortcuts_mode'] ?? 'floating') === 'floating'); ?>> <?php esc_html_e('Floating', 'ajnanda'); ?></label>
                                 <label><input type="radio" name="<?php echo esc_attr($option); ?>[store_shortcuts_mode]" value="inline" <?php checked(($settings['store_shortcuts_mode'] ?? 'floating') === 'inline'); ?>> <?php esc_html_e('Inline / non-floating', 'ajnanda'); ?></label>
                             </p>
+                            <?php ajnanda_render_panel_float_min_width_fields('store_shortcuts', $settings); ?>
                             <?php ajnanda_render_panel_menu_structure_fields('store_shortcuts', $settings); ?>
                             <?php ajnanda_render_menu_exclude_urls_field('store_shortcuts', $settings); ?>
                         </td>
@@ -6336,6 +6413,10 @@ add_action('wp_head', function (): void {
             $css .= "@media (max-width:767px) { $right_panel { display:none !important; } }\n";
         }
     }
+
+    // Opt-in "float only on screens at least N px wide" — prints nothing by default.
+    $css .= ajnanda_panel_float_min_width_css('office_shortcuts', 'left', $settings);
+    $css .= ajnanda_panel_float_min_width_css('store_shortcuts', 'right', $settings);
 
     // A floating side panel sits fixed 16px off the viewport edge (full $panel_width wide above
     // 1200px, min($panel_width, 230) between 922-1200px per the media query above) — but

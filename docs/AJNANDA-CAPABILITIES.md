@@ -446,6 +446,14 @@ builder-driven, there is no static-footer branch.
   Manage Locations → Menu Visibility & Behaviour (option
   `ajnanda_menu_toggles`, keys prefixed `office_shortcuts_` = left,
   `store_shortcuts_` = right):
+  - `_float_min_width` (int, default `0` = off; values under 768 saved as 0)
+    + `_below_min_width` (`hide` default | `inline`): a Floating panel only
+    floats at viewports ≥ N px; between 768px and N−1px it is hidden or
+    made `position:static` in the page flow (like Inline mode). CSS comes
+    from `ajnanda_panel_float_min_width_css()` and is printed only for
+    panels that set it (skipped for Inline mode, URL-excluded pages, or
+    panels shown on neither Computer nor Tablet). Device checkboxes still
+    apply on top; phones keep the existing static layout.
   - `_submenu_style`: `inline` (default — depth-2 list, the original
     output) or `flyout` — depth 3 via `AJNanda_Panel_Flyout_Walker` (›
     caret + `aria-expanded` on parents; `#` items render as a `<span>`,
