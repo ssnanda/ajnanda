@@ -604,14 +604,15 @@ expiry/cache requirements, attribution, policy limitations, and verification.
   handler now only calls `revealSections()` (still separately bound
   directly too, so scroll-reveal behavior is unchanged) — see `docs/patterns.md`
   for the scroll-reveal animation classes this supports.
-- **Multi-generation option/theme_mod migrations** (`functions.php`,
+- **Legacy option/theme_mod migration** (`functions.php`,
   `after_setup_theme`): `ncllc_left_panel_enabled` etc. → `ajnanda_left_panel_enabled`
-  etc.; `upos_office_shortcuts`/`upos_store_shortcuts` nav-menu-location
-  keys → `office_shortcuts`/`store_shortcuts`; and a three-generation
-  option fallback chain `upos_menu_toggles` → `ncllc_menu_toggles` →
-  `ajnanda_menu_toggles` inside `ajnanda_get_menu_toggles()`. All still
-  present and active — evidence of at least two prior renames (UPOS →
-  NCLLC → AJNanda).
+  etc., plus an `ncllc_menu_toggles` → `ajnanda_menu_toggles` option fallback
+  inside `ajnanda_get_menu_toggles()`. The older UPOS-era migrations
+  (`upos_*` nav-menu-location keys, the `upos_menu_toggles` option, the
+  `upos_get_*_shortcuts_data()` mu-plugin guards and `.upos-*` panel
+  selectors) were removed in 2.0.51 once no site still used them; panel
+  device-visibility classes are now `ajnanda-show-{desktop,tablet,mobile}`
+  (previously `upos-show-*`).
 - **Spectra/Ultimate Addons for Gutenberg migration**:
   `ajnanda_convert_spectra_markup_to_core()` (`functions.php`, hooked on
   `the_content` at priority 8) rewrites old Spectra-plugin block markup

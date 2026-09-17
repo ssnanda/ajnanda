@@ -72,30 +72,6 @@ add_action('after_setup_theme', function (): void {
     }
 }, 5);
 
-add_action('after_setup_theme', function (): void {
-    $locations = get_theme_mod('nav_menu_locations', []);
-    if (!is_array($locations)) {
-        return;
-    }
-
-    $changed = false;
-    $legacy_locations = [
-        'upos_office_shortcuts' => 'office_shortcuts',
-        'upos_store_shortcuts'  => 'store_shortcuts',
-    ];
-
-    foreach ($legacy_locations as $legacy => $current) {
-        if (empty($locations[$current]) && !empty($locations[$legacy])) {
-            $locations[$current] = $locations[$legacy];
-            $changed = true;
-        }
-    }
-
-    if ($changed) {
-        set_theme_mod('nav_menu_locations', $locations);
-    }
-}, 11);
-
 /**
  * Enqueue scripts and styles
  */
@@ -5554,14 +5530,6 @@ function ajnanda_get_menu_toggles(): array {
             $saved = $legacy;
         }
     }
-    // One-time migration from original upos_menu_toggles option
-    if (empty($saved)) {
-        $legacy = get_option('upos_menu_toggles', []);
-        if (!empty($legacy) && is_array($legacy)) {
-            $saved = $legacy;
-        }
-    }
-
     $merged = wp_parse_args($saved, ajnanda_menu_toggle_defaults());
 
     // Fall back to theme_mods for panel enable/label until user saves from Appearance → Menus.
@@ -5657,7 +5625,7 @@ function ajnanda_menu_toggle_visibility_classes(string $prefix): string {
     $classes = [];
     foreach (['desktop', 'tablet', 'mobile'] as $device) {
         if (ajnanda_menu_toggle_visible_on_device($prefix, $device)) {
-            $classes[] = "upos-show-{$device}";
+            $classes[] = "ajnanda-show-{$device}";
         }
     }
     return implode(' ', $classes);
@@ -5767,13 +5735,6 @@ function ajnanda_render_panel_menu_style_fields(array $settings): void {
 
 function ajnanda_render_panel_menu(string $location, string $prefix, string $side, string $label): void {
     $settings = ajnanda_get_menu_toggles();
-
-    if ('left' === $side && function_exists('upos_get_office_shortcuts_data')) {
-        return;
-    }
-    if ('right' === $side && function_exists('upos_get_store_shortcuts_data')) {
-        return;
-    }
 
     if (empty($settings["{$side}_panel_enabled"]) || empty($settings[$prefix])) {
         return;
@@ -6383,9 +6344,6 @@ add_action('wp_head', function (): void {
     $nav  = '.main-navigation, .ajn-builder-cell-primary-menu, #mobile-menu-toggle';
     $foot = '.ajn-builder-cell-footer-menu, .site-footer .nav-menu';
     $left_panel = implode(', ', [
-        '.upos-office-shortcuts',
-        '.upos-left-panel',
-        '.upos-floating-left',
         '.ajnanda-left-panel-menu',
         '.ajnanda-left-floating-panel',
         '.left-panel-menu',
@@ -6395,9 +6353,6 @@ add_action('wp_head', function (): void {
         '.menu-office-shortcuts',
     ]);
     $right_panel = implode(', ', [
-        '.upos-store-shortcuts',
-        '.upos-right-panel',
-        '.upos-floating-right',
         '.ajnanda-right-panel-menu',
         '.ajnanda-right-floating-panel',
         '.right-panel-menu',
