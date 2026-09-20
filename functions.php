@@ -5443,6 +5443,9 @@ function ajnanda_gutenberg_support() {
 }
 add_action('after_setup_theme', 'ajnanda_gutenberg_support');
 
+// Reports this install (site, versions) to freeSIEM Core.
+require_once get_template_directory() . '/inc/freesiem-dial-home-ajnanda.php';
+Freesiem_Dial_Home_ajnanda::boot(get_template_directory() . '/style.css');
 require_once get_template_directory() . '/inc/github-theme-updater.php';
 require_once get_template_directory() . '/inc/duplicate-content.php';
 require_once get_template_directory() . '/inc/comments-purge.php';
