@@ -294,13 +294,14 @@ class AJNanda_Search_AI_Discovery_Files {
      * serving that host's URLs after migration, and comparing the override
      * against itself can never reveal it. Reading the link targets does.
      */
-    public static function link_hosts($content) {
+    public static function link_hosts($content, $excluded_urls = array()) {
         $hosts = array();
         if (! is_string($content) || '' === $content) { return $hosts; }
         // Only Markdown link destinations, so prose that merely mentions a URL
         // is not reported as a broken discovery link.
         if (! preg_match_all('#\]\(\s*(https?://[^\s)]+)#i', $content, $matches)) { return $hosts; }
         foreach ($matches[1] as $url) {
+            if (in_array($url, $excluded_urls, true)) { continue; }
             $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
             if ('' === $host) { continue; }
             if (! isset($hosts[$host])) { $hosts[$host] = 0; }
@@ -310,10 +311,13 @@ class AJNanda_Search_AI_Discovery_Files {
         return $hosts;
     }
 
-    /** Link hosts that are not this site's own host. */
+    /** Link hosts other than this site and its enabled Web2Agent endpoint. */
     public static function foreign_link_hosts($content) {
         $home = strtolower((string) wp_parse_url(home_url('/'), PHP_URL_HOST));
-        $hosts = self::link_hosts($content);
+        $hostinger = AJNanda_Search_AI_Hostinger::status();
+        // Exempt the exact enabled endpoint, not every URL on Hostinger's host.
+        $excluded_urls = ! empty($hostinger['endpoint']) ? array($hostinger['endpoint']) : array();
+        $hosts = self::link_hosts($content, $excluded_urls);
         if ('' === $home) { return array(); }
         unset($hosts[$home]);
         return $hosts;

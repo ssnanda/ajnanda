@@ -58,11 +58,11 @@ $endpoint_label = static function ($endpoint) {
             <?php foreach ($foreign_hosts as $foreign_host => $foreign_count) : ?>
                 <br><code><?php echo esc_html($foreign_host); ?></code> &mdash; <?php echo esc_html(sprintf(_n('%d link', '%d links', $foreign_count, 'ajnanda'), $foreign_count)); ?>
             <?php endforeach; ?>
-            <br><?php esc_html_e('AI clients cannot reach these URLs.', 'ajnanda'); ?>
+            <br><?php esc_html_e('Verify that these destinations are intentional and reachable.', 'ajnanda'); ?>
             <?php if ($discovery_status['llms_txt']['custom_override']) { esc_html_e('A saved custom llms.txt is being served instead of the live renderer; it was most likely captured on a development or staging site. Disable the custom override below, or clear its content and save to rebuild it from this site.', 'ajnanda'); } ?>
         </p></div>
     <?php elseif ($discovery_status['llms_txt']['custom_override']) : ?>
-        <p><?php esc_html_e('A saved custom llms.txt override is being served. Its links point at this site, but it does not follow content or policy changes automatically.', 'ajnanda'); ?></p>
+        <p><?php esc_html_e('A saved custom llms.txt override is being served. Its links point at this site or its enabled Web2Agent endpoint, but it does not follow content or policy changes automatically.', 'ajnanda'); ?></p>
     <?php endif; ?>
     <p class="description"><?php esc_html_e('Public checks are cached for five minutes and compare the entire response byte for byte, up to 1 MiB. A mismatch may come from a physical file, another plugin, Hostinger, or a stale cache; the response alone cannot identify the serving component. Review the source before changing it. No files are overwritten or removed.', 'ajnanda'); ?></p>
 </section>

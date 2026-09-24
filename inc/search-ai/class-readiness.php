@@ -157,12 +157,12 @@ class AJNanda_Search_AI_Readiness {
         if (! $llms['ownership']['ajnanda'] || ! $llms['enabled']) { return; }
         $foreign = isset($llms['foreign_hosts']) ? (array) $llms['foreign_hosts'] : array();
         if (empty($foreign)) {
-            self::add($checks, 'outputs', 'llms_link_hosts', 'pass', __('llms.txt link destinations', 'ajnanda'), __('Every llms.txt link points at this site.', 'ajnanda'), 'discovery-files', 2);
+            self::add($checks, 'outputs', 'llms_link_hosts', 'pass', __('llms.txt link destinations', 'ajnanda'), __('All llms.txt links point at this site or its enabled Web2Agent endpoint.', 'ajnanda'), 'discovery-files', 2);
             return;
         }
         $summary = array();
         foreach ($foreign as $host => $count) { $summary[] = sprintf(_n('%1$s (%2$d link)', '%1$s (%2$d links)', $count, 'ajnanda'), $host, $count); }
-        $message = sprintf(__('llms.txt publishes links to another host: %s. AI clients cannot reach them.', 'ajnanda'), implode(', ', $summary));
+        $message = sprintf(__('llms.txt publishes links to another host: %s. Verify that these destinations are intentional and reachable.', 'ajnanda'), implode(', ', $summary));
         if (! empty($llms['custom_override'])) {
             $message .= ' ' . __('A saved custom llms.txt is being served; it was most likely captured on a development or staging site. Disable the custom override or clear and re-save it.', 'ajnanda');
         }
