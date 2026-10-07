@@ -251,6 +251,12 @@ build_zip() {
     --exclude='IMPROVEMENTS-SUMMARY.md' \
     --exclude='QUICK-SETUP.sh' \
     --exclude='docs' \
+    --exclude='/CLAUDE.local.md' \
+    --exclude='/CLAUDE.md' \
+    --exclude='/AGENTS.md' \
+    --exclude='/README.txt' \
+    --exclude='/tests' \
+    --exclude='/phpunit-*.xml' \
     --exclude='*.zip' \
     --exclude='.vscode' \
     --exclude='.idea' \
