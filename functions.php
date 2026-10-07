@@ -91,6 +91,8 @@ function ajnanda_scripts() {
     // Enqueue custom JavaScript
     wp_enqueue_script('ajnanda-pro-script', get_template_directory_uri() . '/js/main.js', array('jquery'), ajnanda_asset_version('js/main.js'), true);
 
+    wp_enqueue_script('ajnanda-media', get_template_directory_uri() . '/js/media.js', array(), ajnanda_asset_version('js/media.js'), true);
+
     // Localize script
     wp_localize_script('ajnanda-pro-script', 'ajnandaData', array(
         'ajaxurl' => admin_url('admin-ajax.php'),
@@ -1097,6 +1099,17 @@ function ajnanda_get_theme_palette_color($slug) {
         'white'        => '#ffffff',
     );
 
+    // Brand slugs follow the Customizer brand colors (see inc/template-slots.php).
+    if (function_exists('ajnanda_get_brand_palette_map')) {
+        $brand = ajnanda_get_brand_palette_map();
+        if (isset($brand[$slug])) {
+            $custom = sanitize_hex_color((string) get_theme_mod($brand[$slug][0], ''));
+            if ($custom) {
+                return $custom;
+            }
+        }
+    }
+
     return isset($map[$slug]) ? $map[$slug] : '';
 }
 
@@ -1303,6 +1316,11 @@ function ajnanda_render_builder_layout($builder, $start_row = 1, $end_row = null
  * Render the editable site footer.
  */
 function ajnanda_render_site_footer() {
+    $slot_html = ajnanda_render_slot('footer');
+    if ('' !== $slot_html) {
+        return '<footer class="site-footer footer-layout-blocks"><div class="ajn-footer-blocks entry-content">' . $slot_html . '</div></footer>';
+    }
+
     ob_start();
     ?>
     <footer class="site-footer footer-layout-builder">
@@ -5394,6 +5412,14 @@ add_action('wp_head', 'ajnanda_customizer_css');
 /**
  * Add theme support for Gutenberg
  */
+function ajnanda_register_media_block_styles() {
+    // Server-side so the styles exist without editor JS.
+    register_block_style('core/gallery', array('name' => 'ajnanda-media-reel', 'label' => __('AJNanda: Media Reel', 'ajnanda')));
+    register_block_style('core/group', array('name' => 'ajnanda-media-reel', 'label' => __('AJNanda: Media Reel', 'ajnanda')));
+    register_block_style('core/columns', array('name' => 'ajnanda-sticky-stage', 'label' => __('AJNanda: Sticky Media Stage', 'ajnanda')));
+}
+add_action('init', 'ajnanda_register_media_block_styles');
+
 function ajnanda_gutenberg_support() {
     add_theme_support('align-wide');
     add_theme_support('appearance-tools');
@@ -5459,6 +5485,7 @@ require_once get_template_directory() . '/blocks/ajnanda-blocks/loader.php';
  * AJNanda Site Builder: pattern categories/styles, page designs, starter
  * sites, admin UI, and WP-CLI commands. See docs/development.md.
  */
+require_once get_template_directory() . '/inc/template-slots.php';
 require_once get_template_directory() . '/inc/site-builder.php';
 require_once get_template_directory() . '/blocks/ajnanda-blocks/reviews/loader.php';
 require_once get_template_directory() . '/blocks/ajnanda-blocks/reviews/prompt.php';

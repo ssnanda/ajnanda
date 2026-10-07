@@ -134,6 +134,17 @@ document.documentElement.classList.add('js');
             }
         });
 
+        // Escape closes the open mobile menu and returns focus to the toggle.
+        $(document).on('keydown', function(e) {
+            if (e.key !== 'Escape' || !$('#mobile-menu-toggle').hasClass('active')) {
+                return;
+            }
+            $('#mobile-menu-toggle').removeClass('active').attr('aria-expanded', 'false');
+            $('.nav-menu').removeClass('mobile-active').find('.submenu-open').removeClass('submenu-open');
+            unlockBodyScroll();
+            $('#mobile-menu-toggle').trigger('focus');
+        });
+
         // Counter animation for stats
         function animateCounter() {
             $('.stat-number').each(function() {

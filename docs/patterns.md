@@ -232,3 +232,32 @@ a TODO.
 ## Managed review patterns
 
 Five `ajnanda-social-proof` patterns use the new AJ Core-backed dynamic blocks: `ajnanda/reviews-google-section`, `ajnanda/reviews-manual-section`, `ajnanda/reviews-featured-summary`, `ajnanda/reviews-carousel`, and `ajnanda/reviews-call-to-action`. They insert editable block attributes with no copied review data or site-specific values. Existing static quote/testimonial patterns remain available. See [Reviews & Testimonials](reviews-testimonials.md) for layouts, dependency/empty states, attribution, and setup.
+
+## Template slots and media patterns
+
+Classic PHP templates stay in place; a **slot** lets a block pattern replace
+the built-in markup. Customizer > Template Slots picks, per slot, a theme
+pattern or a synced pattern (`wp_block`). Unset = built-in (no change).
+Code: `inc/template-slots.php`.
+
+| Slot | Replaces | Theme patterns offered (Keywords `slot-<slot>`) |
+|---|---|---|
+| `footer` | Footer builder (wrapped in `.site-footer.footer-layout-blocks`; footer color settings still apply) | `template-footer-columns` |
+| `404` | `404.php` markup | `template-404` |
+| `single` | `single.php` article (rendered with post context) | `template-single-post` |
+| `archive` | `index.php` grid (archives, blog index) | `template-archive` |
+| `post-cta` | CTA after post content; also usable in a block via `ajnanda/slot` | `template-post-cta` |
+
+- Related posts: a Query Loop with class `ajn-related-posts` is filtered to
+  the current post's categories, excluding the post itself.
+- New slot pattern: category `ajnanda-templates` + Keyword `slot-<slot>`.
+- Brand palette: Customizer brand colors override the `primary-blue`,
+  `deep-blue`, `purple`, `gold` theme.json palette entries (slugs unchanged).
+- Pages containing an `alignfull` block render on the canvas (full-bleed)
+  instead of the 860px panel. `.builder-canvas-content` uses
+  `overflow-x: clip` so `position: sticky` works inside.
+- Media patterns (category `ajnanda-media`): `media-sticky-stage` (Columns
+  style *Sticky Media Stage*; class `has-stage-swap` syncs media N to step N,
+  `--ajn-stage-top` sets the sticky offset; unsticks < 782px) and
+  `media-reel` (Gallery/Group style *Media Reel*, scroll-snap; `--ajn-reel-item`
+  sets item width). JS: `js/media.js`.

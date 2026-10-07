@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 2.0.53
+Version: 2.0.54
 License: GNU General Public License v2 or later
 Text Domain: ajnanda
 */
@@ -1209,6 +1209,64 @@ body.admin-bar .site-header {
     bottom: 0;
 }
 
+/* Footer contrast: headings, text and links in widgets / block footers follow
+   the Footer color settings instead of the global heading/link colors. */
+.site-footer :is(h1, h2, h3, h4, h5, h6, .widget-title, .wp-block-heading) {
+    color: var(--ajn-footer-heading-color, var(--ajn-footer-text-color));
+}
+
+.site-footer :is(.widget, .wp-block-group, .wp-block-column, .wp-block-list, p, li, address, label) {
+    color: inherit;
+}
+
+.site-footer :is(.widget, .ajn-footer-blocks) a:not(.wp-block-button__link):not(.btn) {
+    color: var(--ajn-footer-text-color);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    text-decoration-thickness: 1px;
+}
+
+.site-footer :is(.widget, .ajn-footer-blocks) a:not(.wp-block-button__link):not(.btn):is(:hover, :focus-visible) {
+    color: var(--ajn-footer-link-hover-color);
+}
+
+.site-footer .wp-block-separator {
+    border-color: var(--ajn-footer-divider-color);
+    color: var(--ajn-footer-divider-color);
+    opacity: 1;
+}
+
+/* Block-based footer (Customizer > Template Slots > Footer). */
+.ajn-footer-blocks {
+    max-width: var(--ajn-footer-container-width, 1280px);
+    margin-inline: auto;
+}
+
+.ajn-footer-blocks > :is(.alignwide, .alignfull) {
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+}
+
+.ajn-footer-blocks > * + * {
+    margin-block-start: 2rem;
+}
+
+.ajn-footer-blocks .wp-block-column > :first-child {
+    margin-block-start: 0;
+}
+
+.ajn-footer-blocks ul.is-style-ajnanda-footer-links,
+.ajn-footer-blocks ul.wp-block-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.ajn-footer-blocks ul.wp-block-list li {
+    margin: 0.5rem 0;
+}
+
 /* Footer builder gets its own row/cell rules — the shared .ajn-builder-row is
    `align-items: center` (right for a header bar, wrong for a footer). Here rows
    top-align so column headings line up, and wrap instead of squishing. */
@@ -1230,7 +1288,9 @@ body.admin-bar .site-header {
 
 .footer-builder-container .ajn-builder-cell {
     color: var(--ajn-footer-text-color);
-    flex: 1 1 200px;
+    /* Same basis for every cell (logo included), grow follows the Customizer
+       width ratio — wrapped rows stay on one column grid. */
+    flex: var(--ajn-builder-width-desktop, 1) 1 13rem;
 }
 
 /* Widget areas and free-HTML cells are real stacked columns; the small "chrome"
@@ -1249,7 +1309,7 @@ body.admin-bar .site-header {
    with a mostly empty quarter while the real columns wrap their text, so let it
    size to the mark and give the remainder to the widget areas. */
 .footer-builder-container .ajn-builder-cell-site-logo {
-    flex: 0 1 auto;
+    justify-content: flex-start;
 }
 
 /* Row 2 is the legal bar in the shipped default: copyright and a short links
@@ -2101,7 +2161,9 @@ body.page-client-portal .page-content-section,
 }
 
 .builder-canvas-content {
-    overflow: hidden;
+    /* clip, not hidden: still trims the 100vw bleed but doesn't create a
+       scroll container, so position: sticky inside keeps working. */
+    overflow-x: clip;
 }
 
 .builder-canvas-content > *,
@@ -2121,6 +2183,15 @@ body.page-client-portal .page-content-section,
     max-width: none;
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
+}
+
+/* Top-level full-bleed blocks on the canvas already span the viewport; no
+   100vw trick (and no horizontal overflow). */
+.builder-canvas-content > .alignfull {
+    width: auto;
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
 }
 
 .page-content-panel .alignfull {
@@ -2143,13 +2214,13 @@ body.page-client-portal .page-content-section,
    and normal blocks never unexpectedly touch the viewport edges. Uses the
    same CSS custom properties (with the same fallbacks) already relied on
    by the hero width rules below, so editor and frontend stay in sync. */
-.builder-canvas-content > :not(.alignwide):not(.alignfull) {
+:where(.builder-canvas-content > :not(.alignwide):not(.alignfull)) {
     max-width: var(--wp--style--global--content-size, 950px);
     margin-left: auto;
     margin-right: auto;
 }
 
-.builder-canvas-content > .alignwide {
+:where(.builder-canvas-content > .alignwide) {
     max-width: var(--wp--style--global--wide-size, 1280px);
     margin-left: auto;
     margin-right: auto;
@@ -5200,3 +5271,115 @@ textarea.error {
 .related-post-info { padding: 0.875rem 1rem; }
 .related-post-date { font-size: 0.8rem; color: var(--gray-600); margin-bottom: 0.35rem; }
 .related-post-title { font-size: 0.95rem; font-weight: 600; color: var(--gray-900); line-height: 1.4; margin: 0; }
+
+
+/* ---------------------------------------------------------------
+   Sticky media stage (columns style "AJNanda: Sticky Media Stage")
+   Column 1 = media (.ajn-stage-sticky), column 2 = steps (.ajn-stage-step).
+   Add .has-stage-swap to swap media N to follow step N (js/media.js).
+   --------------------------------------------------------------- */
+.is-style-ajnanda-sticky-stage {
+    align-items: stretch;
+}
+
+.is-style-ajnanda-sticky-stage .ajn-stage-step {
+    min-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.is-style-ajnanda-sticky-stage .ajn-stage-sticky > figure {
+    margin: 0;
+}
+
+.is-style-ajnanda-sticky-stage .ajn-stage-sticky img {
+    width: 100%;
+}
+
+@media (min-width: 782px) {
+    .is-style-ajnanda-sticky-stage .ajn-stage-sticky {
+        position: sticky;
+        top: var(--ajn-stage-top, 6rem);
+    }
+
+    /* No JS: show only the first image. With JS the stack cross-fades. */
+    .is-style-ajnanda-sticky-stage.has-stage-swap:not(.is-stage-ready) .ajn-stage-sticky > figure:nth-child(n+2) {
+        display: none;
+    }
+
+    .is-style-ajnanda-sticky-stage.has-stage-swap.is-stage-ready .ajn-stage-sticky {
+        display: grid;
+    }
+
+    .is-style-ajnanda-sticky-stage.has-stage-swap.is-stage-ready .ajn-stage-sticky > figure {
+        grid-area: 1 / 1;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+    }
+
+    .is-style-ajnanda-sticky-stage.has-stage-swap.is-stage-ready .ajn-stage-sticky > figure.is-active {
+        opacity: 1;
+    }
+}
+
+@media (max-width: 781px) {
+    .is-style-ajnanda-sticky-stage .ajn-stage-sticky {
+        position: static;
+    }
+
+    .is-style-ajnanda-sticky-stage .ajn-stage-step {
+        min-height: 0;
+        padding-block: 1.5rem;
+    }
+
+    .is-style-ajnanda-sticky-stage.has-stage-swap .ajn-stage-sticky > figure:nth-child(n+2) {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .is-style-ajnanda-sticky-stage .ajn-stage-sticky > figure {
+        transition: none !important;
+    }
+}
+
+/* ---------------------------------------------------------------
+   Horizontal media reel (Gallery or Group, style "AJNanda: Media Reel")
+   --------------------------------------------------------------- */
+.wp-block-gallery.is-style-ajnanda-media-reel,
+.wp-block-group.is-style-ajnanda-media-reel {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: var(--ajn-reel-gap, 1rem);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 1rem;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.75rem;
+}
+
+.is-style-ajnanda-media-reel > :is(figure, .wp-block-image, .wp-block-group, .wp-block-column) {
+    flex: 0 0 var(--ajn-reel-item, min(80%, 22rem));
+    width: var(--ajn-reel-item, min(80%, 22rem));
+    margin: 0;
+    scroll-snap-align: start;
+}
+
+.is-style-ajnanda-media-reel img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.is-style-ajnanda-media-reel:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .is-style-ajnanda-media-reel {
+        scroll-behavior: smooth;
+    }
+}

@@ -49,6 +49,8 @@ function ajnanda_register_pattern_categories() {
         'ajnanda-faq'          => __('AJNanda: FAQ', 'ajnanda'),
         'ajnanda-team'         => __('AJNanda: Team', 'ajnanda'),
         'ajnanda-contact'      => __('AJNanda: Contact', 'ajnanda'),
+        'ajnanda-templates'    => __('AJNanda: Template Slots', 'ajnanda'),
+        'ajnanda-media'        => __('AJNanda: Media', 'ajnanda'),
         'ajnanda-footer'       => __('AJNanda: Footer & Auxiliary', 'ajnanda'),
     );
 

@@ -11,6 +11,18 @@ get_header(); ?>
     <?php
     while (have_posts()) :
         the_post();
+        $ajn_single_slot = ajnanda_render_slot('single', array('postId' => get_the_ID(), 'postType' => get_post_type()));
+        if ('' !== $ajn_single_slot) :
+            ?>
+            <article id="post-<?php the_ID(); ?>" <?php post_class('ajn-slot-single'); ?>>
+                <div class="entry-content builder-canvas-content"><?php echo $ajn_single_slot; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div>
+            </article>
+            <?php
+            if (get_theme_mod('enable_comments', false) && (comments_open() || get_comments_number())) {
+                comments_template();
+            }
+            continue;
+        endif;
         ?>
         <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
             <div class="container">
@@ -102,6 +114,11 @@ get_header(); ?>
                 <?php endif; ?>
 
                 <?php
+                $ajn_post_cta = ajnanda_render_slot('post-cta');
+                if ('' !== $ajn_post_cta) {
+                    echo '<div class="ajn-post-cta entry-content">' . $ajn_post_cta . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                }
+
                 // Related posts (same category, exclude current)
                 if (get_theme_mod('show_related_articles', true)) :
                     $current_id   = get_the_ID();

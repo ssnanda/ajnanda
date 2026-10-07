@@ -8,6 +8,12 @@
 get_header(); ?>
 
 <main id="main-content" class="site-main">
+    <?php
+    $ajn_404_slot = ajnanda_render_slot('404');
+    if ('' !== $ajn_404_slot) :
+        ?>
+        <div class="entry-content ajn-slot-404 builder-canvas-content"><?php echo $ajn_404_slot; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div>
+    <?php else : ?>
     <section class="error-404 not-found">
         <div class="container">
             <div class="error-404-inner">
@@ -25,6 +31,7 @@ get_header(); ?>
             </div>
         </div>
     </section>
+    <?php endif; ?>
 </main>
 
 <?php get_footer(); ?>

@@ -40,6 +40,17 @@ $blog_index_has_page_content = $posts_page_id && '' !== trim((string) $page_cont
 ?>
 
 <main id="main-content" class="site-main">
+    <?php
+    $ajn_archive_slot = ajnanda_render_slot('archive');
+    if ('' !== $ajn_archive_slot) :
+        ?>
+        <div class="entry-content builder-canvas-content ajn-slot-archive"><?php echo $ajn_archive_slot; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div>
+    </main>
+    <?php
+        get_footer();
+        return;
+    endif;
+    ?>
     <?php if ($blog_index_has_page_content) : ?>
         <section class="posts-page-content-section">
             <div class="entry-content posts-page-content">

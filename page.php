@@ -31,6 +31,12 @@ get_header(); ?>
             }
         }
 
+        // Blocks set to Full width can't break out of the 860px panel, so a
+        // page that uses any gets the canvas treatment (full-bleed, sticky-safe).
+        if (!$has_builder_sections && preg_match('/\balignfull\b/', $content)) {
+            $has_builder_sections = true;
+        }
+
         $page_content_section_classes = array('page-content-section');
         if (ajnanda_has_leading_builder_hero_content($content)) {
             $page_content_section_classes[] = 'has-leading-hero-content';
