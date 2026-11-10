@@ -15,7 +15,7 @@ get_header(); ?>
         if ('' !== $ajn_single_slot) :
             ?>
             <article id="post-<?php the_ID(); ?>" <?php post_class('ajn-slot-single'); ?>>
-                <div class="entry-content builder-canvas-content"><?php echo $ajn_single_slot; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div>
+                <div class="entry-content builder-canvas-content ajn-prose"><?php echo $ajn_single_slot; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div>
             </article>
             <?php
             if (get_theme_mod('enable_comments', false) && (comments_open() || get_comments_number())) {
@@ -59,13 +59,13 @@ get_header(); ?>
                     </div>
                 </header>
 
-                <?php if (has_post_thumbnail()) : ?>
+                <?php if (has_post_thumbnail() && !ajnanda_post_has_own_hero()) : ?>
                     <div class="post-thumbnail">
                         <?php the_post_thumbnail('large', array('alt' => the_title_attribute(array('echo' => false)), 'class' => 'post-thumbnail-img')); ?>
                     </div>
                 <?php endif; ?>
 
-                <div class="entry-content single-entry-content">
+                <div class="entry-content single-entry-content ajn-prose">
                     <?php
                     the_content();
 

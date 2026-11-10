@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 2.0.55
+Version: 2.0.56
 License: GNU General Public License v2 or later
 Text Domain: ajnanda
 */
@@ -5063,7 +5063,7 @@ textarea.error {
 /* Single post — entry header & meta */
 .entry-header {
     padding: 2rem 0 1.25rem;
-    max-width: 800px;
+    max-width: var(--wp--custom--reading-width, 800px);
     margin: 0 auto;
 }
 .entry-title {
@@ -5092,7 +5092,7 @@ textarea.error {
 
 /* Single post — thumbnail and content */
 .post-thumbnail {
-    max-width: 800px;
+    max-width: var(--wp--custom--reading-width, 800px);
     margin: 0 auto 2rem;
     border-radius: 1rem;
     overflow: hidden;
@@ -5104,14 +5104,14 @@ textarea.error {
 }
 .single-entry-content {
     padding: 0 0 3rem;
-    max-width: 800px;
+    max-width: var(--wp--custom--reading-width, 800px);
     margin: 0 auto;
     line-height: 1.8;
 }
 .single-entry-footer {
     padding: 1.5rem 0 3rem;
     border-top: 1px solid var(--gray-200);
-    max-width: 800px;
+    max-width: var(--wp--custom--reading-width, 800px);
     margin: 0 auto;
     display: flex;
     flex-wrap: wrap;
@@ -5129,7 +5129,7 @@ textarea.error {
    text in .entry-header/.single-entry-content, which sit inside the same
    .container without any padding of their own. */
 .post-navigation {
-    max-width: 800px;
+    max-width: var(--wp--custom--reading-width, 800px);
     margin: 0 auto;
     padding: 0 0 3rem;
 }

@@ -10,6 +10,7 @@
 | [`development.md`](development.md) | Overall site-builder architecture, file map, admin UI, WP-CLI, testing checklist | You're changing how the Patterns → Page Designs → Starter Sites layers connect, or the admin/CLI interfaces to them |
 | [`search-ai.md`](search-ai.md) | Search & AI architecture, crawler-event storage, verification, privacy, retention, and visibility limits | You're changing Search & AI discovery or Crawler Log behavior |
 | [`search-ai-discovery-files.md`](search-ai-discovery-files.md) | Generated discovery endpoints, server redirects, head discovery, and endpoint verification | You're changing `robots.txt`, LLM files, `ai.txt`, `security.txt`, or their server integration |
+| [`single-post-blocks.md`](single-post-blocks.md) | Block-native single posts: opt-in layout, editor parity, block styles, Blog patterns | You're changing single-post rendering, `css/post-blocks.css`, or Blog patterns |
 | [`documentation-standard.md`](documentation-standard.md) | The rule for keeping these docs in sync with code changes | You're not sure which doc a change should update |
 
 - [`reviews-testimonials.md`](reviews-testimonials.md): AJ Core-backed Google Reviews and Manual Testimonials blocks, patterns, shared carousel, and retention/accessibility requirements.

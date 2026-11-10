@@ -7,6 +7,9 @@
       "contentSize": "950px",
       "wideSize": "1280px"
     },
+    "custom": {
+      "readingWidth": "800px"
+    },
     "dimensions": {
       "aspectRatio": true,
       "minHeight": true

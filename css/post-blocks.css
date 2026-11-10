@@ -1,0 +1,99 @@
+/* AJNanda single-post block looks. One file, loaded on the front end (single
+   posts) and in the post editor. Scope: .ajn-prose (front) / .editor-styles-wrapper (editor).
+   Colors/spacing use theme.json presets. */
+
+/* Table: scrollable, header row, numeric columns not clipped */
+:is(.ajn-prose, .editor-styles-wrapper) .wp-block-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-block: var(--wp--preset--spacing--m, 1.5rem);
+}
+:is(.ajn-prose, .editor-styles-wrapper) .wp-block-table table {
+    width: 100%;
+    min-width: 36rem;
+    border-collapse: collapse;
+}
+:is(.ajn-prose, .editor-styles-wrapper) .wp-block-table :is(th, td) {
+    padding: var(--wp--preset--spacing--xs, 0.5rem) var(--wp--preset--spacing--s, 1rem);
+    border: 1px solid var(--wp--preset--color--soft-gray, #f3f4f6);
+    text-align: left;
+    vertical-align: top;
+}
+:is(.ajn-prose, .editor-styles-wrapper) .wp-block-table thead th,
+:is(.ajn-prose, .editor-styles-wrapper) .wp-block-table tr:first-child th {
+    background: var(--wp--preset--color--ink, #111827);
+    color: var(--wp--preset--color--white, #fff);
+    font-weight: 600;
+}
+:is(.ajn-prose, .editor-styles-wrapper) .wp-block-table :is(th, td).has-text-align-right {
+    text-align: right;
+    white-space: nowrap;
+}
+
+/* Details: FAQ */
+:is(.ajn-prose, .editor-styles-wrapper) .wp-block-details {
+    border: 1px solid var(--wp--preset--color--soft-gray, #f3f4f6);
+    border-radius: 0.5rem;
+    padding: var(--wp--preset--spacing--xs, 0.5rem) var(--wp--preset--spacing--s, 1rem);
+    margin-block: var(--wp--preset--spacing--xs, 0.5rem);
+}
+:is(.ajn-prose, .editor-styles-wrapper) .wp-block-details summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--wp--preset--color--ink, #111827);
+}
+:is(.ajn-prose, .editor-styles-wrapper) .wp-block-details[open] summary {
+    margin-bottom: var(--wp--preset--spacing--xs, 0.5rem);
+}
+
+/* Buttons: primary + outline */
+:is(.ajn-prose, .editor-styles-wrapper) .wp-block-button:not(.is-style-outline) .wp-block-button__link {
+    background: var(--wp--preset--color--primary-blue, #2563eb);
+    color: var(--wp--preset--color--white, #fff);
+}
+:is(.ajn-prose, .editor-styles-wrapper) .wp-block-button:not(.is-style-outline) .wp-block-button__link:hover {
+    background: var(--wp--preset--color--deep-blue, #1e40af);
+}
+:is(.ajn-prose, .editor-styles-wrapper) .wp-block-button.is-style-outline .wp-block-button__link {
+    background: transparent;
+    color: var(--wp--preset--color--primary-blue, #2563eb);
+    border: 2px solid currentColor;
+}
+
+/* Image captions */
+:is(.ajn-prose, .editor-styles-wrapper) :is(.wp-block-image, .wp-block-post-featured-image) figcaption,
+:is(.ajn-prose, .editor-styles-wrapper) .wp-element-caption {
+    font-size: 0.875rem;
+    color: var(--gray-600, #4b5563);
+    text-align: center;
+    margin-top: var(--wp--preset--spacing--xs, 0.5rem);
+}
+
+/* Block styles (Styles panel) — opt-in classes, safe globally */
+.wp-block-group.is-style-ajn-callout {
+    background: var(--wp--preset--color--soft-gray, #f3f4f6);
+    border-left: 4px solid var(--wp--preset--color--primary-blue, #2563eb);
+    border-radius: 0.5rem;
+    padding: var(--wp--preset--spacing--m, 1.5rem);
+}
+.wp-block-group.is-style-ajn-cta-band {
+    background: var(--wp--preset--color--ink, #111827);
+    color: var(--wp--preset--color--white, #fff);
+    border-radius: 0.75rem;
+    padding: var(--wp--preset--spacing--l, 2.5rem);
+    text-align: center;
+}
+.wp-block-group.is-style-ajn-cta-band :is(h1, h2, h3, h4, p) { color: inherit; }
+.wp-block-group.is-style-ajn-cta-band a:not(.wp-block-button__link) { color: var(--wp--preset--color--gold, #f59e0b); }
+.wp-block-column.is-style-ajn-info-card {
+    border: 1px solid var(--wp--preset--color--soft-gray, #f3f4f6);
+    border-radius: 0.75rem;
+    padding: var(--wp--preset--spacing--m, 1.5rem);
+    background: var(--wp--preset--color--white, #fff);
+}
+.wp-block-details.is-style-ajn-faq {
+    border: 0;
+    border-bottom: 1px solid var(--wp--preset--color--soft-gray, #f3f4f6);
+    border-radius: 0;
+    padding-inline: 0;
+}

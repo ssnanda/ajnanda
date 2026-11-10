@@ -1,0 +1,30 @@
+/* Post editor only (post type "post"): mirror the front-end single-post
+   column. Widths come from theme.json (custom.readingWidth, layout.wideSize). */
+.editor-styles-wrapper {
+    font-family: var(--font-body, inherit);
+    line-height: 1.8;
+}
+.editor-styles-wrapper .is-root-container > :where(:not(.alignleft):not(.alignright):not(.alignfull):not(.alignwide)) {
+    max-width: var(--wp--custom--reading-width, 800px);
+    margin-inline: auto;
+}
+.editor-styles-wrapper .is-root-container > .alignwide {
+    max-width: var(--wp--style--global--wide-size, 1280px);
+    margin-inline: auto;
+}
+.editor-styles-wrapper .editor-post-title__input,
+.editor-styles-wrapper .wp-block-post-title {
+    font-family: var(--font-heading, inherit);
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    line-height: 1.18;
+    color: var(--gray-900, #111827);
+}
+.editor-styles-wrapper .wp-block-post-featured-image {
+    border-radius: 1rem;
+    overflow: hidden;
+}
+.editor-styles-wrapper .wp-block-post-featured-image img { width: 100%; height: auto; display: block; }
+.editor-styles-wrapper .wp-block-post-date { color: var(--gray-600, #4b5563); font-size: 0.875rem; }
+.editor-styles-wrapper :where(h2, h3, h4) { font-family: var(--font-heading, inherit); color: var(--gray-900, #111827); }
+.editor-styles-wrapper :where(p, li) a { color: var(--primary, #2563eb); }
+.editor-styles-wrapper :where(ul, ol) { padding-left: 1.5em; }

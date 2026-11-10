@@ -52,6 +52,7 @@ function ajnanda_register_pattern_categories() {
         'ajnanda-templates'    => __('AJNanda: Template Slots', 'ajnanda'),
         'ajnanda-media'        => __('AJNanda: Media', 'ajnanda'),
         'ajnanda-footer'       => __('AJNanda: Footer & Auxiliary', 'ajnanda'),
+        'ajnanda-blog'         => __('Blog', 'ajnanda'),
     );
 
     foreach ($categories as $slug => $label) {
