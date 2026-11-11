@@ -5480,6 +5480,7 @@ require_once get_template_directory() . '/inc/cover-rotator.php';
 require_once get_template_directory() . '/inc/single-post-blocks.php';
 require_once get_template_directory() . '/inc/seo.php';
 require_once get_template_directory() . '/inc/admin-posts-tiles.php';
+require_once get_template_directory() . '/inc/admin-ui.php';
 require_once get_template_directory() . '/inc/search-ai/bootstrap.php';
 require_once get_template_directory() . '/blocks/ajnanda-blocks/loader.php';
 
