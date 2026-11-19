@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 2.0.59
+Version: 2.0.60
 License: GNU General Public License v2 or later
 Text Domain: ajnanda
 */
@@ -5381,5 +5381,79 @@ textarea.error {
 @media (prefers-reduced-motion: no-preference) {
     .is-style-ajnanda-media-reel {
         scroll-behavior: smooth;
+    }
+}
+
+/* ==========================================================================
+   AJCore product catalog ([ajcore_products] toolbar/pager, [ajcore_product])
+   AJCore ships neutral defaults and exposes --ajp-accent / --ajp-radius /
+   --ajp-scroll-offset; the theme maps them to its own tokens here.
+   ========================================================================== */
+.ajcore-products-wrap {
+    --ajp-accent: var(--primary);
+    --ajp-radius: 0.625rem;
+    --ajp-scroll-offset: 104px; /* fallback only; AJCore measures the sticky header in JS */
+    font-family: var(--font-body);
+}
+
+.ajcore-products-cat,
+.ajcore-products-pager button,
+.ajcore-products-search-input,
+.ajcore-products-cat-select {
+    font-family: var(--font-body);
+    border-color: var(--gray-300);
+}
+
+.ajcore-products-cat {
+    color: var(--gray-700);
+}
+
+.ajcore-products-cat.is-active,
+.ajcore-products-pager button[aria-current="page"] {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--white);
+}
+
+.ajcore-products-cat:hover:not(.is-active),
+.ajcore-products-pager button:hover:not(:disabled):not([aria-current="page"]) {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: var(--gray-50);
+}
+
+.ajcore-products-count,
+.ajcore-products-pager .ajcore-pager-status {
+    color: var(--gray-600);
+}
+
+.ajcore-products-no-results {
+    background: var(--gray-50);
+    border-color: var(--gray-300);
+}
+
+/* Product pages: the buy box sits in the page panel; give it room from the copy around it. */
+.page-content-panel .ajcore-products-single {
+    margin: 1.5rem 0 2rem;
+}
+
+.page-content-panel .ajcore-products-single .ajcore-product {
+    border-color: var(--gray-200) !important;
+}
+
+@media (max-width: 768px) {
+    .ajcore-products-wrap {
+        --ajp-scroll-offset: 76px;
+    }
+
+    .page-content-panel .ajcore-products-single {
+        margin: 1rem 0 1.5rem;
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .ajcore-products-cat,
+    .ajcore-products-pager button {
+        transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
     }
 }
