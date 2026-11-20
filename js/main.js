@@ -390,3 +390,17 @@ document.documentElement.classList.add('js');
     });
 
 })(jQuery);
+
+// Content tables: tag plain Yes / No / Limited… cells so style.css can show ✓ / ✕ / ◐ beside the word.
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.entry-content .wp-block-table td').forEach(function (cell) {
+        var text = cell.textContent.trim().toLowerCase();
+        if (text === 'yes') {
+            cell.classList.add('ajn-yes');
+        } else if (text === 'no') {
+            cell.classList.add('ajn-no');
+        } else if (/^(limited|only when|partial)/.test(text)) {
+            cell.classList.add('ajn-partial');
+        }
+    });
+});

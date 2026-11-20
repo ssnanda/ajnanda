@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 2.0.60
+Version: 2.0.61
 License: GNU General Public License v2 or later
 Text Domain: ajnanda
 */
@@ -5456,4 +5456,102 @@ textarea.error {
     .ajcore-products-pager button {
         transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
     }
+}
+
+/* Shop listing on Builder Canvas pages: use the wide size, not the 950px text column,
+   so three product cards per row have room. */
+.builder-canvas-content > .ajcore-products-wrap {
+    max-width: min(var(--wp--style--global--wide-size, 1200px), calc(100vw - 48px));
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ==========================================================================
+   Content tables (core Table block): readable comparison tables.
+   js/main.js tags plain "Yes" / "No" / "Limited…" cells so they show ✓ / ✗ / ◐
+   (the words stay, for screen readers and copy/paste).
+   ========================================================================== */
+.entry-content .wp-block-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-block: 1.5rem;
+}
+
+.entry-content .wp-block-table table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--white);
+    font-size: 0.95rem;
+}
+
+.entry-content .wp-block-table :is(th, td) {
+    padding: 0.7rem 0.9rem;
+    border: 0;
+    border-bottom: 1px solid var(--gray-200);
+    text-align: left;
+    vertical-align: middle;
+}
+
+.entry-content .wp-block-table thead :is(th, td) {
+    background: color-mix(in srgb, var(--primary) 9%, #fff);
+    color: var(--gray-900);
+    font-weight: 700;
+    border-bottom: 2px solid color-mix(in srgb, var(--primary) 30%, #fff);
+}
+
+.entry-content .wp-block-table tbody tr:nth-child(even) td {
+    background: var(--gray-50);
+}
+
+.entry-content .wp-block-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.entry-content .wp-block-table tbody tr:hover td {
+    background: color-mix(in srgb, var(--primary) 5%, #fff);
+}
+
+.entry-content .wp-block-table tbody td:first-child {
+    font-weight: 600;
+    color: var(--gray-800);
+}
+
+.entry-content .wp-block-table :is(td.ajn-yes, td.ajn-no, td.ajn-partial) {
+    white-space: nowrap;
+}
+
+.entry-content .wp-block-table :is(td.ajn-yes, td.ajn-no, td.ajn-partial)::before {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.35em;
+    height: 1.35em;
+    margin-right: 0.45em;
+    border-radius: 50%;
+    font-size: 0.8em;
+    font-weight: 800;
+    vertical-align: -0.1em;
+}
+
+.entry-content .wp-block-table td.ajn-yes { color: #166534; font-weight: 600; }
+.entry-content .wp-block-table td.ajn-yes::before { content: "✓"; background: #dcfce7; color: #15803d; }
+.entry-content .wp-block-table td.ajn-no { color: var(--gray-600); }
+.entry-content .wp-block-table td.ajn-no::before { content: "✕"; background: #fee2e2; color: #b91c1c; }
+.entry-content .wp-block-table td.ajn-partial { color: #92400e; white-space: normal; }
+.entry-content .wp-block-table td.ajn-partial::before { content: "◐"; background: #fef3c7; color: #b45309; }
+
+.entry-content .wp-block-table figcaption {
+    margin-top: 0.6rem;
+    color: var(--gray-600);
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .entry-content .wp-block-table table { font-size: 0.875rem; }
+    .entry-content .wp-block-table :is(th, td) { padding: 0.55rem 0.6rem; }
 }
