@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 2.0.61
+Version: 2.0.62
 License: GNU General Public License v2 or later
 Text Domain: ajnanda
 */
@@ -5461,7 +5461,7 @@ textarea.error {
 /* Shop listing on Builder Canvas pages: use the wide size, not the 950px text column,
    so three product cards per row have room. */
 .builder-canvas-content > .ajcore-products-wrap {
-    max-width: min(var(--wp--style--global--wide-size, 1200px), calc(100vw - 48px));
+    max-width: min(1080px, calc(100vw - 48px));
     margin-left: auto;
     margin-right: auto;
 }
@@ -5554,4 +5554,32 @@ textarea.error {
 @media (max-width: 768px) {
     .entry-content .wp-block-table table { font-size: 0.875rem; }
     .entry-content .wp-block-table :is(th, td) { padding: 0.55rem 0.6rem; }
+}
+
+/* Hero heading directly followed by a subtitle: keep them together
+   (the heading's 1.25rem bottom margin plus the group's block gap left a large hole). */
+body .site-main .builder-hero-section h1:has(+ .builder-hero-subtitle) {
+    margin-bottom: 0 !important;
+}
+
+body .site-main .builder-hero-section h1 + .builder-hero-subtitle {
+    margin-top: -0.6rem !important;
+}
+
+/* Text links inside a hero (not buttons): white, underlined, readable on the gradient. */
+body .site-main .builder-hero-section a:not(.wp-block-button__link) {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    font-weight: 600;
+}
+
+body .site-main .builder-hero-section a:not(.wp-block-button__link):hover {
+    text-decoration-thickness: 2px;
+}
+
+/* In-page anchors (e.g. #compare) land below the sticky header instead of under it. */
+.entry-content [id] {
+    scroll-margin-top: calc(var(--wp-admin--admin-bar--height, 0px) + 110px);
 }
