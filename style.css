@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 2.0.63
+Version: 2.0.64
 License: GNU General Public License v2 or later
 Text Domain: ajnanda
 */
@@ -1328,17 +1328,23 @@ body.admin-bar .site-header {
 }
 
 /* A footer menu placed beside content columns (widget/HTML/logo) is a link
-   column, not a legal-bar strip: stack it top-down like the columns around it.
-   The inline right-aligned default wrapped a 6-item menu into two ragged,
-   centred lines. A menu alone or with copyright (legal bar) is unaffected. */
+   column, not a legal-bar strip. The inline right-aligned default wrapped a
+   6-item menu into two ragged, centred lines; a single stacked list made the
+   footer tall. Instead the links flow into as many even sub-columns as the
+   cell's width allows (auto-fill grid): wide cell → 2–3 short columns, narrow
+   cell or phone → one list. A menu alone or with copyright (legal bar) is
+   unaffected. */
 .footer-builder-container .ajn-builder-row:has(> .ajn-builder-cell-html-1, > .ajn-builder-cell-html-2, > .ajn-builder-cell-widget-1, > .ajn-builder-cell-widget-2, > .ajn-builder-cell-widget-3, > .ajn-builder-cell-widget-4, > .ajn-builder-cell-site-logo) > .ajn-builder-cell-footer-menu:not(.ajn-builder-cell-has-align) {
     justify-content: flex-start;
 }
 
 .footer-builder-container .ajn-builder-row:has(> .ajn-builder-cell-html-1, > .ajn-builder-cell-html-2, > .ajn-builder-cell-widget-1, > .ajn-builder-cell-widget-2, > .ajn-builder-cell-widget-3, > .ajn-builder-cell-widget-4, > .ajn-builder-cell-site-logo) > .ajn-builder-cell-footer-menu .footer-menu {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.6rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+    justify-content: start;
+    align-items: start;
+    gap: 0.6rem 1.75rem;
+    width: 100%;
 }
 
 .ajn-customizer-builder-preview {
