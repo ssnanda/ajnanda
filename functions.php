@@ -1014,7 +1014,15 @@ function ajnanda_get_primary_menu_class($base_class) {
 }
 
 function ajnanda_render_builder_menu($location, $class_name) {
+    // A builder can place the same menu in more than one cell (e.g. a footer
+    // link column plus the legal bar). The first render keeps the historical
+    // id; later ones get a suffix so the page never has duplicate ids.
+    static $rendered = array();
     $menu_id = 'primary' === $location ? 'primary-menu' : 'footer-menu';
+    $rendered[$menu_id] = isset($rendered[$menu_id]) ? $rendered[$menu_id] + 1 : 1;
+    if ($rendered[$menu_id] > 1) {
+        $menu_id .= '-' . $rendered[$menu_id];
+    }
 
     wp_nav_menu(array(
         'theme_location' => $location,
@@ -1295,12 +1303,25 @@ function ajnanda_render_builder_layout($builder, $start_row = 1, $end_row = null
                 $cell_class .= ' ajn-builder-cell-has-align';
                 $cell_style .= ' --ajn-builder-align: ' . esc_attr(ajnanda_builder_align_to_justify_content($align)) . ';';
             }
+
+            ob_start();
+            ajnanda_render_builder_element($builder, $element);
+            $element_html = ob_get_clean();
+
+            // In the footer an empty cell (e.g. a widget area with no widgets)
+            // still claimed its flex share, leaving a blank column that pushed the
+            // real columns off-centre. Header cells are kept even when empty —
+            // an empty widget cell there is a deliberate spacer between logo and
+            // menu in the shipped default.
+            if ('footer' === $builder && '' === trim($element_html)) {
+                continue;
+            }
             ?>
             <div
                 class="<?php echo esc_attr($cell_class); ?>"
                 style="<?php echo esc_attr($cell_style); ?>"
             >
-                <?php ajnanda_render_builder_element($builder, $element); ?>
+                <?php echo $element_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped by each element renderer. ?>
             </div>
             <?php
         }

@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 2.0.62
+Version: 2.0.63
 License: GNU General Public License v2 or later
 Text Domain: ajnanda
 */
@@ -1325,6 +1325,20 @@ body.admin-bar .site-header {
 
 .footer-builder-container .ajn-builder-row-2 .ajn-builder-cell {
     flex: 0 1 auto;
+}
+
+/* A footer menu placed beside content columns (widget/HTML/logo) is a link
+   column, not a legal-bar strip: stack it top-down like the columns around it.
+   The inline right-aligned default wrapped a 6-item menu into two ragged,
+   centred lines. A menu alone or with copyright (legal bar) is unaffected. */
+.footer-builder-container .ajn-builder-row:has(> .ajn-builder-cell-html-1, > .ajn-builder-cell-html-2, > .ajn-builder-cell-widget-1, > .ajn-builder-cell-widget-2, > .ajn-builder-cell-widget-3, > .ajn-builder-cell-widget-4, > .ajn-builder-cell-site-logo) > .ajn-builder-cell-footer-menu:not(.ajn-builder-cell-has-align) {
+    justify-content: flex-start;
+}
+
+.footer-builder-container .ajn-builder-row:has(> .ajn-builder-cell-html-1, > .ajn-builder-cell-html-2, > .ajn-builder-cell-widget-1, > .ajn-builder-cell-widget-2, > .ajn-builder-cell-widget-3, > .ajn-builder-cell-widget-4, > .ajn-builder-cell-site-logo) > .ajn-builder-cell-footer-menu .footer-menu {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
 }
 
 .ajn-customizer-builder-preview {
