@@ -1014,15 +1014,7 @@ function ajnanda_get_primary_menu_class($base_class) {
 }
 
 function ajnanda_render_builder_menu($location, $class_name) {
-    // A builder can place the same menu in more than one cell (e.g. a footer
-    // link column plus the legal bar). The first render keeps the historical
-    // id; later ones get a suffix so the page never has duplicate ids.
-    static $rendered = array();
     $menu_id = 'primary' === $location ? 'primary-menu' : 'footer-menu';
-    $rendered[$menu_id] = isset($rendered[$menu_id]) ? $rendered[$menu_id] + 1 : 1;
-    if ($rendered[$menu_id] > 1) {
-        $menu_id .= '-' . $rendered[$menu_id];
-    }
 
     wp_nav_menu(array(
         'theme_location' => $location,
@@ -1280,35 +1272,20 @@ function ajnanda_render_builder_element($builder, $element) {
 function ajnanda_render_builder_layout($builder, $start_row = 1, $end_row = null) {
     $row_count = ajnanda_get_builder_row_count($builder);
     $end_row   = null !== $end_row ? min($end_row, $row_count) : $row_count;
-
-    // Footer cells that hold real content. A footer menu sharing a row with any
-    // of these is a link column (rendered as an even multi-column list); a menu
-    // alone or beside the copyright is a legal-bar strip (inline).
-    $footer_content_elements = array('site-logo', 'html-1', 'html-2', 'widget-1', 'widget-2', 'widget-3', 'widget-4');
-    // The footer menu is rendered once per footer. The shipped default puts it
-    // in the row 2 legal bar, so a site that also placed it in a column silently
-    // showed the same links twice; the first (topmost) placement wins.
-    $footer_menu_rendered = false;
+    $is_footer = 'footer' === $builder;
 
     for ($row = $start_row; $row <= $end_row; $row++) {
         $row_output = '';
         $column_count = ajnanda_get_builder_row_columns($builder, $row);
-
-        $row_elements = array();
-        for ($cell = 1; $cell <= $column_count; $cell++) {
-            $row_elements[] = ajnanda_get_builder_value($builder, $row, $cell);
-        }
-        $menu_is_column = 'footer' === $builder && array_intersect($row_elements, $footer_content_elements);
+        // Footer rows are CSS grids: each placed cell's Customizer width becomes
+        // its column's fr share (see .footer-builder-container in style.css).
+        $grid_tracks = array('desktop' => array(), 'tablet' => array());
 
         ob_start();
         for ($cell = 1; $cell <= $column_count; $cell++) {
-            $element = $row_elements[$cell - 1];
+            $element = ajnanda_get_builder_value($builder, $row, $cell);
 
             if ('none' === $element) {
-                continue;
-            }
-
-            if ('footer' === $builder && 'footer-menu' === $element && $footer_menu_rendered) {
                 continue;
             }
 
@@ -1323,22 +1300,10 @@ function ajnanda_render_builder_layout($builder, $start_row = 1, $end_row = null
                 $cell_style .= ' --ajn-builder-align: ' . esc_attr(ajnanda_builder_align_to_justify_content($align)) . ';';
             }
 
-            ob_start();
-            ajnanda_render_builder_element($builder, $element);
-            $element_html = ob_get_clean();
-
-            // In the footer an empty cell (e.g. a widget area with no widgets)
-            // still claimed its flex share, leaving a blank column that pushed the
-            // real columns off-centre. Header cells are kept even when empty —
-            // an empty widget cell there is a deliberate spacer between logo and
-            // menu in the shipped default.
-            if ('footer' === $builder && '' === trim($element_html)) {
-                continue;
-            }
-
-            if ('footer' === $builder && 'footer-menu' === $element) {
-                $footer_menu_rendered = true;
-                if ($menu_is_column) {
+            if ($is_footer) {
+                $grid_tracks['desktop'][] = 'minmax(0, ' . max(1, $width_desktop) . 'fr)';
+                $grid_tracks['tablet'][]  = 'minmax(0, ' . max(1, $width_tablet) . 'fr)';
+                if ('footer-menu' === $element && 'columns' === ajnanda_get_footer_menu_layout()) {
                     $cell_class .= ' ajn-builder-cell-menu-columns';
                 }
             }
@@ -1347,14 +1312,18 @@ function ajnanda_render_builder_layout($builder, $start_row = 1, $end_row = null
                 class="<?php echo esc_attr($cell_class); ?>"
                 style="<?php echo esc_attr($cell_style); ?>"
             >
-                <?php echo $element_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped by each element renderer. ?>
+                <?php ajnanda_render_builder_element($builder, $element); ?>
             </div>
             <?php
         }
         $row_output = trim(ob_get_clean());
 
         if ($row_output) {
-            echo '<div class="ajn-builder-row ajn-builder-row-' . esc_attr($row) . '">' . $row_output . '</div>';
+            $row_style = '';
+            if ($is_footer && $grid_tracks['desktop']) {
+                $row_style = ' style="--ajn-footer-row-cols-desktop: ' . esc_attr(implode(' ', $grid_tracks['desktop'])) . '; --ajn-footer-row-cols-tablet: ' . esc_attr(implode(' ', $grid_tracks['tablet'])) . ';"';
+            }
+            echo '<div class="ajn-builder-row ajn-builder-row-' . esc_attr($row) . '"' . $row_style . '>' . $row_output . '</div>';
         }
     }
 }
@@ -1644,6 +1613,23 @@ function ajnanda_header_builder_html_1_active() {
 
 function ajnanda_footer_builder_copyright_active() {
     return ajnanda_builder_contains_element('footer', 'copyright');
+}
+
+function ajnanda_footer_builder_menu_active() {
+    return ajnanda_builder_contains_element('footer', 'footer-menu');
+}
+
+/**
+ * Footer Menu layout (Customizer > Footer > Footer Menu Layout).
+ * 'inline'  — one horizontal line (legal-bar style). Default.
+ * 'columns' — a link column whose items flow into even sub-columns.
+ */
+function ajnanda_get_footer_menu_layout() {
+    return 'columns' === get_theme_mod('ajn_footer_menu_layout', 'inline') ? 'columns' : 'inline';
+}
+
+function ajnanda_sanitize_footer_menu_layout($value) {
+    return 'columns' === $value ? 'columns' : 'inline';
 }
 
 function ajnanda_builder_insert_choices($builder = '') {
@@ -3680,6 +3666,23 @@ function ajnanda_customize_register($wp_customize) {
         'active_callback' => 'ajnanda_header_builder_button_1_active',
     ));
 
+    $wp_customize->add_setting('ajn_footer_menu_layout', array(
+        'default'           => 'inline',
+        'sanitize_callback' => 'ajnanda_sanitize_footer_menu_layout',
+        'transport'         => 'refresh',
+    ));
+
+    $wp_customize->add_control('ajn_footer_menu_layout', array(
+        'label'           => __('Footer Menu Layout', 'ajnanda'),
+        'section'         => 'ajnanda_footer',
+        'type'            => 'select',
+        'choices'         => array(
+            'inline'  => __('Inline', 'ajnanda'),
+            'columns' => __('Columns', 'ajnanda'),
+        ),
+        'active_callback' => 'ajnanda_footer_builder_menu_active',
+    ));
+
     $wp_customize->add_setting('ajn_footer_builder_button_text', array(
         'default'           => __('Contact Us', 'ajnanda'),
         'sanitize_callback' => 'sanitize_text_field',
@@ -3883,6 +3886,7 @@ function ajnanda_customize_register($wp_customize) {
     if (isset($wp_customize->selective_refresh)) {
         $footer_settings = array(
             'footer_bottom_text',
+            'ajn_footer_menu_layout',
             'ajn_footer_builder_button_text',
             'ajn_footer_builder_button_url',
             'ajn_builder_button_2_text',

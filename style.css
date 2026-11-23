@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 2.0.65
+Version: 2.0.66
 License: GNU General Public License v2 or later
 Text Domain: ajnanda
 */
@@ -1267,30 +1267,26 @@ body.admin-bar .site-header {
     margin: 0.5rem 0;
 }
 
-/* Footer builder gets its own row/cell rules — the shared .ajn-builder-row is
-   `align-items: center` (right for a header bar, wrong for a footer). Here rows
-   top-align so column headings line up, and wrap instead of squishing. */
+/* Footer builder rows are CSS grids. ajnanda_render_builder_layout() writes
+   each placed cell's Customizer width as an fr track into
+   --ajn-footer-row-cols-desktop / -tablet, so the widths are real column
+   proportions; phones get one column (see the 768px block). Rows top-align so
+   column headings line up. The container is a grid, and an auto inline margin
+   on a grid item shrinks it to max-content, so rows need an explicit width:100%
+   (max-width still caps them on wide screens). */
 .footer-builder-container .ajn-builder-row {
-    min-height: 64px;
-    /* The container is a grid, and an auto inline margin on a grid item shrinks
-       it to max-content instead of centring a full-width box. Without an
-       explicit width the rows therefore collapse to however wide their text
-       happens to be — each row a different width, none of them filling the
-       footer, and the row 2 divider never lining up with the columns above it.
-       width:100% fills the grid area; max-width still caps it on wide screens. */
+    display: grid;
+    grid-template-columns: var(--ajn-footer-row-cols-desktop, minmax(0, 1fr));
+    align-items: start;
+    gap: 1.25rem 2.5rem;
     width: 100%;
     max-width: var(--ajn-footer-container-width);
     margin-inline: auto;
-    align-items: flex-start;
-    flex-wrap: wrap;
-    gap: 2rem 2.5rem;
 }
 
 .footer-builder-container .ajn-builder-cell {
     color: var(--ajn-footer-text-color);
-    /* Same basis for every cell (logo included), grow follows the Customizer
-       width ratio — wrapped rows stay on one column grid. */
-    flex: var(--ajn-builder-width-desktop, 1) 1 13rem;
+    min-width: 0;
 }
 
 /* Widget areas and free-HTML cells are real stacked columns; the small "chrome"
@@ -1313,25 +1309,17 @@ body.admin-bar .site-header {
 }
 
 /* Row 2 is the legal bar in the shipped default: copyright and a short links
-   menu on one centred line, pushed apart. Cells size to content, not equally. */
+   menu on one line under a divider. */
 .footer-builder-container .ajn-builder-row-2 {
     align-items: center;
-    justify-content: space-between;
-    gap: 1rem 1.5rem;
-    margin-top: 1rem;
-    padding-top: 1.75rem;
+    gap: 0.75rem 1.5rem;
+    margin-top: 0.25rem;
+    padding-top: 1rem;
     border-top: 1px solid var(--ajn-footer-divider-color);
 }
 
-.footer-builder-container .ajn-builder-row-2 .ajn-builder-cell {
-    flex: 0 1 auto;
-}
-
-/* Footer menu as a link column (PHP adds .ajn-builder-cell-menu-columns when the
-   menu shares its row with content cells — see ajnanda_render_builder_layout()).
-   Links flow into as many even sub-columns as the cell's width allows: wide
-   cell → 2–3 short columns, narrow cell or phone → one list. A legal-bar menu
-   (alone or beside the copyright) keeps the inline style above. */
+/* Footer Menu Layout = Columns (Customizer). Links flow into as many even
+   sub-columns as the cell's width allows; narrow cell or phone → one list. */
 .footer-builder-container .ajn-builder-cell-menu-columns:not(.ajn-builder-cell-has-align) {
     justify-content: flex-start;
 }
@@ -1343,6 +1331,14 @@ body.admin-bar .site-header {
     align-items: start;
     gap: 0.6rem 1.75rem;
     width: 100%;
+}
+
+/* Tablet only: use the Customizer's tablet widths. Bounded below so it cannot
+   override the single-column phone layout in the max-width:768px block. */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .footer-builder-container .ajn-builder-row {
+        grid-template-columns: var(--ajn-footer-row-cols-tablet, var(--ajn-footer-row-cols-desktop, minmax(0, 1fr)));
+    }
 }
 
 .ajn-customizer-builder-preview {
@@ -4321,15 +4317,14 @@ body.page-client-portal .page-content-section,
         flex: var(--ajn-builder-width-mobile, 1) 1 0;
     }
     .footer-builder-container .ajn-builder-row {
-        align-items: stretch;
-        flex-direction: column;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1.25rem;
     }
     .footer-builder-container .ajn-builder-cell,
     .footer-builder-container .ajn-builder-cell-primary-menu,
     .footer-builder-container .ajn-builder-cell-footer-menu,
     .footer-builder-container .ajn-builder-cell-site-logo {
         justify-content: center;
-        width: 100%;
     }
     .footer-menu-bar {
         align-items: center;
