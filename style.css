@@ -3,7 +3,7 @@ Theme Name: AJNanda
 Theme URI: https://ajnanda.com/
 Description: A flexible professional WordPress theme for AJNanda with editable block-based layouts and site controls
 Author: AJNanda
-Version: 2.0.64
+Version: 2.0.65
 License: GNU General Public License v2 or later
 Text Domain: ajnanda
 */
@@ -1327,18 +1327,16 @@ body.admin-bar .site-header {
     flex: 0 1 auto;
 }
 
-/* A footer menu placed beside content columns (widget/HTML/logo) is a link
-   column, not a legal-bar strip. The inline right-aligned default wrapped a
-   6-item menu into two ragged, centred lines; a single stacked list made the
-   footer tall. Instead the links flow into as many even sub-columns as the
-   cell's width allows (auto-fill grid): wide cell → 2–3 short columns, narrow
-   cell or phone → one list. A menu alone or with copyright (legal bar) is
-   unaffected. */
-.footer-builder-container .ajn-builder-row:has(> .ajn-builder-cell-html-1, > .ajn-builder-cell-html-2, > .ajn-builder-cell-widget-1, > .ajn-builder-cell-widget-2, > .ajn-builder-cell-widget-3, > .ajn-builder-cell-widget-4, > .ajn-builder-cell-site-logo) > .ajn-builder-cell-footer-menu:not(.ajn-builder-cell-has-align) {
+/* Footer menu as a link column (PHP adds .ajn-builder-cell-menu-columns when the
+   menu shares its row with content cells — see ajnanda_render_builder_layout()).
+   Links flow into as many even sub-columns as the cell's width allows: wide
+   cell → 2–3 short columns, narrow cell or phone → one list. A legal-bar menu
+   (alone or beside the copyright) keeps the inline style above. */
+.footer-builder-container .ajn-builder-cell-menu-columns:not(.ajn-builder-cell-has-align) {
     justify-content: flex-start;
 }
 
-.footer-builder-container .ajn-builder-row:has(> .ajn-builder-cell-html-1, > .ajn-builder-cell-html-2, > .ajn-builder-cell-widget-1, > .ajn-builder-cell-widget-2, > .ajn-builder-cell-widget-3, > .ajn-builder-cell-widget-4, > .ajn-builder-cell-site-logo) > .ajn-builder-cell-footer-menu .footer-menu {
+.footer-builder-container .ajn-builder-cell-menu-columns .footer-menu {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
     justify-content: start;

@@ -1281,15 +1281,34 @@ function ajnanda_render_builder_layout($builder, $start_row = 1, $end_row = null
     $row_count = ajnanda_get_builder_row_count($builder);
     $end_row   = null !== $end_row ? min($end_row, $row_count) : $row_count;
 
+    // Footer cells that hold real content. A footer menu sharing a row with any
+    // of these is a link column (rendered as an even multi-column list); a menu
+    // alone or beside the copyright is a legal-bar strip (inline).
+    $footer_content_elements = array('site-logo', 'html-1', 'html-2', 'widget-1', 'widget-2', 'widget-3', 'widget-4');
+    // The footer menu is rendered once per footer. The shipped default puts it
+    // in the row 2 legal bar, so a site that also placed it in a column silently
+    // showed the same links twice; the first (topmost) placement wins.
+    $footer_menu_rendered = false;
+
     for ($row = $start_row; $row <= $end_row; $row++) {
         $row_output = '';
         $column_count = ajnanda_get_builder_row_columns($builder, $row);
 
+        $row_elements = array();
+        for ($cell = 1; $cell <= $column_count; $cell++) {
+            $row_elements[] = ajnanda_get_builder_value($builder, $row, $cell);
+        }
+        $menu_is_column = 'footer' === $builder && array_intersect($row_elements, $footer_content_elements);
+
         ob_start();
         for ($cell = 1; $cell <= $column_count; $cell++) {
-            $element = ajnanda_get_builder_value($builder, $row, $cell);
+            $element = $row_elements[$cell - 1];
 
             if ('none' === $element) {
+                continue;
+            }
+
+            if ('footer' === $builder && 'footer-menu' === $element && $footer_menu_rendered) {
                 continue;
             }
 
@@ -1315,6 +1334,13 @@ function ajnanda_render_builder_layout($builder, $start_row = 1, $end_row = null
             // menu in the shipped default.
             if ('footer' === $builder && '' === trim($element_html)) {
                 continue;
+            }
+
+            if ('footer' === $builder && 'footer-menu' === $element) {
+                $footer_menu_rendered = true;
+                if ($menu_is_column) {
+                    $cell_class .= ' ajn-builder-cell-menu-columns';
+                }
             }
             ?>
             <div
