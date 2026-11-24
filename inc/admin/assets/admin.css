@@ -1101,3 +1101,65 @@ body.ajnanda-modal-open {
         grid-template-columns: 1fr;
     }
 }
+
+/* Color Scheme Validator (Color Schemes screen). */
+.ajnanda-cv {
+    margin-bottom: 16px;
+}
+
+.ajnanda-cv h2 {
+    margin: 0 0 8px;
+}
+
+.ajnanda-cv-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 10px 14px;
+}
+
+.ajnanda-cv-controls label {
+    display: grid;
+    gap: 3px;
+    font-weight: 600;
+}
+
+.ajnanda-cv-controls .ajnanda-cv-check {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 400;
+}
+
+.ajnanda-cv-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.ajnanda-cv-progress progress {
+    width: 240px;
+}
+
+.ajnanda-cv-help {
+    margin-top: 8px;
+    color: #6b7280;
+}
+
+.ajnanda-cv-report:not(:empty) {
+    margin-top: 14px;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 10px;
+}
+
+/* Off-screen but laid out, so computed styles and media queries are real. */
+.ajnanda-cv-stage {
+    position: fixed;
+    left: -20000px;
+    top: 0;
+    width: 1400px;
+    height: 900px;
+    overflow: hidden;
+    pointer-events: none;
+}

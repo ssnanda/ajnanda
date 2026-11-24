@@ -19,6 +19,31 @@ if (!defined('ABSPATH')) {
 }
 ?>
 <div class="wrap ajnanda-admin-wrap">
+    <?php if (class_exists('AJNanda_Color_Validator')) : ?>
+        <section class="ajnanda-admin-card ajnanda-cv" id="ajnanda-cv">
+            <h2><?php esc_html_e('Color Scheme Validator', 'ajnanda'); ?></h2>
+            <form class="ajnanda-cv-controls" onsubmit="return false;">
+                <label><?php esc_html_e('Baseline', 'ajnanda'); ?>
+                    <select name="baseline"><?php foreach ($schemes as $slug => $scheme) : ?><option value="<?php echo esc_attr($slug); ?>" <?php selected($slug, AJNanda_Color_Validator::BASELINE); ?>><?php echo esc_html($scheme['label']); ?></option><?php endforeach; ?></select>
+                </label>
+                <label><?php esc_html_e('Compare with', 'ajnanda'); ?>
+                    <select name="comparison"><?php foreach ($schemes as $slug => $scheme) : ?><option value="<?php echo esc_attr($slug); ?>" <?php selected($slug, AJNanda_Color_Validator::COMPARISON); ?>><?php echo esc_html($scheme['label']); ?></option><?php endforeach; ?></select>
+                </label>
+                <label><?php esc_html_e('Articles sampled', 'ajnanda'); ?>
+                    <input type="number" name="articles" value="5" min="1" max="50" style="width:70px">
+                </label>
+                <label class="ajnanda-cv-check"><input type="checkbox" name="mobile_all"> <?php esc_html_e('Mobile on every page', 'ajnanda'); ?></label>
+                <button type="button" class="button button-primary" data-cv-run><?php esc_html_e('Generate Validation Report', 'ajnanda'); ?></button>
+                <button type="button" class="button" data-cv-download hidden><?php esc_html_e('Download Report', 'ajnanda'); ?></button>
+            </form>
+            <div class="ajnanda-cv-progress" hidden><progress max="100" value="0"></progress> <span data-cv-status></span></div>
+            <details class="ajnanda-cv-help"><summary><?php esc_html_e('How it works', 'ajnanda'); ?></summary>
+                <p><?php esc_html_e('Read-only. Scans theme files and saved styles/content for literal colors, then renders the Corporate Home demo through the existing preview and every public page with the brand colors swapped for this request only (the same four theme_mods a real apply writes). Computed colors are compared role by role; nothing is saved and the active scheme is not changed.', 'ajnanda'); ?></p>
+            </details>
+            <div class="ajnanda-cv-report" data-cv-report></div>
+            <div class="ajnanda-cv-stage" data-cv-stage aria-hidden="true"></div>
+        </section>
+    <?php endif; ?>
     <div class="ajnanda-admin-grid">
         <?php foreach ($schemes as $slug => $scheme) : ?>
             <div class="ajnanda-admin-card">

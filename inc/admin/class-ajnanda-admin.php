@@ -77,6 +77,21 @@ class AJNanda_Admin {
             ajnanda_asset_version('inc/admin/assets/admin.js'),
             true
         );
+
+        // Color Scheme Validator (Color Schemes screen only).
+        if ('ajnanda-color-schemes' === $_GET['page'] && class_exists('AJNanda_Color_Validator')) {
+            wp_enqueue_script(
+                'ajnanda-color-validator',
+                get_template_directory_uri() . '/inc/admin/assets/color-validator.js',
+                array(),
+                ajnanda_asset_version('inc/admin/assets/color-validator.js'),
+                true
+            );
+            wp_localize_script('ajnanda-color-validator', 'ajnandaColorValidator', array(
+                'ajaxUrl' => admin_url('admin-ajax.php'),
+                'nonce'   => wp_create_nonce(AJNanda_Color_Validator::NONCE_ACTION),
+            ));
+        }
     }
 
     private static function view($file, array $vars = array()) {
