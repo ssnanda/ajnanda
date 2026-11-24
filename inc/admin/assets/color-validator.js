@@ -67,6 +67,7 @@
 
     runBtn.addEventListener('click', function () { run().catch(function (e) { setStatus('Failed: ' + (e && e.message ? e.message : e)); runBtn.disabled = false; }); });
     dlBtn.addEventListener('click', download);
+    root.setAttribute('data-cv-ready', '1');
 
     function setStatus(text, pct) {
         progressWrap.hidden = false;
@@ -110,14 +111,19 @@
             results.push(await runJob(job, ctx));
         }
 
-        setStatus('Building report…', 98);
-        var report = buildReport(plan, ctx, results);
+        setStatus('Tracing fixes to files and settings…', 97);
+        var model = buildModel(plan, ctx, results);
+        await locate(model);
+        finishModel(model);
+        setStatus('Building report…', 99);
+        var report = renderReport(model);
         reportEl.innerHTML = report.html;
         last = report;
         window.ajnandaColorValidatorLastReport = { html: standalone(report), data: report.data };
         dlBtn.hidden = false;
         runBtn.disabled = false;
-        setStatus('Done — ' + results.length + ' renders, ' + report.data.groups.length + ' root causes, ' + report.data.findings.length + ' findings.', 100);
+        var sum = report.data.summary;
+        setStatus('Done — ' + results.length + ' renders · ' + sum.uniqueFixes + ' unique fixes · ' + sum.components + ' components · ' + sum.observations + ' observations.', 100);
     }
 
     async function runJob(job, ctx) {
@@ -137,6 +143,7 @@
             await prefetchSources(c.doc);
             comp = snapshot(c.doc, c.win, ctx, true);
             out.comparisonTokens = comp.tokens;
+            out.adminSkipped = comp.adminSkipped || 0;
         } catch (e) {
             out.status = 'failed'; out.notes.push('Comparison render failed: ' + e.message); return out;
         }
@@ -233,7 +240,7 @@
         var bh = hsl(plan.baseline.primary.toLowerCase());
         var saved = {};
         (plan.source.items || []).forEach(function (it) { if (it.type === 'theme_mod') { saved[it.ref.replace('theme_mod ', '')] = it.hex; } });
-        return { plan: plan, roles: roles, baseline: plan.baseline, comparison: plan.comparison, baseHue: bh[0], savedMods: saved };
+        return { plan: plan, roles: roles, baseline: plan.baseline, comparison: plan.comparison, baseHue: bh[0], savedMods: saved, mods: plan.mods || {} };
     }
     function roleOf(hex, ctx) { return ctx.roles[hex] || null; }
     function isTint(hex, ctx) {
@@ -426,6 +433,44 @@
         return s;
     }
 
+    var INHERITED_RE = /^(inherit|currentcolor|unset|revert|revert-layer)$/i;
+    /** Nearest element (self or ancestor) with a real `color` declaration. */
+    function traceColor(node, idx) {
+        while (node && node.nodeType === 1) {
+            var d = winning(node, 'color', idx, '');
+            if (d && !INHERITED_RE.test(d.value)) { return { decl: d, el: node }; }
+            node = node.parentElement;
+        }
+        return null;
+    }
+    function firstClass(el) {
+        var c = (typeof el.className === 'string' ? el.className : (el.getAttribute('class') || '')).trim().split(/\s+/);
+        return c.filter(function (x) { return x && !/^(wp-elements-|has-|is-layout|wp-container|is-content-justification|are-vertically)/.test(x); })[0] || '';
+    }
+    var TAG_NAME = { a: 'Links', button: 'Buttons', h1: 'Headings', h2: 'Headings', h3: 'Headings', h4: 'Headings', input: 'Form fields', select: 'Form fields', textarea: 'Form fields', svg: 'Icons', path: 'Icons', span: 'Text', p: 'Text', li: 'List items', div: 'Blocks', body: 'Page body', strong: 'Text', summary: 'Disclosure' };
+    function humanize(cls) {
+        var c = cls.replace(/^(wp-block-|is-style-|ajnanda-|ajn-)/, '').replace(/^ajp-/, 'AJCore product ').replace(/^ajcore-/, 'AJCore ').replace(/^ajforms-/, 'AJForms ').replace(/__|--|[-_]+/g, ' ').replace(/\s+/g, ' ').trim();
+        return c.charAt(0).toUpperCase() + c.slice(1);
+    }
+    /** Human component name from the rule that styles the element (or the element itself). */
+    function componentOf(sel, el) {
+        var name = '';
+        if (sel && sel.indexOf('style=') < 0) {
+            var clean = sel.replace(STATE_RE, '').replace(/:(?:where|is)\(([^()]*)\)/g, '$1').split(',')[0].replace(/:not\([^()]*\)/g, '').replace(/::?[\w-]+(\([^()]*\))?/g, '').trim();
+            var parts = clean.split(/\s*[>+~]\s*|\s+/).filter(Boolean);
+            var withCls = parts.filter(function (p) { return /\.[\w-]/.test(p); });
+            var pick = withCls.length ? withCls[withCls.length - 1] : (parts[parts.length - 1] || '');
+            var cls = (pick.match(/\.([\w-]+)/) || [])[1], tail = parts[parts.length - 1] || '', tailTag = (tail.match(/^[a-z][\w-]*/i) || [''])[0].toLowerCase();
+            if (cls) { name = humanize(cls) + (tail !== pick && !/\./.test(tail) && TAG_NAME[tailTag] ? ' ' + TAG_NAME[tailTag].toLowerCase() : ''); }
+            else if (tailTag) { name = TAG_NAME[tailTag] || tailTag; }
+        }
+        if (!name && el) {
+            var fc = firstClass(el);
+            name = fc ? humanize(fc) : (TAG_NAME[el.tagName.toLowerCase()] || el.tagName.toLowerCase());
+        }
+        return name;
+    }
+
     /** Follow var() references from a declared value to the declarations that supply them. */
     function tokenChain(el, raw, idx, depth, seen) {
         depth = depth || 0; seen = seen || {};
@@ -516,12 +561,16 @@
 
         var banner = null;
         Array.prototype.forEach.call(doc.body.children, function (c) { if (!banner && c.tagName === 'DIV' && /AJNanda Preview/.test(c.textContent || '') && /99999/.test(c.getAttribute('style') || '')) { banner = c; } });
+        // Admin chrome (toolbar) is not part of the website; the preview resolver still prints it.
+        var adminBar = doc.getElementById('wpadminbar');
+        snap.adminSkipped = 0;
 
         var all = doc.body.getElementsByTagName('*'), n = 0;
         for (var i = 0; i < all.length && n < MAX_ELEMENTS; i++) {
             var el = all[i], tag = el.tagName;
             if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT' || tag === 'TEMPLATE' || tag === 'BR') { continue; }
             if (banner && banner.contains(el)) { continue; }
+            if (adminBar && (adminBar === el || adminBar.contains(el))) { snap.adminSkipped++; continue; }
             if (tag === 'IFRAME') { snap.opaque.push('Embedded iframe (' + (el.getAttribute('src') || '').slice(0, 80) + ') — ' + region(el)); continue; }
             if (el.shadowRoot) { snap.opaque.push('Shadow DOM: ' + describeNode(el)); }
             var cs = win.getComputedStyle(el);
@@ -565,16 +614,19 @@
     }
 
     function navigationCheck(doc) {
-        var links = doc.querySelectorAll('a[href]'), internal = 0, leaves = 0, sample = [];
+        var links = doc.querySelectorAll('a[href]'), internal = 0, leaves = 0, admin = 0, sample = [];
+        var adminBar = doc.getElementById('wpadminbar');
         Array.prototype.forEach.call(links, function (a) {
+            if (adminBar && adminBar.contains(a)) { admin++; return; }
             var href = a.getAttribute('href') || '';
             if (href.charAt(0) === '#' || /^(mailto|tel|javascript):/.test(href)) { return; }
             var u; try { u = new URL(href, doc.baseURI); } catch (e) { return; }
             if (u.host !== location.host) { return; }
+            if (/^\/wp-(admin|login)/.test(u.pathname)) { admin++; return; }
             internal++;
             if (u.search.indexOf('action=ajnanda_preview') < 0 || u.search.indexOf('scheme=') < 0) { leaves++; if (sample.length < 5) { sample.push(u.pathname + u.search.slice(0, 40)); } }
         });
-        return { internal: internal, leaves: leaves, sample: sample };
+        return { internal: internal, leaves: leaves, admin: admin, sample: sample };
     }
 
     /* ------------------------------------------------------------ *
@@ -608,21 +660,34 @@
     function record(key, prop, stop, bcol, ccol, role, kind, c, comp, job) {
         var state = prop.indexOf(':') > -1 ? prop.split(':')[0] : '';
         var baseProp = state ? prop.split(':')[1] : prop;
-        var el = c.el, decl = null, chain = [], inheritedFrom = '';
+        var el = c.el, decl = null, chain = [], inheritedFrom = '', component = '', elClass = '';
         if (el) {
+            elClass = firstClass(el);
             if (state) { decl = (comp.stateDecls || {})[key + '|' + prop] || null; }
-            else {
-                decl = winning(el, baseProp, comp.idx, '');
-                if (decl && baseProp === 'color' && /^(inherit|currentcolor|unset)$/i.test(decl.value)) { inheritedFrom = 'value ' + decl.value; decl = null; }
-                if (!decl && baseProp === 'color') {
-                    var p = el.parentElement;
-                    while (p && !decl) { decl = winning(p, 'color', comp.idx, ''); if (decl && /^(inherit|currentcolor|unset)$/i.test(decl.value)) { decl = null; } if (decl) { inheritedFrom = describeNode(p); el = p; } p = p.parentElement; }
-                }
+            else { decl = winning(el, baseProp, comp.idx, ''); }
+            component = componentOf(decl ? decl.selector : '', el);
+            // Resolve inherited values before classifying: the editable source is
+            // whatever declares the color they stand for.
+            var t = null;
+            if (decl && baseProp === 'color' && INHERITED_RE.test(decl.value)) {
+                inheritedFrom = 'color: ' + decl.value;
+                t = traceColor(el.parentElement, comp.idx);
+            } else if (!decl && baseProp === 'color') {
+                t = traceColor(el.parentElement, comp.idx);
+            } else if (decl && baseProp !== 'color' && /currentcolor/i.test(decl.value)) {
+                inheritedFrom = baseProp + ': ' + decl.value + ' → color';
+                t = traceColor(el, comp.idx);
+            } else if (!decl && /border|outline/.test(baseProp)) {
+                inheritedFrom = baseProp + ' initial currentcolor → color';
+                t = traceColor(el, comp.idx);
             }
+            if (t) { decl = t.decl; el = t.el; inheritedFrom += (inheritedFrom ? ' · ' : '') + 'declared on ' + describeNode(t.el); }
+            else if (inheritedFrom && (INHERITED_RE.test(decl ? decl.value : '') || /currentcolor/i.test(decl ? decl.value : ''))) { decl = null; }
             if (decl && decl.value.indexOf('var(') > -1) { chain = tokenChain(el, decl.value, comp.idx); }
         }
         return {
             target: job.target.id, label: job.target.label, url: job.target.url, group: job.target.group || 'Demo', kind: job.target.kind, resolver: job.target.resolver, viewport: job.viewport,
+            object: job.target.object || '', component: component || 'Element', elClass: elClass,
             element: c.desc, text: c.text, region: c.region, owner: c.owner, isLogo: c.isLogo, key: key,
             property: baseProp, state: state, stop: stop, status: kind, role: role ? role.role : '',
             expectedBase: role ? role.baseline : bcol.hex, observedBase: bcol.hex,
@@ -731,139 +796,523 @@
         return chain.map(function (l) { return l.token + (l.unresolved ? ' (undefined → fallback ' + (l.fallback || 'none') + ')' : ' = ' + l.value + ' @ ' + (l.declaredOn || '?') + (l.source ? ' [' + l.source.label + ']' : '')) + ' ⇒ ' + l.computed; }).join('  →  ');
     }
 
-    function buildReport(plan, ctx, results) {
+    /* ------------------------------------------------------------ *
+     * Fix model: one fix per editable source
+     *
+     * Every observation (one property value on one element in one render)
+     * is mapped to the single place you would edit to make it follow the
+     * scheme: a CSS declaration, a Customizer setting, a block attribute, a
+     * Global Styles entry or a plugin setting. Observations sharing that
+     * place are one fix; components, pages, viewports and states are listed
+     * under it. Website totals use the real-page "apply" renders only; fixes
+     * seen only through the preview mechanism are reported separately.
+     * ------------------------------------------------------------ */
+
+    var CATEGORY = {
+        bypass: { label: 'Confirmed palette bypass', short: 'Bypass', weight: 1 },
+        custom: { label: 'Explicit custom color', short: 'Custom', weight: 0.7 },
+        unverified: { label: 'Unverified (blue-family value, not a palette color)', short: 'Unverified', weight: 0.5 },
+        investigate: { label: 'Needs investigation (source not traced)', short: 'Investigate', weight: 0.4 },
+        intentional: { label: 'Intentional fixed color', short: 'Intentional', weight: 0 }
+    };
+    var CATEGORY_ORDER = ['bypass', 'custom', 'unverified', 'investigate', 'intentional'];
+    var ROLE_LABEL = { primary: 'Primary', primary_dark: 'Primary dark', secondary: 'Secondary', accent: 'Accent' };
+    var ROLE_TOKEN = { primary: '--primary', primary_dark: '--primary-dark', secondary: '--secondary', accent: '--accent' };
+    // Customizer location of the color theme_mods printed by ajnanda_customizer_css() (functions.php).
+    var FIELD = {
+        header_background_color: ['Header', 'Header Background', '#ffffff'], header_text_color: ['Header', 'Header Text Color', '#1f2937'],
+        header_link_hover_color: ['Header', 'Header Link Hover Color', '#2563eb'], header_link_hover_background: ['Header', 'Header Link Hover Background', '#f9fafb'],
+        header_submenu_background: ['Header', 'Header Submenu Background', '#ffffff'], header_submenu_text_color: ['Header', 'Header Submenu Text Color', '#1f2937'],
+        header_submenu_hover_color: ['Header', 'Header Submenu Hover Text Color', '#2563eb'], header_submenu_hover_background: ['Header', 'Header Submenu Hover Background', '#f9fafb'],
+        footer_background_color: ['Footer', 'Footer Background', '#111827'], footer_text_color: ['Footer', 'Footer Text Color', ''],
+        footer_link_hover_color: ['Footer', 'Footer Link Hover Color', '#f59e0b'], footer_submenu_hover_color: ['Footer', 'Footer Submenu Hover Text Color', '#2563eb'],
+        hero_bg_1: ['Hero Defaults', 'Hero Background Color 1', 'Primary'], hero_bg_2: ['Hero Defaults', 'Hero Background Color 2', 'Secondary'],
+        hero_button_text_color: ['Hero Defaults', 'Hero Primary Button Text Color', '#2563eb'], hero_button_bg: ['Hero Defaults', 'Hero Primary Button Background', '#ffffff']
+    };
+
+    function colorsIn(v) {
+        v = v || '';
+        var out = parseColors(v);
+        (v.match(/#[0-9a-f]{3,8}\b/gi) || []).forEach(function (h) { var x = hexOf(h); if (x) { out.push({ hex: x, a: h.length === 9 ? parseInt(h.slice(7), 16) / 255 : 1 }); } });
+        return out;
+    }
+    /** Differing baseline role whose exact RGB appears in the value (any alpha). */
+    function exactRole(v, ctx) {
+        var cs = colorsIn(v);
+        for (var i = 0; i < cs.length; i++) { var r = ctx.roles[cs[i].hex]; if (r) { return { role: r.role, alpha: cs[i].a < 1 }; } }
+        return null;
+    }
+    function tintIn(v, ctx) { return colorsIn(v).some(function (c) { return isTint(c.hex, ctx); }); }
+    function nearestRole(hex, ctx) {
+        if (!/^#[0-9a-f]{6}$/.test(hex || '')) { return 'primary'; }
+        var best = 'primary', bd = 1e9, h = hsl(hex);
+        ctx.plan.roles.forEach(function (r) {
+            if (!r.differs) { return; }
+            var x = hsl(r.baseline), dh = Math.abs(x[0] - h[0]);
+            dh = Math.min(dh, 360 - dh);
+            var d = dh + Math.abs(x[2] - h[2]) * 60;
+            if (d < bd) { bd = d; best = r.role; }
+        });
+        return best;
+    }
+    /** The value rewritten in palette terms (roles → var(), tints → color-mix()). */
+    function suggestValue(v, ctx) {
+        return String(v).replace(/rgba?\([^)]*\)|#[0-9a-f]{3,8}\b/gi, function (c) {
+            var p = colorsIn(c)[0];
+            if (!p) { return c; }
+            var r = ctx.roles[p.hex];
+            if (r) { return p.a < 1 ? 'color-mix(in srgb, var(' + ROLE_TOKEN[r.role] + ') ' + Math.round(p.a * 100) + '%, transparent)' : 'var(' + ROLE_TOKEN[r.role] + ')'; }
+            if (isTint(p.hex, ctx)) {
+                var nr = nearestRole(p.hex, ctx), l = hsl(p.hex)[2], bl = hsl(String(ctx.baseline[nr]).toLowerCase())[2], tok = 'var(' + ROLE_TOKEN[nr] + ')';
+                var mix = l > bl ? 'color-mix(in srgb, ' + tok + ' ' + Math.max(4, Math.round(100 * (1 - (l - bl) / (1 - bl)))) + '%, white)' : 'color-mix(in srgb, ' + tok + ' ' + Math.max(10, Math.round(100 * l / bl)) + '%, black)';
+                if (/100%/.test(mix)) { mix = tok; }
+                return p.a < 1 ? 'color-mix(in srgb, ' + tok + ' ' + Math.round(p.a * 100) + '%, transparent)' : mix;
+            }
+            return c;
+        });
+    }
+    function variants(v) {
+        v = String(v || '');
+        var toForm = function (lead) {
+            return v.replace(/rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)\s*(?:[,/]\s*([\d.]+%?))?\s*\)/g, function (all, r, g, b, a) {
+                if (a === undefined || +a === 1) { return toHex(+r, +g, +b); }
+                var al = String(+a); if (!lead) { al = al.replace(/^0\./, '.'); }
+                return 'rgba(' + r + ',' + g + ',' + b + ',' + al + ')';
+            });
+        };
+        var out = [v, toForm(true), toForm(false)];
+        out.push(out[1].replace(/#([0-9a-f])\1([0-9a-f])\2([0-9a-f])\3\b/gi, '#$1$2$3'));
+        return out.filter(function (x, i) { return x && out.indexOf(x) === i; });
+    }
+    function propNames(prop) { return SHORTHANDS[prop] || [prop]; }
+    function declNeedles(prop, value) {
+        var out = [];
+        (prop.indexOf('--') === 0 ? [prop] : propNames(prop).concat(prop)).forEach(function (p) { variants(value).forEach(function (v) { out.push(p + ':' + v); }); });
+        return out.filter(function (x, i) { return out.indexOf(x) === i; }).slice(0, 12);
+    }
+    function colorNeedles(value, prop) {
+        var out = [];
+        colorsIn(value).forEach(function (c) {
+            var short = c.hex.replace(/^#([0-9a-f])\1([0-9a-f])\2([0-9a-f])\3$/i, '#$1$2$3');
+            propNames(prop).forEach(function (p) { out.push(p + ':' + c.hex); if (short !== c.hex) { out.push(p + ':' + short); } });
+            out.push(c.hex);
+        });
+        return out.filter(function (x, i) { return out.indexOf(x) === i; }).slice(0, 12);
+    }
+    function srcScope(src) {
+        if (!src) { return null; }
+        if (src.kind === 'file') {
+            if (src.owner === 'AJNanda') { return { scope: 'theme', rel: src.file }; }
+            if (/^Site mu-plugin/.test(src.owner)) { return { scope: 'mu', rel: src.file.replace(/^wp-content\/mu-plugins\//, '') }; }
+            if (/^Plugin: /.test(src.owner)) { return { scope: 'plugin', rel: src.file }; }
+            return null;
+        }
+        if (/customizer_css/.test(src.file || '')) { return { scope: 'theme', rel: 'functions.php' }; }
+        if (src.kind === 'inline' && !/Global Styles|Additional CSS|Block attributes/.test(src.owner + ' ' + src.file)) { return { scope: 'code', rel: '' }; }
+        return null;
+    }
+    function locateReq(src, needles, selector) {
+        var s = srcScope(src);
+        return s ? { scope: s.scope, rel: s.rel, needles: needles, selector: selector && selector.indexOf('style=') < 0 ? selector : '' } : null;
+    }
+    function ownerLabel(src, elOwner) {
+        if (!src) { return elOwner || 'Unknown'; }
+        if (src.kind === 'attr') { return elOwner || 'Saved content'; }
+        if (src.owner === 'AJNanda' || src.owner === 'AJNanda (inline)') { return 'AJNanda theme'; }
+        if (src.owner === 'Unknown inline') { return elOwner || 'Unknown inline style'; }
+        return src.owner;
+    }
+    function whereLabel(src) {
+        if (!src) { return ''; }
+        if (src.kind === 'file') { return src.owner === 'AJNanda' ? 'themes/ajnanda/' + src.file : src.label; }
+        if (src.kind === 'inline' && /^inline/.test(src.file)) { return src.label; }
+        return src.file;
+    }
+    function ownerFromPath(p) {
+        var m;
+        if ((m = /^themes\/([^/]+)/.exec(p))) { return m[1] === 'ajnanda' ? 'AJNanda theme' : 'Theme: ' + m[1]; }
+        if ((m = /^mu-plugins\/([^/]+)/.exec(p))) { return 'Site mu-plugin: ' + m[1].replace(/\.php$/, ''); }
+        if ((m = /^plugins\/([^/]+)/.exec(p))) { return 'Plugin: ' + m[1]; }
+        return '';
+    }
+    function roleFor(f, v, ctx) {
+        var ex = exactRole(v, ctx);
+        if (ex) { return { role: ex.role, exact: true }; }
+        return { role: f.role || nearestRole(hexOf(v) || f.observedBase, ctx), exact: !!f.role && !tintIn(v, ctx) };
+    }
+
+    function fixOf(f, ctx) {
+        var d = f.decl, src = d ? d.source : null, r;
+        if (f.isLogo) {
+            return { key: 'intentional|' + f.element, category: 'intentional', type: 'artwork', sub: 'artwork', owner: 'Artwork', where: f.region + ' · ' + f.element, field: f.property, current: f.observedBase, role: '', exact: false, suggestion: 'None. Logo / artwork keeps its own colors.' };
+        }
+        if (!d) {
+            return { key: 'investigate|' + f.region + '|' + f.element + '|' + f.property, category: 'investigate', type: 'unknown', sub: 'unknown', owner: f.owner || 'Unknown', where: 'Not traced', field: f.element + ' · ' + f.property, current: f.observedBase, role: f.role || nearestRole(f.observedBase, ctx), exact: !!f.role,
+                suggestion: 'No author rule found (user-agent default, nested CSS, cross-origin sheet or script-set style). Inspect the element in DevTools.' };
+        }
+        var stuck = f.observedComp, brk = null, lit = null, unresolved = null;
+        (f.chain || []).forEach(function (l) {
+            if (l.unresolved) { if (!unresolved) { unresolved = l; } return; }
+            var role = CORE_TOKENS[l.token];
+            if (role) {
+                var pr = ctx.plan.roles.filter(function (q) { return q.role === role; })[0], got = hexOf(l.computed);
+                // A palette token that resolves to the wrong value below :root is redeclared by a component/site layer.
+                if (!brk && pr && pr.differs && got && got !== pr.comparison && l.source && !l.atRoot) { brk = l; }
+                return;
+            }
+            if (!lit && l.value && l.value.indexOf('var(') < 0 && colorsIn(l.computed || l.value).some(function (c) { return c.hex === stuck; })) { lit = l; }
+        });
+        if (brk) {
+            return { key: 'css|' + brk.source.label + '|' + brk.selector + '|' + brk.token, category: 'bypass', type: 'css', sub: 'palette', owner: ownerLabel(brk.source, f.owner), where: whereLabel(brk.source), selector: brk.selector, field: brk.token, current: brk.value, role: CORE_TOKENS[brk.token], exact: true,
+                suggestion: 'Delete `' + brk.token + ': ' + brk.value + '` from `' + brk.selector + '` so ' + brk.token + ' comes from the active scheme.',
+                locate: locateReq(brk.source, declNeedles(brk.token, brk.value), brk.selector) };
+        }
+        if (lit) {
+            var mod = TOKEN_MODS[lit.token], fromMods = lit.source && /customizer_css/.test(lit.source.file || '');
+            r = roleFor(f, lit.value, ctx);
+            if (mod && fromMods && ctx.mods[mod] !== undefined) {
+                var fld = FIELD[mod] || ['', mod, ''], saved = ctx.mods[mod], cat = exactRole(saved, ctx) ? 'bypass' : 'custom';
+                return { key: 'mod|' + mod, category: cat, type: 'setting', sub: 'customizer', owner: 'Saved Customizer setting', where: 'Appearance → Customize' + (fld[0] ? ' → ' + fld[0] : ''), field: fld[1] + ' (theme_mod ' + mod + ')', current: saved, role: r.role, exact: r.exact,
+                    suggestion: cat === 'bypass' ? 'Reset “' + fld[1] + '” to default so it follows ' + ROLE_LABEL[r.role] + '.' : 'Saved custom color. Reset “' + fld[1] + '” to default' + (fld[2] ? ' (' + fld[2] + ')' : '') + ', or keep the tint by deriving it in CSS as ' + suggestValue(saved, ctx) + '.' };
+            }
+            if (mod && fromMods) {
+                return { key: 'php|' + lit.token, category: r.exact ? 'bypass' : 'unverified', type: 'php', sub: 'php', owner: 'AJNanda theme', where: 'themes/ajnanda/functions.php ajnanda_customizer_css()', field: lit.token + ' ← theme_mod ' + mod + ' (unsaved; PHP default)', current: lit.value, role: r.role, exact: r.exact,
+                    suggestion: 'When ' + mod + ' is unset, print ' + suggestValue(lit.value, ctx) + ' instead of the literal default.', locate: { scope: 'theme', rel: 'functions.php', needles: ["get_theme_mod('" + mod + "'"], selector: '' } };
+            }
+            if (lit.source && /global-styles/.test(lit.source.label || '')) {
+                return { key: 'gs|' + lit.token, category: r.exact ? 'bypass' : 'custom', type: 'global-styles', sub: 'gs', owner: 'Global Styles / theme.json', where: 'Appearance → Editor → Styles → Colors', field: lit.token, current: lit.value, role: r.role, exact: r.exact,
+                    suggestion: 'Preset synced from the brand theme_mods by ajnanda_sync_brand_palette(). If it is saved in Global Styles, reset it there so it follows ' + ROLE_LABEL[r.role] + '.' };
+            }
+            if (lit.source && lit.source.kind === 'attr') {
+                var plug = f.owner || 'Plugin markup', forms = lit.token === '--ajforms-primary';
+                return { key: 'attr-token|' + plug + '|' + lit.token + '|' + hexOf(lit.value), category: r.exact ? 'bypass' : 'custom', type: 'plugin-setting', sub: 'plugin-setting', owner: forms ? 'Plugin setting: AJForms (ajcore)' : plug, where: forms ? 'AJForms → form → Design → Primary color' : 'style attribute printed by ' + plug, field: lit.token + (forms ? ' (form setting primary_color)' : ''), current: lit.value, role: r.role, exact: r.exact,
+                    suggestion: forms ? 'Set the form Primary color to the palette, or have AJForms print var(' + ROLE_TOKEN[r.role] + ') when the form keeps its default.' : 'Print var(' + ROLE_TOKEN[r.role] + ') instead of ' + lit.value + '.',
+                    locate: { scope: 'code', rel: '', needles: forms ? ["'primary_color'=>"] : declNeedles(lit.token, lit.value), selector: '' } };
+            }
+            return { key: 'css|' + (lit.source ? lit.source.label : '?') + '|' + lit.selector + '|' + lit.token, category: r.exact ? 'bypass' : (tintIn(lit.value, ctx) ? 'unverified' : 'custom'), type: 'css', sub: 'token', owner: ownerLabel(lit.source, f.owner), where: whereLabel(lit.source), selector: lit.selector, field: lit.token, current: lit.value, role: r.role, exact: r.exact,
+                suggestion: 'Change `' + lit.token + ': ' + lit.value + '` to `' + lit.token + ': ' + suggestValue(lit.value, ctx) + '`.', locate: locateReq(lit.source, declNeedles(lit.token, lit.value), lit.selector) };
+        }
+        var prop = d.prop || f.property;
+        r = roleFor(f, d.value, ctx);
+        if (src.kind === 'attr') {
+            var m = /^([\w-]+):(\d+)$/.exec(f.object || ''), plugOwner = /Plugin/.test(f.owner || '') ? f.owner : '';
+            if (f.kind === 'demo') {
+                return { key: 'attr|demo|' + prop + '|' + (hexOf(d.value) || d.value), category: r.exact ? 'bypass' : 'custom', type: 'block', sub: 'pattern', owner: 'AJNanda theme (demo pattern)', where: 'themes/ajnanda/' + ((ctx.plan.targets[0] && ctx.plan.targets[0].source) || 'patterns'), field: f.element + ' style ' + prop, current: d.value, role: r.role, exact: r.exact,
+                    suggestion: 'Replace the inline literal in the pattern with var(' + ROLE_TOKEN[r.role] + ').' };
+            }
+            return { key: 'attr|' + (plugOwner ? plugOwner + '|' + (f.elClass || f.element) : (f.object || f.target)) + '|' + prop + '|' + (hexOf(d.value) || d.value), category: r.exact ? 'bypass' : (plugOwner && tintIn(d.value, ctx) ? 'unverified' : 'custom'), type: plugOwner ? 'markup' : 'block', sub: plugOwner ? 'markup' : 'block',
+                owner: plugOwner || 'Saved content', where: plugOwner ? plugOwner + ' template markup' : f.label, field: (f.elClass ? '.' + f.elClass : f.element) + ' style ' + prop, current: d.value, role: r.role, exact: r.exact,
+                suggestion: plugOwner ? 'Replace the inline ' + prop + ' literal in the template with var(' + ROLE_TOKEN[r.role] + ') or a plugin color setting.' : 'Block → Styles → Color: replace custom ' + (hexOf(d.value) || d.value) + ' with the ' + ROLE_LABEL[r.role] + ' palette color (or clear it).',
+                locate: { scope: m && !plugOwner ? 'post' : 'code', post_id: m ? +m[2] : 0, rel: '', needles: colorNeedles(d.value, prop), selector: f.elClass || '' } };
+        }
+        if (d.value.indexOf('var(') < 0 || colorsIn(d.value).some(function (c) { return c.hex === stuck; })) {
+            return { key: 'css|' + src.label + '|' + d.selector + '|' + prop, category: r.exact ? 'bypass' : (tintIn(d.value, ctx) ? 'unverified' : 'custom'), type: 'css', sub: 'literal', owner: ownerLabel(src, f.owner), where: whereLabel(src), selector: d.selector, field: prop, current: d.value, role: r.role, exact: r.exact,
+                suggestion: 'Change `' + prop + ': ' + d.value + '` to `' + prop + ': ' + suggestValue(d.value, ctx) + '`.', locate: locateReq(src, declNeedles(prop, d.value), d.selector) };
+        }
+        return { key: 'css|' + src.label + '|' + d.selector + '|' + prop, category: unresolved ? 'unverified' : 'investigate', type: 'css', sub: 'chain', owner: ownerLabel(src, f.owner), where: whereLabel(src), selector: d.selector, field: prop, current: d.value, role: r.role, exact: r.exact,
+            suggestion: unresolved ? unresolved.token + ' is undefined here, so its fallback ' + (unresolved.fallback || '(none)') + ' renders. Define it from var(' + ROLE_TOKEN[r.role] + ') or use ' + ROLE_TOKEN[r.role] + ' directly.' : 'The chain resolves through palette tokens but the color did not change. Check the token chain below.',
+            locate: locateReq(src, declNeedles(prop, d.value), d.selector) };
+    }
+
+    function buildModel(plan, ctx, results) {
         var findings = [], working = [];
         results.forEach(function (r) { findings = findings.concat(r.findings); working = working.concat(r.working); });
-        findings.forEach(function (f) { var c = classify(f, ctx); f.cause = c.cause; f.ownerResolved = c.owner; f.editable = c.editable; f.fix = c.fix; });
+        var byKey = {}, fixes = [];
+        findings.forEach(function (f, i) {
+            f.n = i + 1;
+            var c = classify(f, ctx);
+            f.cause = c.cause; f.ownerResolved = c.owner; f.editable = c.editable; f.fix = c.fix;
+            var x = fixOf(f, ctx), fx = byKey[x.key];
+            if (!fx) { fx = byKey[x.key] = x; x.obs = []; x.chain = f.chain; x.decl = f.decl; x.inheritedFrom = f.inheritedFrom; fixes.push(x); }
+            fx.obs.push(f);
+        });
+        return { plan: plan, ctx: ctx, results: results, findings: findings, working: working, fixes: fixes };
+    }
 
-        // Group by root cause + winning declaration/token.
-        var groups = {};
-        findings.forEach(function (f) {
-            var tokenKey = f.chain.length ? f.chain.filter(function (l) { return !CORE_TOKENS[l.token]; }).map(function (l) { return l.token; }).join('>') : '';
-            var key = f.cause + '|' + (f.decl ? (f.decl.source.label + '|' + (f.cause === 'content-inline' ? f.target : f.decl.selector) + '|' + f.decl.value) : f.element) + '|' + tokenKey + '|' + f.property + (f.state ? ':' + f.state : '');
-            var g = groups[key] || (groups[key] = { key: key, cause: f.cause, label: CAUSE_LABEL[f.cause] || f.cause, fix: f.fix, editable: f.editable, owner: f.ownerResolved, decl: f.decl, chain: f.chain, property: f.property, state: f.state, items: [], pages: {}, resolvers: {}, roles: {} });
-            g.items.push(f);
-            g.pages[f.label] = f.url;
-            g.resolvers[f.resolver] = 1;
-            if (f.role) { g.roles[f.role] = 1; }
-        });
-        var groupList = Object.keys(groups).map(function (k) { return groups[k]; });
-        groupList.forEach(function (g) {
-            g.pageCount = Object.keys(g.pages).length;
-            g.score = (CAUSE_RANK.length - CAUSE_RANK.indexOf(g.cause)) * 0 + g.items.length + g.pageCount * 5 + (g.roles.primary ? 20 : 0);
-        });
-        groupList.sort(function (a, b) {
-            if (a.cause === 'intentional' || b.cause === 'intentional') { return a.cause === 'intentional' ? 1 : -1; }
-            return b.score - a.score;
-        });
+    async function locate(model) {
+        var reqs = [];
+        model.fixes.forEach(function (fx, i) { if (fx.locate) { fx.lid = 'f' + i; reqs.push(Object.assign({ id: fx.lid }, fx.locate)); } });
+        if (!reqs.length) { return; }
+        try {
+            var body = new FormData();
+            body.append('action', 'ajnanda_color_validator_locate');
+            body.append('nonce', cfg.nonce);
+            body.append('items', JSON.stringify(reqs));
+            var json = await (await fetch(cfg.ajaxUrl, { method: 'POST', credentials: 'same-origin', body: body })).json();
+            if (!json || !json.success) { model.locateError = 'lookup failed'; return; }
+            var map = json.data || {};
+            model.fixes.forEach(function (fx) {
+                var hit = fx.lid ? map[fx.lid] : null;
+                if (!fx.lid) { return; }
+                if (!hit) {
+                    fx.unlocated = true;
+                    if (fx.type === 'block') { fx.category = 'investigate'; fx.where += ' (literal not found in saved content or code)'; }
+                    return;
+                }
+                if (hit.post) {
+                    fx.type = 'block'; fx.sub = 'block'; fx.owner = 'Saved content';
+                    fx.where = 'Block editor → ' + hit.type + ' “' + hit.title + '” (#' + hit.post + ')';
+                    fx.edit = hit.edit;
+                    return;
+                }
+                fx.file = hit.file + ':' + hit.line; fx.fileStrong = !!hit.strong;
+                if (fx.type === 'plugin-setting') { fx.ref = fx.file; return; }
+                if (fx.type === 'block' || fx.type === 'markup') {
+                    fx.type = 'markup'; fx.sub = 'markup'; fx.owner = ownerFromPath(hit.file) || fx.owner;
+                    if (fx.category === 'custom' && tintIn(fx.current, model.ctx)) { fx.category = 'unverified'; }
+                    fx.suggestion = 'Template markup, not saved content: replace the inline literal with ' + suggestValue(fx.current, model.ctx) + ' (or a plugin color setting).';
+                }
+                fx.where = fx.file;
+                if (/Unknown/.test(fx.owner || '') || /^Plugin markup/.test(fx.owner || '')) { fx.owner = ownerFromPath(hit.file) || fx.owner; }
+            });
+        } catch (e) {
+            model.locateError = e && e.message ? e.message : String(e);
+        }
+    }
 
-        // Verdict numbers per resolver.
-        var byResolver = {};
-        results.forEach(function (r) {
-            var k = r.target.resolver, x = byResolver[k] || (byResolver[k] = { follows: 0, bypassed: 0, renders: 0, notLoaded: 0, failed: 0 });
-            x.follows += r.follows; x.bypassed += r.bypassed; x.renders++;
-            if (r.status === 'scheme-not-loaded') { x.notLoaded++; }
-            if (r.status === 'failed') { x.failed++; }
+    function finishModel(model) {
+        // Distinct rendered rules can point at the same source line: that is one fix.
+        var seen = {}, merged = [];
+        model.fixes.forEach(function (fx) {
+            var k = fx.file && (fx.type === 'markup' || fx.type === 'css') && fx.fileStrong !== false ? fx.type + '|' + fx.file + '|' + fx.field + '|' + (hexOf(fx.current) || fx.current) : '';
+            if (k && seen[k]) { seen[k].obs = seen[k].obs.concat(fx.obs); return; }
+            if (k) { seen[k] = fx; }
+            merged.push(fx);
         });
-        var causeTotals = {};
-        groupList.forEach(function (g) { if (g.cause !== 'intentional') { causeTotals[g.cause] = (causeTotals[g.cause] || 0) + g.items.length; } });
-        var topCauses = Object.keys(causeTotals).sort(function (a, b) { return causeTotals[b] - causeTotals[a]; }).slice(0, 4);
-        var demo = results.filter(function (r) { return r.target.kind === 'demo' && r.viewport === 'desktop'; })[0];
+        merged.forEach(fixStats);
+        var site = merged.filter(function (fx) { return fx.siteCount > 0 && fx.category !== 'intentional'; });
+        var preview = merged.filter(function (fx) { return fx.siteCount === 0 && fx.category !== 'intentional'; });
+        var intentional = merged.filter(function (fx) { return fx.category === 'intentional'; });
 
+        // Batches: fixes edited in the same place (file + selector group, or Customizer section).
+        var batches = {}, list = [];
+        site.forEach(function (fx) {
+            var place = fx.type === 'setting' ? fx.where : fx.type === 'block' ? fx.where : (fx.file || fx.where).replace(/:\d+$/, '') + (fx.sub === 'palette' || fx.sub === 'token' ? ' ' + (fx.selector || '') : '');
+            var k = fx.category + '|' + fx.sub + '|' + place;
+            var b = batches[k] || (batches[k] = { key: k, place: place, category: fx.category, sub: fx.sub, owner: fx.owner, fixes: [], pages: {}, comps: {}, count: 0 });
+            if (!b.fixes.length) { list.push(b); }
+            b.fixes.push(fx);
+            Object.keys(fx.pages).forEach(function (p) { b.pages[p] = fx.pages[p]; });
+            fx.components.forEach(function (c) { b.comps[c.name + '|' + c.region] = 1; });
+            b.count += fx.siteCount;
+        });
+        list.forEach(function (b) {
+            b.pageCount = Object.keys(b.pages).length;
+            b.compCount = Object.keys(b.comps).length;
+            b.impact = Math.round((b.pageCount * 10 + b.compCount * 4 + Math.min(b.count, 600) / 5) * CATEGORY[b.category].weight);
+            b.fixes.sort(function (a, c) { return c.impact - a.impact; });
+        });
+        list.sort(function (a, b) { return b.impact - a.impact; });
+        var n = 0;
+        list.forEach(function (b, i) { b.n = i + 1; b.fixes.forEach(function (fx) { fx.id = 'F' + (++n); fx.batch = b.n; }); });
+        site.sort(function (a, b) { return +a.id.slice(1) - +b.id.slice(1); });
+        preview.sort(function (a, b) { return b.impact - a.impact; });
+        preview.forEach(function (fx, i) { fx.id = 'P' + (i + 1); });
+        intentional.forEach(function (fx, i) { fx.id = 'I' + (i + 1); });
+        merged.forEach(function (fx) { fx.obs.forEach(function (o) { o.fixId = fx.id; }); });
+
+        var comps = {}, obs = 0, byCat = {};
+        site.forEach(function (fx) {
+            fx.components.forEach(function (c) { comps[c.name + '|' + c.region] = 1; });
+            obs += fx.siteCount;
+            byCat[fx.category] = (byCat[fx.category] || 0) + 1;
+        });
+        model.site = site; model.preview = preview; model.intentional = intentional; model.batches = list;
+        model.summary = { uniqueFixes: site.length, components: Object.keys(comps).length, observations: obs, byCategory: byCat, previewFixes: preview.length, intentional: intentional.length };
+        model.candidates = sourceCandidates(model);
+    }
+
+    function fixStats(fx) {
+        var siteObs = fx.obs.filter(function (o) { return o.resolver === 'apply'; });
+        var use = siteObs.length ? siteObs : fx.obs, comps = {}, pages = {};
+        use.forEach(function (o) {
+            var ck = o.component + '|' + o.region;
+            var c = comps[ck] || (comps[ck] = { name: o.component, region: o.region, pages: {}, viewports: {}, states: {}, props: {}, elements: {}, count: 0 });
+            c.pages[o.label] = o.url; c.viewports[o.viewport] = 1; c.states[o.state || 'default'] = 1; c.props[o.property] = 1; c.elements[o.element] = 1; c.count++;
+            pages[o.label] = o.url;
+        });
+        fx.siteCount = siteObs.length;
+        fx.previewCount = fx.obs.length - siteObs.length;
+        fx.components = Object.keys(comps).map(function (k) { return comps[k]; }).sort(function (a, b) { return b.count - a.count; });
+        fx.pages = pages;
+        fx.pageCount = Object.keys(pages).length;
+        fx.count = use.length;
+        fx.impact = Math.round((fx.pageCount * 10 + fx.components.length * 4 + Math.min(fx.count, 600) / 5) * CATEGORY[fx.category].weight);
+    }
+
+    /** Source-scan literals with no rendered fix: candidates only, never in totals. */
+    function sourceCandidates(model) {
+        var files = {}, sels = {}, mods = {}, posts = {};
+        model.site.concat(model.preview).forEach(function (fx) {
+            if (fx.file) { files[fx.file.replace(/^themes\/ajnanda\//, '')] = 1; }
+            if (fx.selector) { sels[(fx.where || '').replace(/^themes\/ajnanda\//, '').replace(/:\d+$/, '') + '|' + fx.selector.replace(/\s+/g, '')] = 1; }
+            if (/^mod\|/.test(fx.key)) { mods[fx.key.slice(4)] = 1; }
+            if (fx.edit) { var m = /post=(\d+)/.exec(fx.edit); if (m) { posts[m[1]] = 1; } }
+        });
+        return (model.plan.source.items || []).filter(function (it) {
+            if (it.class === 'fallback') { return false; }
+            if (it.type === 'theme_file' && (files[it.ref + ':' + it.line] || sels[it.ref + '|' + (it.selector || '').replace(/\s+/g, '')])) { return false; }
+            if (it.type === 'theme_mod' && mods[it.ref.replace('theme_mod ', '')]) { return false; }
+            if (it.type === 'content' && posts[it.post_id]) { return false; }
+            return true;
+        });
+    }
+
+    /* ------------------------------------------------------------ *
+     * Report
+     * ------------------------------------------------------------ */
+
+    function cat(c) { return '<span class="cv-cat cv-cat-' + c + '" title="' + esc(CATEGORY[c].label) + '">' + esc(CATEGORY[c].short) + '</span>'; }
+    function md(s) { return esc(s).replace(/`([^`]+)`/g, '<code>$1</code>'); }
+    function roleCell(fx, ctx) {
+        if (!fx.role) { return '—'; }
+        var r = ctx.plan.roles.filter(function (q) { return q.role === fx.role; })[0];
+        return esc(ROLE_LABEL[fx.role] + (fx.exact ? '' : ' (tint)')) + (r ? '<br><small>' + sw(r.baseline) + ' → ' + sw(r.comparison) + '</small>' : '');
+    }
+    function whereCell(fx) {
+        var h = fx.edit ? '<a href="' + esc(fx.edit) + '" target="_blank" rel="noopener">' + esc(fx.where) + '</a>' : esc(fx.where || '—');
+        if (fx.file && fx.file !== fx.where) { h += '<br><small>' + esc(fx.file) + '</small>'; }
+        if (fx.selector) { h += '<br><code>' + esc(fx.selector) + '</code>'; }
+        if (fx.field) { h += '<br><small>' + esc(fx.field) + '</small>'; }
+        if (fx.unlocated && fx.type !== 'block') { h += '<br><small class="cv-warn">line not found (selector serialized differently)</small>'; }
+        return h;
+    }
+    function compsCell(fx) {
+        var names = fx.components.map(function (c) { return c.name; }).filter(function (x, i, a) { return a.indexOf(x) === i; });
+        return esc(names.slice(0, 3).join(', ')) + (names.length > 3 ? ' <small>+' + (names.length - 3) + '</small>' : '');
+    }
+    function drill(fx) {
+        var h = '<details class="cv-drill"><summary>' + fx.components.length + ' component(s) · ' + fx.pageCount + ' page(s) · ' + fx.count + ' observation(s)' + (fx.previewCount && fx.siteCount ? ' · +' + fx.previewCount + ' in preview' : '') + '</summary>';
+        h += '<table class="cv-table cv-mini"><thead><tr><th>Component</th><th>Region</th><th>Pages</th><th>Viewports</th><th>States</th><th>Properties</th><th>Obs.</th></tr></thead><tbody>';
+        fx.components.forEach(function (c) {
+            var pages = Object.keys(c.pages);
+            h += '<tr><td>' + esc(c.name) + '<br><small><code>' + esc(Object.keys(c.elements).slice(0, 2).join(' · ')) + '</code></small></td><td>' + esc(c.region) + '</td><td><details><summary>' + pages.length + '</summary>' + pages.map(function (p) { return '<a href="' + esc(c.pages[p]) + '" target="_blank" rel="noopener">' + esc(p) + '</a>'; }).join('<br>') + '</details></td><td>' + esc(Object.keys(c.viewports).join(', ')) + '</td><td>' + esc(Object.keys(c.states).join(', ')) + '</td><td>' + esc(Object.keys(c.props).join(', ')) + '</td><td>' + c.count + '</td></tr>';
+        });
+        h += '</tbody></table>';
+        if (fx.decl) { h += '<p class="cv-meta">Example winning declaration: <code>' + esc(fx.decl.selector + ' { ' + fx.decl.value + (fx.decl.important ? ' !important' : '') + ' }') + '</code> [' + esc(fx.decl.source.label) + ']' + (fx.inheritedFrom ? ' · ' + esc(fx.inheritedFrom) : '') + '</p>'; }
+        if (fx.chain && fx.chain.length) { h += '<p class="cv-meta">Token chain: <code>' + esc(chainText(fx.chain)) + '</code></p>'; }
+        return h + '</details>';
+    }
+    function fixTable(list, ctx, opts) {
+        opts = opts || {};
+        var h = '<div class="cv-scroll"><table class="widefat striped cv-table cv-fixtable"><thead><tr><th>#</th><th>Class</th><th>Component</th><th>Owner</th><th>Where to edit</th><th>Current</th><th>Intended role</th><th>Suggested change</th><th>Impact</th></tr></thead><tbody>';
+        list.forEach(function (fx) {
+            h += '<tr><td><strong>' + esc(fx.id) + '</strong></td><td>' + cat(fx.category) + '</td><td>' + compsCell(fx) + '</td><td>' + esc(fx.owner || '—') + '</td><td>' + whereCell(fx) + '</td><td>' + sw(hexOf(fx.current) || '') + (hexOf(fx.current) && fx.current.toLowerCase() === hexOf(fx.current) ? '' : '<br><small><code>' + esc(fx.current) + '</code></small>') + '</td><td>' + roleCell(fx, ctx) + '</td><td>' + md(fx.suggestion) + '</td><td>' + fx.pageCount + ' pg · ' + fx.components.length + ' comp · ' + fx.count + ' obs</td></tr>';
+            if (!opts.noDrill) { h += '<tr class="cv-drillrow"><td></td><td colspan="8">' + drill(fx) + '</td></tr>'; }
+        });
+        return h + '</tbody></table></div>';
+    }
+
+    function renderReport(model) {
+        var plan = model.plan, ctx = model.ctx, results = model.results, findings = model.findings, sum = model.summary;
         var B = plan.baseline, C = plan.comparison, html = '';
+        var apply = results.filter(function (r) { return r.target.resolver === 'apply'; });
+        var tot = { follows: 0, bypassed: 0 };
+        apply.forEach(function (r) { tot.follows += r.follows; tot.bypassed += r.bypassed; });
+        var same = plan.roles.filter(function (r) { return !r.differs; });
+        var adminSkipped = 0; results.forEach(function (r) { adminSkipped += r.adminSkipped || 0; });
+
         html += '<div class="cv-report">';
-        html += '<h2>' + esc(B.label) + ' vs ' + esc(C.label) + ' — validation report</h2>';
-        html += '<p class="cv-meta">' + esc(plan.site) + ' · AJNanda ' + esc(plan.theme) + ' · generated ' + esc(new Date().toLocaleString()) + ' · active scheme: <strong>' + esc(plan.active.slug) + '</strong> (unchanged; read-only run)</p>';
+        html += '<h2>' + esc(B.label) + ' vs ' + esc(C.label) + ' — cleanup list</h2>';
+        html += '<p class="cv-meta">' + esc(plan.site) + ' · AJNanda ' + esc(plan.theme) + ' · ' + esc(new Date().toLocaleString()) + ' · active scheme <strong>' + esc(plan.active.slug) + '</strong> (unchanged; read-only run)</p>';
+        html += '<div class="cv-kpis"><div><b>' + sum.uniqueFixes + '</b>unique fixes</div><div><b>' + sum.components + '</b>affected components</div><div><b>' + sum.observations + '</b>repeated observations</div></div>';
+        html += '<p class="cv-meta">Website only: ' + apply.length + ' real-page renders with ' + esc(C.label) + ' applied for the request; ' + tot.bypassed + ' of ' + (tot.follows + tot.bypassed) + ' brand-colored values stayed ' + esc(B.label) + '. ' +
+            CATEGORY_ORDER.filter(function (c) { return sum.byCategory[c]; }).map(function (c) { return cat(c) + ' ' + sum.byCategory[c]; }).join(' ') +
+            '. Passing (same in both palettes): ' + (same.length ? esc(same.map(function (r) { return r.token + ' ' + r.baseline; }).join(', ')) : 'none') +
+            '. Not counted: admin chrome' + (adminSkipped ? ' (' + adminSkipped + ' elements)' : '') + ', ' + sum.intentional + ' intentional, ' + sum.previewFixes + ' preview-only.' + (model.locateError ? ' <span class="cv-warn">File lookup failed: ' + esc(model.locateError) + '</span>' : '') + '</p>';
 
-        // Verdict
-        html += '<h3>Verdict</h3><div class="cv-verdict">';
-        var rolesTxt = plan.roles.map(function (r) { return r.token + ' ' + r.baseline + (r.differs ? ' → ' + r.comparison : ' (same in both)'); }).join(', ');
-        html += '<p>Palette roles: ' + esc(rolesTxt) + '.</p>';
-        Object.keys(byResolver).forEach(function (k) {
-            var x = byResolver[k], tot = x.follows + x.bypassed, pct = tot ? Math.round(100 * x.bypassed / tot) : 0;
-            var name = k === 'preview' ? 'Existing preview (Corporate Home demo)' : k === 'apply' ? 'Real pages, simulated apply (theme_mods filtered for the request)' : 'Real homepage with the preview mechanism (body class only)';
-            html += '<p><strong>' + esc(name) + ':</strong> ' + x.bypassed + ' of ' + tot + ' brand-colored property values (' + pct + '%) kept their ' + esc(B.label) + ' value or a blue-family tint; ' + x.follows + ' followed ' + esc(C.label) + '.' + (x.notLoaded ? ' ' + x.notLoaded + ' render(s) did not load the selected scheme.' : '') + (x.failed ? ' ' + x.failed + ' render(s) failed.' : '') + '</p>';
-        });
-        if (demo && demo.loaded) {
-            html += demo.loaded.reached
-                ? '<p>The preview <strong>does</strong> load ' + esc(C.label) + ' (body.ajnanda-scheme-' + esc(C.slug) + ' is present), but <body> resolves --primary to ' + sw(demo.loaded.body) + ' (:root ' + sw(demo.loaded.root) + ')' + (demo.override ? ' because <code>' + esc(demo.override.selector + ' { --primary: ' + demo.override.value + ' }') + '</code> in ' + esc(demo.override.source.label) + ' wins on specificity' : '') + '. This is a component/site layer bypassing a correctly loaded scheme, not a failed preview.</p>'
-                : '<p>The preview did <strong>not</strong> load ' + esc(C.label) + '.</p>';
-        }
-        var realOverride = results.filter(function (r) { return r.target.resolver === 'apply' && r.override; })[0];
-        if (realOverride) {
-            html += '<p>Real pages (simulated apply): :root --primary becomes ' + sw(realOverride.loaded.root) + ', but <body> re-declares it as ' + sw(realOverride.loaded.body) + ' via <code>' + esc(realOverride.override.selector) + '</code> [' + esc(realOverride.override.source.label) + '] on ' + results.filter(function (r) { return r.override; }).length + ' of ' + results.length + ' renders, so an actual Blue → ' + esc(C.label) + ' apply would also stay mostly blue.</p>';
-        }
-        if (topCauses.length) { html += '<p>Main reasons: ' + topCauses.map(function (c) { return esc(CAUSE_LABEL[c]) + ' (' + causeTotals[c] + ')'; }).join('; ') + '.</p>'; }
-        if (demo && demo.navigation) { html += '<p>Preview navigation: ' + demo.navigation.leaves + ' of ' + demo.navigation.internal + ' internal links in the demo leave the preview and lose the scheme' + (demo.navigation.sample.length ? ' (e.g. ' + esc(demo.navigation.sample.join(', ')) + ')' : '') + '.</p>'; }
-        html += '<p>Apply path vs preview: ' + esc(plan.resolvers.preview) + ' ' + esc(plan.resolvers.apply) + '</p>';
-        html += '</div>';
-
-        // Coverage
-        html += '<h3>Coverage</h3><table class="widefat striped cv-table"><thead><tr><th>View</th><th>Group</th><th>Resolver</th><th>Viewport</th><th>Status</th><th>Followed</th><th>Bypassed</th><th>Notes</th></tr></thead><tbody>';
-        results.forEach(function (r) {
-            html += '<tr><td><a href="' + esc(r.target.url) + '" target="_blank" rel="noopener">' + esc(r.target.label) + '</a></td><td>' + esc(r.target.group || 'Demo') + '</td><td>' + esc(r.target.resolver) + '</td><td>' + esc(r.viewport) + '</td><td><span class="cv-st cv-st-' + esc(r.status) + '">' + esc(r.status) + '</span></td><td>' + r.follows + '</td><td>' + r.bypassed + '</td><td>' + esc(r.notes.concat(r.unverifiable.slice(0, 3)).join(' · ')) + (r.unverifiable.length > 3 ? ' (+' + (r.unverifiable.length - 3) + ' more unverifiable)' : '') + '</td></tr>';
-        });
-        html += '</tbody></table>';
-        html += '<p><strong>Not verified:</strong></p><ul class="cv-list">' + plan.gaps.map(function (g) { return '<li><strong>' + esc(g.view) + '</strong> — ' + esc(g.reason) + '</li>'; }).join('') + '</ul>';
-
-        // Prioritized fixes
-        html += '<h3>Prioritized fix list (grouped by root cause)</h3><ol class="cv-fixes">';
-        groupList.forEach(function (g) {
-            html += '<li><strong>' + esc(g.label) + '</strong> — ' + g.items.length + ' value(s) on ' + g.pageCount + ' view(s)' + (g.state ? ' [' + esc(g.state) + ' state, rule-resolved]' : '') + '<br>';
-            html += '<span class="cv-k">Winning declaration:</span> ' + (g.decl ? '<code>' + esc(g.decl.selector) + ' { ' + esc((g.decl.important ? g.decl.value + ' !important' : g.decl.value)) + ' }</code> in ' + esc(g.decl.source.label) : '—') + '<br>';
-            html += '<span class="cv-k">Token chain:</span> <code>' + esc(chainText(g.chain)) + '</code><br>';
-            html += '<span class="cv-k">Editable source:</span> ' + esc(g.editable) + ' · <span class="cv-k">Owner:</span> ' + esc(g.owner || '—') + '<br>';
-            html += '<span class="cv-k">Fix:</span> ' + esc(g.fix) + '<br>';
-            html += '<details><summary>Affected views (' + g.pageCount + ')</summary><ul>' + Object.keys(g.pages).map(function (p) { return '<li>' + esc(p) + ' — <code>' + esc(g.pages[p]) + '</code></li>'; }).join('') + '</ul></details></li>';
+        // Start here
+        html += '<h3>Start here</h3><ol class="cv-batches">';
+        model.batches.slice(0, 6).forEach(function (b) {
+            html += '<li><strong>' + esc(b.place) + '</strong> ' + cat(b.category) + ' <span class="cv-meta">' + esc(b.owner) + ' · ' + b.fixes.length + ' fix' + (b.fixes.length > 1 ? 'es' : '') + ' (' + esc(b.fixes.map(function (f) { return f.id; }).join(', ')) + ') · ' + b.pageCount + ' pages · ' + b.compCount + ' components · ' + b.count + ' observations</span>';
+            html += '<ul class="cv-list">' + b.fixes.map(function (fx) { return '<li><strong>' + esc(fx.id) + '</strong> ' + esc(fx.field || '') + (fx.current ? ' = ' + sw(hexOf(fx.current) || '') + (hexOf(fx.current) === String(fx.current).toLowerCase() ? '' : ' <code>' + esc(fx.current) + '</code>') : '') + ' → ' + md(fx.suggestion) + '</li>'; }).join('') + '</ul></li>';
         });
         html += '</ol>';
 
-        // Examples
-        html += '<h3>Examples</h3><ul class="cv-list">';
-        var w = working.filter(function (x) { return x.decl; })[0];
-        if (!w && working[0]) { w = working[0]; }
-        if (w) {
-            var wd = w.decl || null;
-            var wel = null;
-            html += '<li><strong>Working token:</strong> ' + esc(w.label) + ' — ' + esc(w.element) + ' ' + esc(w.property) + ' renders ' + sw(w.observedBase) + ' → ' + sw(w.observedComp) + (wd ? ' via <code>' + esc(wd.selector + ' { ' + wd.value + ' }') + '</code> [' + esc(wd.source.label) + ']' : '') + '.</li>';
-        }
-        var broken = groupList.filter(function (g) { return g.cause !== 'intentional' && g.cause !== 'plugin'; })[0];
-        if (broken) { html += '<li><strong>Broken / overridden token:</strong> ' + esc(broken.label) + ' — ' + esc(broken.items[0].element) + ' ' + esc(broken.property) + ' stays ' + sw(broken.items[0].observedComp) + ' under ' + esc(C.label) + '; chain <code>' + esc(chainText(broken.chain)) + '</code>.</li>'; }
-        var fixed = groupList.filter(function (g) { return g.cause === 'intentional'; })[0];
-        var same = plan.roles.filter(function (r) { return !r.differs; }).map(function (r) { return r.token + ' ' + r.baseline; });
-        html += '<li><strong>Intentional fixed color:</strong> ' + (fixed ? esc(fixed.items[0].element) + ' (logo/artwork). ' : 'Logo images are raster artwork and are not recolored. ') + (same.length ? 'Roles defined identically in both palettes legitimately look the same: ' + esc(same.join(', ')) + '.' : '') + '</li>';
-        html += '</ul>';
+        // All website fixes
+        html += '<h3>All website fixes (' + model.site.length + ')</h3>';
+        html += '<p class="cv-meta">' + CATEGORY_ORDER.slice(0, 4).map(function (c) { return cat(c) + ' ' + esc(CATEGORY[c].label); }).join(' · ') + '. Ordered by batch impact; the drill-down lists every component, page, viewport and state.</p>';
+        html += fixTable(model.site, ctx);
 
-        // Findings table
-        html += '<h3>Findings</h3><p class="cv-meta">' + findings.length + ' property values. Expected/observed shown as ' + esc(B.label) + ' | ' + esc(C.label) + '.</p>';
-        html += '<div class="cv-scroll"><table class="widefat striped cv-table cv-findings"><thead><tr><th>View</th><th>Element</th><th>Property</th><th>Expected</th><th>Observed</th><th>Winning declaration</th><th>Token chain</th><th>Editable source</th><th>Owner</th><th>Cause / fix</th></tr></thead><tbody>';
-        findings.slice(0, 400).forEach(function (f) {
-            html += '<tr><td>' + esc(f.label) + '<br><small>' + esc(f.viewport) + ' · ' + esc(f.resolver) + '</small></td><td><code>' + esc(f.element) + '</code><br><small>' + esc(f.region) + (f.text ? ' · “' + esc(f.text) + '”' : '') + '</small></td><td>' + esc((f.state ? f.state + ':' : '') + f.property) + (f.stop ? ' [stop ' + (f.stop + 1) + ']' : '') + '</td><td>' + sw(f.expectedBase) + '<br>' + sw(f.expectedComp) + '</td><td>' + sw(f.observedBase) + '<br>' + sw(f.observedComp) + '</td><td>' + (f.decl ? '<code>' + esc(f.decl.selector) + '</code><br><small>' + esc(f.decl.value) + ' — ' + esc(f.decl.source.label) + '</small>' : '—') + (f.inheritedFrom ? '<br><small>inherited from ' + esc(f.inheritedFrom) + '</small>' : '') + '</td><td><small>' + esc(chainText(f.chain)) + '</small></td><td><small>' + esc(f.editable) + '</small></td><td><small>' + esc(f.ownerResolved || '—') + '</small></td><td><small><strong>' + esc(CAUSE_LABEL[f.cause] || f.cause) + '</strong><br>' + esc(f.fix) + '</small></td></tr>';
+        // Preview & navigation
+        html += '<h3>Preview &amp; navigation (not in website totals)</h3>';
+        var byResolver = {};
+        results.forEach(function (r) {
+            var k = r.target.resolver, x = byResolver[k] || (byResolver[k] = { follows: 0, bypassed: 0, renders: 0 });
+            x.follows += r.follows; x.bypassed += r.bypassed; x.renders++;
         });
-        html += '</tbody></table></div>' + (findings.length > 400 ? '<p class="cv-meta">First 400 shown; all ' + findings.length + ' are in the downloaded report data.</p>' : '');
+        ['preview', 'class'].forEach(function (k) {
+            var x = byResolver[k];
+            if (!x) { return; }
+            var name = k === 'preview' ? 'Existing preview (Corporate Home demo)' : 'Real homepage with the preview mechanism (body class only)';
+            html += '<p><strong>' + esc(name) + ':</strong> ' + x.bypassed + ' of ' + (x.follows + x.bypassed) + ' brand-colored values stayed ' + esc(B.label) + '; ' + x.follows + ' followed ' + esc(C.label) + '.</p>';
+        });
+        var demo = results.filter(function (r) { return r.target.kind === 'demo' && r.viewport === 'desktop'; })[0];
+        if (demo && demo.loaded) {
+            html += demo.loaded.reached
+                ? '<p>The preview loads ' + esc(C.label) + ' (body.ajnanda-scheme-' + esc(C.slug) + ' present); &lt;body&gt; resolves --primary to ' + sw(demo.loaded.body) + (demo.override ? ' because <code>' + esc(demo.override.selector + ' { --primary: ' + demo.override.value + ' }') + '</code> [' + esc(demo.override.source.label) + '] wins' : '') + '. Same root cause as the first website batch.</p>'
+                : '<p class="cv-warn">The preview did not load ' + esc(C.label) + '.</p>';
+        }
+        if (demo && demo.navigation) {
+            var nv = demo.navigation;
+            html += '<p><strong>Preview navigation:</strong> ' + nv.leaves + ' of ' + nv.internal + ' internal site links in the demo leave the preview and drop the scheme' + (nv.sample.length ? ' (e.g. ' + esc(nv.sample.join(', ')) + ')' : '') + '. ' + (nv.admin || 0) + ' admin/toolbar links excluded.</p>';
+        }
+        html += '<p class="cv-meta">Resolvers: ' + esc(plan.resolvers.preview) + ' ' + esc(plan.resolvers.apply) + '</p>';
+        if (model.preview.length) {
+            html += '<details><summary>Preview-only differences (' + model.preview.length + ' fixes, ' + model.preview.reduce(function (a, f) { return a + f.count; }, 0) + ' observations)</summary>' + fixTable(model.preview, ctx) + '</details>';
+        }
+        if (model.intentional.length) {
+            html += '<details><summary>Intentional fixed colors (' + model.intentional.length + ')</summary>' + fixTable(model.intentional, ctx, { noDrill: true }) + '</details>';
+        }
 
-        // Source scan
-        var s = plan.source, counts = s.counts || {};
-        html += '<h3>Source scan</h3><p class="cv-meta">' + s.files + ' theme files plus saved theme_mods, Additional CSS, Global Styles, published content and widgets. Literal counts: ' + Object.keys(counts).map(function (k) { return esc(k) + ' ' + counts[k]; }).join(' · ') + '. Active plugins (styles not scanned in source, see rendered findings): ' + esc((s.plugins || []).join(', ')) + '.</p>';
-        html += '<div class="cv-scroll"><table class="widefat striped cv-table"><thead><tr><th>Class</th><th>Location</th><th>Selector / context</th><th>Literal</th><th>Role</th></tr></thead><tbody>';
-        (s.items || []).slice(0, 250).forEach(function (it) {
+        // Source-scan candidates
+        var cands = model.candidates, s = plan.source, counts = s.counts || {};
+        html += '<h3>Source-scan candidates (' + cands.length + ')</h3><p class="cv-meta">Literals in theme files and saved settings/content that no rendered fix accounts for — unconfirmed, not in totals. ' + s.files + ' theme files scanned; literal counts: ' + Object.keys(counts).map(function (k) { return esc(k) + ' ' + counts[k]; }).join(' · ') + '.</p>';
+        html += '<details><summary>Show candidates</summary><div class="cv-scroll"><table class="widefat striped cv-table"><thead><tr><th>Class</th><th>Location</th><th>Selector / context</th><th>Literal</th><th>Role</th></tr></thead><tbody>';
+        cands.slice(0, 250).forEach(function (it) {
             html += '<tr><td>' + esc(it.class) + '</td><td>' + esc(it.ref) + (it.line ? ':' + it.line : '') + '</td><td><small>' + esc(it.selector ? it.selector + ' → ' : '') + esc(it.snippet) + '</small></td><td>' + sw(it.hex) + (it.literal.toLowerCase() !== it.hex ? ' <small>(' + esc(it.literal) + ')</small>' : '') + '</td><td>' + esc(it.role || '—') + '</td></tr>';
         });
-        html += '</tbody></table></div>' + (s.total > 250 ? '<p class="cv-meta">First 250 of ' + s.total + ' source findings shown; all are in the downloaded report data.</p>' : '');
+        html += '</tbody></table></div>' + (cands.length > 250 ? '<p class="cv-meta">First 250 of ' + cands.length + ' shown; all are in the report data.</p>' : '') + '</details>';
+
+        // Coverage
+        html += '<details><summary>Coverage (' + results.length + ' renders)</summary><table class="widefat striped cv-table"><thead><tr><th>View</th><th>Group</th><th>Resolver</th><th>Viewport</th><th>Status</th><th>Followed</th><th>Stayed</th><th>Notes</th></tr></thead><tbody>';
+        results.forEach(function (r) {
+            html += '<tr><td><a href="' + esc(r.target.url) + '" target="_blank" rel="noopener">' + esc(r.target.label) + '</a></td><td>' + esc(r.target.group || 'Demo') + '</td><td>' + esc(r.target.resolver) + '</td><td>' + esc(r.viewport) + '</td><td><span class="cv-st cv-st-' + esc(r.status) + '">' + esc(r.status) + '</span></td><td>' + r.follows + '</td><td>' + r.bypassed + '</td><td>' + esc(r.notes.concat(r.unverifiable.slice(0, 3)).join(' · ')) + (r.unverifiable.length > 3 ? ' (+' + (r.unverifiable.length - 3) + ' more unverifiable)' : '') + '</td></tr>';
+        });
+        html += '</tbody></table><p><strong>Not verified:</strong></p><ul class="cv-list">' + plan.gaps.map(function (g) { return '<li><strong>' + esc(g.view) + '</strong> — ' + esc(g.reason) + '</li>'; }).join('') + '</ul></details>';
+
+        // Raw findings
+        html += '<details><summary>Raw findings (' + findings.length + ' observations)</summary><p class="cv-meta">Expected/observed as ' + esc(B.label) + ' | ' + esc(C.label) + '. Fix column links each observation to its fix.</p>';
+        html += '<div class="cv-scroll"><table class="widefat striped cv-table cv-findings"><thead><tr><th>Fix</th><th>View</th><th>Element</th><th>Property</th><th>Expected</th><th>Observed</th><th>Winning declaration</th><th>Token chain</th><th>Cause</th></tr></thead><tbody>';
+        findings.slice(0, 500).forEach(function (f) {
+            html += '<tr><td>' + esc(f.fixId || '') + '</td><td>' + esc(f.label) + '<br><small>' + esc(f.viewport) + ' · ' + esc(f.resolver) + '</small></td><td><code>' + esc(f.element) + '</code><br><small>' + esc(f.component) + ' · ' + esc(f.region) + (f.text ? ' · “' + esc(f.text) + '”' : '') + '</small></td><td>' + esc((f.state ? f.state + ':' : '') + f.property) + (f.stop ? ' [stop ' + (f.stop + 1) + ']' : '') + '</td><td>' + sw(f.expectedBase) + '<br>' + sw(f.expectedComp) + '</td><td>' + sw(f.observedBase) + '<br>' + sw(f.observedComp) + '</td><td>' + (f.decl ? '<code>' + esc(f.decl.selector) + '</code><br><small>' + esc(f.decl.value) + ' — ' + esc(f.decl.source.label) + '</small>' : '—') + (f.inheritedFrom ? '<br><small>' + esc(f.inheritedFrom) + '</small>' : '') + '</td><td><small>' + esc(chainText(f.chain)) + '</small></td><td><small>' + esc(CAUSE_LABEL[f.cause] || f.cause) + '</small></td></tr>';
+        });
+        html += '</tbody></table></div>' + (findings.length > 500 ? '<p class="cv-meta">First 500 shown; all ' + findings.length + ' are in the downloaded report data.</p>' : '') + '</details>';
         html += '</div>';
 
+        var plain = function (fx) {
+            var o = {};
+            Object.keys(fx).forEach(function (k) { if (k !== 'obs' && k !== 'locate') { o[k] = fx[k]; } });
+            o.observations = fx.obs.map(function (x) { return x.n; });
+            return o;
+        };
         var data = {
             plan: { generated: plan.generated, site: plan.site, theme: plan.theme, baseline: B, comparison: C, active: plan.active, roles: plan.roles, gaps: plan.gaps, resolvers: plan.resolvers },
-            coverage: results.map(function (r) { return { override: r.override || null, id: r.target.id, label: r.target.label, url: r.target.url, group: r.target.group || 'Demo', resolver: r.target.resolver, viewport: r.viewport, status: r.status, follows: r.follows, bypassed: r.bypassed, notes: r.notes, unverifiable: r.unverifiable, loaded: r.loaded || null, navigation: r.navigation || null, baselineTokens: r.baselineTokens || null, comparisonTokens: r.comparisonTokens || null }; }),
-            groups: groupList.map(function (g) { return { cause: g.cause, label: g.label, count: g.items.length, pages: g.pages, decl: g.decl, chain: g.chain, editable: g.editable, owner: g.owner, fix: g.fix, property: g.property, state: g.state }; }),
+            summary: sum,
+            batches: model.batches.map(function (b) { return { n: b.n, place: b.place, category: b.category, owner: b.owner, fixes: b.fixes.map(function (f) { return f.id; }), pages: b.pageCount, components: b.compCount, observations: b.count, impact: b.impact }; }),
+            fixes: model.site.map(plain),
+            previewFixes: model.preview.map(plain),
+            intentional: model.intentional.map(plain),
+            candidates: model.candidates,
+            coverage: results.map(function (r) { return { override: r.override || null, id: r.target.id, label: r.target.label, url: r.target.url, group: r.target.group || 'Demo', resolver: r.target.resolver, viewport: r.viewport, status: r.status, follows: r.follows, bypassed: r.bypassed, adminSkipped: r.adminSkipped || 0, notes: r.notes, unverifiable: r.unverifiable, loaded: r.loaded || null, navigation: r.navigation || null, baselineTokens: r.baselineTokens || null, comparisonTokens: r.comparisonTokens || null }; }),
             findings: findings.map(function (f) { var o = Object.assign({}, f); delete o.key; return o; }),
-            working: working,
+            working: model.working,
             source: plan.source
         };
         return { html: html, data: data, baseline: B, comparison: C };
     }
 
-    var REPORT_CSS = '.cv-report{font:13px/1.45 -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;color:#1f2937}.cv-report h2{margin:.2em 0}.cv-report h3{margin:1.4em 0 .4em}.cv-meta{color:#6b7280}.cv-verdict p{margin:.35em 0}.cv-table{border-collapse:collapse;width:100%}.cv-table th,.cv-table td{text-align:left;vertical-align:top;padding:4px 6px;border-bottom:1px solid #e5e7eb}.cv-table code,.cv-fixes code{font-size:11px;word-break:break-word}.cv-sw{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:4px;vertical-align:-1px;box-shadow:0 0 0 1px rgba(0,0,0,.2)}.cv-st{padding:1px 6px;border-radius:9px;background:#f3f4f6}.cv-st-verified{background:#ecfdf5;color:#047857}.cv-st-scheme-overridden{background:#fff7ed;color:#9a3412}.cv-st-failed,.cv-st-scheme-not-loaded{background:#fef2f2;color:#b91c1c}.cv-st-partial{background:#fffbeb;color:#92400e}.cv-fixes li{margin-bottom:10px}.cv-k{color:#6b7280}.cv-scroll{max-height:520px;overflow:auto;border:1px solid #e5e7eb}.cv-list li{margin:.25em 0}';
+    var REPORT_CSS = '.cv-report{font:13px/1.45 -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;color:#1f2937}.cv-report h2{margin:.2em 0}.cv-report h3{margin:1.4em 0 .4em}.cv-meta{color:#6b7280}.cv-verdict p{margin:.35em 0}.cv-table{border-collapse:collapse;width:100%}.cv-table th,.cv-table td{text-align:left;vertical-align:top;padding:4px 6px;border-bottom:1px solid #e5e7eb}.cv-table code,.cv-fixes code{font-size:11px;word-break:break-word}.cv-sw{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:4px;vertical-align:-1px;box-shadow:0 0 0 1px rgba(0,0,0,.2)}.cv-st{padding:1px 6px;border-radius:9px;background:#f3f4f6}.cv-st-verified{background:#ecfdf5;color:#047857}.cv-st-scheme-overridden{background:#fff7ed;color:#9a3412}.cv-st-failed,.cv-st-scheme-not-loaded{background:#fef2f2;color:#b91c1c}.cv-st-partial{background:#fffbeb;color:#92400e}.cv-fixes li{margin-bottom:10px}.cv-k{color:#6b7280}.cv-scroll{max-height:520px;overflow:auto;border:1px solid #e5e7eb}.cv-list li{margin:.25em 0}.cv-kpis{display:flex;gap:10px;margin:8px 0}.cv-kpis div{border:1px solid #e5e7eb;border-radius:6px;padding:6px 14px;color:#6b7280}.cv-kpis b{display:block;font-size:22px;line-height:1.2;color:#111827}.cv-cat{display:inline-block;padding:0 6px;border-radius:9px;font-size:11px;font-weight:600;white-space:nowrap}.cv-cat-bypass{background:#fef2f2;color:#b91c1c}.cv-cat-custom{background:#eff6ff;color:#1e40af}.cv-cat-unverified{background:#fffbeb;color:#92400e}.cv-cat-investigate{background:#f3f4f6;color:#374151}.cv-cat-intentional{background:#ecfdf5;color:#047857}.cv-warn{color:#b45309}.cv-batches>li{margin-bottom:8px}.cv-batches .cv-list{margin:2px 0 0 14px}.cv-fixtable td{font-size:12px}.cv-drillrow td{background:#fafafa;padding-top:0}.cv-drill summary{cursor:pointer;color:#6b7280}.cv-mini th,.cv-mini td{font-size:11px;padding:2px 5px}.cv-report details>summary{cursor:pointer}';
 
     function standalone(report) {
         var title = 'AJNanda color validation — ' + report.baseline.label + ' vs ' + report.comparison.label;

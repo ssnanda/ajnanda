@@ -47,6 +47,7 @@ class AJNanda_Color_Validator {
             add_action('init', array(__CLASS__, 'maybe_enable_render_mode'), 0);
         }
         add_action('wp_ajax_ajnanda_color_validator_plan', array(__CLASS__, 'ajax_plan'));
+        add_action('wp_ajax_ajnanda_color_validator_locate', array(__CLASS__, 'ajax_locate'));
     }
 
     /* ------------------------------------------------------------------
@@ -144,7 +145,212 @@ class AJNanda_Color_Validator {
             'gaps'        => self::gaps(),
             'source'      => self::source_scan($schemes[$baseline], $schemes[$comparison]),
             'resolvers'   => self::resolver_notes(),
+            'mods'        => self::saved_color_mods(),
         ));
+    }
+
+    /** Saved color-like theme_mods (mod => raw value), so a fix can name the setting that holds a value. */
+    private static function saved_color_mods() {
+        $out = array();
+        foreach ((array) get_theme_mods() as $mod => $value) {
+            if (is_string($value) && preg_match(self::COLOR_RE, $value)) {
+                $out[$mod] = $value;
+            }
+        }
+        return $out;
+    }
+
+    /* ------------------------------------------------------------------
+     * Locate: map a rendered declaration back to file:line or saved content
+     * ---------------------------------------------------------------- */
+
+    /**
+     * Read-only lookup for the report's fix list. Each item carries needles
+     * (whitespace-insensitive declaration text such as "--primary:#2563eb")
+     * and a scope:
+     *  - theme|mu|plugin + rel: one file under that root;
+     *  - code: the active theme, mu-plugins and active plugins;
+     *  - post + post_id: that post's saved content, then reusable blocks /
+     *    template parts, then code (a literal not in saved content is markup).
+     * Needles without ":" are loose and only count next to the selector hint.
+     */
+    public static function ajax_locate() {
+        if (!current_user_can(self::CAPABILITY)) {
+            wp_send_json_error(array('message' => __('You do not have permission to run the validator.', 'ajnanda')), 403);
+        }
+        check_ajax_referer(self::NONCE_ACTION, 'nonce');
+        $items = json_decode(isset($_POST['items']) ? wp_unslash($_POST['items']) : '[]', true);
+        $items = is_array($items) ? array_slice($items, 0, 400) : array();
+        $roots = self::locate_roots();
+        $out   = array();
+        $code  = array(); // Items searched across all code in one pass.
+        $file_items = array(); // path => items
+
+        foreach ($items as $item) {
+            $id = isset($item['id']) ? sanitize_key($item['id']) : '';
+            if (!$id) { continue; }
+            $q = array(
+                'id'       => $id,
+                'needles'  => array_slice(array_values(array_unique(array_filter(array_map(array(__CLASS__, 'squash'), (array) ($item['needles'] ?? array()))))), 0, 12),
+                'selector' => self::squash($item['selector'] ?? ''),
+            );
+            if (!$q['needles']) { continue; }
+            $scope = (string) ($item['scope'] ?? '');
+            if ('post' === $scope) {
+                $hit = self::find_in_posts(absint($item['post_id'] ?? 0), $q['needles']);
+                if ($hit) { $out[$id] = $hit; continue; }
+                $scope = 'code';
+            }
+            if ('code' === $scope) { $code[] = $q; continue; }
+            $path = self::safe_path($scope, (string) ($item['rel'] ?? ''), $roots);
+            if ($path) { $file_items[$path][] = $q; }
+        }
+
+        $budget = 80 * MB_IN_BYTES;
+        foreach ($file_items as $path => $qs) {
+            foreach (self::search_file($path, $qs, $budget) as $id => $hit) { $out[$id] = $hit; }
+        }
+        if ($code) {
+            $pending = $code;
+            $weak = array();
+            foreach (self::code_files($roots) as $path) {
+                if (!$pending || $budget <= 0) { break; }
+                foreach (self::search_file($path, $pending, $budget) as $id => $hit) {
+                    if ($hit['strong']) {
+                        $out[$id] = $hit;
+                        $pending = array_values(array_filter($pending, static function ($q) use ($id) { return $q['id'] !== $id; }));
+                    } elseif (!isset($weak[$id])) {
+                        $weak[$id] = $hit;
+                    }
+                }
+            }
+            foreach ($weak as $id => $hit) { if (!isset($out[$id])) { $out[$id] = $hit; } }
+        }
+        wp_send_json_success($out);
+    }
+
+    private static function squash($s) {
+        return strtolower(preg_replace('/\s+/', '', (string) $s));
+    }
+
+    private static function locate_roots() {
+        $plugins = array();
+        foreach ((array) get_option('active_plugins', array()) as $plugin) {
+            $dir = dirname($plugin);
+            if ('.' !== $dir && is_dir(WP_PLUGIN_DIR . '/' . $dir)) { $plugins[] = WP_PLUGIN_DIR . '/' . $dir; }
+        }
+        return array(
+            'theme'   => get_template_directory(),
+            'mu'      => defined('WPMU_PLUGIN_DIR') ? WPMU_PLUGIN_DIR : WP_CONTENT_DIR . '/mu-plugins',
+            'plugin'  => WP_PLUGIN_DIR,
+            'plugins' => $plugins,
+        );
+    }
+
+    private static function safe_path($scope, $rel, $roots) {
+        if (!in_array($scope, array('theme', 'mu', 'plugin'), true) || '' === $rel) { return ''; }
+        $base = realpath($roots[$scope]);
+        $path = realpath($roots[$scope] . '/' . ltrim($rel, '/'));
+        if (!$base || !$path || 0 !== strpos($path, $base . '/') || !is_file($path)) { return ''; }
+        return preg_match('/\.(css|php|js|json|html)$/', $path) ? $path : '';
+    }
+
+    private static function code_files($roots) {
+        $dirs = array_merge(array($roots['theme'], $roots['mu']), $roots['plugins']);
+        $out = array();
+        foreach ($dirs as $dir) {
+            if (!is_dir($dir)) { continue; }
+            $it = new RecursiveIteratorIterator(new RecursiveCallbackFilterIterator(
+                new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
+                static function ($f) {
+                    return $f->isDir() ? !preg_match('/^(\.git|node_modules|vendor|tests?|languages|docs|releases|bin)$/', $f->getFilename()) : (bool) preg_match('/\.(css|php|js|html)$/', $f->getFilename()) && !preg_match('/\.min\.js$/', $f->getFilename());
+                }
+            ));
+            foreach ($it as $f) {
+                if ($f->getSize() <= 3 * MB_IN_BYTES) { $out[] = $f->getPathname(); }
+            }
+        }
+        // CSS first: most declarations live there.
+        usort($out, static function ($a, $b) { return (int) !preg_match('/\.css$/', $a) <=> (int) !preg_match('/\.css$/', $b); });
+        return $out;
+    }
+
+    private static function display_path($path) {
+        $content = realpath(WP_CONTENT_DIR);
+        $real = realpath($path);
+        return ($content && $real && 0 === strpos($real, $content . '/')) ? substr($real, strlen($content) + 1) : basename($path);
+    }
+
+    /**
+     * @return array<string,array{file:string,line:int,strong:bool}>
+     */
+    private static function search_file($path, $queries, &$budget) {
+        $text = @file_get_contents($path);
+        if (false === $text) { return array(); }
+        $budget -= strlen($text);
+        $lines = preg_split('/\R/', $text);
+        $sq = array_map(array(__CLASS__, 'squash'), $lines);
+        $label = self::display_path($path);
+        $hits = array();
+        $open = array();
+        foreach ($queries as $q) { $open[$q['id']] = $q; }
+        foreach ($sq as $i => $line) {
+            if ('' === $line || !$open) { continue; }
+            foreach ($open as $id => $q) {
+                foreach ($q['needles'] as $needle) {
+                    $pos = strpos($line, $needle);
+                    if (false === $pos) { continue; }
+                    if ('' !== $q['selector'] && self::selector_matches($sq, $i, $pos, $q['selector'])) {
+                        $hits[$id] = array('file' => $label, 'line' => $i + 1, 'strong' => true);
+                        unset($open[$id]);
+                        continue 2;
+                    }
+                    if (!isset($hits[$id]) && false !== strpos($needle, ':')) {
+                        // No selector hint: the declaration text alone is the answer.
+                        $hits[$id] = array('file' => $label, 'line' => $i + 1, 'strong' => '' === $q['selector']);
+                        if ('' === $q['selector']) { unset($open[$id]); continue 2; }
+                    }
+                }
+            }
+        }
+        return $hits;
+    }
+
+    /** Does the rule enclosing squashed line $i at $pos list $selector (squashed) — or, for markup, mention it? */
+    private static function selector_matches($sq, $i, $pos, $selector) {
+        $buf = substr($sq[$i], 0, $pos);
+        if (false !== strpos($sq[$i], $selector)) {
+            // Same line mentions it (minified rule or markup class="…").
+            $head = $buf;
+        } else {
+            $head = $buf;
+            for ($j = $i - 1; $j >= 0 && $i - $j <= 60 && false === strrpos($head, '{'); $j--) { $head = $sq[$j] . $head; }
+        }
+        $open = strrpos($head, '{');
+        if (false === $open) { return false !== strpos($sq[$i], $selector); }
+        $head = substr($head, 0, $open);
+        $cut = -1;
+        foreach (array('}', ';', '*/', '{') as $stop) {
+            $p = strrpos($head, $stop);
+            if (false !== $p) { $cut = max($cut, $p + strlen($stop) - 1); }
+        }
+        $list = explode(',', substr($head, $cut + 1));
+        return in_array($selector, $list, true) || false !== strpos($sq[$i], $selector);
+    }
+
+    private static function find_in_posts($post_id, $needles) {
+        $posts = array();
+        if ($post_id && ($p = get_post($post_id))) { $posts[] = $p; }
+        $posts = array_merge($posts, get_posts(array('post_type' => array('wp_block', 'wp_template', 'wp_template_part', 'wp_navigation'), 'post_status' => 'publish', 'numberposts' => 200)));
+        foreach ($posts as $p) {
+            $content = self::squash($p->post_content);
+            foreach ($needles as $needle) {
+                if (false !== strpos($content, $needle)) {
+                    return array('post' => (int) $p->ID, 'type' => $p->post_type, 'title' => wp_strip_all_tags(get_the_title($p)), 'edit' => (string) get_edit_post_link($p->ID, 'raw'), 'needle' => $needle);
+                }
+            }
+        }
+        return null;
     }
 
     public static function roles($base, $comp) {
