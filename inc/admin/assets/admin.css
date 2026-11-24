@@ -876,7 +876,7 @@ body.ajnanda-modal-open {
 }
 
 .ajnanda-crawler-summary {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     margin-top: 18px;
 }
 
@@ -935,6 +935,114 @@ body.ajnanda-modal-open {
 .ajnanda-admin-pill.is-pending {
     background: #f3f4f6;
     color: #4b5563;
+}
+
+.ajnanda-crawler-who {
+    margin-bottom: 16px;
+}
+
+.ajnanda-crawler-who h2,
+.ajnanda-crawler-viewbar h2 {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin: 0 0 8px;
+}
+
+.ajnanda-crawler-headlink {
+    font-size: 12px;
+    font-weight: 400;
+    text-decoration: none;
+}
+
+.ajnanda-crawler-table th,
+.ajnanda-crawler-table td,
+.ajnanda-crawler-sessions th,
+.ajnanda-crawler-sessions td {
+    padding: 6px 8px;
+    vertical-align: top;
+}
+
+.ajnanda-crawler-table small,
+.ajnanda-crawler-sessions small {
+    display: block;
+    color: #6b7280;
+}
+
+.ajnanda-crawler-table .num,
+.ajnanda-crawler-sessions .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.ajnanda-crawler-errors {
+    color: #b91c1c;
+    font-weight: 600;
+}
+
+.ajnanda-crawler-chip {
+    align-self: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: #eef2ff;
+    text-decoration: none;
+}
+
+.ajnanda-crawler-viewbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin: 18px 0 8px;
+}
+
+.ajnanda-crawler-viewbar h2 {
+    margin: 0;
+}
+
+.ajnanda-crawler-viewbar small {
+    color: #6b7280;
+}
+
+.ajnanda-crawler-toggle {
+    display: inline-flex;
+    border: 1px solid #dcdcde;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.ajnanda-crawler-toggle a {
+    padding: 3px 10px;
+    text-decoration: none;
+    background: #fff;
+}
+
+.ajnanda-crawler-toggle a.is-active {
+    background: #2271b1;
+    color: #fff;
+}
+
+.ajnanda-crawler-sessions .ajnanda-admin-pill {
+    margin: 0 2px 2px 0;
+}
+
+.ajnanda-crawler-paths details summary {
+    cursor: pointer;
+}
+
+.ajnanda-crawler-paths ol {
+    margin: 6px 0 0 18px;
+    max-height: 320px;
+    overflow: auto;
+}
+
+.ajnanda-crawler-paths li {
+    margin: 0 0 3px;
+}
+
+.ajnanda-crawler-aggregates .description {
+    margin-top: 8px;
 }
 
 .ajnanda-event-details {

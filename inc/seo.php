@@ -575,7 +575,7 @@ function ajnanda_seo_robots_txt($output, $public) {
         }
         $rules = '';
         foreach (AJNanda_Search_AI_Crawler_Registry::all() as $crawler) {
-            if (empty($crawler['robots_control']) || empty($crawler['token'])) {
+            if (empty($crawler['robots_control']) || empty($crawler['token']) || ! empty($crawler['log_only'])) {
                 continue;
             }
             $rules .= 'User-agent: ' . $crawler['token'] . "\n";

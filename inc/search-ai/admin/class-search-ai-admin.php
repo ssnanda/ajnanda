@@ -92,7 +92,9 @@ class AJNanda_Search_AI_Admin {
             $crawler_log = AJNanda_Search_AI_Crawler_Log_Store::table_exists() ? array(
                 'query' => AJNanda_Search_AI_Crawler_Log_Store::query($_GET),
                 'aggregates' => AJNanda_Search_AI_Crawler_Log_Store::aggregates($_GET),
-            ) : array('query' => array('rows' => array(), 'total' => 0, 'pages' => 1, 'filters' => AJNanda_Search_AI_Crawler_Log_Store::sanitize_filters($_GET)), 'aggregates' => array());
+                'crawlers' => AJNanda_Search_AI_Crawler_Log_Store::crawlers($_GET),
+                'sessions' => AJNanda_Search_AI_Crawler_Log_Store::sessions($_GET),
+            ) : array('query' => array('rows' => array(), 'total' => 0, 'pages' => 1, 'filters' => AJNanda_Search_AI_Crawler_Log_Store::sanitize_filters($_GET)), 'aggregates' => array(), 'crawlers' => array(), 'sessions' => array('rows' => array(), 'total' => 0, 'pages' => 1, 'truncated' => false, 'per_identity' => array()));
             if (! empty($_GET['event'])) { $crawler_event = AJNanda_Search_AI_Crawler_Log_Store::get(absint($_GET['event'])); }
         }
         $public_post_types = get_post_types(array('public' => true, 'show_ui' => true), 'objects');

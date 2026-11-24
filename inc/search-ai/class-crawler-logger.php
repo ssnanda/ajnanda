@@ -19,11 +19,33 @@ class AJNanda_Search_AI_Crawler_Logger {
                 return array('crawler_key' => $key, 'provider_key' => sanitize_key($crawler['provider']), 'category' => $crawler['category'], 'reported_identity' => $crawler['label'], 'known' => true);
             }
         }
-        if (preg_match('/(?:bot|crawler|spider)(?:[\s\/+;]|$)/i', $user_agent, $match)) {
-            $identity = preg_split('/[\s\/;]+/', $user_agent)[0] ?: $match[1];
-            return array('crawler_key' => 'unknown-crawler', 'provider_key' => 'unknown', 'category' => 'unknown', 'reported_identity' => sanitize_text_field(substr($identity, 0, 191)), 'known' => false);
+        if (preg_match('/(?:bot|crawler|spider)(?:[\s\/+;)]|$)/i', $user_agent)) {
+            return array('crawler_key' => 'unknown-crawler', 'provider_key' => 'unknown', 'category' => 'unknown', 'reported_identity' => sanitize_text_field(substr(self::unknown_identity($user_agent), 0, 191)), 'known' => false);
         }
         return null;
+    }
+
+    /**
+     * Name an unrecognized crawler by its own product token (e.g. "AgentTrustBot")
+     * instead of the generic leading "Mozilla/5.0" token most bots send.
+     */
+    public static function unknown_identity($user_agent) {
+        $user_agent = (string) $user_agent;
+        $without_urls = preg_replace('#\+?https?://\S+#i', ' ', $user_agent);
+        if (preg_match('/([A-Za-z][A-Za-z0-9._-]*(?:bot|crawler|spider)[A-Za-z0-9_-]*)/i', $without_urls, $m)) {
+            return $m[1];
+        }
+        foreach (preg_split('/[\s;()]+/', $user_agent) as $token) {
+            $name = explode('/', $token)[0];
+            if ($name && ! in_array(strtolower($name), array('mozilla', 'compatible', 'applewebkit', 'khtml,', 'like', 'gecko', 'chrome', 'safari'), true)) { return $name; }
+        }
+        return 'Unknown crawler';
+    }
+
+    /** Host of the info URL a crawler advertises in its User-Agent (e.g. "ahrefs.com"), or ''. */
+    public static function operator_host($user_agent) {
+        if (! preg_match('#https?://([^/\s;)]+)#i', (string) $user_agent, $m)) { return ''; }
+        return preg_replace('/^www\./i', '', strtolower($m[1]));
     }
 
     public static function capture() {
