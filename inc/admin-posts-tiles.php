@@ -26,7 +26,7 @@ function ajnanda_tiles_post_type() {
 }
 
 /**
- * Pages linked to a product in AJCore > Products > Catalog (its "Product page" column, incl.
+ * Pages linked to a product in AJ Core > Shop > Product pages (its "Product page" column, incl.
  * pages made by Create page). Empty when AJCore is not active.
  *
  * @return int[]
