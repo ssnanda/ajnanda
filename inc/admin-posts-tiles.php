@@ -25,9 +25,27 @@ function ajnanda_tiles_post_type() {
     return ($obj && $obj->show_ui) ? $screen->post_type : '';
 }
 
+/**
+ * Pages linked to a product in AJCore > Products > Catalog (its "Product page" column, incl.
+ * pages made by Create page). Empty when AJCore is not active.
+ *
+ * @return int[]
+ */
+function ajnanda_tiles_product_page_ids() {
+    if (!function_exists('ajcore_product_catalog_get')) {
+        return array();
+    }
+    $catalog = ajcore_product_catalog_get();
+    $pages   = isset($catalog['pages']) && is_array($catalog['pages']) ? $catalog['pages'] : array();
+    return array_values(array_unique(array_filter(array_map('absint', $pages))));
+}
+
 /** Query args for each audit filter. */
 function ajnanda_tiles_view_args($view) {
     switch ($view) {
+        case 'product_pages':
+            $ids = ajnanda_tiles_product_page_ids();
+            return array('post__in' => $ids ? $ids : array(0));
         case 'no_image':
             return array('meta_query' => array(array('key' => '_thumbnail_id', 'compare' => 'NOT EXISTS')));
         case 'no_seo':
@@ -56,6 +74,7 @@ function ajnanda_tiles_color($key) {
         'recent'   => '#0d9488',
         'no_image' => '#ea580c',
         'no_seo'   => '#ea580c',
+        'product_pages' => '#db2777',
     );
     return isset($colors[$key]) ? $colors[$key] : '#64748b';
 }
@@ -118,6 +137,10 @@ function ajnanda_tiles_render() {
         }
     }
     array_unshift($tiles, array(__('All', 'ajnanda'), $total, $base, !$any, 'all'));
+    if ('page' === $pt && ajnanda_tiles_product_page_ids()) {
+        // Product pages from AJCore's catalog, drafts included (bulk-created pages start as drafts).
+        $tiles[] = array(__('Product pages', 'ajnanda'), ajnanda_tiles_count($pt, ajnanda_tiles_view_args('product_pages'), array('publish', 'draft', 'pending', 'future', 'private')), add_query_arg('ajn_view', 'product_pages', $base), 'product_pages' === $cur['view'], 'product_pages');
+    }
     $mine = ajnanda_tiles_count($pt, array('author' => get_current_user_id()), array('publish', 'draft', 'pending', 'future', 'private'));
     $tiles[] = array(__('Mine', 'ajnanda'), $mine, add_query_arg('author', get_current_user_id(), $base), (string) get_current_user_id() === $cur['author'], 'mine');
     $tiles[] = array(__('Last 30 days', 'ajnanda'), ajnanda_tiles_count($pt, ajnanda_tiles_view_args('recent')), add_query_arg('ajn_view', 'recent', $base), 'recent' === $cur['view'], 'recent');
