@@ -5217,8 +5217,14 @@ function ajnanda_customizer_css() {
     $header_height_tablet = get_theme_mod('header_height_tablet', 'auto');
     $header_height_mobile = get_theme_mod('header_height_mobile', 'auto');
 
-    $hero_bg_1 = get_theme_mod('hero_bg_1', $theme_primary_color);
-    $hero_bg_2 = get_theme_mod('hero_bg_2', $theme_secondary_color);
+    // Hero gradient stops: only an explicitly saved color is printed. When unset, the
+    // token is left undefined so style.css's var(--ajn-hero-bg-1, var(--primary)) /
+    // var(--ajn-hero-bg-2, var(--secondary)) fallback resolves on the hero element itself
+    // and follows the active palette, including body-level .ajnanda-scheme-* preview
+    // classes. Printing the resolved primary/secondary hex here pinned the hero to the
+    // saved palette on :root, so Color Scheme previews never reached it.
+    $hero_bg_1 = trim((string) get_theme_mod('hero_bg_1', ''));
+    $hero_bg_2 = trim((string) get_theme_mod('hero_bg_2', ''));
     $hero_heading_color = get_theme_mod('hero_heading_color', '#ffffff');
     $hero_subtitle_color = get_theme_mod('hero_subtitle_color', 'rgba(255,255,255,0.94)');
     $hero_badge_bg = get_theme_mod('hero_badge_bg', 'rgba(255,255,255,0.16)');
@@ -5343,8 +5349,12 @@ function ajnanda_customizer_css() {
             --ajnanda-header-height-tablet: <?php echo esc_attr($header_height_tablet); ?>;
             --ajnanda-header-height-mobile: <?php echo esc_attr($header_height_mobile); ?>;
 
+<?php if ('' !== $hero_bg_1) : ?>
             --ajn-hero-bg-1: <?php echo esc_attr($hero_bg_1); ?>;
+<?php endif; ?>
+<?php if ('' !== $hero_bg_2) : ?>
             --ajn-hero-bg-2: <?php echo esc_attr($hero_bg_2); ?>;
+<?php endif; ?>
             --ajn-hero-heading-color: <?php echo esc_attr($hero_heading_color); ?>;
             --ajn-hero-subtitle-color: <?php echo esc_attr($hero_subtitle_color); ?>;
             --ajn-hero-badge-bg: <?php echo esc_attr($hero_badge_bg); ?>;
